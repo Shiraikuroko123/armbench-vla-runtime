@@ -1,0 +1,51 @@
+{
+  "checkpoint_identity_verified": false,
+  "fault_delay_ms": 250.0,
+  "fault_injected_count": 0,
+  "fault_mode": "none",
+  "fault_request_index": 0,
+  "full_observation_recording": true,
+  "inference_timeout_s": 0.1,
+  "policy_provenance": "scripted_non_learned_loopback",
+  "request_count": 2,
+  "requests": [
+    {
+      "exterior_image_sha256": "74be202983249d4676286ca28436d0423a4ff9a1f277bec0b5e037768444ccbb",
+      "gripper_position": 0.9999999260599012,
+      "injected_fault": "none",
+      "joint_position": [
+        -6.645505167103729e-12,
+        -0.7499999999998178,
+        -8.430052443761439e-12,
+        -2.2499999999996256,
+        -1.5328964921158848e-11,
+        1.5500000000003826,
+        0.7499999999997874
+      ],
+      "prompt": "move the gripper to the goal without touching the red obstacle",
+      "request_index": 0,
+      "request_payload_sha256": "b67b5dbcb6105695b69e84626d30655d113344e42ece1c1da89f7f3c270f7c52",
+      "server_outcome": "valid_action_chunk",
+      "wrist_image_sha256": "4ac8fa3eb7d0f3b48aa92a7d5fc6505279028f9c3b570dab9dac0c3c0cf5c617"
+    },
+    {
+      "exterior_image_sha256": "c047aae80dc5a82d6039c850740378a122249bd372d292a868a39b0f3c9ada39",
+      "gripper_position": 0.9999969226932859,
+      "injected_fault": "none",
+      "joint_position": [
+        -0.0014215829042522718,
+        -0.7454907691542905,
+        -0.00022292339721504992,
+        -2.2430656302612433,
+        -0.0026012860604163464,
+        1.5528379306637143,
+        0.7380220546297974
+      ],
+      "prompt": "move the gripper to the goal without touching the red obstacle",
+      "request_index": 1,
+      "request_payload_sha256": "f08c32767625fa205c0fdec700b50ed5211da37dd17dc4df16e7ae721edf7a60",
+      "server_outcome": "valid_action_chunk",
+      "wrist_image_sha256": "12c7686e64e3be811c3f7378aa786b617f9f2842699dec39b0b54950d2f7904b"
+    }
+  ]
+}

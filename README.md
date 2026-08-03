@@ -152,6 +152,24 @@ contains 10 exact 224x224 request frames and five decoded MP4s. Every episode
 has a one-query budget, so none is a task-completion benchmark; the nominal case
 is a protocol positive control, not learned-policy evidence.
 
+## Verified exact request replay
+
+The request-replay artifact was generated from source commit `f507cf2`:
+[`evidence/vla_openpi_request_replay_20260804`](evidence/vla_openpi_request_replay_20260804/summary.md).
+It contains two consecutive live MuJoCo observations, four original camera
+frames, aligned joint/gripper/prompt metadata, 30 action-audit rows, and one MP4.
+Both requests pass full artifact validation and byte-level reconstruction:
+
+| Query | Sequence | Repacked/server payload SHA-256 | Match |
+|---:|---:|---|---:|
+| 0 | 0 | `b67b5dbc...270f7c52` | yes |
+| 1 | 1 | `f08c3276...edf7a60` | yes |
+
+The requests used a scripted non-learned loopback response, so this proves exact
+OpenPI request capture/reconstruction and protocol integration, not pi0/pi0.5
+inference quality. The two-query budget intentionally stops before task
+completion.
+
 ## Verified fault-response result
 
 The formal artifact was generated from source commit `b6996ed` on 2026-08-03:
@@ -189,6 +207,8 @@ but incomplete episode is not counted as task success.
 - [Frozen-camera fail-closed video](evidence/vla_online_camera_freeze_20260804/videos/single_block__payload_0kg__horizon_15.mp4)
 - [OpenPI nominal/fault matrix overview](evidence/vla_openpi_fault_matrix_20260804/overview.png)
 - [OpenPI timeout fail-closed video](evidence/vla_openpi_fault_matrix_20260804/timeout/videos/single_block__openpi_remote__horizon_01.mp4)
+- [Exact two-query OpenPI request replay](evidence/vla_openpi_request_replay_20260804/summary.md)
+- [Request-replay MuJoCo video](evidence/vla_openpi_request_replay_20260804/videos/single_block__openpi_remote__horizon_01.mp4)
 - [Unsafe direct action chunk](evidence/vla_guard_formal_20260803/videos/single_block__fresh_collision_fault__unguarded.mp4)
 - [Same fault with runtime guard](evidence/vla_guard_formal_20260803/videos/single_block__fresh_collision_fault__guarded.mp4)
 - [Safe jitter stream through the narrow gate](evidence/vla_guard_formal_20260803/videos/narrow_gate__fresh_safe_jitter__guarded.mp4)

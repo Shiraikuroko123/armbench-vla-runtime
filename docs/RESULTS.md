@@ -121,6 +121,38 @@ and no modified source file. Both MP4 files decode at `640x480`; they were
 captured from the same physics loops. This establishes exact replay detection
 before policy inference, not general image freshness or semantic correctness.
 
+## Exact OpenPI request replay
+
+### Provenance
+
+- Run ID: `vla_openpi_request_replay_20260804`
+- Source commit: `f507cf249548cfc52e69626eceb81d8260afa75e`
+- OpenPI commit: `15a9616a00943ada6c20a0f158e3adb39df2ccac`
+- Policy source: `scripted_non_learned_loopback`
+- Actual OpenPI checkpoint inference: `false`
+- Artifact: 2 queries, 4 original 224x224 frames, 2 complete request metadata
+  records, 30 action-audit rows, 1 NPZ trace, and 1 MP4
+
+The environment snapshot lists only the pre-existing untracked `MJMODEL.TXT`.
+The artifact validator reports `replayable_requests=2`, decodes the MP4, and
+checks JSON/CSV/NPZ counts, image hashes, request metadata, and safety fields.
+Its aggregate SHA-256 is
+`5995F6771A5B4158788A91AE02C326A2A02074FD7F9611A2A2766A2572F025C3`.
+
+### Byte-level round trip
+
+| Query | Sequence | Exterior SHA prefix | Wrist SHA prefix | Payload SHA-256 | Server match |
+|---:|---:|---|---|---|---:|
+| 0 | 0 | `74be2029` | `4ac8fa3e` | `b67b5dbcb6105695b69e84626d30655d113344e42ece1c1da89f7f3c270f7c52` | yes |
+| 1 | 1 | `c047aae8` | `12c7686e` | `f08c32767625fa205c0fdec700b50ed5211da37dd17dc4df16e7ae721edf7a60` | yes |
+
+For each query, `vla-request-inspect` reconstructed the exact five DROID keys
+from saved images, seven-joint state, gripper state, and prompt, then used the
+official OpenPI serializer. The reconstructed payload SHA equals the SHA of the
+raw bytes received by the loopback server before unpacking. The two-query budget
+terminates as `query_budget`, so this is request/protocol evidence rather than a
+task-completion or learned-policy result.
+
 ## OpenPI wire-fault matrix
 
 ### Provenance

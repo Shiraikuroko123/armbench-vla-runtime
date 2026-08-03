@@ -1,0 +1,1 @@
+remote_openpi server=127.0.0.1:61190 scenario=single_block queries=2 validated=2 termination=query_budget task=False safe=True

@@ -171,6 +171,11 @@ align. In a loopback run, the strongest check is equality between the SHA-256 of
 the reconstructed official MessagePack payload and the raw payload received by
 the server.
 
+The tracked two-query replay artifact demonstrates that check twice with
+different live camera/state observations. Both payload hashes match exactly;
+the artifact still uses a scripted non-learned reply and must not be described
+as a pi0/pi0.5 rollout.
+
 The tracked matched evidence is concrete: nominal execution produced 16 unique
 hashes per camera and completed, while replaying both cycle-0 frames at cycle 1
 produced one observation rejection and only one policy call. The rejection run
