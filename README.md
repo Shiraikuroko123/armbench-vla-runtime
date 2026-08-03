@@ -246,7 +246,7 @@ Set-Location $ArmbenchProject
 & $ArmbenchPython -m armbench vla-guard-run --quick --run-id my_vla_smoke
 & $ArmbenchPython -m armbench vla-guard-run --run-id my_vla_formal
 & $ArmbenchPython -m armbench vla-online-run --quick --videos `
-  --run-id my_online_smoke
+  --save-observations --run-id my_online_smoke
 & $ArmbenchPython -m armbench vla-online-run --quick `
   --run-id my_state_jump_smoke `
   --state-jump-joint 1 --state-jump-rad 0.08
@@ -302,7 +302,7 @@ Before renting a GPU, exercise the real remote-policy boundary locally:
 ```powershell
 & $ArmbenchPython -m armbench vla-loopback-run `
   --scenario single_block --horizon 5 --max-policy-queries 3 `
-  --video `
+  --video --save-observations `
   --output-directory 'results\openpi_loopback_001'
 ```
 
@@ -314,6 +314,13 @@ records request hashes and states. The artifact is labeled
 `scripted_non_learned_loopback`, `remote_policy_response_validated=true`, and
 `checkpoint_identity_verified=false`; it tests integration and breakpoints, not
 pi0/pi0.5 competence.
+
+`--save-observations` stores both original 224x224 `uint8` policy images for
+every query in the episode NPZ. This makes exact input inspection and offline
+replay possible; without it, the lightweight default retains only full-frame
+hashes, deltas, 16x16 thumbnails, and first/last PNGs. Budget approximately
+301 KiB uncompressed per query for two RGB images before NPZ compression, so
+enable it selectively for debug/evidence runs rather than every large sweep.
 
 Inject a deterministic response or transport failure through the same socket
 path:
@@ -347,9 +354,10 @@ schema-v5 online artifacts. It cross-checks episode identities and counts across
 JSON, CSV, and NPZ files; verifies action, query, safety, camera-hash, thumbnail,
 and saved-image fields; and reports the SHA-256 of `aggregate.json`. Add
 `--decode-videos` to decode the first frame of every referenced MP4. A successful
-result ends with `"valid": true`; any missing, malformed, or inconsistent field
-exits with an error. This detects accidental corruption and incomplete evidence,
-not intentional tampering or physical safety.
+result ends with `"valid": true`; `full_observation_frames` reports how many
+original camera inputs were present and rehashed. Any missing, malformed, or
+inconsistent field exits with an error. This detects accidental corruption and
+incomplete evidence, not intentional tampering or physical safety.
 
 ## Real OpenPI probe and closed loop
 

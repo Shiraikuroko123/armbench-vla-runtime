@@ -88,6 +88,7 @@
         "5",
         "--max-policy-queries",
         "3",
+        "--save-observations",
         "--video",
         "--output-directory",
         "results/${input:loopbackRunId}"
@@ -131,6 +132,7 @@
         "250",
         "--inference-timeout-s",
         "0.1",
+        "--save-observations",
         "--output-directory",
         "results/${input:loopbackFaultRunId}"
       ],

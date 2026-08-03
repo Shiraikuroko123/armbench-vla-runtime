@@ -112,6 +112,14 @@ the mean absolute pixel delta from the preceding query. The NPZ stores matching
 16x16 RGB thumbnail sequences, preserving low-cost visual audit evidence without
 retaining every full 224x224 frame.
 
+Full query images are opt-in because a two-camera 224x224 RGB pair is about
+301 KiB before compression. With `--save-observations`, every query stores both
+original `uint8` frames in the NPZ alongside their CSV/NPZ hashes. The validator
+requires complete dual-camera coverage, exact `(queries, 224, 224, 3)` shapes,
+and a SHA-256 match for every frame. The lightweight default retains hashes,
+frame deltas, 16x16 thumbnails, and first/last full PNGs but cannot exactly
+replay every policy input.
+
 `vla-openpi-run` replaces the reference policy with the bounded transport built
 on official OpenPI serialization while retaining the same live physics loop. It
 records server metadata and separates attempted remote calls from validated
@@ -322,9 +330,10 @@ thumbnail counts, and first/last saved-image hashes; and can decode every
 referenced MP4 first frame. It reports the byte-level SHA-256 of
 `aggregate.json`. When the additive failure-audit arrays are present, all three
 must exist and exactly match the per-chunk CSV. Older schema-v5 evidence without
-these optional arrays remains valid. This is a reproducibility and corruption
-check, not a signed chain of custody, model-identity attestation, or proof that
-the safety metrics generalize beyond the recorded episodes.
+these optional arrays remains valid. Optional full-observation arrays follow the
+same additive rule and are rehashed frame by frame. This is a reproducibility
+and corruption check, not a signed chain of custody, model-identity attestation,
+or proof that the safety metrics generalize beyond the recorded episodes.
 
 Wall-clock planning latency varies with host load. Fixed seeds preserve sampled
 sequences, but a search near the 2 s boundary can change status on a different

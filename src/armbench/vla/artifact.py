@@ -26,6 +26,7 @@ class ArtifactValidationResult:
     observation_cycles: int
     policy_queries: int
     action_rows: int
+    full_observation_frames: int
     videos_decoded: int
     aggregate_sha256: str
     checks: tuple[str, ...]
@@ -38,6 +39,7 @@ class ArtifactValidationResult:
             "observation_cycles": self.observation_cycles,
             "policy_queries": self.policy_queries,
             "action_rows": self.action_rows,
+            "full_observation_frames": self.full_observation_frames,
             "videos_decoded": self.videos_decoded,
             "aggregate_sha256": self.aggregate_sha256,
             "checks": list(self.checks),
@@ -97,6 +99,14 @@ def _image_hash(path: Path) -> str:
     except Exception as error:
         raise ArtifactValidationError(f"image cannot be decoded: {path}") from error
     _require(image.shape == (224, 224, 3), f"unexpected image shape: {path}")
+    return hashlib.sha256(image.tobytes(order="C")).hexdigest()
+
+
+def _array_image_hash(image: np.ndarray, label: str) -> str:
+    _require(
+        image.shape == (224, 224, 3) and image.dtype == np.uint8,
+        f"unexpected recorded image shape/dtype: {label}",
+    )
     return hashlib.sha256(image.tobytes(order="C")).hexdigest()
 
 
@@ -165,6 +175,7 @@ def validate_online_artifact(
     total_policy_queries = 0
     videos_decoded = 0
     failure_audit_traces = 0
+    full_observation_frames = 0
     for row, episode_key in zip(rows, row_keys, strict=True):
         chunks = [item for item in chunk_rows if _key(item) == episode_key]
         actions = [item for item in action_rows if _key(item) == episode_key]
@@ -245,6 +256,25 @@ def validate_online_artifact(
                     if present_failure_fields
                     else None
                 )
+                full_image_fields = ("exterior_images", "wrist_images")
+                present_full_image_fields = {
+                    field
+                    for field in full_image_fields
+                    if field in trace.files
+                }
+                _require(
+                    not present_full_image_fields
+                    or present_full_image_fields == set(full_image_fields),
+                    f"incomplete full observation trace for {episode_key}",
+                )
+                full_image_values = (
+                    {
+                        field: np.asarray(trace[field])
+                        for field in full_image_fields
+                    }
+                    if present_full_image_fields
+                    else None
+                )
         except (OSError, KeyError, ValueError) as error:
             raise ArtifactValidationError(
                 f"invalid NPZ trace for {episode_key}"
@@ -272,6 +302,46 @@ def validate_online_artifact(
             wrist_hashes.tolist() == csv_wrist_hashes,
             f"wrist hash trace mismatch for {episode_key}",
         )
+        full_images_declared = _bool(
+            row.get("full_observations_recorded", False)
+        )
+        _require(
+            full_images_declared == (full_image_values is not None),
+            f"full observation declaration mismatch for {episode_key}",
+        )
+        if full_image_values is not None:
+            exterior_images = full_image_values["exterior_images"]
+            wrist_images = full_image_values["wrist_images"]
+            _require(
+                exterior_images.shape == (cycles, 224, 224, 3)
+                and wrist_images.shape == (cycles, 224, 224, 3)
+                and exterior_images.dtype == np.uint8
+                and wrist_images.dtype == np.uint8,
+                f"full observation array shape/dtype mismatch for {episode_key}",
+            )
+            _require(
+                [
+                    _array_image_hash(image, f"{episode_key}:exterior:{index}")
+                    for index, image in enumerate(exterior_images)
+                ]
+                == csv_exterior_hashes,
+                f"full exterior observation hashes mismatch for {episode_key}",
+            )
+            _require(
+                [
+                    _array_image_hash(image, f"{episode_key}:wrist:{index}")
+                    for index, image in enumerate(wrist_images)
+                ]
+                == csv_wrist_hashes,
+                f"full wrist observation hashes mismatch for {episode_key}",
+            )
+            expected_full_frames = cycles * 2
+            _require(
+                int(row.get("full_observation_frame_count", -1))
+                == expected_full_frames,
+                f"full observation frame count mismatch for {episode_key}",
+            )
+            full_observation_frames += expected_full_frames
         if failure_values is not None:
             for field, csv_field in (
                 ("failure_stages", "failure_stage"),
@@ -355,6 +425,8 @@ def validate_online_artifact(
     )
     if failure_audit_traces == len(rows):
         checks += ("failure_audit_aligned",)
+    if full_observation_frames:
+        checks += ("full_observation_frames_hashed",)
     checks += (("videos_decoded",) if decode_videos else ())
     return ArtifactValidationResult(
         directory=str(root),
@@ -363,6 +435,7 @@ def validate_online_artifact(
         observation_cycles=total_cycles,
         policy_queries=total_policy_queries,
         action_rows=len(action_rows),
+        full_observation_frames=full_observation_frames,
         videos_decoded=videos_decoded,
         aggregate_sha256=aggregate_sha256,
         checks=checks,

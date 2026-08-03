@@ -601,6 +601,7 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
         tmp_path / "results",
         run_id="online_test",
         make_videos=True,
+        record_full_observations=True,
     )
 
     rows = json.loads((run_directory / "aggregate.json").read_text("utf-8"))
@@ -612,6 +613,8 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     assert row["online_physics_feedback"] is True
     assert row["artifact_schema_version"] == 5
     assert row["camera_recapture_per_query"] is True
+    assert row["full_observations_recorded"] is True
+    assert row["full_observation_frame_count"] == row["policy_queries"] * 2
     assert row["remote_policy_response_validated"] is False
     assert row["checkpoint_identity_verified"] is False
     assert row["policy_source"] == "scripted_non_learned_reference"
@@ -631,6 +634,7 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
         "pi05_droid"
     )
     assert environment["vla_online"]["artifact_schema_version"] == 5
+    assert environment["vla_online"]["full_observation_recording"] is True
     assert environment["vla_online"]["camera_observation_audit"] == {
         "frame_delta": "mean_abs_uint8",
         "full_frame_hash": "sha256",
@@ -665,6 +669,20 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
             16,
             3,
         )
+        assert trace["exterior_images"].shape == (
+            query_count,
+            224,
+            224,
+            3,
+        )
+        assert trace["wrist_images"].shape == (
+            query_count,
+            224,
+            224,
+            3,
+        )
+        assert trace["exterior_images"].dtype == np.uint8
+        assert trace["wrist_images"].dtype == np.uint8
         assert np.isnan(trace["exterior_frame_delta_mean_abs"][0])
         first_exterior = imageio.imread(run_directory / row["external_image"])
         assert str(trace["exterior_image_sha256"][0]) == hashlib.sha256(
@@ -698,8 +716,24 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     assert validation.episodes == 1
     assert validation.observation_cycles == row["observation_cycles"]
     assert validation.policy_queries == row["policy_queries"]
+    assert validation.full_observation_frames == row["policy_queries"] * 2
     assert validation.videos_decoded == 1
     assert len(validation.aggregate_sha256) == 64
+
+    trace_path = run_directory / row["trace"]
+    with np.load(trace_path, allow_pickle=False) as trace:
+        trace_arrays = {key: trace[key] for key in trace.files}
+    trace_arrays["exterior_images"] = trace_arrays[
+        "exterior_images"
+    ].copy()
+    trace_arrays["exterior_images"][0, 0, 0, 0] ^= np.uint8(1)
+    np.savez_compressed(trace_path, **trace_arrays)
+    with pytest.raises(
+        ArtifactValidationError, match="full exterior observation hashes"
+    ):
+        validate_online_artifact(run_directory)
+    trace_arrays["exterior_images"][0, 0, 0, 0] ^= np.uint8(1)
+    np.savez_compressed(trace_path, **trace_arrays)
 
     chunk_rows[0]["exterior_image_sha256"] = "0" * 64
     with (run_directory / "per_chunk.csv").open(
@@ -1003,6 +1037,7 @@ def test_loopback_wire_faults_fail_closed_with_auditable_artifact(
         fault_request_index=0,
         fault_delay_ms=120.0,
         inference_timeout_s=0.05,
+        record_full_observations=True,
     )
 
     row = json.loads(
@@ -1019,6 +1054,8 @@ def test_loopback_wire_faults_fail_closed_with_auditable_artifact(
     assert row["obstacle_contact_steps"] == 0
     assert row["self_contact_steps"] == 0
     assert row["joint_limit_violation_steps"] == 0
+    assert row["full_observations_recorded"] is True
+    assert row["full_observation_frame_count"] == 2
 
     with (output_directory / "per_chunk.csv").open(
         encoding="utf-8", newline=""
@@ -1050,7 +1087,10 @@ def test_loopback_wire_faults_fail_closed_with_auditable_artifact(
     assert validation.observation_cycles == 1
     assert validation.policy_queries == 1
     assert validation.action_rows == 15
+    assert validation.full_observation_frames == 2
     with np.load(output_directory / row["trace"]) as trace:
         assert trace["failure_stages"].tolist() == ["policy_inference"]
         assert trace["failure_types"].tolist() == [failure_type]
         assert trace["failure_messages"].tolist()[0]
+        assert trace["exterior_images"].shape == (1, 224, 224, 3)
+        assert trace["wrist_images"].shape == (1, 224, 224, 3)

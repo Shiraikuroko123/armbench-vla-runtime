@@ -237,6 +237,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="record live MuJoCo MP4 for every selected online episode",
     )
+    vla_online.add_argument(
+        "--save-observations",
+        action="store_true",
+        help="store both full 224x224 policy images for every query",
+    )
 
     vla_openpi_run = subparsers.add_parser(
         "vla-openpi-run",
@@ -270,6 +275,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--video",
         action="store_true",
         help="record the live MuJoCo episode as MP4",
+    )
+    vla_openpi_run.add_argument(
+        "--save-observations",
+        action="store_true",
+        help="store both full 224x224 policy images for every query",
     )
 
     vla_loopback = subparsers.add_parser(
@@ -321,6 +331,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--video",
         action="store_true",
         help="record the live MuJoCo episode as MP4",
+    )
+    vla_loopback.add_argument(
+        "--save-observations",
+        action="store_true",
+        help="store both full 224x224 policy images for every request",
     )
 
     vla_probe = subparsers.add_parser(
@@ -448,6 +463,7 @@ def main(arguments: list[str] | None = None) -> int:
             camera_freeze_query=args.freeze_camera_query,
             camera_freeze_target=args.freeze_camera,
             make_videos=args.videos,
+            record_full_observations=args.save_observations,
         )
         print(f"results: {output.resolve()}")
         return 0
@@ -470,6 +486,7 @@ def main(arguments: list[str] | None = None) -> int:
             connect_timeout_s=args.connect_timeout_s,
             inference_timeout_s=args.inference_timeout_s,
             make_video=args.video,
+            record_full_observations=args.save_observations,
         )
         print(f"results: {output.resolve()}")
         return 0
@@ -491,6 +508,7 @@ def main(arguments: list[str] | None = None) -> int:
             fault_request_index=args.fault_query,
             fault_delay_ms=args.fault_delay_ms,
             inference_timeout_s=args.inference_timeout_s,
+            record_full_observations=args.save_observations,
         )
         print(f"results: {output.resolve()}")
         return 0

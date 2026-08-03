@@ -281,6 +281,7 @@ def execute_openpi_loopback_run(
     fault_request_index: int = 0,
     fault_delay_ms: float = 250.0,
     inference_timeout_s: float = 0.1,
+    record_full_observations: bool = False,
 ) -> Path:
     """Exercise the complete remote-policy loop without a learned checkpoint."""
 
@@ -333,6 +334,7 @@ def execute_openpi_loopback_run(
             inference_timeout_s=inference_timeout_s,
             make_video=make_video,
             policy_provenance=LOOPBACK_POLICY_PROVENANCE,
+            record_full_observations=record_full_observations,
         )
         request_audit = server.request_audit
     _write_json(
@@ -344,6 +346,7 @@ def execute_openpi_loopback_run(
             "fault_request_index": fault_request_index,
             "fault_delay_ms": fault_delay_ms,
             "inference_timeout_s": inference_timeout_s,
+            "full_observation_recording": bool(record_full_observations),
             "fault_injected_count": sum(
                 item["injected_fault"] != "none" for item in request_audit
             ),

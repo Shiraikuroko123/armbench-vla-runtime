@@ -266,6 +266,8 @@ class OnlineChunkRecord:
     wrist_frame_delta_mean_abs: float | None
     exterior_thumbnail: UInt8Array
     wrist_thumbnail: UInt8Array
+    exterior_image: UInt8Array | None
+    wrist_image: UInt8Array | None
     policy_latency_ms: float
     client_inference_latency_ms: float
     validated_policy_response: bool
@@ -573,6 +575,7 @@ def run_online_episode(
     video_path: Path | None = None,
     video_fps: int = 30,
     render_size: tuple[int, int] = (640, 480),
+    record_full_observations: bool = False,
 ) -> OnlineEpisodeResult:
     """Execute action prefixes and recapture actual state/images every query."""
 
@@ -1037,6 +1040,16 @@ def run_online_episode(
                     ),
                     wrist_thumbnail=_image_thumbnail(
                         observation.wrist_image
+                    ),
+                    exterior_image=(
+                        observation.exterior_image.copy()
+                        if record_full_observations
+                        else None
+                    ),
+                    wrist_image=(
+                        observation.wrist_image.copy()
+                        if record_full_observations
+                        else None
                     ),
                     policy_latency_ms=policy_latency_ms,
                     client_inference_latency_ms=client_inference_latency_ms,

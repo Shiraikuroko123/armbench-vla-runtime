@@ -55,6 +55,8 @@ performance or certified safety.
   OpenPI online episodes.
 - Per-case, per-chunk, and per-action audit trails with raw and executed actions,
   reasons, scales, predicted/actual states, images, plots, and videos.
+- Opt-in exact dual-camera query recording for offline input replay, with every
+  224x224 frame rehashed against the per-chunk wire audit.
 - Client-visible failure stage, exception type, and bounded message mirrored
   between per-chunk CSV and NPZ traces for remote-server diagnosis.
 - A schema-v5 artifact validator that cross-checks JSON/CSV/NPZ counts, camera
@@ -147,6 +149,11 @@ changed by more than 0.005 rad while either image is byte-identical, it rejects
 the observation before policy inference and latches hold. A deterministic frozen
 camera test therefore has two observation cycles but only one policy query. This
 detects exact replay, not every possible stale or corrupted image.
+
+For selected debug/evidence runs, `--save-observations` also stores both original
+224x224 frames for every query. The validator recomputes all hashes, so these
+runs support exact input inspection rather than only freshness evidence. It is
+opt-in because full sweeps can otherwise spend hundreds of megabytes on images.
 
 The tracked matched evidence is concrete: nominal execution produced 16 unique
 hashes per camera and completed, while replaying both cycle-0 frames at cycle 1

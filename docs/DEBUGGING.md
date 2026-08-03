@@ -85,7 +85,7 @@ For the live-state horizon comparison, run:
 
 ```powershell
 & $ArmbenchPython -m armbench vla-online-run --quick --videos `
-  --run-id debug_online_01
+  --save-observations --run-id debug_online_01
 ```
 
 The quick run executes horizons 1 and 15. Verify that `policy_queries` is much
@@ -94,6 +94,10 @@ higher for horizon 1, while both rows have `online_physics_feedback=True` and
 actual observation joint state and the post-execution state.
 The matching `videos/*.mp4` is recorded from the same live MuJoCo state; it is
 not a kinematic reconstruction from the saved NPZ.
+With `--save-observations`, the NPZ additionally contains
+`exterior_images` and `wrist_images` with shape `(queries, 224, 224, 3)` and
+`uint8` dtype. Rehash any indexed frame and compare it with the same
+`per_chunk.csv` row before debugging policy behavior.
 Use online `per_action.csv` to distinguish the checked 15-action tail from the
 prefix that was actually sent to physics. Filter `executed=True`, then inspect
 `raw_action`, `guarded_action`, `reason`, `scale`, `q_before`, and `q_after`.
@@ -149,9 +153,12 @@ Validate the completed schema-v5 artifact before reading individual metrics:
 The command is read-only. It aligns episode keys and row counts across
 `aggregate.json`, `per_episode.csv`, `per_chunk.csv`, `per_action.csv`, and each
 NPZ trace; recomputes the first/last camera PNG hashes; and optionally decodes
-each MP4. Put a breakpoint in `vla/artifact.py: validate_online_artifact` when a
-run is complete but one evidence file disagrees. `valid=true` establishes
-internal artifact consistency, not checkpoint identity or certified safety.
+each MP4. When full observations are present, it rehashes every 224x224 frame
+and rejects missing cameras, partial query coverage, wrong dtype/shape, or a
+frame-count mismatch. Put a breakpoint in
+`vla/artifact.py: validate_online_artifact` when a run is complete but one
+evidence file disagrees. `valid=true` establishes internal artifact consistency,
+not checkpoint identity or certified safety.
 
 ## 4. Debug the observation boundary
 
@@ -178,7 +185,7 @@ First run the complete wire path without a GPU:
 ```powershell
 & $ArmbenchPython -m armbench vla-loopback-run `
   --scenario single_block --horizon 5 --max-policy-queries 3 `
-  --video `
+  --video --save-observations `
   --output-directory 'results\openpi_loopback_debug_01'
 ```
 

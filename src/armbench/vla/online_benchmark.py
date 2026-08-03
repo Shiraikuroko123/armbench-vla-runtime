@@ -253,6 +253,23 @@ def _write_episode_artifacts(
     guarded_action_chunks = np.asarray(
         [record.guarded_actions for record in result.chunks]
     )
+    full_observation_pairs = [
+        record.exterior_image is not None and record.wrist_image is not None
+        for record in result.chunks
+    ]
+    partial_observation_pairs = [
+        (record.exterior_image is None) != (record.wrist_image is None)
+        for record in result.chunks
+    ]
+    if any(partial_observation_pairs) or (
+        any(full_observation_pairs) and not all(full_observation_pairs)
+    ):
+        raise ValueError(
+            "full online observations must be recorded for every camera/query"
+        )
+    full_observations_recorded = bool(full_observation_pairs) and all(
+        full_observation_pairs
+    )
     trace_name = f"{case_name}.npz"
     np.savez_compressed(
         run_directory / trace_name,
@@ -360,10 +377,26 @@ def _write_episode_artifacts(
         predicted_position_chunks=np.asarray(
             [record.predicted_positions for record in result.chunks]
         ),
+        **(
+            {
+                "exterior_images": np.asarray(
+                    [record.exterior_image for record in result.chunks]
+                ),
+                "wrist_images": np.asarray(
+                    [record.wrist_image for record in result.chunks]
+                ),
+            }
+            if full_observations_recorded
+            else {}
+        ),
     )
     row = {
         **result.metrics(),
         **extra_metrics,
+        "full_observations_recorded": full_observations_recorded,
+        "full_observation_frame_count": (
+            len(result.chunks) * 2 if full_observations_recorded else 0
+        ),
         "video_path": (
             str(
                 Path(result.video_path).relative_to(
@@ -452,6 +485,7 @@ def execute_vla_online_benchmark(
     camera_freeze_query: int | None = None,
     camera_freeze_target: str | None = None,
     make_videos: bool = False,
+    record_full_observations: bool = False,
 ) -> Path:
     config = load_vla_config(config_path)
     online = _online_config(config)
@@ -541,6 +575,7 @@ def execute_vla_online_benchmark(
         "camera_freeze_query": camera_freeze_query,
         "camera_freeze_target": camera_freeze_target,
         "make_videos": bool(make_videos),
+        "record_full_observations": bool(record_full_observations),
     }
     metadata = environment_metadata(Path(__file__).resolve().parents[3])
     metadata["packages"].update(
@@ -567,6 +602,7 @@ def execute_vla_online_benchmark(
         "synthetic_state_jump": fault_config.state_jump_enabled,
         "synthetic_camera_freeze": fault_config.camera_freeze_enabled,
         "online_video_recording": bool(make_videos),
+        "full_observation_recording": bool(record_full_observations),
         "openpi_contract": dict(config["openpi_contract"]),
     }
     _write_json(run_directory / "config.json", config_snapshot)
@@ -651,6 +687,7 @@ def execute_vla_online_benchmark(
                         prompt=str(dict(config["prompts"])[scenario_name]),
                         video_path=video_path,
                         video_fps=int(dict(config["execution"])["video_fps"]),
+                        record_full_observations=record_full_observations,
                     )
                     (
                         row,
@@ -813,6 +850,7 @@ def execute_openpi_online_run(
     inference_timeout_s: float = 1.0,
     make_video: bool = False,
     policy_provenance: str = "remote_server_unverified",
+    record_full_observations: bool = False,
 ) -> Path:
     """Run bounded remote OpenPI inference in the live MuJoCo feedback loop."""
 
@@ -888,6 +926,7 @@ def execute_openpi_online_run(
                 else None
             ),
             video_fps=int(dict(config["execution"])["video_fps"]),
+            record_full_observations=record_full_observations,
         )
 
     validated_remote_chunks = sum(
@@ -910,6 +949,7 @@ def execute_openpi_online_run(
         "inference_timeout_s": inference_timeout_s,
         "api_key_configured": api_key is not None,
         "make_video": bool(make_video),
+        "record_full_observations": bool(record_full_observations),
         "policy_provenance": policy_provenance,
     }
     metadata = environment_metadata(Path(__file__).resolve().parents[3])
@@ -941,6 +981,7 @@ def execute_openpi_online_run(
         "openpi_commit": OPENPI_COMMIT,
         "openpi_contract": dict(config["openpi_contract"]),
         "online_video_recording": bool(make_video),
+        "full_observation_recording": bool(record_full_observations),
     }
     _write_json(output_directory / "config.json", config_snapshot)
     _write_json(output_directory / "environment.json", metadata)
