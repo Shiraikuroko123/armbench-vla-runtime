@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from time import perf_counter
 
@@ -10,7 +11,7 @@ from numpy.typing import ArrayLike, NDArray
 
 from armbench.vla.guard import ActionChunkGuard, GuardResult
 from armbench.vla.policy import ActionChunkPolicy
-from armbench.vla.types import DROID_ACTION_DIM, VLAObservation
+from armbench.vla.types import ActionChunk, DROID_ACTION_DIM, VLAObservation
 
 FloatArray = NDArray[np.float64]
 
@@ -129,6 +130,10 @@ class VLARuntimeSupervisor:
         q_start: ArrayLike,
         gripper_position: float,
         observation: VLAObservation,
+        *,
+        on_policy_response: (
+            Callable[[ActionChunk], tuple[ArrayLike, float]] | None
+        ) = None,
     ) -> RuntimeDecision:
         started = perf_counter()
         if self._latched_failure is not None:
@@ -161,14 +166,29 @@ class VLARuntimeSupervisor:
                 raw_actions=None,
                 started=started,
             )
+        dispatch_q = q_start
+        dispatch_gripper = gripper_position
+        if on_policy_response is not None:
+            try:
+                dispatch_q, dispatch_gripper = on_policy_response(chunk)
+            except Exception as error:
+                return self._hold_decision(
+                    q_start,
+                    gripper_position,
+                    observation,
+                    self._failure("response_dispatch", error),
+                    policy_source=chunk.source,
+                    raw_actions=chunk.actions,
+                    started=started,
+                )
         try:
             result = self.guard.guard(
-                q_start, gripper_position, observation, chunk
+                dispatch_q, dispatch_gripper, observation, chunk
             )
         except Exception as error:
             return self._hold_decision(
-                q_start,
-                gripper_position,
+                dispatch_q,
+                dispatch_gripper,
                 observation,
                 self._failure("guard_validation", error),
                 policy_source=getattr(chunk, "source", None),
@@ -180,8 +200,8 @@ class VLARuntimeSupervisor:
                 "guard could not satisfy every configured action constraint"
             )
             return self._hold_decision(
-                q_start,
-                gripper_position,
+                dispatch_q,
+                dispatch_gripper,
                 observation,
                 self._failure("guard_assurance", error),
                 policy_source=chunk.source,

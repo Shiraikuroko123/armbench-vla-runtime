@@ -154,9 +154,9 @@ def _summary(rows: list[dict[str, object]]) -> str:
     lines.extend(
         [
             "",
-            "`policy_latency_ms` is contract metadata in this deterministic "
-            "benchmark; it does not advance MuJoCo while inference runs. Use a "
-            "real asynchronous server/robot loop before making timing claims.",
+            "`policy_latency_ms` is synthetic in the reference-policy benchmark. "
+            "MuJoCo advances under a pose-hold controller for that duration "
+            "before the response is guarded; it is not measured model latency.",
             "",
             "The comparison isolates runtime feedback frequency and physics "
             "tracking. It is not evidence of VLA task competence.",
@@ -174,6 +174,7 @@ def execute_vla_online_benchmark(
     scenarios: Sequence[str] | None = None,
     execution_horizons: Sequence[int] | None = None,
     payload_masses: Sequence[float] | None = None,
+    policy_latency_ms: float | None = None,
 ) -> Path:
     config = load_vla_config(config_path)
     online = _online_config(config)
@@ -199,6 +200,16 @@ def execute_vla_online_benchmark(
         not np.isfinite(value) or value < 0.0 for value in payloads
     ):
         raise ValueError("online payload masses must be nonnegative and nonempty")
+    selected_policy_latency_ms = (
+        float(online["policy_latency_ms"])
+        if policy_latency_ms is None
+        else float(policy_latency_ms)
+    )
+    if (
+        not np.isfinite(selected_policy_latency_ms)
+        or selected_policy_latency_ms < 0.0
+    ):
+        raise ValueError("online policy latency must be finite and nonnegative")
 
     resolved_id = run_id or datetime.now(timezone.utc).strftime(
         "vla_online_%Y%m%dT%H%M%SZ"
@@ -210,6 +221,7 @@ def execute_vla_online_benchmark(
         "scenarios": selected_scenarios,
         "execution_horizons": horizons,
         "payload_masses_kg": payloads,
+        "policy_latency_ms": selected_policy_latency_ms,
     }
     metadata = environment_metadata(Path(__file__).resolve().parents[3])
     metadata["vla_online"] = {
@@ -262,7 +274,7 @@ def execute_vla_online_benchmark(
                         velocity_limit_rad_s=(
                             guard_config.joint_velocity_clip_rad_s
                         ),
-                        latency_ms=float(online["policy_latency_ms"]),
+                        latency_ms=selected_policy_latency_ms,
                     )
                     result = run_online_episode(
                         scenario_name,
@@ -322,7 +334,7 @@ def execute_vla_online_benchmark(
                         "online_physics_feedback": True,
                         "camera_recapture_per_query": True,
                         "actual_openpi_inference": False,
-                        "policy_latency_ms": float(online["policy_latency_ms"]),
+                        "policy_latency_ms": selected_policy_latency_ms,
                         "external_image": str(
                             first_external_path.relative_to(run_directory)
                         ),

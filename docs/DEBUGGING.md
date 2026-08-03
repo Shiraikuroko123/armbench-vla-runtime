@@ -93,6 +93,11 @@ higher for horizon 1, while both rows have `online_physics_feedback=True` and
 `camera_recapture_per_query=True`. Each online `per_chunk.csv` row stores the
 actual observation joint state and the post-execution state.
 
+To force a deadline in the online physics loop, add
+`--policy-latency-ms 240`. The run should execute one held prefix, report one
+deadline chunk, remain physically safe, and fail the task rather than silently
+continuing the reference stream.
+
 ## 4. Debug the observation boundary
 
 Open `observations/<scenario>_external.png` and

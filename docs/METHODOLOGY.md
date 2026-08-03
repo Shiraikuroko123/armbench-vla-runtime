@@ -91,9 +91,10 @@ unexecuted tail of the chunk.
 
 The bundled online policy follows a collision-free reference and is labeled
 `scripted_non_learned_reference`. It exists to isolate the effect and query cost
-of feedback horizon. Its configured latency is timestamp metadata and does not
-advance physics during a synchronous inference call, so the current online
-artifact supports feedback-frequency claims but not asynchronous timing claims.
+of feedback horizon. Its configured latency is synthetic: MuJoCo advances under
+a pose-hold controller for that duration, then the response is checked against
+the new dispatch state. This supports controlled delay/state-mismatch tests but
+is not measured pi0/pi0.5 server latency or OS scheduling evidence.
 
 ## VLA fault protocol
 

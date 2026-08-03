@@ -197,6 +197,8 @@ is a separate receding-horizon physics loop: it compares executing `1/5/15`
 actions from each chunk, then recaptures the two cameras and actual MuJoCo state
 before querying again. Its built-in reference policy is explicitly non-learned;
 the loop accepts the same `ActionChunkPolicy` interface as the OpenPI client.
+Use `--policy-latency-ms 240` to verify deadline hold while MuJoCo continues
+under the inference-wait controller.
 
 ## Real OpenPI probe
 

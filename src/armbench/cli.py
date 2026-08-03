@@ -181,6 +181,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     vla_online.add_argument("--payloads", nargs="+", type=float)
     vla_online.add_argument(
+        "--policy-latency-ms",
+        type=float,
+        help="synthetic inference delay that advances MuJoCo under pose hold",
+    )
+    vla_online.add_argument(
         "--quick",
         action="store_true",
         help="run single_block at horizons 1 and 15 with zero payload",
@@ -280,6 +285,7 @@ def main(arguments: list[str] | None = None) -> int:
             scenarios=["single_block"] if args.quick else args.scenarios,
             execution_horizons=[1, 15] if args.quick else args.horizons,
             payload_masses=[0.0] if args.quick else args.payloads,
+            policy_latency_ms=args.policy_latency_ms,
         )
         print(f"results: {output.resolve()}")
         return 0

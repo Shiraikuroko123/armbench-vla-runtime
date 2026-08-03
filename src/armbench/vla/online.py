@@ -71,6 +71,7 @@ class OnlineChunkRecord:
     action_offset: int
     executed_horizon: int
     observation_q: FloatArray
+    dispatch_q: FloatArray
     actual_q_after: FloatArray
     decision_status: str
     policy_source: str | None
@@ -78,6 +79,9 @@ class OnlineChunkRecord:
     failure_stage: str | None
     deadline_exceeded: bool
     state_mismatch_exceeded: bool
+    state_mismatch_rad: float
+    policy_latency_ms: float
+    simulated_inference_wait_s: float
     executed_interventions: int
     planned_interventions: int
     supervisor_latency_ms: float
@@ -93,10 +97,14 @@ class OnlineChunkRecord:
             "failure_stage": self.failure_stage,
             "deadline_exceeded": self.deadline_exceeded,
             "state_mismatch_exceeded": self.state_mismatch_exceeded,
+            "state_mismatch_rad": self.state_mismatch_rad,
+            "policy_latency_ms": self.policy_latency_ms,
+            "simulated_inference_wait_s": self.simulated_inference_wait_s,
             "executed_interventions": self.executed_interventions,
             "planned_interventions": self.planned_interventions,
             "supervisor_latency_ms": self.supervisor_latency_ms,
             "observation_q": self.observation_q.tolist(),
+            "dispatch_q": self.dispatch_q.tolist(),
             "actual_q_after": self.actual_q_after.tolist(),
         }
 
@@ -120,6 +128,7 @@ class OnlineEpisodeResult:
     joint_limit_violation_steps: int
     runtime_fallback_chunks: int
     executed_interventions: int
+    simulated_inference_wait_s: float
     times: FloatArray
     desired_positions: FloatArray
     actual_positions: FloatArray
@@ -149,6 +158,7 @@ class OnlineEpisodeResult:
             "joint_limit_violation_steps": self.joint_limit_violation_steps,
             "runtime_fallback_chunks": self.runtime_fallback_chunks,
             "executed_interventions": self.executed_interventions,
+            "simulated_inference_wait_s": self.simulated_inference_wait_s,
         }
 
 
@@ -346,7 +356,6 @@ def run_online_episode(
 
     action_offset = 0
     action_limit = len(references) - 1 + execution_config.max_extra_actions
-    action_clock = float(data.time)
     records: list[OnlineChunkRecord] = []
     first_exterior: UInt8Array | None = None
     first_wrist: UInt8Array | None = None
@@ -354,6 +363,7 @@ def run_online_episode(
     last_wrist: UInt8Array | None = None
     last_command = np.zeros(7, dtype=float)
     last_gripper = 1.0
+    hold_target = references[-1].copy()
 
     with MuJoCoDroidObservationBuilder(robot) as builder:
         while action_offset < action_limit:
@@ -362,7 +372,6 @@ def run_online_episode(
                 data,
                 prompt=task_prompt,
                 sequence_id=action_offset,
-                captured_at_s=1000.0 + float(data.time),
             )
             if first_exterior is None:
                 first_exterior = observation.exterior_image.copy()
@@ -370,16 +379,58 @@ def run_online_episode(
             last_exterior = observation.exterior_image.copy()
             last_wrist = observation.wrist_image.copy()
             q_before = data.qpos[arm_qpos].copy()
+            dispatch_q = q_before.copy()
+            policy_latency_ms = 0.0
+            simulated_wait_s = 0.0
+
+            def advance_during_inference(
+                chunk: ActionChunk,
+            ) -> tuple[FloatArray, float]:
+                nonlocal dispatch_q
+                nonlocal next_controller_time
+                nonlocal policy_latency_ms
+                nonlocal simulated_wait_s
+                policy_latency_ms = chunk.age_ms(observation)
+                wait_start = float(data.time)
+                wait_end = wait_start + policy_latency_ms / 1000.0
+                hold_q = data.qpos[arm_qpos].copy()
+                while data.time + 0.5 * physics_dt < wait_end:
+                    if data.time + 1e-12 >= next_controller_time:
+                        desired_q = hold_q
+                        desired_dq = np.zeros(7, dtype=float)
+                        data.ctrl[7] = 255.0 * last_gripper
+                        apply_control(desired_q, desired_dq)
+                        times.append(float(data.time))
+                        desired_trace.append(desired_q.copy())
+                        actual_trace.append(data.qpos[arm_qpos].copy())
+                        next_controller_time += execution_config.controller_dt_s
+                    step_physics()
+                simulated_wait_s = float(data.time) - wait_start
+                dispatch_q = data.qpos[arm_qpos].copy()
+                if simulated_wait_s > 0.0:
+                    guard.synchronize_velocity(np.zeros(7, dtype=float))
+                gripper = float(
+                    np.clip(
+                        np.mean(data.qpos[robot.finger_qpos_addresses]) / 0.04,
+                        0.0,
+                        1.0,
+                    )
+                )
+                return dispatch_q, gripper
+
             decision = supervisor.infer_and_guard(
                 q_before,
                 float(observation.gripper_position[0]),
                 observation,
+                on_policy_response=advance_during_inference,
             )
             execute_count = min(execution_horizon, action_limit - action_offset)
             selected = decision.actions[:execute_count]
             predicted = decision.predicted_positions[: execute_count + 1]
-            chunk_start = action_clock
-            action_clock += execute_count * execution_config.action_dt_s
+            chunk_start = float(data.time)
+            action_clock = (
+                chunk_start + execute_count * execution_config.action_dt_s
+            )
 
             while data.time + 0.5 * physics_dt < action_clock:
                 if data.time + 1e-12 >= next_controller_time:
@@ -437,6 +488,7 @@ def run_online_episode(
                     action_offset=action_offset,
                     executed_horizon=execute_count,
                     observation_q=observation.joint_position.copy(),
+                    dispatch_q=dispatch_q.copy(),
                     actual_q_after=data.qpos[arm_qpos].copy(),
                     decision_status=decision.status,
                     policy_source=decision.policy_source,
@@ -454,6 +506,17 @@ def run_online_episode(
                         if guard_result is not None
                         else False
                     ),
+                    state_mismatch_rad=(
+                        guard_result.state_mismatch_rad
+                        if guard_result is not None
+                        else float(
+                            np.max(
+                                np.abs(dispatch_q - observation.joint_position)
+                            )
+                        )
+                    ),
+                    policy_latency_ms=policy_latency_ms,
+                    simulated_inference_wait_s=simulated_wait_s,
                     executed_interventions=executed_interventions,
                     planned_interventions=planned_interventions,
                     supervisor_latency_ms=decision.supervisor_latency_ms,
@@ -463,6 +526,10 @@ def run_online_episode(
             last_command = selected[-1, :7].copy()
             last_gripper = float(selected[-1, 7])
             if decision.used_runtime_fallback:
+                hold_target = data.qpos[arm_qpos].copy()
+                break
+            if guard_result is not None and guard_result.fallback_latched:
+                hold_target = data.qpos[arm_qpos].copy()
                 break
             if (
                 action_offset >= len(references) - 1
@@ -475,7 +542,7 @@ def run_online_episode(
         hold_end = data.time + execution_config.hold_s
         while data.time + 0.5 * physics_dt < hold_end:
             if data.time + 1e-12 >= next_controller_time:
-                desired_q = references[-1]
+                desired_q = hold_target
                 desired_dq = np.zeros(7, dtype=float)
                 data.ctrl[7] = 255.0 * last_gripper
                 apply_control(desired_q, desired_dq)
@@ -525,6 +592,9 @@ def run_online_episode(
         runtime_fallback_chunks=sum(record.runtime_fallback for record in records),
         executed_interventions=sum(
             record.executed_interventions for record in records
+        ),
+        simulated_inference_wait_s=sum(
+            record.simulated_inference_wait_s for record in records
         ),
         times=np.asarray(times),
         desired_positions=desired_array,

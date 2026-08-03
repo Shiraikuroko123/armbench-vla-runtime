@@ -106,6 +106,50 @@ def test_online_episode_reobserves_actual_mujoco_state_each_action() -> None:
     assert result.physical_safe
 
 
+def test_online_episode_advances_physics_during_stale_inference() -> None:
+    start = mujoco_scenarios()["single_block"].start
+    reference = np.repeat(start[None, :], 4, axis=0)
+    reference[:, 0] += np.arange(4) * 0.005
+    action_dt = 0.1
+    policy = ReferenceActionChunkPolicy(
+        reference,
+        action_dt_s=action_dt,
+        velocity_limit_rad_s=0.5,
+        latency_ms=250.0,
+    )
+
+    result = run_online_episode(
+        "single_block",
+        policy,
+        reference,
+        execution_horizon=1,
+        clearance_m=0.0,
+        guard_config=GuardConfig(
+            control_dt_s=action_dt,
+            deadline_ms=200.0,
+            joint_velocity_clip_rad_s=0.5,
+            joint_acceleration_clip_rad_s2=15.0,
+        ),
+        execution_config=OnlineExecutionConfig(
+            action_dt_s=action_dt,
+            warmup_s=0.01,
+            hold_s=0.0,
+            max_extra_actions=0,
+        ),
+    )
+
+    assert result.policy_queries == 1
+    assert result.action_steps == 1
+    assert result.simulated_inference_wait_s == pytest.approx(0.25, abs=0.003)
+    record = result.chunks[0]
+    assert record.policy_latency_ms == pytest.approx(250.0)
+    assert record.simulated_inference_wait_s == pytest.approx(0.25, abs=0.003)
+    assert record.deadline_exceeded
+    assert record.executed_interventions == 1
+    assert result.physical_safe
+    assert result.obstacle_contact_steps == 0
+
+
 def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     project_root = Path(__file__).resolve().parents[1]
     config = json.loads(
