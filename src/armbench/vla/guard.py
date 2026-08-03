@@ -26,15 +26,25 @@ class GuardConfig:
     backtracking_scales: tuple[float, ...] = (1.0, 0.75, 0.5, 0.25, 0.0)
 
     def __post_init__(self) -> None:
-        if self.control_dt_s <= 0.0 or self.deadline_ms < 0.0:
+        if (
+            not np.isfinite(self.control_dt_s)
+            or not np.isfinite(self.deadline_ms)
+            or self.control_dt_s <= 0.0
+            or self.deadline_ms < 0.0
+        ):
             raise ValueError("guard timing parameters are invalid")
         if (
             self.max_state_mismatch_rad < 0.0
             or not np.isfinite(self.max_state_mismatch_rad)
         ):
             raise ValueError("max_state_mismatch_rad must be finite and nonnegative")
-        if self.joint_velocity_clip_rad_s <= 0.0:
-            raise ValueError("joint_velocity_clip_rad_s must be positive")
+        if (
+            self.joint_velocity_clip_rad_s <= 0.0
+            or not np.isfinite(self.joint_velocity_clip_rad_s)
+        ):
+            raise ValueError(
+                "joint_velocity_clip_rad_s must be finite and positive"
+            )
         if (
             self.joint_acceleration_clip_rad_s2 <= 0.0
             or not np.isfinite(self.joint_acceleration_clip_rad_s2)
@@ -261,29 +271,21 @@ class ActionChunkGuard:
             q_before = q.copy()
             raw_velocity = raw_action[:7]
             raw_gripper = float(raw_action[7])
-            finite = bool(np.all(np.isfinite(raw_action)))
-            bounded = finite and bool(
+            bounded = bool(
                 np.all(np.abs(raw_velocity) <= velocity_limits + 1e-12)
             )
-            gripper_bounded = finite and 0.0 <= raw_gripper <= 1.0
-            max_raw_acceleration = (
-                float(
-                    np.max(np.abs(raw_velocity - previous_velocity))
-                    / self.config.control_dt_s
-                )
-                if finite
-                else float("inf")
+            gripper_bounded = 0.0 <= raw_gripper <= 1.0
+            max_raw_acceleration = float(
+                np.max(np.abs(raw_velocity - previous_velocity))
+                / self.config.control_dt_s
             )
             raw_acceleration_safe = (
-                finite
-                and max_raw_acceleration
+                max_raw_acceleration
                 <= self.config.joint_acceleration_clip_rad_s2 + 1e-12
             )
-            raw_candidate = (
-                self._integrate(q, raw_velocity) if finite else q.copy()
-            )
-            if not finite or not bounded or not gripper_bounded:
-                raw_failure = "nonfinite_or_action_bounds"
+            raw_candidate = self._integrate(q, raw_velocity)
+            if not bounded or not gripper_bounded:
+                raw_failure = "action_bounds"
             elif not raw_acceleration_safe:
                 raw_failure = "joint_acceleration_limit"
             else:
@@ -300,7 +302,7 @@ class ActionChunkGuard:
             selected_gripper = current_gripper
             repaired_safe = True
             acceleration_limited = False
-            if not fallback_active and finite:
+            if not fallback_active:
                 clipped_velocity = np.clip(
                     raw_velocity,
                     -velocity_limits,
@@ -335,7 +337,7 @@ class ActionChunkGuard:
                         ):
                             selected_reason = "slew_rate_repaired"
                         elif (
-                            raw_failure == "nonfinite_or_action_bounds"
+                            raw_failure == "action_bounds"
                             and scale == 1.0
                         ):
                             selected_reason = "action_bounds_repaired"

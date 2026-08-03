@@ -24,9 +24,11 @@ The pinned official client supplies MessagePack NumPy serialization and the
 wire contract. ArmBench wraps those bytes in a bounded WebSocket transport
 because the upstream client retries refused connections forever and performs an
 unbounded inference receive. ArmBench validates the exact input keys and refuses
-a response whose horizon or dimension differs. Each observation and action
-chunk also carries a local sequence ID, capture/receive timestamps,
-policy-source label, client latency, and optional server timing.
+a response whose horizon, dimension, or finite-value contract differs. Invalid
+policy data is converted by the supervisor into a provenance-safe hold before it
+can reach the motion guard. Each valid observation and action chunk also carries
+a local sequence ID, capture/receive timestamps, policy-source label, client
+latency, and optional server timing.
 
 ## VLA observation construction
 

@@ -81,6 +81,29 @@ def test_openpi_wrapper_rejects_wrong_action_shape() -> None:
         client.infer(_observation(np.zeros(7)))
 
 
+def test_runtime_supervisor_holds_nonfinite_openpi_response() -> None:
+    backend = _FakeBackend()
+    backend.infer = lambda observation: {  # type: ignore[method-assign]
+        "actions": np.full((15, 8), np.nan)
+    }
+    scenario = mujoco_scenarios()["single_block"]
+    robot = MuJoCoPanda.create(obstacles=())
+    supervisor = VLARuntimeSupervisor(
+        OpenPIPolicyClient(backend=backend),
+        ActionChunkGuard(MuJoCoCollisionChecker(robot)),
+    )
+
+    decision = supervisor.infer_and_guard(
+        scenario.start, 1.0, _observation(scenario.start)
+    )
+
+    assert decision.used_runtime_fallback
+    assert decision.failure is not None
+    assert decision.failure.stage == "policy_inference"
+    assert decision.failure.error_type == "ValueError"
+    np.testing.assert_allclose(decision.actions[:, :7], 0.0)
+
+
 def test_scripted_policy_fails_closed_when_chunks_are_exhausted() -> None:
     observation = _observation(np.zeros(7))
     policy = ScriptedActionChunkPolicy([np.ones((1, 8))])
@@ -104,6 +127,22 @@ def test_scripted_policy_repeats_only_with_explicit_opt_in() -> None:
     repeated = policy.infer(observation)
 
     np.testing.assert_allclose(repeated.actions, 1.0)
+
+
+def test_scripted_policy_rejects_bad_contract_at_construction() -> None:
+    with pytest.raises(ValueError, match="finite nonempty Nx8"):
+        ScriptedActionChunkPolicy([np.full((1, 8), np.nan)])
+    with pytest.raises(ValueError, match="latencies"):
+        ScriptedActionChunkPolicy(
+            [np.zeros((1, 8))], latencies_ms=[-1.0]
+        )
+
+
+def test_guard_config_rejects_nonfinite_limits() -> None:
+    with pytest.raises(ValueError, match="timing"):
+        GuardConfig(deadline_ms=float("nan"))
+    with pytest.raises(ValueError, match="velocity"):
+        GuardConfig(joint_velocity_clip_rad_s=float("nan"))
 
 
 def test_openpi_wire_protocol_round_trip() -> None:

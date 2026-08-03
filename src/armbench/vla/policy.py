@@ -199,11 +199,23 @@ class ScriptedActionChunkPolicy:
         if not chunks:
             raise ValueError("at least one scripted chunk is required")
         self._chunks = [np.asarray(chunk, dtype=float).copy() for chunk in chunks]
+        if any(
+            chunk.ndim != 2
+            or chunk.shape[1] != 8
+            or len(chunk) == 0
+            or not np.all(np.isfinite(chunk))
+            for chunk in self._chunks
+        ):
+            raise ValueError("scripted chunks must be finite nonempty Nx8 arrays")
         if latencies_ms is None:
             latencies_ms = [0.0] * len(chunks)
         if len(latencies_ms) != len(chunks):
             raise ValueError("latencies must match scripted chunks")
         self._latencies = [float(value) for value in latencies_ms]
+        if any(
+            not np.isfinite(value) or value < 0.0 for value in self._latencies
+        ):
+            raise ValueError("scripted latencies must be finite and nonnegative")
         self._repeat_last = bool(repeat_last)
         self._index = 0
 
