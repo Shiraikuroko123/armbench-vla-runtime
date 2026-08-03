@@ -74,7 +74,7 @@ velocity limits. The final value is a normalized gripper position.
 
 ## Verified VLA-runtime result
 
-The formal artifact was generated from source commit `c979eca` on 2026-08-03:
+The formal artifact was generated from source commit `b6996ed` on 2026-08-03:
 [`evidence/vla_guard_formal_20260803`](evidence/vla_guard_formal_20260803/summary.md).
 It contains 12 rigid-body cases, 128 action chunks, and 1,920 action records.
 
@@ -92,7 +92,7 @@ intervention and still completed both tasks. Collision-fault cases were repaired
 or held for 80 action steps total, reducing 2,314 contact simulation steps to
 zero. The mixed-deadline cases latched after the first 240 ms chunk and stopped
 safely instead of claiming task completion. The maximum per-case guard P95 was
-8.39 ms on the verified Intel CPU host.
+7.96 ms on the verified Intel CPU host.
 
 These are fixed simulation cases, not a statistical safety guarantee. A safe
 but incomplete episode is not counted as task success.
@@ -274,7 +274,7 @@ for a VLA systems / embodied deployment role is:
 > deadline-latched fallback, joint/velocity constraints, mesh-collision
 > lookahead, and action backtracking. Across two fixed fault-injection scenes,
 > preserved 2/2 safe trajectories and reduced 2,314 injected contact steps to
-> zero, with guard P95 at most 8.39 ms on an Intel laptop; packaged per-action
+> zero, with guard P95 at most 7.96 ms on an Intel laptop; packaged per-action
 > audit logs, tests, camera evidence, and MP4 replays.
 
 Do not write “deployed pi0.5” until a real checkpoint artifact exists. This is a

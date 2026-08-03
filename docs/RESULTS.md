@@ -5,7 +5,7 @@
 ### Provenance
 
 - Run ID: `vla_guard_formal_20260803`
-- Source commit: `c979eca7da3ed9e558dca49998154555634736c1`
+- Source commit: `b6996edf1ea1c04cd16100857321e95b576b8c06`
 - OpenPI commit: `15a9616a00943ada6c20a0f158e3adb39df2ccac`
 - OpenPI config contract: `pi05_droid`, 15x8 actions at about 15 Hz
 - Policy source: `scripted_non_learned`
@@ -15,10 +15,9 @@
 - Protocol: 2 scenes x 3 fault/timing conditions x guarded/unguarded
 - Artifact size: 12 cases, 128 chunks, 1,920 action records, 3 MP4 files
 
-The run environment marked Git dirty only because the output directory being
-created and the pre-existing untracked `MJMODEL.TXT` were visible to `git
-status`; no source file differed from commit `c979eca`. The complete snapshot is
-in
+The run environment marked Git dirty only because the pre-existing untracked
+`MJMODEL.TXT` was visible to `git status`; no source file differed from commit
+`b6996ed`. The complete snapshot is in
 [`evidence/vla_guard_formal_20260803`](../evidence/vla_guard_formal_20260803/summary.md).
 
 ### Outcomes
@@ -45,8 +44,8 @@ deadline schedules had seven total 240 ms chunks. The first miss in each guarded
 episode latched hold, giving zero contact and task failure rather than an unsafe
 resume.
 
-All 6/6 guarded cases were physically safe. Guard P95 ranged from 4.05 to 8.38
-ms per case; the maximum was 8.381 ms in the narrow-gate collision fault. These
+All 6/6 guarded cases were physically safe. Guard P95 ranged from 5.36 to 7.96
+ms per case; the maximum was 7.959 ms in the narrow-gate collision fault. These
 timings are from the fixed Intel host and include sampled MuJoCo mesh-edge
 checks, not remote policy inference.
 

@@ -25,7 +25,7 @@ latched hold, joint velocities and gripper commands are bounded, and each joint
 edge is checked against MuJoCo Panda meshes with 20 mm clearance. Unsafe actions
 are backtracked or replaced by hold. In two fixed scenes, the guard preserved
 both safe streams, reduced 2,314 injected contact steps to zero, and had a worst
-per-case P95 of 8.39 ms on an Intel laptop. The benchmark uses scripted actions,
+per-case P95 of 7.96 ms on an Intel laptop. The benchmark uses scripted actions,
 not a pi0.5 checkpoint, so the claim is runtime integration and evaluation, not
 learned-policy performance or certified safety.
 
@@ -186,7 +186,7 @@ deadline state handling, and action-level auditability.
 > deadline-latched fallback, joint/velocity constraints, mesh-collision
 > lookahead, and action backtracking. Across two fixed fault-injection scenes,
 > preserved 2/2 safe trajectories and reduced 2,314 injected contact steps to
-> zero, with guard P95 at most 8.39 ms on an Intel laptop; packaged per-action
+> zero, with guard P95 at most 7.96 ms on an Intel laptop; packaged per-action
 > audit logs, tests, camera evidence, and MP4 replays.
 
 Use “OpenPI-compatible,” not “pi0.5 deployment,” until real checkpoint evidence

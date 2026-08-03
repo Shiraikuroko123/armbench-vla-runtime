@@ -1,0 +1,35 @@
+{
+  "captured_at_utc": "2026-08-03T16:38:35.615876+00:00",
+  "git": {
+    "commit": "b6996edf1ea1c04cd16100857321e95b576b8c06",
+    "dirty": true,
+    "status_short": [
+      "?? MJMODEL.TXT"
+    ]
+  },
+  "packages": {
+    "armbench": "0.1.0",
+    "imageio": "2.37.4",
+    "matplotlib": "3.7.2",
+    "msgpack": "1.2.1",
+    "mujoco": "3.11.0",
+    "numpy": "1.26.4",
+    "openpi-client": "0.1.0",
+    "pytest": "8.3.5",
+    "websockets": "16.1.1"
+  },
+  "platform": "Windows-10-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+  "python": "3.10.8 (tags/v3.10.8:aaaf517, Oct 11 2022, 16:50:30) [MSC v.1933 64 bit (AMD64)]",
+  "python_executable": "D:\\arm-planning-control-project\\.venv\\Scripts\\python.exe",
+  "vla": {
+    "action_dim": 8,
+    "action_horizon": 15,
+    "actual_openpi_inference": false,
+    "benchmark_policy_provenance": "scripted_non_learned",
+    "control_hz": 15.0,
+    "local_action_source": "scripted_non_learned",
+    "model_config": "pi05_droid",
+    "upstream_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac"
+  }
+}
