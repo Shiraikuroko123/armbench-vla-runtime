@@ -243,6 +243,8 @@ class OnlineChunkRecord:
     policy_source: str | None
     runtime_fallback: bool
     failure_stage: str | None
+    failure_type: str | None
+    failure_message: str | None
     guard_fallback: bool
     fallback_reason: str | None
     deadline_exceeded: bool
@@ -289,6 +291,8 @@ class OnlineChunkRecord:
             "policy_source": self.policy_source,
             "runtime_fallback": self.runtime_fallback,
             "failure_stage": self.failure_stage,
+            "failure_type": self.failure_type,
+            "failure_message": self.failure_message,
             "guard_fallback": self.guard_fallback,
             "fallback_reason": self.fallback_reason,
             "deadline_exceeded": self.deadline_exceeded,
@@ -385,6 +389,20 @@ class OnlineEpisodeResult:
             for record in self.chunks
             if record.wrist_frame_delta_mean_abs is not None
         ]
+        failure_stages = sorted(
+            {
+                record.failure_stage
+                for record in self.chunks
+                if record.failure_stage is not None
+            }
+        )
+        failure_types = sorted(
+            {
+                record.failure_type
+                for record in self.chunks
+                if record.failure_type is not None
+            }
+        )
         return {
             "scenario": self.scenario,
             "execution_horizon": self.execution_horizon,
@@ -405,6 +423,8 @@ class OnlineEpisodeResult:
             "self_contact_steps": self.self_contact_steps,
             "joint_limit_violation_steps": self.joint_limit_violation_steps,
             "runtime_fallback_chunks": self.runtime_fallback_chunks,
+            "runtime_failure_stages": failure_stages,
+            "runtime_failure_types": failure_types,
             "guard_fallback_chunks": self.guard_fallback_chunks,
             "deadline_chunks": self.deadline_chunks,
             "state_mismatch_chunks": self.state_mismatch_chunks,
@@ -929,6 +949,14 @@ def run_online_episode(
                     runtime_fallback=decision.used_runtime_fallback,
                     failure_stage=(
                         decision.failure.stage if decision.failure else None
+                    ),
+                    failure_type=(
+                        decision.failure.error_type
+                        if decision.failure
+                        else None
+                    ),
+                    failure_message=(
+                        decision.failure.message if decision.failure else None
                     ),
                     guard_fallback=(
                         guard_result.fallback_reason is not None

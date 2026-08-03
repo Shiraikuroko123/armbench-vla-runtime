@@ -164,6 +164,7 @@ def validate_online_artifact(
     total_cycles = 0
     total_policy_queries = 0
     videos_decoded = 0
+    failure_audit_traces = 0
     for row, episode_key in zip(rows, row_keys, strict=True):
         chunks = [item for item in chunk_rows if _key(item) == episode_key]
         actions = [item for item in action_rows if _key(item) == episode_key]
@@ -223,6 +224,27 @@ def validate_online_artifact(
                     trace["exterior_image_thumbnails"]
                 )
                 wrist_thumbnails = np.asarray(trace["wrist_image_thumbnails"])
+                failure_fields = (
+                    "failure_stages",
+                    "failure_types",
+                    "failure_messages",
+                )
+                present_failure_fields = {
+                    field for field in failure_fields if field in trace.files
+                }
+                _require(
+                    not present_failure_fields
+                    or present_failure_fields == set(failure_fields),
+                    f"incomplete failure audit trace for {episode_key}",
+                )
+                failure_values = (
+                    {
+                        field: np.asarray(trace[field])
+                        for field in failure_fields
+                    }
+                    if present_failure_fields
+                    else None
+                )
         except (OSError, KeyError, ValueError) as error:
             raise ArtifactValidationError(
                 f"invalid NPZ trace for {episode_key}"
@@ -250,6 +272,22 @@ def validate_online_artifact(
             wrist_hashes.tolist() == csv_wrist_hashes,
             f"wrist hash trace mismatch for {episode_key}",
         )
+        if failure_values is not None:
+            for field, csv_field in (
+                ("failure_stages", "failure_stage"),
+                ("failure_types", "failure_type"),
+                ("failure_messages", "failure_message"),
+            ):
+                _require(
+                    failure_values[field].shape == (cycles,),
+                    f"{field} shape mismatch for {episode_key}",
+                )
+                _require(
+                    failure_values[field].tolist()
+                    == [item[csv_field] for item in chunks],
+                    f"{field} trace mismatch for {episode_key}",
+                )
+            failure_audit_traces += 1
         _require(
             len(set(csv_exterior_hashes))
             == int(row["unique_exterior_observation_hashes"]),
@@ -314,7 +352,10 @@ def validate_online_artifact(
         "npz_shapes_and_counts_aligned",
         "camera_hashes_and_thumbnails_aligned",
         "saved_observation_hashes_verified",
-    ) + (("videos_decoded",) if decode_videos else ())
+    )
+    if failure_audit_traces == len(rows):
+        checks += ("failure_audit_aligned",)
+    checks += (("videos_decoded",) if decode_videos else ())
     return ArtifactValidationResult(
         directory=str(root),
         schema_version=ONLINE_ARTIFACT_SCHEMA_VERSION,

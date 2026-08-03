@@ -138,6 +138,9 @@ through the real MessagePack/WebSocket client; the supervisor must reject them,
 advance physics under pose hold for measured client wait time, execute no remote
 action, and retain a safe failure artifact. These controlled cases establish
 failure-path behavior for the tested faults, not network reliability statistics.
+Each chunk retains the failure stage, client exception type, and a 500-character
+message in both CSV and NPZ form; the aggregate retains the unique stage/type
+set. These are runtime observations, not inferred server-side causes.
 
 The bundled online policy follows a collision-free reference and is labeled
 `scripted_non_learned_reference`. It exists to isolate the effect and query cost
@@ -317,9 +320,11 @@ the JSON, CSV, and NPZ episode keys and counts to agree; checks query attempts,
 executed actions, safety booleans, trace array shapes, per-cycle camera hashes,
 thumbnail counts, and first/last saved-image hashes; and can decode every
 referenced MP4 first frame. It reports the byte-level SHA-256 of
-`aggregate.json`. This is a reproducibility and corruption check, not a signed
-chain of custody, model-identity attestation, or proof that the safety metrics
-generalize beyond the recorded episodes.
+`aggregate.json`. When the additive failure-audit arrays are present, all three
+must exist and exactly match the per-chunk CSV. Older schema-v5 evidence without
+these optional arrays remains valid. This is a reproducibility and corruption
+check, not a signed chain of custody, model-identity attestation, or proof that
+the safety metrics generalize beyond the recorded episodes.
 
 Wall-clock planning latency varies with host load. Fixed seeds preserve sampled
 sequences, but a search near the 2 s boundary can change status on a different

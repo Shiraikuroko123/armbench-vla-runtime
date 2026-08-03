@@ -334,6 +334,12 @@ chunks, a latched pose hold, task failure, and zero physical safety violations.
 and server outcome. This is a deterministic failure-handling experiment, not a
 claim about real-network failure rates.
 
+For every online chunk, `per_chunk.csv` records the client-visible
+`failure_stage`, exception `failure_type`, and bounded `failure_message`.
+The same arrays are stored in the NPZ trace, and aggregate rows list the unique
+runtime failure stages/types. This keeps real-server diagnostics useful even
+when no server-side audit is available.
+
 ## Validate an online artifact
 
 `vla-artifact-validate` is a read-only integrity and consistency check for

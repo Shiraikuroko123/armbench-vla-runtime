@@ -572,6 +572,8 @@ def test_online_episode_advances_physics_when_policy_times_out() -> None:
     record = result.chunks[0]
     assert not record.validated_policy_response
     assert record.failure_stage == "policy_inference"
+    assert record.failure_type == "TimeoutError"
+    assert record.failure_message == "synthetic timeout"
     assert record.client_inference_latency_ms >= 25.0
     assert record.policy_latency_ms >= record.client_inference_latency_ms
     assert record.simulated_inference_wait_s >= 0.025
@@ -959,18 +961,23 @@ def test_loopback_cli_backend_exercises_complete_remote_policy_path(
 
 
 @pytest.mark.parametrize(
-    ("fault_mode", "server_outcome"),
+    ("fault_mode", "server_outcome", "failure_type"),
     [
-        ("malformed_shape", "malformed_action_shape"),
-        ("nonfinite", "nonfinite_action_chunk"),
-        ("disconnect", "connection_closed_before_response"),
-        ("timeout", "response_delayed_past_client_deadline"),
+        ("malformed_shape", "malformed_action_shape", "ValueError"),
+        ("nonfinite", "nonfinite_action_chunk", "ValueError"),
+        (
+            "disconnect",
+            "connection_closed_before_response",
+            "ConnectionClosedError",
+        ),
+        ("timeout", "response_delayed_past_client_deadline", "TimeoutError"),
     ],
 )
 def test_loopback_wire_faults_fail_closed_with_auditable_artifact(
     tmp_path: Path,
     fault_mode: str,
     server_outcome: str,
+    failure_type: str,
 ) -> None:
     project_root = Path(__file__).resolve().parents[1]
     config = json.loads(
@@ -1022,6 +1029,10 @@ def test_loopback_wire_faults_fail_closed_with_auditable_artifact(
     assert chunks[0]["validated_policy_response"] == "False"
     assert chunks[0]["raw_action_available"] == "False"
     assert chunks[0]["failure_stage"] == "policy_inference"
+    assert chunks[0]["failure_type"] == failure_type
+    assert chunks[0]["failure_message"]
+    assert row["runtime_failure_stages"] == ["policy_inference"]
+    assert row["runtime_failure_types"] == [failure_type]
 
     audit = json.loads(
         (output_directory / "loopback_server.json").read_text("utf-8")
@@ -1039,3 +1050,7 @@ def test_loopback_wire_faults_fail_closed_with_auditable_artifact(
     assert validation.observation_cycles == 1
     assert validation.policy_queries == 1
     assert validation.action_rows == 15
+    with np.load(output_directory / row["trace"]) as trace:
+        assert trace["failure_stages"].tolist() == ["policy_inference"]
+        assert trace["failure_types"].tolist() == [failure_type]
+        assert trace["failure_messages"].tolist()[0]

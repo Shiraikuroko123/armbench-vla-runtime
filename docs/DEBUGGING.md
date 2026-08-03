@@ -204,9 +204,12 @@ Break in `vla/loopback.py: OpenPIProtocolLoopbackServer._handler`, then in
 `vla/runtime.py: VLARuntimeSupervisor.infer_and_guard`. The server audit must
 show one injected fault; `per_chunk.csv` must show
 `policy_inference_attempted=True`, `validated_policy_response=False`, no raw
-action, and `failure_stage=policy_inference`. The aggregate must report zero
-validated chunks, one runtime fallback, task failure, and physical safety. A
-timeout delay must be greater than the client inference timeout.
+action, and `failure_stage=policy_inference`. Inspect `failure_type` and
+`failure_message` for the client-visible root cause: the injected modes produce
+`ValueError`, `ConnectionClosedError`, or `TimeoutError`. The same values must
+appear in the NPZ failure arrays and aggregate type list. The aggregate must
+report zero validated chunks, one runtime fallback, task failure, and physical
+safety. A timeout delay must be greater than the client inference timeout.
 
 Only after the nominal loopback passes, replace it with a real GPU server:
 

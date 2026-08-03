@@ -288,6 +288,15 @@ def _write_episode_artifacts(
             [record.policy_inference_attempted for record in result.chunks],
             dtype=bool,
         ),
+        failure_stages=np.asarray(
+            [record.failure_stage or "" for record in result.chunks]
+        ),
+        failure_types=np.asarray(
+            [record.failure_type or "" for record in result.chunks]
+        ),
+        failure_messages=np.asarray(
+            [record.failure_message or "" for record in result.chunks]
+        ),
         observation_healthy=np.asarray(
             [record.observation_healthy is True for record in result.chunks],
             dtype=bool,

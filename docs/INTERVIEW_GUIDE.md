@@ -55,6 +55,8 @@ performance or certified safety.
   OpenPI online episodes.
 - Per-case, per-chunk, and per-action audit trails with raw and executed actions,
   reasons, scales, predicted/actual states, images, plots, and videos.
+- Client-visible failure stage, exception type, and bounded message mirrored
+  between per-chunk CSV and NPZ traces for remote-server diagnosis.
 - A schema-v5 artifact validator that cross-checks JSON/CSV/NPZ counts, camera
   hashes, safety fields, array shapes, and optionally decodes recorded videos.
 - A Windows self-locating launcher, VS Code debug configurations, tests, pinned
@@ -123,7 +125,9 @@ raw remote action, and executes a latched 15x8 hold chunk. The loopback fault
 matrix sends all four cases through the real MessagePack/WebSocket path. Each
 case records one attempted request, zero validated chunks, task failure, and zero
 contacts. This tests deterministic injected failures; it does not estimate real
-server availability.
+server availability. The client-visible exception type is retained separately
+from the injected server cause, so a real deployment does not depend on access
+to server logs.
 
 ### Why not execute only the first action and re-query immediately?
 
