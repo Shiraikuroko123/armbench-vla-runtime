@@ -16,6 +16,7 @@ from armbench.mujoco_sim.scenarios import mujoco_scenarios
 from armbench.vla.benchmark import (
     _guard_config,
     _integrate_actions,
+    _package_version,
     _safe_stream,
     _write_csv,
     _write_json,
@@ -224,11 +225,21 @@ def execute_vla_online_benchmark(
         "policy_latency_ms": selected_policy_latency_ms,
     }
     metadata = environment_metadata(Path(__file__).resolve().parents[3])
+    metadata["packages"].update(
+        {
+            "imageio": _package_version("imageio"),
+            "msgpack": _package_version("msgpack"),
+            "mujoco": _package_version("mujoco"),
+            "openpi-client": _package_version("openpi-client"),
+            "websockets": _package_version("websockets"),
+        }
+    )
     metadata["vla_online"] = {
         "online_physics_feedback": True,
         "camera_recapture_per_query": True,
         "policy_provenance": "scripted_non_learned_reference",
         "actual_openpi_inference": False,
+        "openpi_contract": dict(config["openpi_contract"]),
     }
     _write_json(run_directory / "config.json", config_snapshot)
     _write_json(run_directory / "environment.json", metadata)

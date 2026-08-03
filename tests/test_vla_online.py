@@ -173,6 +173,9 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     )
 
     rows = json.loads((run_directory / "aggregate.json").read_text("utf-8"))
+    environment = json.loads(
+        (run_directory / "environment.json").read_text("utf-8")
+    )
     assert len(rows) == 1
     row = rows[0]
     assert row["online_physics_feedback"] is True
@@ -180,6 +183,11 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     assert row["actual_openpi_inference"] is False
     assert row["policy_source"] == "scripted_non_learned_reference"
     assert row["policy_queries"] > 1
+    assert environment["packages"]["mujoco"] == "3.11.0"
+    assert environment["packages"]["websockets"] == "16.1.1"
+    assert environment["vla_online"]["openpi_contract"]["model_config"] == (
+        "pi05_droid"
+    )
     assert (run_directory / row["external_image"]).is_file()
     assert (run_directory / row["trace"]).is_file()
     assert (run_directory / "overview.png").stat().st_size > 10_000
