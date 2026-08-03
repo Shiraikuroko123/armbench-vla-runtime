@@ -36,6 +36,7 @@ ActionChunkPolicy.infer(observation)
   7 joint-velocity commands + 1 gripper-position command
               |
               v
+blank/replayed camera input -> pre-inference latched hold
 deadline/state mismatch -> latched hold until explicit reset
 velocity/gripper bounds -> acceleration slew limit -> joint/mesh-edge checks
 unsafe action -> backtrack 1.0 / 0.75 / 0.5 / 0.25 / hold
@@ -62,6 +63,8 @@ velocity limits. The final value is a normalized gripper position.
   timing, sequence, and provenance checks.
 - A runtime supervisor that converts policy transport/contract failures into a
   provenance-safe hold and prevents inference retries until explicit reset.
+- A pre-inference observation guard that rejects low-information images and
+  exact frame replay when measured joint motion should have changed the view.
 - Real local WebSocket/MessagePack protocol tests, including connection refusal
   and inference timeout behavior, plus `vla-probe` for a remote checkpoint.
 - Training-free action-chunk assurance: end-to-end deadline checking, a latched
@@ -226,6 +229,10 @@ Set-Location $ArmbenchProject
 & $ArmbenchPython -m armbench vla-online-run --quick `
   --run-id my_state_jump_smoke `
   --state-jump-joint 1 --state-jump-rad 0.08
+& $ArmbenchPython -m armbench vla-online-run `
+  --scenarios single_block --horizons 15 --payloads 0 `
+  --freeze-camera both --freeze-camera-query 1 `
+  --run-id my_camera_freeze_smoke
 ```
 
 Existing run directories are never overwritten.
@@ -244,6 +251,13 @@ deterministic 0.08 rad change after observation capture. It should exceed the
 configured 0.05 rad state-consistency threshold, latch a hold, remain
 physically safe, and report task failure. It is a controlled fault, not a
 modeled impact.
+
+The camera-freeze command replays both images from observation cycle 0 while
+keeping cycle 1 proprioception current. If joint motion exceeds the configured
+0.005 rad threshold, the runtime rejects the observation before making the
+second policy call. `observation_cycles` is therefore 2 while `policy_queries`
+is 1; `per_chunk.csv` retains the repeated hashes, zero pixel deltas, rejection
+reasons, and `policy_inference_attempted=False`.
 
 For deterministic per-query jitter, use a repeating schedule:
 
@@ -354,6 +368,9 @@ results/<run_id>/
   it does not constrain jerk or prove acceleration tracking in the dynamics.
 - The deadline is a runtime policy threshold, not an operating-system hard
   real-time guarantee.
+- Frozen-camera detection covers exact frame replay during sufficient joint
+  motion. It is a configurable deployment heuristic, not a general sensor fault
+  detector or proof that a visually changed frame is semantically correct.
 - Results are MuJoCo simulation on two spherical-obstacle scenes, not a real
   robot or publication-scale learned-policy benchmark.
 

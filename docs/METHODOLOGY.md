@@ -45,6 +45,14 @@ affect collision or physics metrics. The language prompts explicitly identify
 the red obstacles and goal. Joint and finger positions come from the same
 MuJoCo state used for rendering.
 
+Before policy inference, an observation guard checks both image standard
+deviations, sequence/time monotonicity, and exact equality with the preceding
+accepted frames. A repeated frame is rejected only when maximum joint-state
+change exceeds the configured 0.005 rad threshold; identical images while the
+robot is stationary are allowed. Rejection enters the same latched runtime hold
+without calling the policy. This is a deterministic replay heuristic, not a
+general semantic image-quality model.
+
 ## DROID action semantics
 
 The first seven output dimensions are joint-velocity commands; the eighth is a
@@ -95,7 +103,7 @@ reason. A positive `max_policy_queries` budget can bound remote inference cost;
 reaching it causes a pose hold and is reported as `query_budget`.
 When enabled, online MP4 frames are rendered during these same physics steps
 from the exterior camera. They are not reconstructed later from joint traces.
-Online artifact schema version 4 also normalizes every checked action into
+Online artifact schema version 5 also normalizes every checked action into
 `per_action.csv`. The `executed` field separates the action prefix applied to
 physics from the unexecuted remainder that was only validated; raw/guarded
 values, intervention reason/scale, and predicted before/after state remain
@@ -307,7 +315,8 @@ be cited as Panda mesh geometry, rigid-body simulation, or real-robot evidence.
 There is no real robot adapter, ROS2 node, `libfranka` integration, emergency
 stop, safety PLC, or hardware-in-the-loop result. Environments are spherical,
 and there is no tracked real pi0/pi0.5 checkpoint rollout. The current jitter is
-a deterministic injected schedule; dropped/corrupted frames, OS-level hard
-real-time scheduling, arbitrary workcell meshes, jerk constraints,
+a deterministic injected schedule; dropped, partially stale, or semantically
+corrupted frames remain outside the exact-replay guard. OS-level hard real-time
+scheduling, arbitrary workcell meshes, jerk constraints,
 dynamics-level acceleration guarantees, uncertainty calibration, cross-model
 comparison, and real-Panda experiments are future work.

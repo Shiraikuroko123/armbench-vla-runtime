@@ -8,6 +8,12 @@ from armbench.vla.online import (
     ReferenceActionChunkPolicy,
     run_online_episode,
 )
+from armbench.vla.observation_guard import (
+    ObservationCheck,
+    ObservationGuardConfig,
+    ObservationRejectedError,
+    VLAObservationGuard,
+)
 from armbench.vla.policy import (
     ActionChunkPolicy,
     BoundedOpenPIBackend,
@@ -28,11 +34,15 @@ __all__ = [
     "OnlineEpisodeResult",
     "OnlineExecutionConfig",
     "OnlineFaultConfig",
+    "ObservationCheck",
+    "ObservationGuardConfig",
+    "ObservationRejectedError",
     "ReferenceActionChunkPolicy",
     "RuntimeDecision",
     "RuntimeFailure",
     "ScriptedActionChunkPolicy",
     "VLARuntimeSupervisor",
+    "VLAObservationGuard",
     "VLAObservation",
     "run_online_episode",
 ]

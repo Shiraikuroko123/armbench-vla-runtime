@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "scenario_version": "2.0-mujoco",
   "openpi_contract": {
     "upstream_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
@@ -33,6 +33,10 @@
       0.25,
       0.0
     ]
+  },
+  "observation_guard": {
+    "min_image_std": 5.0,
+    "motion_threshold_rad": 0.005
   },
   "safe_stream": {
     "planning_seed": 0,

@@ -25,6 +25,11 @@ from armbench.vla.online_benchmark import (
     execute_openpi_online_run,
     execute_vla_online_benchmark,
 )
+from armbench.vla.observation_guard import (
+    ObservationGuardConfig,
+    ObservationRejectedError,
+    VLAObservationGuard,
+)
 from armbench.vla.types import ActionChunk, VLAObservation
 
 
@@ -39,6 +44,69 @@ def _observation(q: np.ndarray, *, sequence_id: int) -> VLAObservation:
         sequence_id=sequence_id,
         captured_at_s=100.0,
     )
+
+
+def _textured_observation(
+    q: np.ndarray,
+    *,
+    sequence_id: int,
+    captured_at_s: float,
+) -> VLAObservation:
+    rows, columns = np.indices((224, 224))
+    image = np.stack(
+        [rows % 256, columns % 256, (rows + columns) % 256], axis=-1
+    ).astype(np.uint8)
+    return VLAObservation(
+        exterior_image=image,
+        wrist_image=np.flip(image, axis=1),
+        joint_position=q,
+        gripper_position=np.array([1.0]),
+        prompt="follow the collision-free reference",
+        sequence_id=sequence_id,
+        captured_at_s=captured_at_s,
+    )
+
+
+def test_observation_guard_rejects_blank_and_replayed_frames() -> None:
+    start = mujoco_scenarios()["single_block"].start
+    guard = VLAObservationGuard(
+        ObservationGuardConfig(
+            min_image_std=5.0, motion_threshold_rad=0.001
+        )
+    )
+    blank = _observation(start, sequence_id=0)
+    with pytest.raises(ObservationRejectedError) as blank_error:
+        guard.check(blank)
+    assert set(blank_error.value.check.reasons) == {
+        "exterior_image_low_information",
+        "wrist_image_low_information",
+    }
+
+    first = _textured_observation(
+        start, sequence_id=1, captured_at_s=101.0
+    )
+    assert guard.check(first).healthy
+    stationary = _textured_observation(
+        start, sequence_id=2, captured_at_s=102.0
+    )
+    stationary_check = guard.check(stationary)
+    assert stationary_check.exterior_frame_replayed
+    assert stationary_check.healthy
+
+    moved = start.copy()
+    moved[0] += 0.01
+    replayed = _textured_observation(
+        moved, sequence_id=3, captured_at_s=103.0
+    )
+    with pytest.raises(ObservationRejectedError) as replay_error:
+        guard.check(replayed)
+    assert set(replay_error.value.check.reasons) == {
+        "exterior_frame_replayed_during_motion",
+        "wrist_frame_replayed_during_motion",
+    }
+
+    with pytest.raises(ValueError, match="thresholds"):
+        ObservationGuardConfig(min_image_std=-1.0)
 
 
 def test_reference_policy_replans_chunk_from_observed_state() -> None:
@@ -357,6 +425,74 @@ def test_online_fault_config_rejects_partial_or_invalid_state_jump() -> None:
         OnlineFaultConfig(state_jump_rad=(0.1,) + (0.0,) * 6)
     with pytest.raises(ValueError, match="seven finite"):
         OnlineFaultConfig(state_jump_query=0, state_jump_rad=(0.1,))
+    with pytest.raises(ValueError, match="both a query index and target"):
+        OnlineFaultConfig(camera_freeze_query=1)
+    with pytest.raises(ValueError, match="greater than zero"):
+        OnlineFaultConfig(
+            camera_freeze_query=0, camera_freeze_target="both"
+        )
+
+
+def test_online_episode_rejects_frozen_cameras_before_policy_query() -> None:
+    start = mujoco_scenarios()["single_block"].start
+    reference = np.repeat(start[None, :], 11, axis=0)
+    reference[:, 0] += np.arange(11) * 0.01
+    action_dt = 0.1
+    result = run_online_episode(
+        "single_block",
+        ReferenceActionChunkPolicy(
+            reference,
+            action_dt_s=action_dt,
+            velocity_limit_rad_s=0.5,
+        ),
+        reference,
+        execution_horizon=5,
+        clearance_m=0.0,
+        guard_config=GuardConfig(
+            control_dt_s=action_dt,
+            joint_velocity_clip_rad_s=0.5,
+            joint_acceleration_clip_rad_s2=15.0,
+        ),
+        observation_guard_config=ObservationGuardConfig(
+            min_image_std=5.0, motion_threshold_rad=0.0001
+        ),
+        execution_config=OnlineExecutionConfig(
+            action_dt_s=action_dt,
+            warmup_s=0.01,
+            hold_s=0.01,
+            max_extra_actions=0,
+        ),
+        fault_config=OnlineFaultConfig(
+            camera_freeze_query=1,
+            camera_freeze_target="both",
+        ),
+    )
+
+    assert result.observation_cycles == 2
+    assert result.policy_queries == 1
+    assert result.observation_rejection_chunks == 1
+    assert result.camera_freeze_injections == 1
+    assert result.fault_injections == 1
+    assert result.runtime_fallback_chunks == 1
+    assert result.termination_reason == "runtime_fallback:observation_validation"
+    assert result.physical_safe
+    first, rejected = result.chunks
+    assert first.policy_inference_attempted
+    assert not rejected.policy_inference_attempted
+    assert rejected.camera_freeze_injected
+    assert rejected.camera_freeze_target == "both"
+    assert rejected.observation_healthy is False
+    assert set(rejected.observation_failure_reasons) == {
+        "exterior_frame_replayed_during_motion",
+        "wrist_frame_replayed_during_motion",
+    }
+    assert rejected.exterior_frame_replayed
+    assert rejected.wrist_frame_replayed
+    assert rejected.exterior_image_sha256 == first.exterior_image_sha256
+    assert rejected.wrist_image_sha256 == first.wrist_image_sha256
+    assert rejected.exterior_frame_delta_mean_abs == 0.0
+    assert rejected.wrist_frame_delta_mean_abs == 0.0
+    assert rejected.raw_actions is None
 
 
 def test_online_episode_stops_at_policy_query_budget() -> None:
@@ -464,13 +600,15 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     assert len(rows) == 1
     row = rows[0]
     assert row["online_physics_feedback"] is True
-    assert row["artifact_schema_version"] == 4
+    assert row["artifact_schema_version"] == 5
     assert row["camera_recapture_per_query"] is True
     assert row["remote_policy_response_validated"] is False
     assert row["checkpoint_identity_verified"] is False
     assert row["policy_source"] == "scripted_non_learned_reference"
     assert row["policy_queries"] > 1
     assert row["camera_audit_queries"] == row["policy_queries"]
+    assert row["observation_cycles"] == row["policy_queries"]
+    assert row["observation_rejection_chunks"] == 0
     assert row["unique_exterior_observation_hashes"] > 1
     assert row["unique_wrist_observation_hashes"] > 1
     assert row["fault_injections"] == 0
@@ -482,7 +620,7 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     assert environment["vla_online"]["openpi_contract"]["model_config"] == (
         "pi05_droid"
     )
-    assert environment["vla_online"]["artifact_schema_version"] == 4
+    assert environment["vla_online"]["artifact_schema_version"] == 5
     assert environment["vla_online"]["camera_observation_audit"] == {
         "frame_delta": "mean_abs_uint8",
         "full_frame_hash": "sha256",
@@ -497,6 +635,12 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
         assert trace["raw_action_chunks"].shape[1:] == (15, 8)
         assert trace["guarded_action_chunks"].shape[1:] == (15, 8)
         assert trace["predicted_position_chunks"].shape[1:] == (16, 7)
+        assert trace["policy_inference_attempted"].shape == (query_count,)
+        assert trace["policy_inference_attempted"].all()
+        assert trace["observation_healthy"].all()
+        assert not trace["camera_freeze_injected"].any()
+        assert not trace["exterior_frame_replayed"].any()
+        assert not trace["wrist_frame_replayed"].any()
         assert trace["exterior_image_sha256"].shape == (query_count,)
         assert trace["wrist_image_sha256"].shape == (query_count,)
         assert trace["exterior_image_thumbnails"].shape == (
@@ -623,7 +767,7 @@ def test_remote_openpi_online_run_uses_network_policy_in_feedback_loop(
     rows = json.loads((output_directory / "aggregate.json").read_text("utf-8"))
     row = rows[0]
     assert row["remote_inference_attempted"] is True
-    assert row["artifact_schema_version"] == 4
+    assert row["artifact_schema_version"] == 5
     assert row["remote_policy_response_validated"] is True
     assert row["checkpoint_identity_verified"] is False
     assert row["validated_remote_chunks"] == 2

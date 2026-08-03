@@ -33,6 +33,8 @@ performance or certified safety.
 ## What you actually built
 
 - The Panda camera/proprioception adapter and visible task target.
+- A pre-inference observation guard for blank images, nonmonotonic capture
+  sequence/time, and exact camera replay during measured robot motion.
 - Immutable Python data contracts for DROID observations and action chunks.
 - A bounded WebSocket transport using official OpenPI MessagePack serialization,
   including round-trip, refusal, stalled-inference, and real-server probe paths.
@@ -115,6 +117,16 @@ both cameras each time. Horizon 1 provides the highest feedback frequency but
 requires many more policy queries. The current comparison uses a non-learned
 reference policy, so it measures runtime behavior rather than VLA competence.
 
+### How do you know the cameras were really refreshed?
+
+Every observation cycle records SHA-256 and adjacent-frame pixel delta for both
+full frames, plus 16x16 RGB thumbnails in the NPZ trace. The runtime separately
+compares the images with the preceding accepted observation. If proprioception
+changed by more than 0.005 rad while either image is byte-identical, it rejects
+the observation before policy inference and latches hold. A deterministic frozen
+camera test therefore has two observation cycles but only one policy query. This
+detects exact replay, not every possible stale or corrupted image.
+
 ### Is the guard guaranteed safe?
 
 No. Configuration contacts use MuJoCo meshes, but edge validation samples joint
@@ -185,6 +197,7 @@ Do not claim:
 - model training, fine-tuning, or DROID/LIBERO dataset evaluation;
 - analytic continuous collision detection;
 - OS-level hard real-time scheduling;
+- general camera-fault coverage beyond tested blank/exact-replay cases;
 - jerk constraints or dynamics-verified acceleration guarantees;
 - Isaac Lab, ROS2, `libfranka`, or real-robot deployment;
 - formal or certified safety.

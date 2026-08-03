@@ -10,6 +10,7 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from armbench.vla.guard import ActionChunkGuard, GuardResult
+from armbench.vla.observation_guard import ObservationCheck, VLAObservationGuard
 from armbench.vla.policy import ActionChunkPolicy
 from armbench.vla.types import ActionChunk, DROID_ACTION_DIM, VLAObservation
 
@@ -33,6 +34,8 @@ class RuntimeDecision:
     observation_sequence_id: int
     policy_source: str | None
     raw_actions: FloatArray | None
+    policy_inference_attempted: bool
+    observation_check: ObservationCheck | None
     failure: RuntimeFailure | None
     runtime_failure_latched: bool
     guard_result: GuardResult | None
@@ -49,6 +52,12 @@ class RuntimeDecision:
             "runtime_failure_latched": self.runtime_failure_latched,
             "observation_sequence_id": self.observation_sequence_id,
             "policy_source": self.policy_source,
+            "policy_inference_attempted": self.policy_inference_attempted,
+            "observation": (
+                self.observation_check.metrics()
+                if self.observation_check is not None
+                else None
+            ),
             "failure_stage": self.failure.stage if self.failure else None,
             "failure_type": self.failure.error_type if self.failure else None,
             "failure_message": self.failure.message if self.failure else None,
@@ -65,6 +74,7 @@ class VLARuntimeSupervisor:
         policy: ActionChunkPolicy,
         guard: ActionChunkGuard,
         *,
+        observation_guard: VLAObservationGuard | None = None,
         fallback_horizon: int = 15,
         latch_on_failure: bool = True,
     ) -> None:
@@ -72,6 +82,7 @@ class VLARuntimeSupervisor:
             raise ValueError("fallback_horizon must be positive")
         self.policy = policy
         self.guard = guard
+        self.observation_guard = observation_guard
         self.fallback_horizon = int(fallback_horizon)
         self.latch_on_failure = bool(latch_on_failure)
         self._latched_failure: RuntimeFailure | None = None
@@ -80,6 +91,8 @@ class VLARuntimeSupervisor:
         """Resynchronize command state, then clear all runtime fallbacks."""
 
         self.guard.reset(previous_joint_velocity=previous_joint_velocity)
+        if self.observation_guard is not None:
+            self.observation_guard.reset()
         self._latched_failure = None
 
     @staticmethod
@@ -101,6 +114,8 @@ class VLARuntimeSupervisor:
         policy_source: str | None,
         raw_actions: FloatArray | None,
         started: float,
+        policy_inference_attempted: bool = False,
+        observation_check: ObservationCheck | None = None,
     ) -> RuntimeDecision:
         q = self.guard.checker.robot.validate_configuration(q_start)
         if not 0.0 <= gripper_position <= 1.0:
@@ -119,6 +134,8 @@ class VLARuntimeSupervisor:
             observation_sequence_id=observation.sequence_id,
             policy_source=policy_source,
             raw_actions=raw_actions,
+            policy_inference_attempted=policy_inference_attempted,
+            observation_check=observation_check,
             failure=failure,
             runtime_failure_latched=self._latched_failure is not None,
             guard_result=None,
@@ -157,6 +174,21 @@ class VLARuntimeSupervisor:
                 raw_actions=None,
                 started=started,
             )
+        observation_check: ObservationCheck | None = None
+        if self.observation_guard is not None:
+            try:
+                observation_check = self.observation_guard.check(observation)
+            except Exception as error:
+                return self._hold_decision(
+                    q_start,
+                    gripper_position,
+                    observation,
+                    self._failure("observation_validation", error),
+                    policy_source=None,
+                    raw_actions=None,
+                    started=started,
+                    observation_check=getattr(error, "check", None),
+                )
         try:
             chunk = self.policy.infer(observation)
         except Exception as error:
@@ -174,6 +206,8 @@ class VLARuntimeSupervisor:
                         policy_source=None,
                         raw_actions=None,
                         started=started,
+                        policy_inference_attempted=True,
+                        observation_check=observation_check,
                     )
             return self._hold_decision(
                 fallback_q,
@@ -183,6 +217,8 @@ class VLARuntimeSupervisor:
                 policy_source=None,
                 raw_actions=None,
                 started=started,
+                policy_inference_attempted=True,
+                observation_check=observation_check,
             )
         dispatch_q = q_start
         dispatch_gripper = gripper_position
@@ -198,6 +234,8 @@ class VLARuntimeSupervisor:
                     policy_source=chunk.source,
                     raw_actions=chunk.actions,
                     started=started,
+                    policy_inference_attempted=True,
+                    observation_check=observation_check,
                 )
         try:
             result = self.guard.guard(
@@ -212,6 +250,8 @@ class VLARuntimeSupervisor:
                 policy_source=getattr(chunk, "source", None),
                 raw_actions=getattr(chunk, "actions", None),
                 started=started,
+                policy_inference_attempted=True,
+                observation_check=observation_check,
             )
         if not result.safe_after_guard:
             error = RuntimeError(
@@ -225,6 +265,8 @@ class VLARuntimeSupervisor:
                 policy_source=chunk.source,
                 raw_actions=chunk.actions,
                 started=started,
+                policy_inference_attempted=True,
+                observation_check=observation_check,
             )
         return RuntimeDecision(
             status="guarded",
@@ -233,6 +275,8 @@ class VLARuntimeSupervisor:
             observation_sequence_id=observation.sequence_id,
             policy_source=chunk.source,
             raw_actions=chunk.actions,
+            policy_inference_attempted=True,
+            observation_check=observation_check,
             failure=None,
             runtime_failure_latched=False,
             guard_result=result,

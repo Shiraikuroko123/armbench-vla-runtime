@@ -20,6 +20,10 @@ from armbench.mujoco_sim.model import MuJoCoPanda, VLA_EXTERNAL_CAMERA
 from armbench.mujoco_sim.scenarios import mujoco_scenarios
 from armbench.vla.guard import ActionChunkGuard, GuardConfig
 from armbench.vla.observation import MuJoCoDroidObservationBuilder
+from armbench.vla.observation_guard import (
+    ObservationGuardConfig,
+    VLAObservationGuard,
+)
 from armbench.vla.policy import ActionChunkPolicy
 from armbench.vla.runtime import VLARuntimeSupervisor
 from armbench.vla.types import ActionChunk, VLAObservation
@@ -173,6 +177,8 @@ class OnlineFaultConfig:
 
     state_jump_query: int | None = None
     state_jump_rad: tuple[float, ...] = (0.0,) * 7
+    camera_freeze_query: int | None = None
+    camera_freeze_target: str | None = None
 
     def __post_init__(self) -> None:
         jump = np.asarray(self.state_jump_rad, dtype=float)
@@ -185,15 +191,43 @@ class OnlineFaultConfig:
             raise ValueError(
                 "state jump requires both a query index and a nonzero offset"
             )
+        if (self.camera_freeze_query is None) != (
+            self.camera_freeze_target is None
+        ):
+            raise ValueError(
+                "camera freeze requires both a query index and target"
+            )
+        if self.camera_freeze_query is not None:
+            if self.camera_freeze_query <= 0:
+                raise ValueError("camera freeze query must be greater than zero")
+            if self.camera_freeze_target not in {
+                "exterior",
+                "wrist",
+                "both",
+            }:
+                raise ValueError("camera freeze target is invalid")
+
+    @property
+    def state_jump_enabled(self) -> bool:
+        return self.state_jump_query is not None
+
+    @property
+    def camera_freeze_enabled(self) -> bool:
+        return self.camera_freeze_query is not None
 
     @property
     def enabled(self) -> bool:
-        return self.state_jump_query is not None
+        return self.state_jump_enabled or self.camera_freeze_enabled
 
     def offset_for_query(self, query_index: int) -> FloatArray:
         if query_index == self.state_jump_query:
             return np.asarray(self.state_jump_rad, dtype=float).copy()
         return np.zeros(7, dtype=float)
+
+    def frozen_camera_for_query(self, query_index: int) -> str | None:
+        if query_index == self.camera_freeze_query:
+            return self.camera_freeze_target
+        return None
 
 
 @dataclass(frozen=True)
@@ -216,6 +250,14 @@ class OnlineChunkRecord:
     state_mismatch_rad: float
     fault_injected: bool
     injected_state_jump_rad: FloatArray
+    camera_freeze_injected: bool
+    camera_freeze_target: str | None
+    policy_inference_attempted: bool
+    observation_healthy: bool | None
+    observation_failure_reasons: tuple[str, ...]
+    observation_state_change_rad: float | None
+    exterior_frame_replayed: bool
+    wrist_frame_replayed: bool
     exterior_image_sha256: str
     wrist_image_sha256: str
     exterior_frame_delta_mean_abs: float | None
@@ -254,6 +296,18 @@ class OnlineChunkRecord:
             "state_mismatch_rad": self.state_mismatch_rad,
             "fault_injected": self.fault_injected,
             "injected_state_jump_rad": self.injected_state_jump_rad.tolist(),
+            "camera_freeze_injected": self.camera_freeze_injected,
+            "camera_freeze_target": self.camera_freeze_target,
+            "policy_inference_attempted": self.policy_inference_attempted,
+            "observation_healthy": self.observation_healthy,
+            "observation_failure_reasons": list(
+                self.observation_failure_reasons
+            ),
+            "observation_state_change_rad": (
+                self.observation_state_change_rad
+            ),
+            "exterior_frame_replayed": self.exterior_frame_replayed,
+            "wrist_frame_replayed": self.wrist_frame_replayed,
             "exterior_image_sha256": self.exterior_image_sha256,
             "wrist_image_sha256": self.wrist_image_sha256,
             "exterior_frame_delta_mean_abs": (
@@ -282,6 +336,7 @@ class OnlineEpisodeResult:
     payload_mass: float
     policy_source: str
     action_steps: int
+    observation_cycles: int
     policy_queries: int
     termination_reason: str
     task_success: bool
@@ -297,6 +352,8 @@ class OnlineEpisodeResult:
     guard_fallback_chunks: int
     deadline_chunks: int
     state_mismatch_chunks: int
+    observation_rejection_chunks: int
+    camera_freeze_injections: int
     fault_injections: int
     executed_interventions: int
     simulated_inference_wait_s: float
@@ -334,6 +391,7 @@ class OnlineEpisodeResult:
             "payload_mass": self.payload_mass,
             "policy_source": self.policy_source,
             "action_steps": self.action_steps,
+            "observation_cycles": self.observation_cycles,
             "policy_queries": self.policy_queries,
             "termination_reason": self.termination_reason,
             "task_success": self.task_success,
@@ -350,10 +408,14 @@ class OnlineEpisodeResult:
             "guard_fallback_chunks": self.guard_fallback_chunks,
             "deadline_chunks": self.deadline_chunks,
             "state_mismatch_chunks": self.state_mismatch_chunks,
+            "observation_rejection_chunks": (
+                self.observation_rejection_chunks
+            ),
+            "camera_freeze_injections": self.camera_freeze_injections,
             "fault_injections": self.fault_injections,
             "executed_interventions": self.executed_interventions,
             "simulated_inference_wait_s": self.simulated_inference_wait_s,
-            "camera_audit_queries": len(self.chunks),
+            "camera_audit_queries": self.observation_cycles,
             "unique_exterior_observation_hashes": len(
                 {record.exterior_image_sha256 for record in self.chunks}
             ),
@@ -484,6 +546,7 @@ def run_online_episode(
     clearance_m: float = 0.02,
     collision_resolution_rad: float = 0.02,
     guard_config: GuardConfig = GuardConfig(),
+    observation_guard_config: ObservationGuardConfig = ObservationGuardConfig(),
     execution_config: OnlineExecutionConfig = OnlineExecutionConfig(),
     fault_config: OnlineFaultConfig = OnlineFaultConfig(),
     prompt: str | None = None,
@@ -533,7 +596,11 @@ def run_online_episode(
         ),
         guard_config,
     )
-    supervisor = VLARuntimeSupervisor(policy, guard)
+    supervisor = VLARuntimeSupervisor(
+        policy,
+        guard,
+        observation_guard=VLAObservationGuard(observation_guard_config),
+    )
     robot = MuJoCoPanda.create(
         obstacles=scenario.obstacles,
         payload_mass=payload_mass,
@@ -632,17 +699,46 @@ def run_online_episode(
         while action_offset < action_limit:
             if (
                 execution_config.max_policy_queries is not None
-                and len(records) >= execution_config.max_policy_queries
+                and sum(
+                    record.policy_inference_attempted for record in records
+                )
+                >= execution_config.max_policy_queries
             ):
                 termination_reason = "query_budget"
                 hold_target = data.qpos[arm_qpos].copy()
                 break
+            query_index = len(records)
             guard.synchronize_velocity(last_command)
             observation = builder.capture(
                 data,
                 prompt=task_prompt,
                 sequence_id=action_offset,
             )
+            frozen_camera_target = fault_config.frozen_camera_for_query(
+                query_index
+            )
+            if frozen_camera_target is not None:
+                if last_exterior is None or last_wrist is None:
+                    raise RuntimeError(
+                        "camera freeze requires a previous observation"
+                    )
+                observation = VLAObservation(
+                    exterior_image=(
+                        last_exterior
+                        if frozen_camera_target in {"exterior", "both"}
+                        else observation.exterior_image
+                    ),
+                    wrist_image=(
+                        last_wrist
+                        if frozen_camera_target in {"wrist", "both"}
+                        else observation.wrist_image
+                    ),
+                    joint_position=observation.joint_position,
+                    gripper_position=observation.gripper_position,
+                    prompt=observation.prompt,
+                    sequence_id=observation.sequence_id,
+                    captured_at_s=observation.captured_at_s,
+                )
             exterior_delta = _mean_abs_image_delta(
                 observation.exterior_image, last_exterior
             )
@@ -662,7 +758,6 @@ def run_online_episode(
             server_timing: dict[str, float] = {}
             simulated_wait_s = 0.0
             injected_state_jump = np.zeros(7, dtype=float)
-            query_index = len(records)
 
             policy_call_started = monotonic()
 
@@ -864,10 +959,43 @@ def run_online_episode(
                             )
                         )
                     ),
-                    fault_injected=bool(
-                        np.any(np.abs(injected_state_jump) > 0.0)
+                    fault_injected=(
+                        bool(np.any(np.abs(injected_state_jump) > 0.0))
+                        or frozen_camera_target is not None
                     ),
                     injected_state_jump_rad=injected_state_jump.copy(),
+                    camera_freeze_injected=(
+                        frozen_camera_target is not None
+                    ),
+                    camera_freeze_target=frozen_camera_target,
+                    policy_inference_attempted=(
+                        decision.policy_inference_attempted
+                    ),
+                    observation_healthy=(
+                        decision.observation_check.healthy
+                        if decision.observation_check is not None
+                        else None
+                    ),
+                    observation_failure_reasons=(
+                        decision.observation_check.reasons
+                        if decision.observation_check is not None
+                        else ()
+                    ),
+                    observation_state_change_rad=(
+                        decision.observation_check.state_change_rad
+                        if decision.observation_check is not None
+                        else None
+                    ),
+                    exterior_frame_replayed=(
+                        decision.observation_check.exterior_frame_replayed
+                        if decision.observation_check is not None
+                        else False
+                    ),
+                    wrist_frame_replayed=(
+                        decision.observation_check.wrist_frame_replayed
+                        if decision.observation_check is not None
+                        else False
+                    ),
                     exterior_image_sha256=_image_sha256(
                         observation.exterior_image
                     ),
@@ -968,7 +1096,10 @@ def run_online_episode(
         payload_mass=payload_mass,
         policy_source=str(policy_source),
         action_steps=action_offset,
-        policy_queries=len(records),
+        observation_cycles=len(records),
+        policy_queries=sum(
+            record.policy_inference_attempted for record in records
+        ),
         termination_reason=termination_reason,
         task_success=final_goal_error <= execution_config.goal_tolerance_rad,
         physical_safe=physical_safe,
@@ -984,6 +1115,13 @@ def run_online_episode(
         deadline_chunks=sum(record.deadline_exceeded for record in records),
         state_mismatch_chunks=sum(
             record.state_mismatch_exceeded for record in records
+        ),
+        observation_rejection_chunks=sum(
+            record.failure_stage == "observation_validation"
+            for record in records
+        ),
+        camera_freeze_injections=sum(
+            record.camera_freeze_injected for record in records
         ),
         fault_injections=sum(record.fault_injected for record in records),
         executed_interventions=sum(

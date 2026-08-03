@@ -49,6 +49,7 @@ def load_vla_config(path: Path) -> dict[str, object]:
         "scenarios",
         "prompts",
         "guard",
+        "observation_guard",
         "safe_stream",
         "direct_stream",
         "conditions",

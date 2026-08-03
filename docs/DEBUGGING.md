@@ -123,6 +123,22 @@ The matching `per_chunk.csv` row preserves the observed state, injected offset,
 dispatch state, measured mismatch, and fallback reason. This deterministic
 joint-state jump is a boundary test, not a simulated contact impulse.
 
+To reject a frozen observation before it reaches the policy, run:
+
+```powershell
+& $ArmbenchPython -m armbench vla-online-run `
+  --scenarios single_block --horizons 15 --payloads 0 `
+  --run-id debug_camera_freeze_01 `
+  --freeze-camera both --freeze-camera-query 1
+```
+
+Expect `observation_cycles=2`, `policy_queries=1`,
+`observation_rejection_chunks=1`, and
+`termination_reason=runtime_fallback:observation_validation`. The rejected row
+must have repeated camera hashes, zero frame deltas, both replay reasons, and
+`policy_inference_attempted=False`. This distinction verifies the network policy
+was never called with the rejected observation.
+
 ## 4. Debug the observation boundary
 
 Open `observations/<scenario>_external.png` and
@@ -284,6 +300,7 @@ listed above, and press F5. Enter a new run directory name when prompted.
 | What is the OpenPI data contract? | `vla/types.py` |
 | How is the OpenPI protocol called? | `vla/policy.py: BoundedOpenPIBackend` |
 | How are MuJoCo observations built? | `vla/observation.py` |
+| Why was an observation rejected? | `vla/observation_guard.py` |
 | Why was an action changed? | `vla/guard.py: ActionChunkGuard.guard` |
 | How are fault matrices executed? | `vla/benchmark.py: execute_vla_guard_benchmark` |
 | Where is a real server probed? | `vla/benchmark.py: execute_openpi_probe` |

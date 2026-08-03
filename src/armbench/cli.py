@@ -213,6 +213,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="zero-based policy query for the jump (default: 0)",
     )
     vla_online.add_argument(
+        "--freeze-camera",
+        choices=("exterior", "wrist", "both"),
+        help="replay the preceding frame from the selected camera input",
+    )
+    vla_online.add_argument(
+        "--freeze-camera-query",
+        type=int,
+        help="zero-based observation cycle for camera replay (must be > 0)",
+    )
+    vla_online.add_argument(
         "--quick",
         action="store_true",
         help="run single_block at horizons 1 and 15 with zero payload",
@@ -350,6 +360,12 @@ def main(arguments: list[str] | None = None) -> int:
             )
         if args.state_jump_query is not None and args.state_jump_joint is None:
             parser.error("--state-jump-query requires a configured state jump")
+        if (args.freeze_camera is None) != (
+            args.freeze_camera_query is None
+        ):
+            parser.error(
+                "--freeze-camera and --freeze-camera-query must be used together"
+            )
         output = execute_vla_online_benchmark(
             args.config,
             args.output_root,
@@ -362,6 +378,8 @@ def main(arguments: list[str] | None = None) -> int:
             state_jump_query=args.state_jump_query,
             state_jump_joint=args.state_jump_joint,
             state_jump_rad=args.state_jump_rad,
+            camera_freeze_query=args.freeze_camera_query,
+            camera_freeze_target=args.freeze_camera,
             make_videos=args.videos,
         )
         print(f"results: {output.resolve()}")

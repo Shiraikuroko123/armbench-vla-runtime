@@ -30,9 +30,10 @@ from armbench.vla.online import (
     ReferenceActionChunkPolicy,
     run_online_episode,
 )
+from armbench.vla.observation_guard import ObservationGuardConfig
 from armbench.vla.policy import OpenPIPolicyClient
 
-ONLINE_ARTIFACT_SCHEMA_VERSION = 4
+ONLINE_ARTIFACT_SCHEMA_VERSION = 5
 
 
 def _online_config(config: dict[str, object]) -> dict[str, object]:
@@ -68,6 +69,16 @@ def _online_config(config: dict[str, object]) -> dict[str, object]:
     if not np.isfinite(latency_ms) or latency_ms < 0.0:
         raise ValueError("online policy latency must be nonnegative")
     return online
+
+
+def _observation_guard_config(
+    config: dict[str, object],
+) -> ObservationGuardConfig:
+    raw = dict(config["observation_guard"])
+    return ObservationGuardConfig(
+        min_image_std=float(raw["min_image_std"]),
+        motion_threshold_rad=float(raw["motion_threshold_rad"]),
+    )
 
 
 def _write_overview(
@@ -155,8 +166,8 @@ def _summary(rows: list[dict[str, object]]) -> str:
         "Repeating synthetic latency profile (ms): "
         f"`{json.dumps(rows[0]['policy_latency_schedule_ms'])}`.",
         "",
-        "| Scenario | Payload kg | Horizon | Queries | Termination | Task | Safe | Faults | Deadlines | State mismatches | Goal error rad | RMSE rad |",
-        "|---|---:|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|",
+        "| Scenario | Payload kg | Horizon | Queries | Termination | Task | Safe | Faults | Observation rejects | Deadlines | State mismatches | Goal error rad | RMSE rad |",
+        "|---|---:|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for row in rows:
         lines.append(
@@ -164,7 +175,9 @@ def _summary(rows: list[dict[str, object]]) -> str:
             f"{row['execution_horizon']} | {row['policy_queries']} | "
             f"{row['termination_reason']} | "
             f"{row['task_success']} | {row['physical_safe']} | "
-            f"{row['fault_injections']} | {row['deadline_chunks']} | "
+            f"{row['fault_injections']} | "
+            f"{row['observation_rejection_chunks']} | "
+            f"{row['deadline_chunks']} | "
             f"{row['state_mismatch_chunks']} | "
             f"{float(row['final_goal_error_rad']):.5f} | "
             f"{float(row['rmse_rad']):.5f} |"
@@ -188,6 +201,16 @@ def _summary(rows: list[dict[str, object]]) -> str:
                 "directly into MuJoCo joint state after observation capture. "
                 "It tests dispatch-state consistency handling; it is not a "
                 "modeled contact impulse.",
+                "",
+            ]
+        )
+    if any(bool(row["synthetic_camera_freeze"]) for row in rows):
+        lines.extend(
+            [
+                "The optional camera freeze replays the preceding rendered "
+                "frame while retaining current proprioception. The observation "
+                "guard runs before policy inference and rejects replay during "
+                "measured joint motion.",
                 "",
             ]
         )
@@ -260,6 +283,40 @@ def _write_episode_artifacts(
         ),
         client_inference_latencies_ms=np.asarray(
             [record.client_inference_latency_ms for record in result.chunks]
+        ),
+        policy_inference_attempted=np.asarray(
+            [record.policy_inference_attempted for record in result.chunks],
+            dtype=bool,
+        ),
+        observation_healthy=np.asarray(
+            [record.observation_healthy is True for record in result.chunks],
+            dtype=bool,
+        ),
+        observation_failure_reasons=np.asarray(
+            [
+                ";".join(record.observation_failure_reasons)
+                for record in result.chunks
+            ]
+        ),
+        observation_state_change_rad=np.asarray(
+            [
+                np.nan
+                if record.observation_state_change_rad is None
+                else record.observation_state_change_rad
+                for record in result.chunks
+            ]
+        ),
+        camera_freeze_injected=np.asarray(
+            [record.camera_freeze_injected for record in result.chunks],
+            dtype=bool,
+        ),
+        exterior_frame_replayed=np.asarray(
+            [record.exterior_frame_replayed for record in result.chunks],
+            dtype=bool,
+        ),
+        wrist_frame_replayed=np.asarray(
+            [record.wrist_frame_replayed for record in result.chunks],
+            dtype=bool,
         ),
         exterior_image_sha256=np.asarray(
             [record.exterior_image_sha256 for record in result.chunks]
@@ -383,6 +440,8 @@ def execute_vla_online_benchmark(
     state_jump_query: int | None = None,
     state_jump_joint: int | None = None,
     state_jump_rad: float | None = None,
+    camera_freeze_query: int | None = None,
+    camera_freeze_target: str | None = None,
     make_videos: bool = False,
 ) -> Path:
     config = load_vla_config(config_path)
@@ -446,9 +505,13 @@ def execute_vla_online_benchmark(
         selected_state_jump[state_jump_joint - 1] = float(state_jump_rad)
     elif state_jump_query is not None:
         raise ValueError("state jump query requires a configured state jump")
+    if (camera_freeze_query is None) != (camera_freeze_target is None):
+        raise ValueError("camera freeze requires both query and target")
     fault_config = OnlineFaultConfig(
         state_jump_query=selected_state_jump_query,
         state_jump_rad=tuple(float(value) for value in selected_state_jump),
+        camera_freeze_query=camera_freeze_query,
+        camera_freeze_target=camera_freeze_target,
     )
 
     resolved_id = run_id or datetime.now(timezone.utc).strftime(
@@ -466,6 +529,8 @@ def execute_vla_online_benchmark(
         "policy_latency_schedule_ms": selected_latency_schedule,
         "state_jump_query": selected_state_jump_query,
         "state_jump_rad": selected_state_jump.tolist(),
+        "camera_freeze_query": camera_freeze_query,
+        "camera_freeze_target": camera_freeze_target,
         "make_videos": bool(make_videos),
     }
     metadata = environment_metadata(Path(__file__).resolve().parents[3])
@@ -490,13 +555,15 @@ def execute_vla_online_benchmark(
         "policy_provenance": "scripted_non_learned_reference",
         "remote_policy_response_validated": False,
         "checkpoint_identity_verified": False,
-        "synthetic_state_jump": fault_config.enabled,
+        "synthetic_state_jump": fault_config.state_jump_enabled,
+        "synthetic_camera_freeze": fault_config.camera_freeze_enabled,
         "online_video_recording": bool(make_videos),
         "openpi_contract": dict(config["openpi_contract"]),
     }
     _write_json(run_directory / "config.json", config_snapshot)
     _write_json(run_directory / "environment.json", metadata)
     guard_config = _guard_config(config)
+    observation_guard_config = _observation_guard_config(config)
     execution_config = OnlineExecutionConfig(
         action_dt_s=guard_config.control_dt_s,
         controller_dt_s=float(online["controller_dt_s"]),
@@ -569,6 +636,7 @@ def execute_vla_online_benchmark(
                             raw_guard["collision_resolution_rad"]
                         ),
                         guard_config=guard_config,
+                        observation_guard_config=observation_guard_config,
                         execution_config=execution_config,
                         fault_config=fault_config,
                         prompt=str(dict(config["prompts"])[scenario_name]),
@@ -598,9 +666,16 @@ def execute_vla_online_benchmark(
                             "policy_latency_schedule_ms": (
                                 selected_latency_schedule
                             ),
-                            "synthetic_state_jump": fault_config.enabled,
+                            "synthetic_state_jump": (
+                                fault_config.state_jump_enabled
+                            ),
+                            "synthetic_camera_freeze": (
+                                fault_config.camera_freeze_enabled
+                            ),
                             "state_jump_query": selected_state_jump_query,
                             "state_jump_rad": selected_state_jump.tolist(),
+                            "camera_freeze_query": camera_freeze_query,
+                            "camera_freeze_target": camera_freeze_target,
                         },
                     )
                     if representative_external is None:
@@ -723,6 +798,7 @@ def execute_openpi_online_run(
     scenario = scenarios[scenario_name]
     task_prompt = prompt or str(dict(config["prompts"])[scenario_name])
     guard_config = _guard_config(config)
+    observation_guard_config = _observation_guard_config(config)
     raw_guard = dict(config["guard"])
     reference_robot = MuJoCoPanda.create(obstacles=scenario.obstacles)
     actions = _safe_stream(scenario_name, config, guard_config)
@@ -766,6 +842,7 @@ def execute_openpi_online_run(
                 raw_guard["collision_resolution_rad"]
             ),
             guard_config=guard_config,
+            observation_guard_config=observation_guard_config,
             execution_config=execution_config,
             prompt=task_prompt,
             video_path=(
