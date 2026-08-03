@@ -286,6 +286,61 @@ def test_deadline_fallback_stays_latched_until_explicit_reset() -> None:
     assert recovered.hold_steps == 0
 
 
+def test_state_mismatch_holds_and_latches_until_resynchronization() -> None:
+    scenario = mujoco_scenarios()["single_block"]
+    robot = MuJoCoPanda.create(obstacles=scenario.obstacles)
+    guard = ActionChunkGuard(
+        MuJoCoCollisionChecker(robot),
+        GuardConfig(
+            max_state_mismatch_rad=0.05,
+            latch_on_state_mismatch=True,
+        ),
+    )
+    observation = _observation(scenario.start)
+    chunk = ActionChunk(
+        actions=np.zeros((15, 8)),
+        source="openpi_remote",
+        observation_sequence_id=observation.sequence_id,
+        inference_latency_ms=10.0,
+        received_at_s=observation.captured_at_s + 0.01,
+    )
+    actual_q = scenario.start.copy()
+    actual_q[0] += 0.06
+
+    mismatched = guard.guard(actual_q, 1.0, observation, chunk)
+
+    assert mismatched.state_mismatch_exceeded
+    assert mismatched.state_mismatch_latched
+    assert mismatched.state_mismatch_rad == pytest.approx(0.06)
+    assert mismatched.fallback_reason == "state_mismatch"
+    assert mismatched.hold_steps == 15
+    assert {step.reason for step in mismatched.steps} == {"state_mismatch"}
+
+    synchronized_observation = _observation(actual_q, captured_at_s=101.0)
+    synchronized_chunk = ActionChunk(
+        actions=np.zeros((15, 8)),
+        source="openpi_remote",
+        observation_sequence_id=synchronized_observation.sequence_id,
+        inference_latency_ms=10.0,
+        received_at_s=101.01,
+    )
+    latched = guard.guard(
+        actual_q, 1.0, synchronized_observation, synchronized_chunk
+    )
+    assert not latched.state_mismatch_exceeded
+    assert latched.state_mismatch_latched
+    assert latched.fallback_reason == "state_mismatch_latched"
+    assert latched.hold_steps == 15
+
+    guard.reset()
+    recovered = guard.guard(
+        actual_q, 1.0, synchronized_observation, synchronized_chunk
+    )
+    assert not recovered.fallback_latched
+    assert recovered.fallback_reason is None
+    assert recovered.hold_steps == 0
+
+
 def test_vla_benchmark_writes_honest_reproducible_artifact(
     tmp_path: Path,
 ) -> None:

@@ -135,8 +135,12 @@ def _guard_config(config: dict[str, object]) -> GuardConfig:
     return GuardConfig(
         control_dt_s=1.0 / float(dict(config["openpi_contract"])["control_hz"]),
         deadline_ms=float(raw["deadline_ms"]),
+        max_state_mismatch_rad=float(raw.get("max_state_mismatch_rad", 0.05)),
         joint_velocity_clip_rad_s=float(raw["joint_velocity_clip_rad_s"]),
         latch_on_deadline=bool(raw["latch_on_deadline"]),
+        latch_on_state_mismatch=bool(
+            raw.get("latch_on_state_mismatch", True)
+        ),
         backtracking_scales=tuple(float(value) for value in raw["backtracking_scales"]),
     )
 
@@ -383,7 +387,16 @@ def _protect_stream(
                             "action": step.index,
                             "source": chunk.source,
                             "deadline_exceeded": result.deadline_exceeded,
+                            "deadline_latched": result.deadline_latched,
+                            "state_mismatch_exceeded": (
+                                result.state_mismatch_exceeded
+                            ),
+                            "state_mismatch_latched": (
+                                result.state_mismatch_latched
+                            ),
+                            "state_mismatch_rad": result.state_mismatch_rad,
                             "fallback_latched": result.fallback_latched,
+                            "fallback_reason": result.fallback_reason,
                             "raw_safe": step.raw_safe,
                             "repaired_safe": step.repaired_safe,
                             "intervened": step.intervened,
@@ -408,7 +421,12 @@ def _protect_stream(
                         "source": chunk.source,
                         "deadline_exceeded": chunk_latency_ms
                         > guard_config.deadline_ms,
+                        "deadline_latched": False,
+                        "state_mismatch_exceeded": False,
+                        "state_mismatch_latched": False,
+                        "state_mismatch_rad": 0.0,
                         "fallback_latched": False,
+                        "fallback_reason": None,
                         "end_to_end_latency_ms": chunk_latency_ms,
                         "guard_latency_ms": 0.0,
                         "horizon": horizon,
@@ -428,7 +446,12 @@ def _protect_stream(
                             "source": chunk.source,
                             "deadline_exceeded": chunk.age_ms(observation)
                             > guard_config.deadline_ms,
+                            "deadline_latched": False,
+                            "state_mismatch_exceeded": False,
+                            "state_mismatch_latched": False,
+                            "state_mismatch_rad": 0.0,
                             "fallback_latched": False,
+                            "fallback_reason": None,
                             "raw_safe": None,
                             "repaired_safe": None,
                             "intervened": False,

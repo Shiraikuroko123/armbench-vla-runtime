@@ -18,13 +18,20 @@ FloatArray = NDArray[np.float64]
 class GuardConfig:
     control_dt_s: float = 1.0 / 15.0
     deadline_ms: float = 200.0
+    max_state_mismatch_rad: float = 0.05
     joint_velocity_clip_rad_s: float = 1.0
     latch_on_deadline: bool = True
+    latch_on_state_mismatch: bool = True
     backtracking_scales: tuple[float, ...] = (1.0, 0.75, 0.5, 0.25, 0.0)
 
     def __post_init__(self) -> None:
         if self.control_dt_s <= 0.0 or self.deadline_ms < 0.0:
             raise ValueError("guard timing parameters are invalid")
+        if (
+            self.max_state_mismatch_rad < 0.0
+            or not np.isfinite(self.max_state_mismatch_rad)
+        ):
+            raise ValueError("max_state_mismatch_rad must be finite and nonnegative")
         if self.joint_velocity_clip_rad_s <= 0.0:
             raise ValueError("joint_velocity_clip_rad_s must be positive")
         if not self.backtracking_scales or self.backtracking_scales[-1] != 0.0:
@@ -54,7 +61,12 @@ class GuardStep:
 class GuardResult:
     source: str
     deadline_exceeded: bool
+    deadline_latched: bool
+    state_mismatch_exceeded: bool
+    state_mismatch_latched: bool
+    state_mismatch_rad: float
     fallback_latched: bool
+    fallback_reason: str | None
     end_to_end_latency_ms: float
     guarded_actions: FloatArray
     predicted_positions: FloatArray
@@ -81,7 +93,12 @@ class GuardResult:
         return {
             "source": self.source,
             "deadline_exceeded": self.deadline_exceeded,
+            "deadline_latched": self.deadline_latched,
+            "state_mismatch_exceeded": self.state_mismatch_exceeded,
+            "state_mismatch_latched": self.state_mismatch_latched,
+            "state_mismatch_rad": self.state_mismatch_rad,
             "fallback_latched": self.fallback_latched,
+            "fallback_reason": self.fallback_reason,
             "end_to_end_latency_ms": self.end_to_end_latency_ms,
             "guard_latency_ms": self.guard_latency_ms,
             "horizon": len(self.steps),
@@ -103,11 +120,13 @@ class ActionChunkGuard:
         self.checker = checker
         self.config = config
         self._deadline_latched = False
+        self._state_mismatch_latched = False
 
     def reset(self) -> None:
-        """Clear a latched deadline fallback after an explicit resynchronization."""
+        """Clear latched fallbacks after an explicit runtime resynchronization."""
 
         self._deadline_latched = False
+        self._state_mismatch_latched = False
 
     def _candidate_failure(self, q_start: FloatArray, q_end: FloatArray) -> str | None:
         failure = self.checker.configuration_failure(q_end)
@@ -138,10 +157,32 @@ class ActionChunkGuard:
             raise ValueError("gripper_position must be normalized to [0, 1]")
         end_to_end_latency = chunk.age_ms(observation)
         deadline_exceeded = end_to_end_latency > self.config.deadline_ms
+        state_mismatch_rad = float(
+            np.max(np.abs(q - observation.joint_position))
+        )
+        state_mismatch_exceeded = (
+            state_mismatch_rad > self.config.max_state_mismatch_rad
+        )
         if deadline_exceeded and self.config.latch_on_deadline:
             self._deadline_latched = True
-        fallback_latched = self._deadline_latched
-        deadline_fallback = deadline_exceeded or fallback_latched
+        if state_mismatch_exceeded and self.config.latch_on_state_mismatch:
+            self._state_mismatch_latched = True
+        deadline_latched = self._deadline_latched
+        state_mismatch_latched = self._state_mismatch_latched
+        fallback_latched = deadline_latched or state_mismatch_latched
+        fallback_active = (
+            deadline_exceeded or state_mismatch_exceeded or fallback_latched
+        )
+        if deadline_exceeded:
+            fallback_reason = "deadline"
+        elif state_mismatch_exceeded:
+            fallback_reason = "state_mismatch"
+        elif deadline_latched:
+            fallback_reason = "deadline_latched"
+        elif state_mismatch_latched:
+            fallback_reason = "state_mismatch_latched"
+        else:
+            fallback_reason = None
         guarded = np.zeros_like(chunk.actions)
         positions = [q.copy()]
         records: list[GuardStep] = []
@@ -167,20 +208,18 @@ class ActionChunkGuard:
                 if finite and bounded and gripper_bounded
                 else "nonfinite_or_action_bounds"
             )
-            raw_safe = raw_failure is None and not deadline_fallback
+            raw_safe = raw_failure is None and not fallback_active
 
             selected_scale = 0.0
-            if deadline_exceeded:
-                selected_reason = "deadline"
-            elif fallback_latched:
-                selected_reason = "deadline_latched"
+            if fallback_active:
+                selected_reason = str(fallback_reason)
             else:
                 selected_reason = str(raw_failure)
             selected_velocity = np.zeros(7, dtype=float)
             selected_q = q.copy()
             selected_gripper = current_gripper
             repaired_safe = True
-            if not deadline_fallback and finite:
+            if not fallback_active and finite:
                 clipped_velocity = np.clip(
                     raw_velocity,
                     -self.config.joint_velocity_clip_rad_s,
@@ -227,7 +266,12 @@ class ActionChunkGuard:
         return GuardResult(
             source=chunk.source,
             deadline_exceeded=deadline_exceeded,
+            deadline_latched=deadline_latched,
+            state_mismatch_exceeded=state_mismatch_exceeded,
+            state_mismatch_latched=state_mismatch_latched,
+            state_mismatch_rad=state_mismatch_rad,
             fallback_latched=fallback_latched,
+            fallback_reason=fallback_reason,
             end_to_end_latency_ms=end_to_end_latency,
             guarded_actions=guarded,
             predicted_positions=np.asarray(positions),
