@@ -1,5 +1,10 @@
 """OpenPI-compatible VLA observations, action chunks, and runtime assurance."""
 
+from armbench.vla.artifact import (
+    ArtifactValidationError,
+    ArtifactValidationResult,
+    validate_online_artifact,
+)
 from armbench.vla.guard import ActionChunkGuard, GuardConfig, GuardResult
 from armbench.vla.online import (
     OnlineEpisodeResult,
@@ -32,6 +37,8 @@ __all__ = [
     "ActionChunk",
     "ActionChunkPolicy",
     "ActionChunkGuard",
+    "ArtifactValidationError",
+    "ArtifactValidationResult",
     "BoundedOpenPIBackend",
     "GuardConfig",
     "GuardResult",
@@ -53,4 +60,5 @@ __all__ = [
     "VLAObservation",
     "execute_openpi_loopback_run",
     "run_online_episode",
+    "validate_online_artifact",
 ]

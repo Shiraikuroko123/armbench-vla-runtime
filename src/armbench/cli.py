@@ -21,6 +21,7 @@ from armbench.vla.benchmark import (
     execute_vla_guard_benchmark,
     load_vla_config,
 )
+from armbench.vla.artifact import validate_online_artifact
 from armbench.vla.online_benchmark import (
     execute_openpi_online_run,
     execute_vla_online_benchmark,
@@ -321,6 +322,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     vla_probe.add_argument("--connect-timeout-s", type=float, default=3.0)
     vla_probe.add_argument("--inference-timeout-s", type=float, default=1.0)
+
+    vla_artifact = subparsers.add_parser(
+        "vla-artifact-validate",
+        help="cross-check a schema-v5 online VLA artifact",
+    )
+    vla_artifact.add_argument("directory", type=Path)
+    vla_artifact.add_argument(
+        "--decode-videos",
+        action="store_true",
+        help="decode and inspect the first frame of every recorded MP4",
+    )
     return parser
 
 
@@ -466,6 +478,12 @@ def main(arguments: list[str] | None = None) -> int:
             inference_timeout_s=args.inference_timeout_s,
         )
         print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-artifact-validate":
+        result = validate_online_artifact(
+            args.directory, decode_videos=args.decode_videos
+        )
+        print(json.dumps(result.metrics(), indent=2, ensure_ascii=False))
         return 0
     planning_seeds = parse_seed_spec(args.seeds) if args.seeds else None
     control_seeds = (

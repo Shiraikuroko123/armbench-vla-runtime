@@ -14,6 +14,10 @@ from openpi_client import msgpack_numpy
 from websockets.sync.server import serve
 
 from armbench.mujoco_sim.scenarios import mujoco_scenarios
+from armbench.vla.artifact import (
+    ArtifactValidationError,
+    validate_online_artifact,
+)
 from armbench.vla.guard import GuardConfig
 from armbench.vla.online import (
     OnlineExecutionConfig,
@@ -688,6 +692,22 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     assert "State mismatches" in summary
     assert "Termination" in summary
     assert "Repeating synthetic latency profile" in summary
+    validation = validate_online_artifact(run_directory, decode_videos=True)
+    assert validation.episodes == 1
+    assert validation.observation_cycles == row["observation_cycles"]
+    assert validation.policy_queries == row["policy_queries"]
+    assert validation.videos_decoded == 1
+    assert len(validation.aggregate_sha256) == 64
+
+    chunk_rows[0]["exterior_image_sha256"] = "0" * 64
+    with (run_directory / "per_chunk.csv").open(
+        "w", encoding="utf-8", newline=""
+    ) as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(chunk_rows[0]))
+        writer.writeheader()
+        writer.writerows(chunk_rows)
+    with pytest.raises(ArtifactValidationError, match="exterior hash trace"):
+        validate_online_artifact(run_directory)
 
 
 def test_remote_openpi_online_run_uses_network_policy_in_feedback_loop(

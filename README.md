@@ -254,6 +254,8 @@ Set-Location $ArmbenchProject
   --scenarios single_block --horizons 15 --payloads 0 `
   --freeze-camera both --freeze-camera-query 1 `
   --run-id my_camera_freeze_smoke
+& $ArmbenchPython -m armbench vla-artifact-validate `
+  evidence\vla_online_camera_nominal_20260804 --decode-videos
 ```
 
 Existing run directories are never overwritten.
@@ -312,6 +314,17 @@ records request hashes and states. The artifact is labeled
 `scripted_non_learned_loopback`, `remote_policy_response_validated=true`, and
 `checkpoint_identity_verified=false`; it tests integration and breakpoints, not
 pi0/pi0.5 competence.
+
+## Validate an online artifact
+
+`vla-artifact-validate` is a read-only integrity and consistency check for
+schema-v5 online artifacts. It cross-checks episode identities and counts across
+JSON, CSV, and NPZ files; verifies action, query, safety, camera-hash, thumbnail,
+and saved-image fields; and reports the SHA-256 of `aggregate.json`. Add
+`--decode-videos` to decode the first frame of every referenced MP4. A successful
+result ends with `"valid": true`; any missing, malformed, or inconsistent field
+exits with an error. This detects accidental corruption and incomplete evidence,
+not intentional tampering or physical safety.
 
 ## Real OpenPI probe and closed loop
 

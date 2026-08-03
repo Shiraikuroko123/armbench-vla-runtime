@@ -139,6 +139,20 @@ must have repeated camera hashes, zero frame deltas, both replay reasons, and
 `policy_inference_attempted=False`. This distinction verifies the network policy
 was never called with the rejected observation.
 
+Validate the completed schema-v5 artifact before reading individual metrics:
+
+```powershell
+& $ArmbenchPython -m armbench vla-artifact-validate `
+  evidence\vla_online_camera_nominal_20260804 --decode-videos
+```
+
+The command is read-only. It aligns episode keys and row counts across
+`aggregate.json`, `per_episode.csv`, `per_chunk.csv`, `per_action.csv`, and each
+NPZ trace; recomputes the first/last camera PNG hashes; and optionally decodes
+each MP4. Put a breakpoint in `vla/artifact.py: validate_online_artifact` when a
+run is complete but one evidence file disagrees. `valid=true` establishes
+internal artifact consistency, not checkpoint identity or certified safety.
+
 ## 4. Debug the observation boundary
 
 Open `observations/<scenario>_external.png` and

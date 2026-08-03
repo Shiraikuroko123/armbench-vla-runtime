@@ -98,6 +98,21 @@
       "justMyCode": true
     },
     {
+      "name": "ArmBench: validate online artifact",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "armbench",
+      "args": [
+        "vla-artifact-validate",
+        "${workspaceFolder}/evidence/vla_online_camera_nominal_20260804",
+        "--decode-videos"
+      ],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "ArmBench: MuJoCo trajectory viewer",
       "type": "debugpy",
       "request": "launch",

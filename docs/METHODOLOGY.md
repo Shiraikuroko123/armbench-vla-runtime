@@ -303,6 +303,15 @@ only after a remote response passes validation. `vla-openpi-run` applies the
 same rule to a query-bounded, receding-horizon rollout and also stores every raw
 and guarded remote chunk.
 
+The schema-v5 online artifact has a separate read-only validator. It requires
+the JSON, CSV, and NPZ episode keys and counts to agree; checks query attempts,
+executed actions, safety booleans, trace array shapes, per-cycle camera hashes,
+thumbnail counts, and first/last saved-image hashes; and can decode every
+referenced MP4 first frame. It reports the byte-level SHA-256 of
+`aggregate.json`. This is a reproducibility and corruption check, not a signed
+chain of custody, model-identity attestation, or proof that the safety metrics
+generalize beyond the recorded episodes.
+
 Wall-clock planning latency varies with host load. Fixed seeds preserve sampled
 sequences, but a search near the 2 s boundary can change status on a different
 machine. Hardware, software, commit, and raw timeout rows must accompany any

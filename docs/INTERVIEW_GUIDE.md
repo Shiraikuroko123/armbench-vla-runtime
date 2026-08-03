@@ -53,6 +53,8 @@ performance or certified safety.
   OpenPI online episodes.
 - Per-case, per-chunk, and per-action audit trails with raw and executed actions,
   reasons, scales, predicted/actual states, images, plots, and videos.
+- A schema-v5 artifact validator that cross-checks JSON/CSV/NPZ counts, camera
+  hashes, safety fields, array shapes, and optionally decodes recorded videos.
 - A Windows self-locating launcher, VS Code debug configurations, tests, pinned
   third-party versions, and explicit claim boundaries.
 
@@ -235,11 +237,12 @@ You should be able to do all of the following without reading a prepared answer:
 1. draw the five runtime boundaries and state every tensor shape;
 2. explain why pi0/pi0.5 is not a simulator and why Isaac Lab is not a VLA;
 3. reproduce the quick run and locate one rejected action in `per_action.csv`;
-4. run the online quick comparison and explain why horizon changes query count;
-5. explain the deadline-latch regression and the safety/task-success tradeoff;
-6. distinguish sampled kinematic validity from contact-free physics execution;
-7. change a prompt, latency schedule, or guard threshold and predict the result;
-8. state which code/assets are yours and which are pinned dependencies.
+4. validate a schema-v5 artifact and explain why consistency is not authenticity;
+5. run the online quick comparison and explain why horizon changes query count;
+6. explain the deadline-latch regression and the safety/task-success tradeoff;
+7. distinguish sampled kinematic validity from contact-free physics execution;
+8. change a prompt, latency schedule, or guard threshold and predict the result;
+9. state which code/assets are yours and which are pinned dependencies.
 
 AI assistance produced substantial implementation and documentation. Your
 defensible ownership comes from being able to reproduce, inspect, modify,
