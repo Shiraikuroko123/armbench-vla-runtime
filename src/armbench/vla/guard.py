@@ -168,17 +168,27 @@ class ActionChunkGuard:
         if previous_joint_velocity is None:
             velocity = np.zeros(7, dtype=float)
         else:
-            velocity = np.asarray(previous_joint_velocity, dtype=float)
-            if velocity.shape != (7,) or not np.all(np.isfinite(velocity)):
-                raise ValueError(
-                    "previous_joint_velocity must be a finite 7-vector"
-                )
-            if np.any(np.abs(velocity) > self._velocity_limits() + 1e-12):
-                raise ValueError("previous_joint_velocity exceeds configured limits")
-            velocity = velocity.copy()
+            velocity = self._validated_previous_velocity(previous_joint_velocity)
         self._deadline_latched = False
         self._state_mismatch_latched = False
         self._previous_velocity = velocity
+
+    def synchronize_velocity(self, previous_joint_velocity: ArrayLike) -> None:
+        """Update executed command state without clearing any safety latch."""
+
+        self._previous_velocity = self._validated_previous_velocity(
+            previous_joint_velocity
+        )
+
+    def _validated_previous_velocity(
+        self, previous_joint_velocity: ArrayLike
+    ) -> FloatArray:
+        velocity = np.asarray(previous_joint_velocity, dtype=float)
+        if velocity.shape != (7,) or not np.all(np.isfinite(velocity)):
+            raise ValueError("previous_joint_velocity must be a finite 7-vector")
+        if np.any(np.abs(velocity) > self._velocity_limits() + 1e-12):
+            raise ValueError("previous_joint_velocity exceeds configured limits")
+        return velocity.copy()
 
     def _velocity_limits(self) -> FloatArray:
         return np.minimum(

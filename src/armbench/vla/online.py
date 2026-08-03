@@ -1,0 +1,512 @@
+"""Receding-horizon VLA execution against live MuJoCo state and cameras."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+import mujoco
+import numpy as np
+from numpy.typing import ArrayLike, NDArray
+
+from armbench.mujoco_sim.benchmark import inflate_obstacles
+from armbench.mujoco_sim.collision import MuJoCoCollisionChecker
+from armbench.mujoco_sim.execution import DEFAULT_KD, DEFAULT_KP
+from armbench.mujoco_sim.model import MuJoCoPanda
+from armbench.mujoco_sim.scenarios import mujoco_scenarios
+from armbench.vla.guard import ActionChunkGuard, GuardConfig
+from armbench.vla.observation import MuJoCoDroidObservationBuilder
+from armbench.vla.policy import ActionChunkPolicy
+from armbench.vla.runtime import VLARuntimeSupervisor
+from armbench.vla.types import ActionChunk, VLAObservation
+
+FloatArray = NDArray[np.float64]
+UInt8Array = NDArray[np.uint8]
+
+
+@dataclass(frozen=True)
+class OnlineExecutionConfig:
+    action_dt_s: float = 1.0 / 15.0
+    controller_dt_s: float = 0.01
+    warmup_s: float = 0.1
+    hold_s: float = 0.3
+    goal_tolerance_rad: float = 0.05
+    max_extra_actions: int = 15
+    kp: tuple[float, ...] = tuple(float(value) for value in DEFAULT_KP)
+    kd: tuple[float, ...] = tuple(float(value) for value in DEFAULT_KD)
+
+    def __post_init__(self) -> None:
+        if (
+            self.action_dt_s <= 0.0
+            or self.controller_dt_s <= 0.0
+            or self.warmup_s < 0.0
+            or self.hold_s < 0.0
+            or self.goal_tolerance_rad < 0.0
+            or self.max_extra_actions < 0
+        ):
+            raise ValueError("online execution timing/tolerance is invalid")
+        for name, values in (("kp", self.kp), ("kd", self.kd)):
+            array = np.asarray(values, dtype=float)
+            if array.shape != (7,) or np.any(array < 0.0):
+                raise ValueError(f"{name} must contain seven nonnegative gains")
+
+
+@dataclass(frozen=True)
+class OnlineChunkRecord:
+    sequence_id: int
+    action_offset: int
+    executed_horizon: int
+    observation_q: FloatArray
+    actual_q_after: FloatArray
+    decision_status: str
+    policy_source: str | None
+    runtime_fallback: bool
+    failure_stage: str | None
+    deadline_exceeded: bool
+    state_mismatch_exceeded: bool
+    executed_interventions: int
+    planned_interventions: int
+    supervisor_latency_ms: float
+
+    def metrics(self) -> dict[str, object]:
+        return {
+            "sequence_id": self.sequence_id,
+            "action_offset": self.action_offset,
+            "executed_horizon": self.executed_horizon,
+            "decision_status": self.decision_status,
+            "policy_source": self.policy_source,
+            "runtime_fallback": self.runtime_fallback,
+            "failure_stage": self.failure_stage,
+            "deadline_exceeded": self.deadline_exceeded,
+            "state_mismatch_exceeded": self.state_mismatch_exceeded,
+            "executed_interventions": self.executed_interventions,
+            "planned_interventions": self.planned_interventions,
+            "supervisor_latency_ms": self.supervisor_latency_ms,
+            "observation_q": self.observation_q.tolist(),
+            "actual_q_after": self.actual_q_after.tolist(),
+        }
+
+
+@dataclass(frozen=True)
+class OnlineEpisodeResult:
+    scenario: str
+    execution_horizon: int
+    payload_mass: float
+    policy_source: str
+    action_steps: int
+    policy_queries: int
+    task_success: bool
+    physical_safe: bool
+    final_goal_error_rad: float
+    rmse_rad: float
+    max_tracking_error_rad: float
+    torque_saturation_count: int
+    obstacle_contact_steps: int
+    self_contact_steps: int
+    joint_limit_violation_steps: int
+    runtime_fallback_chunks: int
+    executed_interventions: int
+    times: FloatArray
+    desired_positions: FloatArray
+    actual_positions: FloatArray
+    chunks: tuple[OnlineChunkRecord, ...]
+    first_exterior_image: UInt8Array
+    first_wrist_image: UInt8Array
+    last_exterior_image: UInt8Array
+    last_wrist_image: UInt8Array
+
+    def metrics(self) -> dict[str, object]:
+        return {
+            "scenario": self.scenario,
+            "execution_horizon": self.execution_horizon,
+            "payload_mass": self.payload_mass,
+            "policy_source": self.policy_source,
+            "action_steps": self.action_steps,
+            "policy_queries": self.policy_queries,
+            "task_success": self.task_success,
+            "physical_safe": self.physical_safe,
+            "safe_task_success": self.task_success and self.physical_safe,
+            "final_goal_error_rad": self.final_goal_error_rad,
+            "rmse_rad": self.rmse_rad,
+            "max_tracking_error_rad": self.max_tracking_error_rad,
+            "torque_saturation_count": self.torque_saturation_count,
+            "obstacle_contact_steps": self.obstacle_contact_steps,
+            "self_contact_steps": self.self_contact_steps,
+            "joint_limit_violation_steps": self.joint_limit_violation_steps,
+            "runtime_fallback_chunks": self.runtime_fallback_chunks,
+            "executed_interventions": self.executed_interventions,
+        }
+
+
+class ReferenceActionChunkPolicy:
+    """Deterministic non-learned policy used to isolate online runtime behavior."""
+
+    def __init__(
+        self,
+        reference_positions: ArrayLike,
+        *,
+        action_dt_s: float = 1.0 / 15.0,
+        action_horizon: int = 15,
+        velocity_limit_rad_s: float = 1.0,
+        latency_ms: float = 0.0,
+    ) -> None:
+        positions = np.asarray(reference_positions, dtype=float)
+        if (
+            positions.ndim != 2
+            or positions.shape[1] != 7
+            or len(positions) < 2
+            or not np.all(np.isfinite(positions))
+        ):
+            raise ValueError("reference_positions must be a finite Nx7 path")
+        if (
+            action_dt_s <= 0.0
+            or action_horizon <= 0
+            or velocity_limit_rad_s <= 0.0
+            or latency_ms < 0.0
+        ):
+            raise ValueError("reference policy timing/limits are invalid")
+        self.reference_positions = positions.copy()
+        self.action_dt_s = float(action_dt_s)
+        self.action_horizon = int(action_horizon)
+        self.velocity_limit_rad_s = float(velocity_limit_rad_s)
+        self.latency_ms = float(latency_ms)
+
+    def infer(self, observation: VLAObservation) -> ActionChunk:
+        cursor = min(observation.sequence_id, len(self.reference_positions) - 1)
+        predicted_q = observation.joint_position.copy()
+        actions = np.zeros((self.action_horizon, 8), dtype=float)
+        for index in range(self.action_horizon):
+            target_index = min(
+                cursor + index + 1, len(self.reference_positions) - 1
+            )
+            target = self.reference_positions[target_index]
+            velocity = np.clip(
+                (target - predicted_q) / self.action_dt_s,
+                -self.velocity_limit_rad_s,
+                self.velocity_limit_rad_s,
+            )
+            actions[index, :7] = velocity
+            actions[index, 7] = float(observation.gripper_position[0])
+            predicted_q = predicted_q + self.action_dt_s * velocity
+        return ActionChunk(
+            actions=actions,
+            source="scripted_non_learned_reference",
+            observation_sequence_id=observation.sequence_id,
+            inference_latency_ms=self.latency_ms,
+            received_at_s=(
+                observation.captured_at_s + self.latency_ms / 1000.0
+            ),
+        )
+
+
+def _gain_array(values: tuple[float, ...], label: str) -> FloatArray:
+    result = np.asarray(values, dtype=float)
+    if result.shape != (7,) or np.any(result < 0.0):
+        raise ValueError(f"{label} must contain seven nonnegative gains")
+    return result
+
+
+def run_online_episode(
+    scenario_name: str,
+    policy: ActionChunkPolicy,
+    reference_positions: ArrayLike,
+    *,
+    execution_horizon: int,
+    payload_mass: float = 0.0,
+    clearance_m: float = 0.02,
+    collision_resolution_rad: float = 0.02,
+    guard_config: GuardConfig = GuardConfig(),
+    execution_config: OnlineExecutionConfig = OnlineExecutionConfig(),
+    prompt: str | None = None,
+) -> OnlineEpisodeResult:
+    """Execute action prefixes and recapture actual state/images every query."""
+
+    if execution_horizon <= 0 or execution_horizon > 15:
+        raise ValueError("execution_horizon must be within [1, 15]")
+    if payload_mass < 0.0 or clearance_m < 0.0:
+        raise ValueError("payload and clearance must be nonnegative")
+    if not np.isclose(guard_config.control_dt_s, execution_config.action_dt_s):
+        raise ValueError("guard and online action periods must match")
+    references = np.asarray(reference_positions, dtype=float)
+    if (
+        references.ndim != 2
+        or references.shape[1] != 7
+        or len(references) < 2
+        or not np.all(np.isfinite(references))
+    ):
+        raise ValueError("reference_positions must be a finite Nx7 path")
+    scenarios = mujoco_scenarios()
+    if scenario_name not in scenarios:
+        raise ValueError(f"unknown MuJoCo scenario: {scenario_name}")
+    scenario = scenarios[scenario_name]
+    task_prompt = prompt or f"move the gripper to the {scenario.name} goal"
+
+    guard_robot = MuJoCoPanda.create(
+        obstacles=inflate_obstacles(scenario.obstacles, clearance_m)
+    )
+    guard = ActionChunkGuard(
+        MuJoCoCollisionChecker(
+            guard_robot, resolution=collision_resolution_rad
+        ),
+        guard_config,
+    )
+    supervisor = VLARuntimeSupervisor(policy, guard)
+    robot = MuJoCoPanda.create(
+        obstacles=scenario.obstacles,
+        payload_mass=payload_mass,
+        torque_control=True,
+        vla_cameras=True,
+        goal_marker=guard_robot.hand_position(references[-1]),
+    )
+    data = mujoco.MjData(robot.model)
+    robot.set_configuration(data, references[0])
+    data.ctrl[7] = 255.0
+    arm_qpos = robot.arm_qpos_addresses
+    arm_dofs = robot.arm_dof_addresses
+    physics_dt = float(robot.model.opt.timestep)
+    controller_stride = execution_config.controller_dt_s / physics_dt
+    if not np.isclose(controller_stride, round(controller_stride)):
+        raise ValueError(
+            "controller_dt_s must be an integer multiple of the MuJoCo timestep"
+        )
+    kp = _gain_array(execution_config.kp, "kp")
+    kd = _gain_array(execution_config.kd, "kd")
+    next_controller_time = 0.0
+    times: list[float] = []
+    desired_trace: list[FloatArray] = []
+    actual_trace: list[FloatArray] = []
+    torque_saturation_count = 0
+    obstacle_contact_steps = 0
+    self_contact_steps = 0
+    joint_limit_violation_steps = 0
+
+    def apply_control(desired_q: FloatArray, desired_dq: FloatArray) -> None:
+        nonlocal torque_saturation_count
+        current_q = data.qpos[arm_qpos].copy()
+        current_dq = data.qvel[arm_dofs].copy()
+        requested = (
+            kp * (desired_q - current_q)
+            + kd * (desired_dq - current_dq)
+            + data.qfrc_bias[arm_dofs]
+        )
+        applied = np.clip(requested, -robot.force_limits, robot.force_limits)
+        torque_saturation_count += int(
+            np.count_nonzero(np.abs(requested - applied) > 1e-10)
+        )
+        data.qfrc_applied[:] = 0.0
+        data.qfrc_applied[arm_dofs] = applied
+
+    def step_physics() -> None:
+        nonlocal obstacle_contact_steps
+        nonlocal self_contact_steps
+        nonlocal joint_limit_violation_steps
+        mujoco.mj_step(robot.model, data)
+        if not np.all(np.isfinite(data.qpos)) or not np.all(np.isfinite(data.qvel)):
+            raise RuntimeError("MuJoCo state became non-finite")
+        q = data.qpos[arm_qpos]
+        if np.any(q < robot.lower_limits - 1e-6) or np.any(
+            q > robot.upper_limits + 1e-6
+        ):
+            joint_limit_violation_steps += 1
+        if robot.obstacle_contacts(data):
+            obstacle_contact_steps += 1
+        if robot.self_contacts(data):
+            self_contact_steps += 1
+
+    warmup_end = data.time + execution_config.warmup_s
+    while data.time + 0.5 * physics_dt < warmup_end:
+        if data.time + 1e-12 >= next_controller_time:
+            apply_control(references[0], np.zeros(7, dtype=float))
+            next_controller_time += execution_config.controller_dt_s
+        step_physics()
+
+    action_offset = 0
+    action_limit = len(references) - 1 + execution_config.max_extra_actions
+    action_clock = float(data.time)
+    records: list[OnlineChunkRecord] = []
+    first_exterior: UInt8Array | None = None
+    first_wrist: UInt8Array | None = None
+    last_exterior: UInt8Array | None = None
+    last_wrist: UInt8Array | None = None
+    last_command = np.zeros(7, dtype=float)
+    last_gripper = 1.0
+
+    with MuJoCoDroidObservationBuilder(robot) as builder:
+        while action_offset < action_limit:
+            guard.synchronize_velocity(last_command)
+            observation = builder.capture(
+                data,
+                prompt=task_prompt,
+                sequence_id=action_offset,
+                captured_at_s=1000.0 + float(data.time),
+            )
+            if first_exterior is None:
+                first_exterior = observation.exterior_image.copy()
+                first_wrist = observation.wrist_image.copy()
+            last_exterior = observation.exterior_image.copy()
+            last_wrist = observation.wrist_image.copy()
+            q_before = data.qpos[arm_qpos].copy()
+            decision = supervisor.infer_and_guard(
+                q_before,
+                float(observation.gripper_position[0]),
+                observation,
+            )
+            execute_count = min(execution_horizon, action_limit - action_offset)
+            selected = decision.actions[:execute_count]
+            predicted = decision.predicted_positions[: execute_count + 1]
+            chunk_start = action_clock
+            action_clock += execute_count * execution_config.action_dt_s
+
+            while data.time + 0.5 * physics_dt < action_clock:
+                if data.time + 1e-12 >= next_controller_time:
+                    local_time = float(
+                        np.clip(
+                            data.time - chunk_start,
+                            0.0,
+                            action_clock - chunk_start,
+                        )
+                    )
+                    local_index = min(
+                        int(local_time / execution_config.action_dt_s),
+                        execute_count - 1,
+                    )
+                    phase = np.clip(
+                        (
+                            local_time
+                            - local_index * execution_config.action_dt_s
+                        )
+                        / execution_config.action_dt_s,
+                        0.0,
+                        1.0,
+                    )
+                    desired_q = (
+                        predicted[local_index]
+                        + phase
+                        * (predicted[local_index + 1] - predicted[local_index])
+                    )
+                    desired_dq = selected[local_index, :7]
+                    data.ctrl[7] = 255.0 * float(selected[local_index, 7])
+                    apply_control(desired_q, desired_dq)
+                    times.append(float(data.time))
+                    desired_trace.append(desired_q.copy())
+                    actual_trace.append(data.qpos[arm_qpos].copy())
+                    next_controller_time += execution_config.controller_dt_s
+                step_physics()
+
+            guard_result = decision.guard_result
+            executed_interventions = (
+                sum(
+                    step.intervened
+                    for step in guard_result.steps[:execute_count]
+                )
+                if guard_result is not None
+                else execute_count
+            )
+            planned_interventions = (
+                guard_result.intervention_steps
+                if guard_result is not None
+                else len(decision.actions)
+            )
+            records.append(
+                OnlineChunkRecord(
+                    sequence_id=observation.sequence_id,
+                    action_offset=action_offset,
+                    executed_horizon=execute_count,
+                    observation_q=observation.joint_position.copy(),
+                    actual_q_after=data.qpos[arm_qpos].copy(),
+                    decision_status=decision.status,
+                    policy_source=decision.policy_source,
+                    runtime_fallback=decision.used_runtime_fallback,
+                    failure_stage=(
+                        decision.failure.stage if decision.failure else None
+                    ),
+                    deadline_exceeded=(
+                        guard_result.deadline_exceeded
+                        if guard_result is not None
+                        else False
+                    ),
+                    state_mismatch_exceeded=(
+                        guard_result.state_mismatch_exceeded
+                        if guard_result is not None
+                        else False
+                    ),
+                    executed_interventions=executed_interventions,
+                    planned_interventions=planned_interventions,
+                    supervisor_latency_ms=decision.supervisor_latency_ms,
+                )
+            )
+            action_offset += execute_count
+            last_command = selected[-1, :7].copy()
+            last_gripper = float(selected[-1, 7])
+            if decision.used_runtime_fallback:
+                break
+            if (
+                action_offset >= len(references) - 1
+                and np.max(np.abs(data.qpos[arm_qpos] - references[-1]))
+                <= execution_config.goal_tolerance_rad
+                and np.max(np.abs(data.qvel[arm_dofs])) <= 0.05
+            ):
+                break
+
+        hold_end = data.time + execution_config.hold_s
+        while data.time + 0.5 * physics_dt < hold_end:
+            if data.time + 1e-12 >= next_controller_time:
+                desired_q = references[-1]
+                desired_dq = np.zeros(7, dtype=float)
+                data.ctrl[7] = 255.0 * last_gripper
+                apply_control(desired_q, desired_dq)
+                times.append(float(data.time))
+                desired_trace.append(desired_q.copy())
+                actual_trace.append(data.qpos[arm_qpos].copy())
+                next_controller_time += execution_config.controller_dt_s
+            step_physics()
+
+    if first_exterior is None or first_wrist is None:
+        raise RuntimeError("online episode captured no observations")
+    if last_exterior is None or last_wrist is None:
+        raise RuntimeError("online episode has no final observation")
+    desired_array = np.asarray(desired_trace)
+    actual_array = np.asarray(actual_trace)
+    errors = actual_array - desired_array
+    final_goal_error = float(
+        np.max(np.abs(data.qpos[arm_qpos] - references[-1]))
+    )
+    physical_safe = bool(
+        obstacle_contact_steps == 0
+        and self_contact_steps == 0
+        and joint_limit_violation_steps == 0
+    )
+    policy_sources = {record.policy_source for record in records}
+    policy_source = (
+        next(iter(policy_sources))
+        if len(policy_sources) == 1 and None not in policy_sources
+        else "mixed_or_unavailable"
+    )
+    return OnlineEpisodeResult(
+        scenario=scenario_name,
+        execution_horizon=execution_horizon,
+        payload_mass=payload_mass,
+        policy_source=str(policy_source),
+        action_steps=action_offset,
+        policy_queries=len(records),
+        task_success=final_goal_error <= execution_config.goal_tolerance_rad,
+        physical_safe=physical_safe,
+        final_goal_error_rad=final_goal_error,
+        rmse_rad=float(np.sqrt(np.mean(errors**2))),
+        max_tracking_error_rad=float(np.max(np.abs(errors))),
+        torque_saturation_count=torque_saturation_count,
+        obstacle_contact_steps=obstacle_contact_steps,
+        self_contact_steps=self_contact_steps,
+        joint_limit_violation_steps=joint_limit_violation_steps,
+        runtime_fallback_chunks=sum(record.runtime_fallback for record in records),
+        executed_interventions=sum(
+            record.executed_interventions for record in records
+        ),
+        times=np.asarray(times),
+        desired_positions=desired_array,
+        actual_positions=actual_array,
+        chunks=tuple(records),
+        first_exterior_image=first_exterior,
+        first_wrist_image=first_wrist,
+        last_exterior_image=last_exterior,
+        last_wrist_image=last_wrist,
+    )
