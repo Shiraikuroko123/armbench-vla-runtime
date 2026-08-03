@@ -185,8 +185,30 @@ First run the complete wire path without a GPU:
 Set breakpoints in `vla/loopback.py`, `vla/policy.py`, and `vla/runtime.py`.
 Compare `loopback_server.json` request hashes with `per_chunk.csv`. This path
 uses the real serializer, socket transport, response validator, guard, and live
-physics loop, but its server is deterministic and non-learned. Only after this
-passes, replace it with a real GPU server:
+physics loop, but its server is deterministic and non-learned.
+
+To debug fail-closed behavior rather than the nominal response, add one of
+`--fault-mode malformed_shape`, `nonfinite`, `disconnect`, or `timeout`. For a
+bounded timeout reproduction:
+
+```powershell
+& $ArmbenchPython -m armbench vla-loopback-run `
+  --scenario single_block --horizon 1 --max-policy-queries 1 `
+  --fault-mode timeout --fault-delay-ms 250 `
+  --inference-timeout-s 0.1 `
+  --output-directory 'results\openpi_loopback_timeout_debug_01'
+```
+
+Break in `vla/loopback.py: OpenPIProtocolLoopbackServer._handler`, then in
+`vla/policy.py: BoundedOpenPIBackend.infer`, and finally in
+`vla/runtime.py: VLARuntimeSupervisor.infer_and_guard`. The server audit must
+show one injected fault; `per_chunk.csv` must show
+`policy_inference_attempted=True`, `validated_policy_response=False`, no raw
+action, and `failure_stage=policy_inference`. The aggregate must report zero
+validated chunks, one runtime fallback, task failure, and physical safety. A
+timeout delay must be greater than the client inference timeout.
+
+Only after the nominal loopback passes, replace it with a real GPU server:
 
 ```powershell
 & $ArmbenchPython -m armbench vla-probe `

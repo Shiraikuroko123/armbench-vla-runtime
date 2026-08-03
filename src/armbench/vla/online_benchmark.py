@@ -753,6 +753,17 @@ def _remote_summary(
             "",
         ]
     if str(row["policy_provenance"]).startswith("scripted_non_learned"):
+        fault_mode = str(server_metadata.get("fault_mode", "none"))
+        if fault_mode != "none":
+            lines.extend(
+                [
+                    f"Loopback fault injection: `{fault_mode}` on request "
+                    f"`{server_metadata.get('fault_request_index')}`. The "
+                    "invalid or missing reply was intentionally rejected "
+                    "before action execution.",
+                    "",
+                ]
+            )
         lines.extend(
             [
                 "This server is a scripted non-learned protocol diagnostic. "

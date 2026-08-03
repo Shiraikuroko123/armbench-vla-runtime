@@ -315,6 +315,25 @@ records request hashes and states. The artifact is labeled
 `checkpoint_identity_verified=false`; it tests integration and breakpoints, not
 pi0/pi0.5 competence.
 
+Inject a deterministic response or transport failure through the same socket
+path:
+
+```powershell
+& $ArmbenchPython -m armbench vla-loopback-run `
+  --scenario single_block --horizon 1 --max-policy-queries 1 `
+  --fault-mode timeout --fault-query 0 `
+  --fault-delay-ms 250 --inference-timeout-s 0.1 `
+  --output-directory 'results\openpi_loopback_timeout_001'
+```
+
+`--fault-mode` accepts `malformed_shape`, `nonfinite`, `disconnect`, or
+`timeout`. Every mode is injected after a valid DROID request reaches the local
+server. The expected outcome is one attempted query, zero validated action
+chunks, a latched pose hold, task failure, and zero physical safety violations.
+`loopback_server.json` independently records the request hashes, selected fault,
+and server outcome. This is a deterministic failure-handling experiment, not a
+claim about real-network failure rates.
+
 ## Validate an online artifact
 
 `vla-artifact-validate` is a read-only integrity and consistency check for

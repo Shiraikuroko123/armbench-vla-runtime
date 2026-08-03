@@ -40,6 +40,8 @@ performance or certified safety.
   including round-trip, refusal, stalled-inference, and real-server probe paths.
 - A one-command local OpenPI loopback that exercises the real wire/client/runtime
   path and independently audits request hashes without claiming learned inference.
+- Deterministic wrong-shape, nonfinite, disconnect, and timeout injections on
+  that socket path, with fail-closed MuJoCo artifacts and server-side audits.
 - A stateful runtime guard with sequence/age checks, deadline latch/reset,
   action bounds, joint limits, sampled mesh-edge lookahead, backtracking, and
   hold fallback.
@@ -111,6 +113,17 @@ The live online loop has a separate matched check: repeating
 `0/40/80/160 ms` completed safely, while changing only the final entry to
 `240 ms` triggered a fourth-query hold. That evidence isolates the configured
 200 ms deadline from scene, payload, horizon, and action-source changes.
+
+### What happens when the policy server fails?
+
+The bounded client closes its connection on an invalid response, disconnect, or
+receive timeout. The runtime catches the exception at the policy boundary,
+advances MuJoCo for the measured wait under a pose-hold controller, produces no
+raw remote action, and executes a latched 15x8 hold chunk. The loopback fault
+matrix sends all four cases through the real MessagePack/WebSocket path. Each
+case records one attempted request, zero validated chunks, task failure, and zero
+contacts. This tests deterministic injected failures; it does not estimate real
+server availability.
 
 ### Why not execute only the first action and re-query immediately?
 

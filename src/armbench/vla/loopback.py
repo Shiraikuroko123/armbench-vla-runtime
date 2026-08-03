@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 from threading import Lock, Thread
-from time import perf_counter
+from time import perf_counter, sleep
 from typing import Any
 
 import numpy as np
@@ -24,6 +24,13 @@ from armbench.vla.benchmark import (
 from armbench.vla.online_benchmark import execute_openpi_online_run
 
 LOOPBACK_POLICY_PROVENANCE = "scripted_non_learned_loopback"
+LOOPBACK_FAULT_MODES = (
+    "none",
+    "malformed_shape",
+    "nonfinite",
+    "disconnect",
+    "timeout",
+)
 _DROID_KEYS = {
     "observation/exterior_image_1_left",
     "observation/wrist_image_left",
@@ -43,6 +50,9 @@ class OpenPIProtocolLoopbackServer:
         action_dt_s: float,
         action_horizon: int = 15,
         velocity_limit_rad_s: float = 1.0,
+        fault_mode: str = "none",
+        fault_request_index: int = 0,
+        fault_delay_s: float = 0.25,
     ) -> None:
         references = np.asarray(reference_positions, dtype=float)
         if (
@@ -61,15 +71,29 @@ class OpenPIProtocolLoopbackServer:
             or action_horizon <= 0
         ):
             raise ValueError("loopback action timing and limits must be positive")
+        if fault_mode not in LOOPBACK_FAULT_MODES:
+            raise ValueError(
+                f"unknown loopback fault mode: {fault_mode!r}"
+            )
+        if fault_request_index < 0:
+            raise ValueError("loopback fault request index must be nonnegative")
+        if not np.isfinite(fault_delay_s) or fault_delay_s <= 0.0:
+            raise ValueError("loopback fault delay must be finite and positive")
         self.reference_positions = references.copy()
         self.action_dt_s = float(action_dt_s)
         self.action_horizon = int(action_horizon)
         self.velocity_limit_rad_s = float(velocity_limit_rad_s)
+        self.fault_mode = str(fault_mode)
+        self.fault_request_index = int(fault_request_index)
+        self.fault_delay_s = float(fault_delay_s)
         self.metadata = {
             "armbench_loopback": True,
             "checkpoint_identity_verified": False,
             "model_config": "armbench_scripted_droid_loopback",
             "policy_source": LOOPBACK_POLICY_PROVENANCE,
+            "fault_mode": self.fault_mode,
+            "fault_request_index": self.fault_request_index,
+            "fault_delay_ms": self.fault_delay_s * 1000.0,
         }
         self._requests: list[dict[str, object]] = []
         self._request_lock = Lock()
@@ -154,8 +178,22 @@ class OpenPIProtocolLoopbackServer:
                     np.asarray(request["q"], dtype=float),
                     float(request["gripper"]),
                 )
+                with self._request_lock:
+                    request_index = len(self._requests)
+                injected_fault = (
+                    self.fault_mode
+                    if request_index == self.fault_request_index
+                    else "none"
+                )
+                server_outcome = {
+                    "none": "valid_action_chunk",
+                    "malformed_shape": "malformed_action_shape",
+                    "nonfinite": "nonfinite_action_chunk",
+                    "disconnect": "connection_closed_before_response",
+                    "timeout": "response_delayed_past_client_deadline",
+                }[injected_fault]
                 audit = {
-                    "request_index": len(self.request_audit),
+                    "request_index": request_index,
                     "prompt": request["prompt"],
                     "joint_position": np.asarray(request["q"]).tolist(),
                     "exterior_image_sha256": hashlib.sha256(
@@ -164,22 +202,43 @@ class OpenPIProtocolLoopbackServer:
                     "wrist_image_sha256": hashlib.sha256(
                         np.asarray(request["wrist"]).tobytes(order="C")
                     ).hexdigest(),
+                    "injected_fault": injected_fault,
+                    "server_outcome": server_outcome,
                 }
                 with self._request_lock:
                     self._requests.append(audit)
-                elapsed_ms = (perf_counter() - started) * 1000.0
-                websocket.send(
-                    msgpack_numpy.packb(
-                        {
-                            "actions": actions,
-                            "server_timing": {
-                                "loopback_policy_ms": elapsed_ms
-                            },
-                        }
+                if injected_fault == "malformed_shape":
+                    actions = actions[:-1]
+                elif injected_fault == "nonfinite":
+                    actions = actions.copy()
+                    actions[0, 0] = np.nan
+                elif injected_fault == "disconnect":
+                    websocket.close(
+                        code=1011,
+                        reason="ArmBench injected disconnect",
                     )
-                )
+                    return
+                elif injected_fault == "timeout":
+                    sleep(self.fault_delay_s)
+                elapsed_ms = (perf_counter() - started) * 1000.0
+                try:
+                    websocket.send(
+                        msgpack_numpy.packb(
+                            {
+                                "actions": actions,
+                                "server_timing": {
+                                    "loopback_policy_ms": elapsed_ms
+                                },
+                            }
+                        )
+                    )
+                except ConnectionClosed:
+                    return
             except Exception as error:
-                websocket.send(f"ArmBench loopback error: {error}")
+                try:
+                    websocket.send(f"ArmBench loopback error: {error}")
+                except ConnectionClosed:
+                    pass
                 return
 
     def __enter__(self) -> "OpenPIProtocolLoopbackServer":
@@ -218,6 +277,10 @@ def execute_openpi_loopback_run(
     max_policy_queries: int = 3,
     prompt: str | None = None,
     make_video: bool = False,
+    fault_mode: str = "none",
+    fault_request_index: int = 0,
+    fault_delay_ms: float = 250.0,
+    inference_timeout_s: float = 0.1,
 ) -> Path:
     """Exercise the complete remote-policy loop without a learned checkpoint."""
 
@@ -234,11 +297,25 @@ def execute_openpi_loopback_run(
         guard_config,
     )
     expected_horizon = int(dict(config["openpi_contract"])["action_horizon"])
+    if fault_request_index >= max_policy_queries:
+        raise ValueError(
+            "loopback fault request index must be below max_policy_queries"
+        )
+    if (
+        fault_mode == "timeout"
+        and fault_delay_ms / 1000.0 <= inference_timeout_s
+    ):
+        raise ValueError(
+            "timeout fault delay must exceed the client inference timeout"
+        )
     with OpenPIProtocolLoopbackServer(
         references,
         action_dt_s=guard_config.control_dt_s,
         action_horizon=expected_horizon,
         velocity_limit_rad_s=guard_config.joint_velocity_clip_rad_s,
+        fault_mode=fault_mode,
+        fault_request_index=fault_request_index,
+        fault_delay_s=fault_delay_ms / 1000.0,
     ) as server:
         if server.port is None:
             raise RuntimeError("loopback server did not bind a port")
@@ -253,7 +330,7 @@ def execute_openpi_loopback_run(
             max_policy_queries=max_policy_queries,
             prompt=prompt,
             connect_timeout_s=1.0,
-            inference_timeout_s=1.0,
+            inference_timeout_s=inference_timeout_s,
             make_video=make_video,
             policy_provenance=LOOPBACK_POLICY_PROVENANCE,
         )
@@ -263,6 +340,13 @@ def execute_openpi_loopback_run(
         {
             "checkpoint_identity_verified": False,
             "policy_provenance": LOOPBACK_POLICY_PROVENANCE,
+            "fault_mode": fault_mode,
+            "fault_request_index": fault_request_index,
+            "fault_delay_ms": fault_delay_ms,
+            "inference_timeout_s": inference_timeout_s,
+            "fault_injected_count": sum(
+                item["injected_fault"] != "none" for item in request_audit
+            ),
             "request_count": len(request_audit),
             "requests": request_audit,
         },

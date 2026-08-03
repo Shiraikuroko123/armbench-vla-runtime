@@ -956,3 +956,86 @@ def test_loopback_cli_backend_exercises_complete_remote_policy_path(
     summary = (output_directory / "summary.md").read_text("utf-8")
     assert f"Policy provenance: `{LOOPBACK_POLICY_PROVENANCE}`" in summary
     assert "No learned checkpoint produced these actions" in summary
+
+
+@pytest.mark.parametrize(
+    ("fault_mode", "server_outcome"),
+    [
+        ("malformed_shape", "malformed_action_shape"),
+        ("nonfinite", "nonfinite_action_chunk"),
+        ("disconnect", "connection_closed_before_response"),
+        ("timeout", "response_delayed_past_client_deadline"),
+    ],
+)
+def test_loopback_wire_faults_fail_closed_with_auditable_artifact(
+    tmp_path: Path,
+    fault_mode: str,
+    server_outcome: str,
+) -> None:
+    project_root = Path(__file__).resolve().parents[1]
+    config = json.loads(
+        (project_root / "configs" / "vla_guard_benchmark.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    config["guard"]["deadline_ms"] = 5000.0
+    config["online"]["warmup_s"] = 0.01
+    config["online"]["hold_s"] = 0.01
+    config["online"]["max_extra_actions"] = 0
+    config_path = tmp_path / f"loopback_{fault_mode}_config.json"
+    config_path.write_text(json.dumps(config), encoding="utf-8")
+    output_directory = tmp_path / f"loopback_{fault_mode}"
+
+    execute_openpi_loopback_run(
+        config_path,
+        output_directory,
+        scenario_name="single_block",
+        execution_horizon=1,
+        max_policy_queries=1,
+        fault_mode=fault_mode,
+        fault_request_index=0,
+        fault_delay_ms=120.0,
+        inference_timeout_s=0.05,
+    )
+
+    row = json.loads(
+        (output_directory / "aggregate.json").read_text("utf-8")
+    )[0]
+    assert row["observation_cycles"] == 1
+    assert row["policy_queries"] == 1
+    assert row["validated_remote_chunks"] == 0
+    assert row["remote_policy_response_validated"] is False
+    assert row["runtime_fallback_chunks"] == 1
+    assert row["termination_reason"] == "runtime_fallback:policy_inference"
+    assert row["task_success"] is False
+    assert row["physical_safe"] is True
+    assert row["obstacle_contact_steps"] == 0
+    assert row["self_contact_steps"] == 0
+    assert row["joint_limit_violation_steps"] == 0
+
+    with (output_directory / "per_chunk.csv").open(
+        encoding="utf-8", newline=""
+    ) as handle:
+        chunks = list(csv.DictReader(handle))
+    assert len(chunks) == 1
+    assert chunks[0]["policy_inference_attempted"] == "True"
+    assert chunks[0]["validated_policy_response"] == "False"
+    assert chunks[0]["raw_action_available"] == "False"
+    assert chunks[0]["failure_stage"] == "policy_inference"
+
+    audit = json.loads(
+        (output_directory / "loopback_server.json").read_text("utf-8")
+    )
+    assert audit["fault_mode"] == fault_mode
+    assert audit["fault_request_index"] == 0
+    assert audit["fault_injected_count"] == 1
+    assert audit["request_count"] == 1
+    assert audit["requests"][0]["injected_fault"] == fault_mode
+    assert audit["requests"][0]["server_outcome"] == server_outcome
+    summary = (output_directory / "summary.md").read_text("utf-8")
+    assert f"Loopback fault injection: `{fault_mode}`" in summary
+
+    validation = validate_online_artifact(output_directory)
+    assert validation.observation_cycles == 1
+    assert validation.policy_queries == 1
+    assert validation.action_rows == 15

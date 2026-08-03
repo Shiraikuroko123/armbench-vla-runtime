@@ -113,6 +113,33 @@
       "justMyCode": true
     },
     {
+      "name": "ArmBench: OpenPI loopback timeout fault",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "armbench",
+      "args": [
+        "vla-loopback-run",
+        "--scenario",
+        "single_block",
+        "--horizon",
+        "1",
+        "--max-policy-queries",
+        "1",
+        "--fault-mode",
+        "timeout",
+        "--fault-delay-ms",
+        "250",
+        "--inference-timeout-s",
+        "0.1",
+        "--output-directory",
+        "results/${input:loopbackFaultRunId}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "ArmBench: MuJoCo trajectory viewer",
       "type": "debugpy",
       "request": "launch",
@@ -180,6 +207,12 @@
       "type": "promptString",
       "description": "New local OpenPI loopback directory name",
       "default": "openpi_loopback_01"
+    },
+    {
+      "id": "loopbackFaultRunId",
+      "type": "promptString",
+      "description": "New loopback fault result directory name",
+      "default": "openpi_loopback_timeout_01"
     },
     {
       "id": "openpiOnlineRunId",

@@ -26,7 +26,10 @@ from armbench.vla.online_benchmark import (
     execute_openpi_online_run,
     execute_vla_online_benchmark,
 )
-from armbench.vla.loopback import execute_openpi_loopback_run
+from armbench.vla.loopback import (
+    LOOPBACK_FAULT_MODES,
+    execute_openpi_loopback_run,
+)
 
 
 def _validate(config_path: Path) -> int:
@@ -291,6 +294,30 @@ def build_parser() -> argparse.ArgumentParser:
     vla_loopback.add_argument("--max-policy-queries", type=int, default=3)
     vla_loopback.add_argument("--prompt")
     vla_loopback.add_argument(
+        "--fault-mode",
+        choices=LOOPBACK_FAULT_MODES,
+        default="none",
+        help="inject one deterministic server response/transport fault",
+    )
+    vla_loopback.add_argument(
+        "--fault-query",
+        type=int,
+        default=0,
+        help="zero-based request index at which to inject the fault",
+    )
+    vla_loopback.add_argument(
+        "--fault-delay-ms",
+        type=float,
+        default=250.0,
+        help="server delay used by the timeout fault",
+    )
+    vla_loopback.add_argument(
+        "--inference-timeout-s",
+        type=float,
+        default=0.1,
+        help="bounded client receive timeout",
+    )
+    vla_loopback.add_argument(
         "--video",
         action="store_true",
         help="record the live MuJoCo episode as MP4",
@@ -460,6 +487,10 @@ def main(arguments: list[str] | None = None) -> int:
             max_policy_queries=args.max_policy_queries,
             prompt=prompt,
             make_video=args.video,
+            fault_mode=args.fault_mode,
+            fault_request_index=args.fault_query,
+            fault_delay_ms=args.fault_delay_ms,
+            inference_timeout_s=args.inference_timeout_s,
         )
         print(f"results: {output.resolve()}")
         return 0

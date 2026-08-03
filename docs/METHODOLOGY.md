@@ -130,6 +130,15 @@ actions. It stores a separate request audit with both image hashes. Its policy
 provenance is always `scripted_non_learned_loopback`; a valid network response
 does not become evidence of learned-policy or checkpoint performance.
 
+The loopback can inject one response fault at a selected request: a wrong action
+shape, a nonfinite action, a server-side close before response, or a response
+delayed beyond the bounded client timeout. Injection occurs only after the
+server validates and hashes the DROID observation. The malformed responses pass
+through the real MessagePack/WebSocket client; the supervisor must reject them,
+advance physics under pose hold for measured client wait time, execute no remote
+action, and retain a safe failure artifact. These controlled cases establish
+failure-path behavior for the tested faults, not network reliability statistics.
+
 The bundled online policy follows a collision-free reference and is labeled
 `scripted_non_learned_reference`. It exists to isolate the effect and query cost
 of feedback horizon. Its configured latency is synthetic: MuJoCo advances under

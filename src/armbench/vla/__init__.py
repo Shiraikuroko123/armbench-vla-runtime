@@ -20,6 +20,7 @@ from armbench.vla.observation_guard import (
     VLAObservationGuard,
 )
 from armbench.vla.loopback import (
+    LOOPBACK_FAULT_MODES,
     LOOPBACK_POLICY_PROVENANCE,
     OpenPIProtocolLoopbackServer,
     execute_openpi_loopback_run,
@@ -42,6 +43,7 @@ __all__ = [
     "BoundedOpenPIBackend",
     "GuardConfig",
     "GuardResult",
+    "LOOPBACK_FAULT_MODES",
     "LOOPBACK_POLICY_PROVENANCE",
     "OpenPIPolicyClient",
     "OpenPIProtocolLoopbackServer",
