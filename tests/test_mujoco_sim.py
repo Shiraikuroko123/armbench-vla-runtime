@@ -10,6 +10,7 @@ from armbench.mujoco_sim.benchmark import execute_mujoco_benchmark, inflate_obst
 from armbench.mujoco_sim.execution import execute_trajectory
 from armbench.mujoco_sim.model import ARM_JOINT_NAMES, default_panda_scene_path
 from armbench.mujoco_sim.scenarios import mujoco_scenarios
+from armbench.mujoco_sim.viewer import load_pose_sequence
 from armbench.postprocess import time_parameterize
 
 
@@ -163,3 +164,16 @@ def test_minimal_mujoco_benchmark_writes_reproducible_artifact(
         "summary.md",
     }
     assert expected.issubset(path.name for path in run_directory.iterdir())
+
+
+def test_saved_trace_can_be_loaded_for_interactive_debugging(tmp_path: Path) -> None:
+    positions = np.arange(21, dtype=float).reshape(3, 7) / 10.0
+    times = np.array([2.0, 2.1, 2.2])
+    trace_path = tmp_path / "trace.npz"
+    np.savez_compressed(trace_path, actual_positions=positions, times=times)
+
+    loaded_positions, loaded_times, selected = load_pose_sequence(trace_path)
+
+    np.testing.assert_allclose(loaded_positions, positions)
+    np.testing.assert_allclose(loaded_times, [0.0, 0.1, 0.2])
+    assert selected == "actual_positions"

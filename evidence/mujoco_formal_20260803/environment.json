@@ -1,0 +1,26 @@
+{
+  "captured_at_utc": "2026-08-03T15:02:53.328535+00:00",
+  "experiment": {
+    "backend": "mujoco",
+    "menagerie_commit": "71f066ad0be9cd271f7ed58c030243ef157af9f4",
+    "scenario_version": "2.0-mujoco"
+  },
+  "git": {
+    "commit": "aa9f185044317a9c56406a95207b4b64ddc0e338",
+    "dirty": false,
+    "status_short": []
+  },
+  "packages": {
+    "armbench": "0.1.0",
+    "imageio": "2.37.4",
+    "imageio-ffmpeg": "0.6.0",
+    "matplotlib": "3.7.2",
+    "mujoco": "3.11.0",
+    "numpy": "1.26.4",
+    "pytest": "8.3.5"
+  },
+  "platform": "Windows-10-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+  "python": "3.10.8 (tags/v3.10.8:aaaf517, Oct 11 2022, 16:50:30) [MSC v.1933 64 bit (AMD64)]",
+  "python_executable": "D:\\arm-planning-control-project\\.venv\\Scripts\\python.exe"
+}

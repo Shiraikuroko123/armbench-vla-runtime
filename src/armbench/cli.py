@@ -110,6 +110,28 @@ def build_parser() -> argparse.ArgumentParser:
     )
     mujoco_run.add_argument("--skip-execution", action="store_true")
     mujoco_run.add_argument("--no-videos", action="store_true")
+
+    mujoco_view = subparsers.add_parser(
+        "mujoco-view", help="inspect a Panda pose or replay a saved trajectory"
+    )
+    mujoco_view.add_argument(
+        "--scenario",
+        choices=("free_space", "single_block", "narrow_gate"),
+        default="single_block",
+    )
+    mujoco_view.add_argument("--pose", choices=("start", "goal"), default="start")
+    mujoco_view.add_argument("--clearance-mm", type=float, default=0.0)
+    mujoco_view.add_argument("--payload", type=float, default=0.0)
+    mujoco_view.add_argument("--trace", type=Path)
+    mujoco_view.add_argument(
+        "--array",
+        choices=("auto", "actual_positions", "desired_positions", "smoothed", "raw"),
+        default="auto",
+    )
+    mujoco_view.add_argument("--frame", type=int, default=-1)
+    mujoco_view.add_argument("--play", action="store_true")
+    mujoco_view.add_argument("--speed", type=float, default=1.0)
+    mujoco_view.add_argument("--loop", action="store_true")
     return parser
 
 
@@ -136,6 +158,23 @@ def main(arguments: list[str] | None = None) -> int:
             make_videos=not args.no_videos,
         )
         print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "mujoco-view":
+        from armbench.mujoco_sim.viewer import launch_trajectory_viewer
+
+        record = launch_trajectory_viewer(
+            scenario_name=args.scenario,
+            pose_name=args.pose,
+            clearance_m=args.clearance_mm / 1000.0,
+            payload_mass=args.payload,
+            trace_path=args.trace,
+            array_key=args.array,
+            frame=args.frame,
+            play=args.play,
+            playback_speed=args.speed,
+            loop=args.loop,
+        )
+        print(json.dumps(record, indent=2, ensure_ascii=False))
         return 0
     planning_seeds = parse_seed_spec(args.seeds) if args.seeds else None
     control_seeds = (

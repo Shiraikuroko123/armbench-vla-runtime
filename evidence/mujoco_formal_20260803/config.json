@@ -1,0 +1,139 @@
+{
+  "collision_consistency": {
+    "capsule_radius_m": 0.05,
+    "samples": 601,
+    "scenarios": [
+      "single_block",
+      "narrow_gate"
+    ],
+    "seed": 20260803
+  },
+  "execution": {
+    "control_dt_s": 0.01,
+    "delays_ms": [
+      0,
+      40,
+      80
+    ],
+    "goal_tolerance_rad": 0.05,
+    "hold_s": 1.0,
+    "payload_masses": [
+      0.0,
+      0.5
+    ],
+    "planning_seed": 0,
+    "profiles": [
+      {
+        "clearance_m": 0.0,
+        "kd": [
+          22.0,
+          22.0,
+          18.0,
+          18.0,
+          12.0,
+          8.0,
+          6.0
+        ],
+        "kp": [
+          120.0,
+          120.0,
+          100.0,
+          100.0,
+          60.0,
+          40.0,
+          30.0
+        ],
+        "name": "nominal_fast",
+        "speed_scale": 0.35
+      },
+      {
+        "clearance_m": 0.0,
+        "kd": 2.0,
+        "kp": 5.0,
+        "name": "nominal_slow",
+        "speed_scale": 0.1
+      },
+      {
+        "clearance_m": 0.02,
+        "kd": 2.0,
+        "kp": 5.0,
+        "name": "clearance_slow",
+        "speed_scale": 0.1
+      }
+    ],
+    "render_cases": [
+      {
+        "delay_ms": 0,
+        "payload_mass": 0.0,
+        "profile": "nominal_fast",
+        "scenario": "single_block"
+      },
+      {
+        "delay_ms": 80,
+        "payload_mass": 0.0,
+        "profile": "nominal_fast",
+        "scenario": "single_block"
+      },
+      {
+        "delay_ms": 80,
+        "payload_mass": 0.0,
+        "profile": "clearance_slow",
+        "scenario": "single_block"
+      },
+      {
+        "delay_ms": 80,
+        "payload_mass": 0.5,
+        "profile": "clearance_slow",
+        "scenario": "narrow_gate"
+      }
+    ],
+    "scenarios": [
+      "single_block",
+      "narrow_gate"
+    ],
+    "video_fps": 30,
+    "warmup_s": 0.3
+  },
+  "planning": {
+    "clearances_m": [
+      0.0,
+      0.02
+    ],
+    "collision_resolution_rad": 0.05,
+    "planners": {
+      "rrt_connect": {
+        "goal_sample_rate": 0.05,
+        "max_iterations": 2000,
+        "step_size": 0.35,
+        "timeout_s": 2.0
+      },
+      "rrt_star": {
+        "goal_connection_radius": 0.6,
+        "goal_sample_rate": 0.1,
+        "max_iterations": 4000,
+        "rewire_radius": 2.5,
+        "step_size": 0.35,
+        "timeout_s": 2.0
+      }
+    },
+    "shortcut_attempts": 150
+  },
+  "scenario_version": "2.0-mujoco",
+  "scenarios": [
+    "single_block",
+    "narrow_gate"
+  ],
+  "schema_version": 1,
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ]
+}

@@ -1,74 +1,87 @@
-# Formal result snapshot
+# Verified result snapshots
 
-## Provenance
+## Primary MuJoCo result
 
-- Run ID: `formal_v1_30seed_20260803`
-- Code commit: `a19883ce551a2ec035002cc51ccf122ded3c6092`
+### Provenance
+
+- Run ID: `mujoco_formal_20260803`
+- Code commit: `aa9f185044317a9c56406a95207b4b64ddc0e338`
 - Git state at run start: clean
-- Python: 3.10.8
-- NumPy / Matplotlib / pytest: 1.26.4 / 3.7.2 / 8.3.5
-- CPU: Intel Core i9-12900H, Windows 10.0.26200
-- Planning protocol: 30 paired seeds (`0..29`) for each scenario and planner
-- Control protocol: five noise seeds for every controller/delay/load condition
+- Menagerie commit: `71f066ad0be9cd271f7ed58c030243ef157af9f4`
+- Python / MuJoCo: 3.10.8 / 3.11.0
+- CPU: Intel Core i9-12900H
+- Renderer verified on Intel Iris Xe without CUDA
+- Recorded runtime: approximately 133 seconds
+- Planning protocol: 10 paired seeds per scene/clearance/planner
+- Execution protocol: 2 scenes x 3 profiles x 3 delays x 2 payloads
 
-The complete local artifact is in
-`results/formal_v1_30seed_20260803/`. It contains 180 planning trials, 60
-control trials, 155 verified successful paths, 25 benchmark timeout records,
-three synthetic failure diagnostics, compressed traces, and figures.
+The tracked snapshot is in
+[`evidence/mujoco_formal_20260803`](../evidence/mujoco_formal_20260803/summary.md).
+It contains the resolved config, clean environment record, 80 raw planning
+trials, 36 raw execution rows, 1,202 collision-audit samples, aggregate JSON,
+and four MP4 recordings. The local untracked result additionally contains 53
+successful-path files and 36 controller traces.
 
-## Planning
+### Planning
 
-Latency includes successful and failed trials. Path length is computed on
-successful trials only. Parentheses show Wilson 95% success intervals.
+Latency includes both successes and deadline failures. Path statistics use
+successful trials only.
 
-| Scenario | Planner | Success | P50 ms | P95 ms | Mean raw length | Mean smoothed length |
-|---|---|---:|---:|---:|---:|---:|
-| free_space | RRT-Connect | 30/30, 100% (88.6-100%) | 3.8 | 6.6 | 2.653 | 2.653 |
-| free_space | RRT* | 30/30, 100% (88.6-100%) | 3.3 | 4.2 | 2.653 | 2.653 |
-| single_block | RRT-Connect | 30/30, 100% (88.6-100%) | 47.1 | 94.3 | 4.498 | 3.348 |
-| single_block | RRT* | 30/30, 100% (88.6-100%) | 232.1 | 1170.5 | 3.507 | 3.351 |
-| narrow_passage | RRT-Connect | 30/30, 100% (88.6-100%) | 424.5 | 621.7 | 8.706 | 5.644 |
-| narrow_passage | RRT* | 5/30, 16.7% (7.3-33.6%) | 2003.2 | 2012.8 | 4.745 | 4.735 |
+| Scene | Clearance | Planner | Success | P50 ms | P95 ms |
+|---|---:|---|---:|---:|---:|
+| single block | 0 mm | RRT-Connect | 10/10 | 23.8 | 99.1 |
+| single block | 0 mm | RRT* | 5/10 | 1178.9 | 2003.8 |
+| single block | 20 mm | RRT-Connect | 10/10 | 30.6 | 123.3 |
+| single block | 20 mm | RRT* | 4/10 | 2000.9 | 2004.7 |
+| narrow gate | 0 mm | RRT-Connect | 10/10 | 27.5 | 58.0 |
+| narrow gate | 0 mm | RRT* | 2/10 | 2000.7 | 2005.3 |
+| narrow gate | 20 mm | RRT-Connect | 10/10 | 29.4 | 89.3 |
+| narrow gate | 20 mm | RRT* | 2/10 | 2001.7 | 2004.5 |
 
-The constrained scene favors rapid bidirectional connection. This result does
-not establish general planner superiority: the RRT* baseline stops at its first
-feasible solution, both planners use one fixed parameter set, obstacles are
-spheres, and there is no self-collision model. RRT-Connect's raw paths are also
-longer; shortcut smoothing closes much of that gap.
+All 53 successful smoothed paths were revalidated against the physical-radius
+MuJoCo mesh model. This scene favors rapid bidirectional connection. RRT* is a
+first-solution, deadline-bounded baseline here; this table is not a general
+planner ranking.
 
-## Tracking
+### Physics matrix
 
-The controller follows the same smoothed `single_block` reference. Reported
-values are means over five noise seeds. Load is a scalar multiplier on the
-simplified joint inertia.
+Each profile contains 12 deterministic scene/delay/payload combinations.
 
-| Controller | Delay ms | Load | RMSE rad | Collision samples | Limit samples | Invalid edge intervals |
-|---|---:|---:|---:|---:|---:|---:|
-| PD | 0 | 1.00 | 0.0141 | 0.0 | 0.0 | 0.0 |
-| PD | 40 | 1.00 | 0.0166 | 0.0 | 0.0 | 0.0 |
-| PD | 80 | 1.00 | 0.0358 | 16.0 | 0.0 | 18.0 |
-| PD | 80 | 1.25 | 0.0355 | 12.8 | 0.0 | 14.8 |
-| LQR | 0 | 1.00 | 0.0298 | 0.0 | 0.0 | 0.0 |
-| LQR | 40 | 1.00 | 0.0270 | 0.0 | 0.0 | 0.0 |
-| LQR | 80 | 1.00 | 0.0340 | 0.0 | 0.0 | 0.0 |
-| LQR | 80 | 1.25 | 0.0394 | 0.0 | 0.0 | 0.0 |
+| Profile | Clearance | Safe | RMSE range rad | Contact-step range | Total limit steps |
+|---|---:|---:|---:|---:|---:|
+| nominal fast | 0 mm | 2/12 | 0.0181-0.8425 | 0-363 | 1096 |
+| nominal slow | 0 mm | 0/12 | 0.0208-0.0317 | 5-12 | 0 |
+| clearance slow | 20 mm | 12/12 | 0.0220-0.0306 | 0 | 0 |
 
-PD has lower nominal-delay RMSE, but it intersects the obstacle under 80 ms
-delay. LQR has somewhat higher RMSE yet remains collision-free in these trials.
-This is the main reason safety counters are reported separately from tracking
-error. It is an observation in a decoupled double-integrator simulation, not a
-claim about physical Panda control.
+`nominal_slow` and `clearance_slow` use identical speed and gains. The matched
+comparison therefore shows that controller tuning alone did not remove the
+brief contacts; adding planning clearance did in these fixed scenes.
 
-## Reproduction
+Selected rows illustrate why multiple safety counters are required:
 
-From the project directory:
+| Scene/profile | Delay | Payload | RMSE | Contacts | Final error | Outcome |
+|---|---:|---:|---:|---:|---:|---|
+| single, nominal fast | 0 ms | 0.0 kg | 0.0183 | 3 | 0.0015 | contact |
+| single, nominal fast | 80 ms | 0.0 kg | 0.7992 | 0 | 1.9109 | limit/goal failure |
+| single, clearance slow | 80 ms | 0.0 kg | 0.0226 | 0 | 0.0113 | safe success |
+| gate, nominal fast | 80 ms | 0.5 kg | 0.8425 | 112 | 2.5869 | contact/limit failure |
+| gate, clearance slow | 80 ms | 0.5 kg | 0.0230 | 0 | 0.0202 | safe success |
 
-```powershell
-& '..\.venv\Scripts\python.exe' -m pytest -q
-& '..\.venv\Scripts\python.exe' -m armbench validate
-& '..\.venv\Scripts\python.exe' -m armbench run --run-id <new_run_id>
-```
+### Collision approximation audit
 
-The output directory is never overwritten. Compare raw `per_trial.csv` files,
-not only formatted summaries, when checking another run.
+| Scene | Samples | True collision | True safe | False safe | False collision |
+|---|---:|---:|---:|---:|---:|
+| single block | 601 | 11 | 582 | 6 | 2 |
+| narrow gate | 601 | 20 | 576 | 3 | 2 |
 
+The 9 false-safe samples show that the body-origin capsule skeleton cannot
+replace mesh checks even when it uses official MuJoCo kinematics.
+
+## Historical NumPy/DH result
+
+Run `formal_v1_30seed_20260803` at commit `a19883c` contains 180 planning and 60
+decoupled-control trials. It remains locally available as an algorithm baseline
+and is reproducible with `armbench run`. It is not the primary result because
+its DH hand positions differ from the official Panda MJCF by approximately
+0.588 m at the start and 0.440 m at the goal, and its plant is not rigid-body
+physics. Do not combine its statistics with the MuJoCo tables above.

@@ -1,0 +1,34 @@
+[
+  {
+    "clearance_mm": 0,
+    "direct_edge_valid": false,
+    "goal_valid": true,
+    "passed": true,
+    "scenario": "single_block",
+    "start_valid": true
+  },
+  {
+    "clearance_mm": 20,
+    "direct_edge_valid": false,
+    "goal_valid": true,
+    "passed": true,
+    "scenario": "single_block",
+    "start_valid": true
+  },
+  {
+    "clearance_mm": 0,
+    "direct_edge_valid": false,
+    "goal_valid": true,
+    "passed": true,
+    "scenario": "narrow_gate",
+    "start_valid": true
+  },
+  {
+    "clearance_mm": 20,
+    "direct_edge_valid": false,
+    "goal_valid": true,
+    "passed": true,
+    "scenario": "narrow_gate",
+    "start_valid": true
+  }
+]
