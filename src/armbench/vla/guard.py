@@ -93,7 +93,7 @@ class GuardResult:
 
 
 class ActionChunkGuard:
-    """Check action lookahead and backtrack unsafe normalized velocities."""
+    """Check action lookahead and backtrack unsafe joint velocities in rad/s."""
 
     def __init__(
         self,

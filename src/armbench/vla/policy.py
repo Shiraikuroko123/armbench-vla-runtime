@@ -88,6 +88,7 @@ class ScriptedActionChunkPolicy:
         chunks: Sequence[ArrayLike],
         *,
         latencies_ms: Sequence[float] | None = None,
+        repeat_last: bool = False,
     ) -> None:
         if not chunks:
             raise ValueError("at least one scripted chunk is required")
@@ -97,9 +98,15 @@ class ScriptedActionChunkPolicy:
         if len(latencies_ms) != len(chunks):
             raise ValueError("latencies must match scripted chunks")
         self._latencies = [float(value) for value in latencies_ms]
+        self._repeat_last = bool(repeat_last)
         self._index = 0
 
     def infer(self, observation: VLAObservation) -> ActionChunk:
+        if self._index >= len(self._chunks) and not self._repeat_last:
+            raise RuntimeError(
+                "scripted action chunks exhausted; reset the policy or opt in "
+                "to repeat_last"
+            )
         index = min(self._index, len(self._chunks) - 1)
         self._index += 1
         return ActionChunk(

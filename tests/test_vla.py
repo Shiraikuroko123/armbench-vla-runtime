@@ -16,7 +16,7 @@ from armbench.mujoco_sim.scenarios import mujoco_scenarios
 from armbench.vla.guard import ActionChunkGuard, GuardConfig
 from armbench.vla.benchmark import execute_vla_guard_benchmark
 from armbench.vla.observation import MuJoCoDroidObservationBuilder
-from armbench.vla.policy import OpenPIPolicyClient
+from armbench.vla.policy import OpenPIPolicyClient, ScriptedActionChunkPolicy
 from armbench.vla.types import ActionChunk, VLAObservation
 
 
@@ -76,6 +76,31 @@ def test_openpi_wrapper_rejects_wrong_action_shape() -> None:
 
     with pytest.raises(ValueError, match="shape mismatch"):
         client.infer(_observation(np.zeros(7)))
+
+
+def test_scripted_policy_fails_closed_when_chunks_are_exhausted() -> None:
+    observation = _observation(np.zeros(7))
+    policy = ScriptedActionChunkPolicy([np.ones((1, 8))])
+
+    first = policy.infer(observation)
+    with pytest.raises(RuntimeError, match="chunks exhausted"):
+        policy.infer(observation)
+
+    np.testing.assert_allclose(first.actions, 1.0)
+    policy.reset()
+    np.testing.assert_allclose(policy.infer(observation).actions, 1.0)
+
+
+def test_scripted_policy_repeats_only_with_explicit_opt_in() -> None:
+    observation = _observation(np.zeros(7))
+    policy = ScriptedActionChunkPolicy(
+        [np.ones((1, 8))], repeat_last=True
+    )
+
+    policy.infer(observation)
+    repeated = policy.infer(observation)
+
+    np.testing.assert_allclose(repeated.actions, 1.0)
 
 
 def test_official_openpi_client_protocol_round_trip() -> None:
