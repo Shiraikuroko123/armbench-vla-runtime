@@ -50,6 +50,26 @@
       "justMyCode": true
     },
     {
+      "name": "ArmBench: online state-jump fault",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "armbench",
+      "args": [
+        "vla-online-run",
+        "--quick",
+        "--run-id",
+        "${input:vlaRunId}",
+        "--state-jump-joint",
+        "1",
+        "--state-jump-rad",
+        "0.08"
+      ],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "ArmBench: MuJoCo trajectory viewer",
       "type": "debugpy",
       "request": "launch",

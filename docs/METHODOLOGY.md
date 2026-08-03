@@ -98,6 +98,14 @@ a pose-hold controller for that duration, then the response is checked against
 the new dispatch state. This supports controlled delay/state-mismatch tests but
 is not measured pi0/pi0.5 server latency or OS scheduling evidence.
 
+The optional online state-jump fault changes one MuJoCo joint after observation
+capture and immediately before guard dispatch. It is indexed by policy query
+and records the exact injected seven-joint offset. The default 0.08 rad example
+crosses the 0.05 rad consistency threshold, so the expected outcome is a
+latched hold, physical safety, and task incompletion. Directly changing `qpos`
+makes the fault deterministic and attributable; it is not presented as a
+physically modeled external impulse.
+
 ## VLA fault protocol
 
 The positive-control stream is produced by fixed-seed RRT-Connect, mesh-checked

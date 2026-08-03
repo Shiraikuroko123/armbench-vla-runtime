@@ -66,7 +66,37 @@ class OnlineExecutionConfig:
 
 
 @dataclass(frozen=True)
+class OnlineFaultConfig:
+    """Deterministic faults injected between observation and action dispatch."""
+
+    state_jump_query: int | None = None
+    state_jump_rad: tuple[float, ...] = (0.0,) * 7
+
+    def __post_init__(self) -> None:
+        jump = np.asarray(self.state_jump_rad, dtype=float)
+        if jump.shape != (7,) or not np.all(np.isfinite(jump)):
+            raise ValueError("state_jump_rad must contain seven finite offsets")
+        if self.state_jump_query is not None and self.state_jump_query < 0:
+            raise ValueError("state_jump_query must be nonnegative")
+        enabled = bool(np.any(np.abs(jump) > 0.0))
+        if enabled != (self.state_jump_query is not None):
+            raise ValueError(
+                "state jump requires both a query index and a nonzero offset"
+            )
+
+    @property
+    def enabled(self) -> bool:
+        return self.state_jump_query is not None
+
+    def offset_for_query(self, query_index: int) -> FloatArray:
+        if query_index == self.state_jump_query:
+            return np.asarray(self.state_jump_rad, dtype=float).copy()
+        return np.zeros(7, dtype=float)
+
+
+@dataclass(frozen=True)
 class OnlineChunkRecord:
+    query_index: int
     sequence_id: int
     action_offset: int
     executed_horizon: int
@@ -77,9 +107,13 @@ class OnlineChunkRecord:
     policy_source: str | None
     runtime_fallback: bool
     failure_stage: str | None
+    guard_fallback: bool
+    fallback_reason: str | None
     deadline_exceeded: bool
     state_mismatch_exceeded: bool
     state_mismatch_rad: float
+    fault_injected: bool
+    injected_state_jump_rad: FloatArray
     policy_latency_ms: float
     simulated_inference_wait_s: float
     executed_interventions: int
@@ -88,6 +122,7 @@ class OnlineChunkRecord:
 
     def metrics(self) -> dict[str, object]:
         return {
+            "query_index": self.query_index,
             "sequence_id": self.sequence_id,
             "action_offset": self.action_offset,
             "executed_horizon": self.executed_horizon,
@@ -95,9 +130,13 @@ class OnlineChunkRecord:
             "policy_source": self.policy_source,
             "runtime_fallback": self.runtime_fallback,
             "failure_stage": self.failure_stage,
+            "guard_fallback": self.guard_fallback,
+            "fallback_reason": self.fallback_reason,
             "deadline_exceeded": self.deadline_exceeded,
             "state_mismatch_exceeded": self.state_mismatch_exceeded,
             "state_mismatch_rad": self.state_mismatch_rad,
+            "fault_injected": self.fault_injected,
+            "injected_state_jump_rad": self.injected_state_jump_rad.tolist(),
             "policy_latency_ms": self.policy_latency_ms,
             "simulated_inference_wait_s": self.simulated_inference_wait_s,
             "executed_interventions": self.executed_interventions,
@@ -127,6 +166,10 @@ class OnlineEpisodeResult:
     self_contact_steps: int
     joint_limit_violation_steps: int
     runtime_fallback_chunks: int
+    guard_fallback_chunks: int
+    deadline_chunks: int
+    state_mismatch_chunks: int
+    fault_injections: int
     executed_interventions: int
     simulated_inference_wait_s: float
     times: FloatArray
@@ -157,6 +200,10 @@ class OnlineEpisodeResult:
             "self_contact_steps": self.self_contact_steps,
             "joint_limit_violation_steps": self.joint_limit_violation_steps,
             "runtime_fallback_chunks": self.runtime_fallback_chunks,
+            "guard_fallback_chunks": self.guard_fallback_chunks,
+            "deadline_chunks": self.deadline_chunks,
+            "state_mismatch_chunks": self.state_mismatch_chunks,
+            "fault_injections": self.fault_injections,
             "executed_interventions": self.executed_interventions,
             "simulated_inference_wait_s": self.simulated_inference_wait_s,
         }
@@ -246,6 +293,7 @@ def run_online_episode(
     collision_resolution_rad: float = 0.02,
     guard_config: GuardConfig = GuardConfig(),
     execution_config: OnlineExecutionConfig = OnlineExecutionConfig(),
+    fault_config: OnlineFaultConfig = OnlineFaultConfig(),
     prompt: str | None = None,
 ) -> OnlineEpisodeResult:
     """Execute action prefixes and recapture actual state/images every query."""
@@ -382,6 +430,8 @@ def run_online_episode(
             dispatch_q = q_before.copy()
             policy_latency_ms = 0.0
             simulated_wait_s = 0.0
+            injected_state_jump = np.zeros(7, dtype=float)
+            query_index = len(records)
 
             def advance_during_inference(
                 chunk: ActionChunk,
@@ -390,6 +440,7 @@ def run_online_episode(
                 nonlocal next_controller_time
                 nonlocal policy_latency_ms
                 nonlocal simulated_wait_s
+                nonlocal injected_state_jump
                 policy_latency_ms = chunk.age_ms(observation)
                 wait_start = float(data.time)
                 wait_end = wait_start + policy_latency_ms / 1000.0
@@ -406,6 +457,13 @@ def run_online_episode(
                         next_controller_time += execution_config.controller_dt_s
                     step_physics()
                 simulated_wait_s = float(data.time) - wait_start
+                injected_state_jump = fault_config.offset_for_query(query_index)
+                if np.any(np.abs(injected_state_jump) > 0.0):
+                    jumped_q = data.qpos[arm_qpos].copy() + injected_state_jump
+                    robot.validate_configuration(jumped_q)
+                    data.qpos[arm_qpos] = jumped_q
+                    data.qvel[arm_dofs] = 0.0
+                    mujoco.mj_forward(robot.model, data)
                 dispatch_q = data.qpos[arm_qpos].copy()
                 if simulated_wait_s > 0.0:
                     guard.synchronize_velocity(np.zeros(7, dtype=float))
@@ -484,6 +542,7 @@ def run_online_episode(
             )
             records.append(
                 OnlineChunkRecord(
+                    query_index=query_index,
                     sequence_id=observation.sequence_id,
                     action_offset=action_offset,
                     executed_horizon=execute_count,
@@ -495,6 +554,16 @@ def run_online_episode(
                     runtime_fallback=decision.used_runtime_fallback,
                     failure_stage=(
                         decision.failure.stage if decision.failure else None
+                    ),
+                    guard_fallback=(
+                        guard_result.fallback_reason is not None
+                        if guard_result is not None
+                        else False
+                    ),
+                    fallback_reason=(
+                        guard_result.fallback_reason
+                        if guard_result is not None
+                        else None
                     ),
                     deadline_exceeded=(
                         guard_result.deadline_exceeded
@@ -515,6 +584,10 @@ def run_online_episode(
                             )
                         )
                     ),
+                    fault_injected=bool(
+                        np.any(np.abs(injected_state_jump) > 0.0)
+                    ),
+                    injected_state_jump_rad=injected_state_jump.copy(),
                     policy_latency_ms=policy_latency_ms,
                     simulated_inference_wait_s=simulated_wait_s,
                     executed_interventions=executed_interventions,
@@ -590,6 +663,12 @@ def run_online_episode(
         self_contact_steps=self_contact_steps,
         joint_limit_violation_steps=joint_limit_violation_steps,
         runtime_fallback_chunks=sum(record.runtime_fallback for record in records),
+        guard_fallback_chunks=sum(record.guard_fallback for record in records),
+        deadline_chunks=sum(record.deadline_exceeded for record in records),
+        state_mismatch_chunks=sum(
+            record.state_mismatch_exceeded for record in records
+        ),
+        fault_injections=sum(record.fault_injected for record in records),
         executed_interventions=sum(
             record.executed_interventions for record in records
         ),

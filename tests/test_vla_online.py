@@ -10,6 +10,7 @@ from armbench.mujoco_sim.scenarios import mujoco_scenarios
 from armbench.vla.guard import GuardConfig
 from armbench.vla.online import (
     OnlineExecutionConfig,
+    OnlineFaultConfig,
     ReferenceActionChunkPolicy,
     run_online_episode,
 )
@@ -150,6 +151,71 @@ def test_online_episode_advances_physics_during_stale_inference() -> None:
     assert result.obstacle_contact_steps == 0
 
 
+def test_online_episode_latches_on_injected_dispatch_state_jump() -> None:
+    start = mujoco_scenarios()["single_block"].start
+    reference = np.repeat(start[None, :], 4, axis=0)
+    reference[:, 0] += np.arange(4) * 0.005
+    action_dt = 0.1
+    policy = ReferenceActionChunkPolicy(
+        reference,
+        action_dt_s=action_dt,
+        velocity_limit_rad_s=0.5,
+    )
+
+    result = run_online_episode(
+        "single_block",
+        policy,
+        reference,
+        execution_horizon=1,
+        clearance_m=0.0,
+        guard_config=GuardConfig(
+            control_dt_s=action_dt,
+            deadline_ms=200.0,
+            max_state_mismatch_rad=0.05,
+            joint_velocity_clip_rad_s=0.5,
+            joint_acceleration_clip_rad_s2=15.0,
+        ),
+        execution_config=OnlineExecutionConfig(
+            action_dt_s=action_dt,
+            warmup_s=0.01,
+            hold_s=0.01,
+            max_extra_actions=0,
+        ),
+        fault_config=OnlineFaultConfig(
+            state_jump_query=0,
+            state_jump_rad=(0.08, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+        ),
+    )
+
+    assert result.policy_queries == 1
+    assert result.fault_injections == 1
+    assert result.state_mismatch_chunks == 1
+    assert result.guard_fallback_chunks == 1
+    assert result.deadline_chunks == 0
+    assert result.runtime_fallback_chunks == 0
+    assert not result.task_success
+    assert result.physical_safe
+    record = result.chunks[0]
+    assert record.fault_injected
+    assert record.guard_fallback
+    assert record.fallback_reason == "state_mismatch"
+    assert record.state_mismatch_rad == pytest.approx(0.08, abs=1e-9)
+    np.testing.assert_allclose(
+        record.dispatch_q - record.observation_q,
+        np.array([0.08, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+        atol=1e-9,
+    )
+
+
+def test_online_fault_config_rejects_partial_or_invalid_state_jump() -> None:
+    with pytest.raises(ValueError, match="both a query index"):
+        OnlineFaultConfig(state_jump_query=0)
+    with pytest.raises(ValueError, match="both a query index"):
+        OnlineFaultConfig(state_jump_rad=(0.1,) + (0.0,) * 6)
+    with pytest.raises(ValueError, match="seven finite"):
+        OnlineFaultConfig(state_jump_query=0, state_jump_rad=(0.1,))
+
+
 def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     project_root = Path(__file__).resolve().parents[1]
     config = json.loads(
@@ -183,6 +249,8 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     assert row["actual_openpi_inference"] is False
     assert row["policy_source"] == "scripted_non_learned_reference"
     assert row["policy_queries"] > 1
+    assert row["fault_injections"] == 0
+    assert row["state_mismatch_chunks"] == 0
     assert environment["packages"]["mujoco"] == "3.11.0"
     assert environment["packages"]["websockets"] == "16.1.1"
     assert environment["vla_online"]["openpi_contract"]["model_config"] == (
@@ -194,3 +262,4 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     summary = (run_directory / "summary.md").read_text("utf-8")
     assert "No pi0/pi0.5 checkpoint" in summary
     assert "recaptures both 224x224 cameras" in summary
+    assert "State mismatches" in summary

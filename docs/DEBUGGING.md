@@ -98,6 +98,20 @@ To force a deadline in the online physics loop, add
 deadline chunk, remain physically safe, and fail the task rather than silently
 continuing the reference stream.
 
+To reproduce a dispatch-state consistency failure, run:
+
+```powershell
+& $ArmbenchPython -m armbench vla-online-run --quick `
+  --run-id debug_state_jump_01 `
+  --state-jump-joint 1 --state-jump-rad 0.08
+```
+
+Both rows should report `fault_injections=1`, `state_mismatch_chunks=1`,
+`guard_fallback_chunks=1`, `physical_safe=True`, and `task_success=False`.
+The matching `per_chunk.csv` row preserves the observed state, injected offset,
+dispatch state, measured mismatch, and fallback reason. This deterministic
+joint-state jump is a boundary test, not a simulated contact impulse.
+
 ## 4. Debug the observation boundary
 
 Open `observations/<scenario>_external.png` and

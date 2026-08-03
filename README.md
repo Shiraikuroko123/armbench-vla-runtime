@@ -215,6 +215,9 @@ Set-Location $ArmbenchProject
 & $ArmbenchPython -m armbench vla-guard-run --quick --run-id my_vla_smoke
 & $ArmbenchPython -m armbench vla-guard-run --run-id my_vla_formal
 & $ArmbenchPython -m armbench vla-online-run --quick --run-id my_online_smoke
+& $ArmbenchPython -m armbench vla-online-run --quick `
+  --run-id my_state_jump_smoke `
+  --state-jump-joint 1 --state-jump-rad 0.08
 ```
 
 Existing run directories are never overwritten.
@@ -225,7 +228,11 @@ actions from each chunk, then recaptures the two cameras and actual MuJoCo state
 before querying again. Its built-in reference policy is explicitly non-learned;
 the loop accepts the same `ActionChunkPolicy` interface as the OpenPI client.
 Use `--policy-latency-ms 240` to verify deadline hold while MuJoCo continues
-under the inference-wait controller.
+under the inference-wait controller. The state-jump command injects a
+deterministic 0.08 rad change after observation capture. It should exceed the
+configured 0.05 rad state-consistency threshold, latch a hold, remain
+physically safe, and report task failure. It is a controlled fault, not a
+modeled impact.
 
 ## Real OpenPI probe
 

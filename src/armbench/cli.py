@@ -186,6 +186,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="synthetic inference delay that advances MuJoCo under pose hold",
     )
     vla_online.add_argument(
+        "--state-jump-joint",
+        type=int,
+        choices=range(1, 8),
+        help="inject a synthetic dispatch-state jump on this 1-based joint",
+    )
+    vla_online.add_argument(
+        "--state-jump-rad",
+        type=float,
+        help="signed synthetic state jump magnitude in radians",
+    )
+    vla_online.add_argument(
+        "--state-jump-query",
+        type=int,
+        default=None,
+        help="zero-based policy query for the jump (default: 0)",
+    )
+    vla_online.add_argument(
         "--quick",
         action="store_true",
         help="run single_block at horizons 1 and 15 with zero payload",
@@ -278,6 +295,12 @@ def main(arguments: list[str] | None = None) -> int:
             parser.error(
                 "--quick cannot be combined with scenarios, horizons, or payloads"
             )
+        if (args.state_jump_joint is None) != (args.state_jump_rad is None):
+            parser.error(
+                "--state-jump-joint and --state-jump-rad must be used together"
+            )
+        if args.state_jump_query is not None and args.state_jump_joint is None:
+            parser.error("--state-jump-query requires a configured state jump")
         output = execute_vla_online_benchmark(
             args.config,
             args.output_root,
@@ -286,6 +309,9 @@ def main(arguments: list[str] | None = None) -> int:
             execution_horizons=[1, 15] if args.quick else args.horizons,
             payload_masses=[0.0] if args.quick else args.payloads,
             policy_latency_ms=args.policy_latency_ms,
+            state_jump_query=args.state_jump_query,
+            state_jump_joint=args.state_jump_joint,
+            state_jump_rad=args.state_jump_rad,
         )
         print(f"results: {output.resolve()}")
         return 0

@@ -24,6 +24,7 @@ from armbench.vla.benchmark import (
 )
 from armbench.vla.online import (
     OnlineExecutionConfig,
+    OnlineFaultConfig,
     ReferenceActionChunkPolicy,
     run_online_episode,
 )
@@ -141,14 +142,16 @@ def _summary(rows: list[dict[str, object]]) -> str:
         "The policy is `scripted_non_learned_reference`. No pi0/pi0.5 "
         "checkpoint or learned-policy inference was used.",
         "",
-        "| Scenario | Payload kg | Horizon | Queries | Task | Safe | Goal error rad | RMSE rad |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|",
+        "| Scenario | Payload kg | Horizon | Queries | Task | Safe | Faults | Deadlines | State mismatches | Goal error rad | RMSE rad |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for row in rows:
         lines.append(
             f"| {row['scenario']} | {float(row['payload_mass']):g} | "
             f"{row['execution_horizon']} | {row['policy_queries']} | "
             f"{row['task_success']} | {row['physical_safe']} | "
+            f"{row['fault_injections']} | {row['deadline_chunks']} | "
+            f"{row['state_mismatch_chunks']} | "
             f"{float(row['final_goal_error_rad']):.5f} | "
             f"{float(row['rmse_rad']):.5f} |"
         )
@@ -164,6 +167,16 @@ def _summary(rows: list[dict[str, object]]) -> str:
             "",
         ]
     )
+    if any(bool(row["synthetic_state_jump"]) for row in rows):
+        lines.extend(
+            [
+                "The optional state jump is a deterministic fault injected "
+                "directly into MuJoCo joint state after observation capture. "
+                "It tests dispatch-state consistency handling; it is not a "
+                "modeled contact impulse.",
+                "",
+            ]
+        )
     return "\n".join(lines)
 
 
@@ -176,6 +189,9 @@ def execute_vla_online_benchmark(
     execution_horizons: Sequence[int] | None = None,
     payload_masses: Sequence[float] | None = None,
     policy_latency_ms: float | None = None,
+    state_jump_query: int | None = None,
+    state_jump_joint: int | None = None,
+    state_jump_rad: float | None = None,
 ) -> Path:
     config = load_vla_config(config_path)
     online = _online_config(config)
@@ -211,6 +227,26 @@ def execute_vla_online_benchmark(
         or selected_policy_latency_ms < 0.0
     ):
         raise ValueError("online policy latency must be finite and nonnegative")
+    jump_arguments = (state_jump_joint, state_jump_rad)
+    if (jump_arguments[0] is None) != (jump_arguments[1] is None):
+        raise ValueError("state jump requires both joint and magnitude")
+    selected_state_jump_query: int | None = None
+    selected_state_jump = np.zeros(7, dtype=float)
+    if state_jump_joint is not None and state_jump_rad is not None:
+        if state_jump_joint < 1 or state_jump_joint > 7:
+            raise ValueError("state jump joint must be within [1, 7]")
+        if not np.isfinite(state_jump_rad) or state_jump_rad == 0.0:
+            raise ValueError("state jump magnitude must be finite and nonzero")
+        selected_state_jump_query = (
+            0 if state_jump_query is None else int(state_jump_query)
+        )
+        selected_state_jump[state_jump_joint - 1] = float(state_jump_rad)
+    elif state_jump_query is not None:
+        raise ValueError("state jump query requires a configured state jump")
+    fault_config = OnlineFaultConfig(
+        state_jump_query=selected_state_jump_query,
+        state_jump_rad=tuple(float(value) for value in selected_state_jump),
+    )
 
     resolved_id = run_id or datetime.now(timezone.utc).strftime(
         "vla_online_%Y%m%dT%H%M%SZ"
@@ -223,6 +259,8 @@ def execute_vla_online_benchmark(
         "execution_horizons": horizons,
         "payload_masses_kg": payloads,
         "policy_latency_ms": selected_policy_latency_ms,
+        "state_jump_query": selected_state_jump_query,
+        "state_jump_rad": selected_state_jump.tolist(),
     }
     metadata = environment_metadata(Path(__file__).resolve().parents[3])
     metadata["packages"].update(
@@ -239,6 +277,7 @@ def execute_vla_online_benchmark(
         "camera_recapture_per_query": True,
         "policy_provenance": "scripted_non_learned_reference",
         "actual_openpi_inference": False,
+        "synthetic_state_jump": fault_config.enabled,
         "openpi_contract": dict(config["openpi_contract"]),
     }
     _write_json(run_directory / "config.json", config_snapshot)
@@ -299,6 +338,7 @@ def execute_vla_online_benchmark(
                         ),
                         guard_config=guard_config,
                         execution_config=execution_config,
+                        fault_config=fault_config,
                         prompt=str(dict(config["prompts"])[scenario_name]),
                     )
                     case_name = (
@@ -346,6 +386,9 @@ def execute_vla_online_benchmark(
                         "camera_recapture_per_query": True,
                         "actual_openpi_inference": False,
                         "policy_latency_ms": selected_policy_latency_ms,
+                        "synthetic_state_jump": fault_config.enabled,
+                        "state_jump_query": selected_state_jump_query,
+                        "state_jump_rad": selected_state_jump.tolist(),
                         "external_image": str(
                             first_external_path.relative_to(run_directory)
                         ),
