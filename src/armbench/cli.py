@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 
 from armbench.benchmark import execute_benchmark, load_config, parse_seed_spec
@@ -15,6 +16,11 @@ from armbench.mujoco_sim.benchmark import (
     validate_mujoco_scenarios,
 )
 from armbench.scenario import benchmark_scenarios
+from armbench.vla.benchmark import (
+    execute_openpi_probe,
+    execute_vla_guard_benchmark,
+    load_vla_config,
+)
 
 
 def _validate(config_path: Path) -> int:
@@ -57,7 +63,7 @@ def _mujoco_validate(config_path: Path) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="armbench",
-        description="Seven-joint planning, control, and MuJoCo physics benchmark",
+        description="VLA action runtime assurance and Panda physics benchmark",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -132,6 +138,54 @@ def build_parser() -> argparse.ArgumentParser:
     mujoco_view.add_argument("--play", action="store_true")
     mujoco_view.add_argument("--speed", type=float, default=1.0)
     mujoco_view.add_argument("--loop", action="store_true")
+
+    vla_guard = subparsers.add_parser(
+        "vla-guard-run",
+        help="benchmark OpenPI-compatible action chunks with runtime assurance",
+    )
+    vla_guard.add_argument(
+        "--config", type=Path, default=Path("configs/vla_guard_benchmark.json")
+    )
+    vla_guard.add_argument("--output-root", type=Path, default=Path("results"))
+    vla_guard.add_argument("--run-id")
+    vla_guard.add_argument(
+        "--scenarios",
+        nargs="+",
+        choices=("single_block", "narrow_gate"),
+        help="optional scenario subset",
+    )
+    vla_guard.add_argument(
+        "--quick",
+        action="store_true",
+        help="run single_block without MP4 rendering",
+    )
+    vla_guard.add_argument("--no-videos", action="store_true")
+
+    vla_probe = subparsers.add_parser(
+        "vla-probe",
+        help="send one MuJoCo observation to a real remote OpenPI server",
+    )
+    vla_probe.add_argument(
+        "--config", type=Path, default=Path("configs/vla_guard_benchmark.json")
+    )
+    vla_probe.add_argument("--output-directory", type=Path, required=True)
+    vla_probe.add_argument("--host", default="localhost")
+    vla_probe.add_argument("--port", type=int, default=8000)
+    vla_probe.add_argument(
+        "--scenario",
+        choices=("single_block", "narrow_gate"),
+        default="single_block",
+    )
+    vla_probe.add_argument(
+        "--prompt",
+        help="language instruction; defaults to the configured scenario prompt",
+    )
+    vla_probe.add_argument(
+        "--api-key-env",
+        default="OPENPI_API_KEY",
+        help="environment variable containing an optional server API key",
+    )
+    vla_probe.add_argument("--connect-timeout-s", type=float, default=3.0)
     return parser
 
 
@@ -175,6 +229,33 @@ def main(arguments: list[str] | None = None) -> int:
             loop=args.loop,
         )
         print(json.dumps(record, indent=2, ensure_ascii=False))
+        return 0
+    if args.command == "vla-guard-run":
+        if args.quick and args.scenarios:
+            parser.error("--quick cannot be combined with --scenarios")
+        output = execute_vla_guard_benchmark(
+            args.config,
+            args.output_root,
+            run_id=args.run_id,
+            scenarios=["single_block"] if args.quick else args.scenarios,
+            make_videos=not (args.no_videos or args.quick),
+        )
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-probe":
+        config = load_vla_config(args.config)
+        prompt = args.prompt or str(dict(config["prompts"])[args.scenario])
+        output = execute_openpi_probe(
+            args.config,
+            args.output_directory,
+            host=args.host,
+            port=args.port,
+            scenario_name=args.scenario,
+            prompt=prompt,
+            api_key=os.environ.get(args.api_key_env),
+            connect_timeout_s=args.connect_timeout_s,
+        )
+        print(f"results: {output.resolve()}")
         return 0
     planning_seeds = parse_seed_spec(args.seeds) if args.seeds else None
     control_seeds = (

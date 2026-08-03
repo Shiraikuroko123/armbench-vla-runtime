@@ -1,0 +1,309 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+import threading
+
+import mujoco
+import numpy as np
+import pytest
+from openpi_client import msgpack_numpy
+from websockets.sync.server import serve
+
+from armbench.mujoco_sim import MuJoCoCollisionChecker, MuJoCoPanda
+from armbench.mujoco_sim.benchmark import inflate_obstacles
+from armbench.mujoco_sim.scenarios import mujoco_scenarios
+from armbench.vla.guard import ActionChunkGuard, GuardConfig
+from armbench.vla.benchmark import execute_vla_guard_benchmark
+from armbench.vla.observation import MuJoCoDroidObservationBuilder
+from armbench.vla.policy import OpenPIPolicyClient
+from armbench.vla.types import ActionChunk, VLAObservation
+
+
+def _observation(q: np.ndarray, *, captured_at_s: float = 100.0) -> VLAObservation:
+    image = np.zeros((224, 224, 3), dtype=np.uint8)
+    return VLAObservation(
+        exterior_image=image,
+        wrist_image=image,
+        joint_position=q,
+        gripper_position=np.array([1.0]),
+        prompt="move around the obstacle",
+        sequence_id=7,
+        captured_at_s=captured_at_s,
+    )
+
+
+class _FakeBackend:
+    def __init__(self) -> None:
+        self.request: dict[str, object] | None = None
+
+    def get_server_metadata(self) -> dict[str, object]:
+        return {"model": "pi05_droid_test"}
+
+    def infer(self, observation: dict[str, object]) -> dict[str, object]:
+        self.request = observation
+        return {
+            "actions": np.zeros((15, 8)),
+            "server_timing": {"infer_ms": 12.5},
+        }
+
+
+def test_openpi_wrapper_uses_official_droid_keys() -> None:
+    backend = _FakeBackend()
+    client = OpenPIPolicyClient(backend=backend)
+    observation = _observation(np.zeros(7), captured_at_s=0.0)
+
+    chunk = client.infer(observation)
+
+    assert backend.request is not None
+    assert set(backend.request) == {
+        "observation/exterior_image_1_left",
+        "observation/wrist_image_left",
+        "observation/joint_position",
+        "observation/gripper_position",
+        "prompt",
+    }
+    assert chunk.actions.shape == (15, 8)
+    assert chunk.source == "openpi_remote"
+    assert chunk.server_timing == {"infer_ms": 12.5}
+    assert client.server_metadata == {"model": "pi05_droid_test"}
+
+
+def test_openpi_wrapper_rejects_wrong_action_shape() -> None:
+    backend = _FakeBackend()
+    backend.infer = lambda observation: {"actions": np.zeros((10, 8))}  # type: ignore[method-assign]
+    client = OpenPIPolicyClient(backend=backend)
+
+    with pytest.raises(ValueError, match="shape mismatch"):
+        client.infer(_observation(np.zeros(7)))
+
+
+def test_official_openpi_client_protocol_round_trip() -> None:
+    seen: dict[str, object] = {}
+
+    def handler(websocket: object) -> None:
+        websocket.send(msgpack_numpy.packb({"model": "fake_pi05_droid"}))
+        request = msgpack_numpy.unpackb(websocket.recv())
+        seen.update(request)
+        websocket.send(
+            msgpack_numpy.packb(
+                {
+                    "actions": np.zeros((15, 8)),
+                    "server_timing": {"infer_ms": 1.0},
+                }
+            )
+        )
+
+    server = serve(
+        handler,
+        "127.0.0.1",
+        0,
+        compression=None,
+        max_size=None,
+    )
+    port = int(server.socket.getsockname()[1])
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        client = OpenPIPolicyClient(host="127.0.0.1", port=port)
+        chunk = client.infer(_observation(np.zeros(7)))
+    finally:
+        server.shutdown()
+        thread.join(timeout=2.0)
+
+    assert not thread.is_alive()
+    assert seen["prompt"] == "move around the obstacle"
+    assert chunk.actions.shape == (15, 8)
+    assert client.server_metadata == {"model": "fake_pi05_droid"}
+
+
+def test_mujoco_builder_captures_nonblank_droid_observation() -> None:
+    scenario = mujoco_scenarios()["narrow_gate"]
+    reference_robot = MuJoCoPanda.create(obstacles=scenario.obstacles)
+    robot = MuJoCoPanda.create(
+        obstacles=scenario.obstacles,
+        vla_cameras=True,
+        goal_marker=reference_robot.hand_position(scenario.goal),
+    )
+    data = mujoco.MjData(robot.model)
+    robot.set_configuration(data, scenario.start)
+
+    with MuJoCoDroidObservationBuilder(robot) as builder:
+        observation = builder.capture(
+            data,
+            prompt="move the gripper to the other side of the red obstacles",
+            sequence_id=3,
+        )
+
+    assert observation.exterior_image.shape == (224, 224, 3)
+    assert observation.wrist_image.shape == (224, 224, 3)
+    assert observation.exterior_image.dtype == np.uint8
+    assert float(observation.exterior_image.std()) > 10.0
+    assert float(observation.wrist_image.std()) > 10.0
+    for image in (observation.exterior_image, observation.wrist_image):
+        pixels = image.astype(float)
+        red_pixels = (
+            (pixels[:, :, 0] > 1.4 * pixels[:, :, 1])
+            & (pixels[:, :, 0] > 1.2 * pixels[:, :, 2])
+            & (pixels[:, :, 0] > 70.0)
+        )
+        green_pixels = (
+            (pixels[:, :, 1] > 1.4 * pixels[:, :, 0])
+            & (pixels[:, :, 1] > 1.15 * pixels[:, :, 2])
+            & (pixels[:, :, 1] > 70.0)
+        )
+        assert int(red_pixels.sum()) > 50
+        assert int(green_pixels.sum()) > 20
+    np.testing.assert_allclose(observation.joint_position, scenario.start)
+    assert observation.to_openpi_droid()["prompt"] == observation.prompt
+
+
+def _direct_action_chunk(robot: MuJoCoPanda, steps: int = 15) -> np.ndarray:
+    scenario = mujoco_scenarios()["single_block"]
+    direction = scenario.goal - scenario.start
+    joint_velocity = direction / np.max(np.abs(direction))
+    assert np.max(np.abs(joint_velocity)) <= 1.0
+    actions = np.zeros((steps, 8))
+    actions[:, :7] = joint_velocity
+    actions[:, 7] = 1.0
+    return actions
+
+
+def test_guard_intervenes_before_direct_path_collision() -> None:
+    scenario = mujoco_scenarios()["single_block"]
+    robot = MuJoCoPanda.create(
+        obstacles=inflate_obstacles(scenario.obstacles, 0.02)
+    )
+    checker = MuJoCoCollisionChecker(robot, resolution=0.02)
+    observation = _observation(scenario.start)
+    chunk = ActionChunk(
+        actions=_direct_action_chunk(robot),
+        source="scripted_non_learned",
+        observation_sequence_id=observation.sequence_id,
+        inference_latency_ms=20.0,
+        received_at_s=observation.captured_at_s + 0.02,
+    )
+    guard = ActionChunkGuard(
+        checker,
+        GuardConfig(joint_velocity_clip_rad_s=1.0, deadline_ms=200.0),
+    )
+
+    result = guard.guard(scenario.start, 1.0, observation, chunk)
+
+    assert result.unsafe_raw_steps > 0
+    assert result.intervention_steps > 0
+    assert result.hold_steps > 0
+    assert result.safe_after_guard
+    assert checker.path_is_valid(result.predicted_positions)
+
+
+def test_guard_holds_entire_stale_chunk() -> None:
+    scenario = mujoco_scenarios()["single_block"]
+    robot = MuJoCoPanda.create(obstacles=scenario.obstacles)
+    checker = MuJoCoCollisionChecker(robot)
+    observation = _observation(scenario.start)
+    chunk = ActionChunk(
+        actions=np.zeros((15, 8)),
+        source="openpi_remote",
+        observation_sequence_id=observation.sequence_id,
+        inference_latency_ms=250.0,
+        received_at_s=observation.captured_at_s + 0.25,
+    )
+
+    result = ActionChunkGuard(
+        checker, GuardConfig(deadline_ms=200.0)
+    ).guard(scenario.start, 1.0, observation, chunk)
+
+    assert result.deadline_exceeded
+    assert result.fallback_latched
+    assert result.hold_steps == 15
+    assert result.intervention_steps == 15
+    np.testing.assert_allclose(
+        result.predicted_positions,
+        np.repeat(scenario.start[None, :], 16, axis=0),
+    )
+
+
+def test_deadline_fallback_stays_latched_until_explicit_reset() -> None:
+    scenario = mujoco_scenarios()["single_block"]
+    robot = MuJoCoPanda.create(obstacles=scenario.obstacles)
+    guard = ActionChunkGuard(
+        MuJoCoCollisionChecker(robot),
+        GuardConfig(deadline_ms=200.0, latch_on_deadline=True),
+    )
+    stale_observation = _observation(scenario.start, captured_at_s=100.0)
+    stale_chunk = ActionChunk(
+        actions=np.zeros((15, 8)),
+        source="openpi_remote",
+        observation_sequence_id=stale_observation.sequence_id,
+        inference_latency_ms=250.0,
+        received_at_s=100.25,
+    )
+    guard.guard(scenario.start, 1.0, stale_observation, stale_chunk)
+
+    fresh_observation = _observation(scenario.start, captured_at_s=101.0)
+    fresh_chunk = ActionChunk(
+        actions=np.zeros((15, 8)),
+        source="openpi_remote",
+        observation_sequence_id=fresh_observation.sequence_id,
+        inference_latency_ms=10.0,
+        received_at_s=101.01,
+    )
+    latched = guard.guard(scenario.start, 1.0, fresh_observation, fresh_chunk)
+    assert not latched.deadline_exceeded
+    assert latched.fallback_latched
+    assert latched.hold_steps == 15
+    assert {step.reason for step in latched.steps} == {"deadline_latched"}
+
+    guard.reset()
+    recovered = guard.guard(scenario.start, 1.0, fresh_observation, fresh_chunk)
+    assert not recovered.fallback_latched
+    assert recovered.hold_steps == 0
+
+
+def test_vla_benchmark_writes_honest_reproducible_artifact(
+    tmp_path: Path,
+) -> None:
+    project_root = Path(__file__).resolve().parents[1]
+    with (project_root / "configs" / "vla_guard_benchmark.json").open(
+        encoding="utf-8"
+    ) as handle:
+        config = json.load(handle)
+    config["scenarios"] = ["single_block"]
+    config["conditions"] = [
+        {
+            "name": "fresh_collision_fault",
+            "stream": "direct_unsafe",
+            "latency_ms": 50.0,
+        }
+    ]
+    config["direct_stream"]["steps"] = 30
+    config["execution"]["warmup_s"] = 0.01
+    config["execution"]["hold_s"] = 0.01
+    config["execution"]["render_cases"] = []
+    config_path = tmp_path / "config.json"
+    config_path.write_text(json.dumps(config), encoding="utf-8")
+
+    run_directory = execute_vla_guard_benchmark(
+        config_path,
+        tmp_path / "results",
+        run_id="test_vla",
+        make_videos=False,
+    )
+
+    rows = json.loads((run_directory / "aggregate.json").read_text("utf-8"))
+    assert {row["mode"] for row in rows} == {"unguarded", "guarded"}
+    assert all(row["policy_source"] == "scripted_non_learned" for row in rows)
+    assert all(row["actual_openpi_inference"] is False for row in rows)
+    guarded = next(row for row in rows if row["mode"] == "guarded")
+    assert guarded["intervention_steps"] > 0
+    assert guarded["executed_kinematic_valid"] is True
+    assert (run_directory / guarded["external_image"]).is_file()
+    assert (run_directory / guarded["wrist_image"]).is_file()
+    assert (run_directory / "overview.png").stat().st_size > 10_000
+    action_rows = (run_directory / "per_action.csv").read_text("utf-8")
+    assert "backtracked:" in action_rows
+    assert "guard_disabled" in action_rows
+    assert "No pi0 or pi0.5 checkpoint was used" in (
+        run_directory / "summary.md"
+    ).read_text("utf-8")

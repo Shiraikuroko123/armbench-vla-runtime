@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "armbench"
 version = "0.1.0"
-description = "Reproducible 7-DoF planning and MuJoCo physics benchmark"
+description = "OpenPI-compatible VLA action runtime assurance in MuJoCo"
 readme = "README.md"
 requires-python = ">=3.10,<3.11"
 license = {text = "MIT"}
@@ -19,6 +19,9 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest==8.3.5"]
+vla = [
+  "openpi-client @ git+https://github.com/Physical-Intelligence/openpi.git@15a9616a00943ada6c20a0f158e3adb39df2ccac#subdirectory=packages/openpi-client",
+]
 
 [project.scripts]
 armbench = "armbench.cli:main"

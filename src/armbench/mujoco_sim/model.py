@@ -17,6 +17,8 @@ FloatArray = NDArray[np.float64]
 MENAGERIE_COMMIT = "71f066ad0be9cd271f7ed58c030243ef157af9f4"
 ARM_JOINT_NAMES = tuple(f"joint{index}" for index in range(1, 8))
 FINGER_JOINT_NAMES = ("finger_joint1", "finger_joint2")
+VLA_EXTERNAL_CAMERA = "armbench_vla_external"
+VLA_WRIST_CAMERA = "armbench_vla_wrist"
 ARM_BODY_NAMES = (
     "link0",
     "link1",
@@ -120,9 +122,15 @@ class MuJoCoPanda:
         obstacles: Sequence[Sphere] = (),
         payload_mass: float = 0.0,
         torque_control: bool = False,
+        vla_cameras: bool = False,
+        goal_marker: Sequence[float] | None = None,
     ) -> "MuJoCoPanda":
         if payload_mass < 0.0:
             raise ValueError("payload mass cannot be negative")
+        if goal_marker is not None:
+            goal_position = np.asarray(goal_marker, dtype=float)
+            if goal_position.shape != (3,) or not np.all(np.isfinite(goal_position)):
+                raise ValueError("goal_marker must be a finite 3-D position")
         resolved = (scene_path or default_panda_scene_path()).resolve()
         spec = mujoco.MjSpec.from_file(str(resolved))
         if spec is None:
@@ -141,6 +149,38 @@ class MuJoCoPanda:
                 friction=[0.8, 0.01, 0.001],
             )
             obstacle_names.append((name, obstacle.label))
+        if vla_cameras:
+            target = spec.worldbody.add_body(
+                name="armbench_vla_camera_target", pos=[0.35, 0.05, 0.55]
+            )
+            del target
+            external_camera = spec.worldbody.add_camera(
+                name=VLA_EXTERNAL_CAMERA,
+                pos=[1.05, -1.0, 1.15],
+                fovy=50.0,
+            )
+            external_camera.mode = mujoco.mjtCamLight.mjCAMLIGHT_TARGETBODY
+            external_camera.targetbody = "armbench_vla_camera_target"
+            hand = spec.body("hand")
+            if hand is None:
+                raise ValueError("Menagerie Panda hand body not found")
+            hand.add_camera(
+                name=VLA_WRIST_CAMERA,
+                pos=[-0.06, -0.04, -0.04],
+                # Look between the obstacle corridor and goal in hand coordinates.
+                quat=[0.66961113, -0.63053439, -0.26906847, 0.28574372],
+                fovy=100.0,
+            )
+        if goal_marker is not None:
+            spec.worldbody.add_geom(
+                name="armbench_visual_goal",
+                type=mujoco.mjtGeom.mjGEOM_SPHERE,
+                pos=goal_position,
+                size=[0.035, 0.0, 0.0],
+                rgba=[0.12, 0.78, 0.22, 1.0],
+                contype=0,
+                conaffinity=0,
+            )
         if payload_mass > 0.0:
             hand = spec.body("hand")
             if hand is None:
@@ -210,6 +250,9 @@ class MuJoCoPanda:
         self.set_configuration(self._fk_data, q)
         return self._fk_data.xpos[self.body_ids].copy()
 
+    def hand_position(self, q: ArrayLike) -> FloatArray:
+        return self.forward_points(q)[-1].copy()
+
     def body_name_for_geom(self, geom_id: int) -> str:
         body_id = int(self.model.geom_bodyid[geom_id])
         name = mujoco.mj_id2name(self.model, mujoco.mjtObj.mjOBJ_BODY, body_id)
@@ -242,4 +285,3 @@ class MuJoCoPanda:
                 if first_body != second_body:
                     contacts.append((index, first_body, second_body))
         return contacts
-
