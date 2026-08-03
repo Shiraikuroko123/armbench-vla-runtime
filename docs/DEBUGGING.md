@@ -133,9 +133,11 @@ Set breakpoints in `vla/policy.py: OpenPIPolicyClient.infer`. Verify:
 - action age from observation capture is not greater than the configured
   deadline unless you expect fallback.
 
-An unreachable server raises `ConnectionError` and leaves no output directory.
-A successful `probe.json` has `actual_openpi_inference: true`. The normal local
-benchmark always has `false`.
+An unreachable server raises `ConnectionError`; a stalled WebSocket handshake
+or inference raises `TimeoutError`. Both leave no output directory. Set
+`--connect-timeout-s` and `--inference-timeout-s` explicitly when diagnosing a
+remote server. A successful `probe.json` has `actual_openpi_inference: true`.
+The normal local benchmark always has `false`.
 
 ## 6. Debug the runtime guard
 
@@ -224,7 +226,7 @@ listed above, and press F5. Enter a new run directory name when prompted.
 | Question | File / function |
 |---|---|
 | What is the OpenPI data contract? | `vla/types.py` |
-| How is the official client called? | `vla/policy.py: OpenPIPolicyClient` |
+| How is the OpenPI protocol called? | `vla/policy.py: BoundedOpenPIBackend` |
 | How are MuJoCo observations built? | `vla/observation.py` |
 | Why was an action changed? | `vla/guard.py: ActionChunkGuard.guard` |
 | How are fault matrices executed? | `vla/benchmark.py: execute_vla_guard_benchmark` |

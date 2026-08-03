@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import socket
 import threading
+import time
 
 import mujoco
 import numpy as np
@@ -104,7 +106,7 @@ def test_scripted_policy_repeats_only_with_explicit_opt_in() -> None:
     np.testing.assert_allclose(repeated.actions, 1.0)
 
 
-def test_official_openpi_client_protocol_round_trip() -> None:
+def test_openpi_wire_protocol_round_trip() -> None:
     seen: dict[str, object] = {}
 
     def handler(websocket: object) -> None:
@@ -131,8 +133,9 @@ def test_official_openpi_client_protocol_round_trip() -> None:
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
-        client = OpenPIPolicyClient(host="127.0.0.1", port=port)
-        chunk = client.infer(_observation(np.zeros(7)))
+        with OpenPIPolicyClient(host="127.0.0.1", port=port) as client:
+            chunk = client.infer(_observation(np.zeros(7)))
+            metadata = client.server_metadata
     finally:
         server.shutdown()
         thread.join(timeout=2.0)
@@ -140,7 +143,70 @@ def test_official_openpi_client_protocol_round_trip() -> None:
     assert not thread.is_alive()
     assert seen["prompt"] == "move around the obstacle"
     assert chunk.actions.shape == (15, 8)
-    assert client.server_metadata == {"model": "fake_pi05_droid"}
+    assert metadata == {"model": "fake_pi05_droid"}
+
+
+def test_openpi_connection_refusal_is_bounded() -> None:
+    reservation = socket.socket()
+    reservation.bind(("127.0.0.1", 0))
+    port = int(reservation.getsockname()[1])
+    reservation.close()
+
+    started = time.monotonic()
+    with pytest.raises(OSError):
+        OpenPIPolicyClient(
+            host="127.0.0.1",
+            port=port,
+            connect_timeout_s=0.1,
+            inference_timeout_s=0.1,
+        )
+
+    assert time.monotonic() - started < 1.0
+
+
+def test_openpi_inference_timeout_closes_transport() -> None:
+    request_seen = threading.Event()
+    release_server = threading.Event()
+
+    def handler(websocket: object) -> None:
+        websocket.send(msgpack_numpy.packb({"model": "slow_test"}))
+        websocket.recv()
+        request_seen.set()
+        release_server.wait(timeout=1.0)
+
+    server = serve(
+        handler,
+        "127.0.0.1",
+        0,
+        compression=None,
+        max_size=None,
+    )
+    port = int(server.socket.getsockname()[1])
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    client: OpenPIPolicyClient | None = None
+    try:
+        client = OpenPIPolicyClient(
+            host="127.0.0.1",
+            port=port,
+            connect_timeout_s=0.2,
+            inference_timeout_s=0.05,
+        )
+        started = time.monotonic()
+        with pytest.raises(TimeoutError):
+            client.infer(_observation(np.zeros(7)))
+        assert request_seen.wait(timeout=0.5)
+        assert time.monotonic() - started < 0.75
+        with pytest.raises(ConnectionError, match="closed"):
+            client.infer(_observation(np.zeros(7)))
+    finally:
+        release_server.set()
+        if client is not None:
+            client.close()
+        server.shutdown()
+        thread.join(timeout=2.0)
+
+    assert not thread.is_alive()
 
 
 def test_mujoco_builder_captures_nonblank_droid_observation() -> None:

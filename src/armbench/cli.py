@@ -211,6 +211,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="environment variable containing an optional server API key",
     )
     vla_probe.add_argument("--connect-timeout-s", type=float, default=3.0)
+    vla_probe.add_argument("--inference-timeout-s", type=float, default=1.0)
     return parser
 
 
@@ -294,6 +295,7 @@ def main(arguments: list[str] | None = None) -> int:
             prompt=prompt,
             api_key=os.environ.get(args.api_key_env),
             connect_timeout_s=args.connect_timeout_s,
+            inference_timeout_s=args.inference_timeout_s,
         )
         print(f"results: {output.resolve()}")
         return 0

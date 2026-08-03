@@ -33,8 +33,8 @@ learned-policy performance or certified safety.
 
 - The Panda camera/proprioception adapter and visible task target.
 - Immutable Python data contracts for DROID observations and action chunks.
-- A strict wrapper around official `openpi-client`, including a real local
-  protocol round-trip test and a real-server probe command.
+- A bounded WebSocket transport using official OpenPI MessagePack serialization,
+  including round-trip, refusal, stalled-inference, and real-server probe paths.
 - A stateful runtime guard with sequence/age checks, deadline latch/reset,
   action bounds, joint limits, sampled mesh-edge lookahead, backtracking, and
   hold fallback.
@@ -45,8 +45,9 @@ learned-policy performance or certified safety.
 - A Windows self-locating launcher, VS Code debug configurations, tests, pinned
   third-party versions, and explicit claim boundaries.
 
-The official Panda assets, MuJoCo engine, and OpenPI client are dependencies,
-not original work. Say exactly that.
+The official Panda assets, MuJoCo engine, and OpenPI serializer are dependencies,
+not original work. Say exactly that; the bounded transport and runtime contracts
+are ArmBench code.
 
 ## Questions to expect
 

@@ -3,8 +3,8 @@
 ArmBench is a VLA deployment and evaluation project for a simulated Franka
 Panda. It turns MuJoCo camera images, proprioception, and a language instruction
 into the exact `pi05_droid` request contract, accepts a 15x8 action chunk from
-either the official OpenPI remote client or a deterministic test policy, and
-checks the chunk before torque-controlled execution.
+an OpenPI-compatible bounded remote transport or a deterministic test policy,
+and checks the chunk before torque-controlled execution.
 
 ![OpenPI-contract runtime benchmark](evidence/vla_guard_formal_20260803/overview.png)
 
@@ -57,12 +57,13 @@ velocity limits. The final value is a normalized gripper position.
 - A dual-camera MuJoCo observation adapter with visible red obstacles and a
   non-colliding green task target. Automated render tests require both colors in
   both camera views, not merely nonblank pixels.
-- A thin wrapper around Physical Intelligence's official `openpi-client`, with
-  strict request keys, response shape, timing, sequence, and provenance checks.
+- A bounded WebSocket adapter using Physical Intelligence's official
+  `msgpack_numpy` serialization, with strict request keys, response shape,
+  timing, sequence, and provenance checks.
 - A runtime supervisor that converts policy transport/contract failures into a
   provenance-safe hold and prevents inference retries until explicit reset.
-- A real local WebSocket/MessagePack protocol test using the official client,
-  plus `vla-probe` for a real remote OpenPI checkpoint.
+- Real local WebSocket/MessagePack protocol tests, including connection refusal
+  and inference timeout behavior, plus `vla-probe` for a remote checkpoint.
 - Training-free action-chunk assurance: end-to-end deadline checking, a latched
   hold state, observation/execution state consistency, velocity/gripper clipping,
   cross-chunk acceleration limiting, Panda joint limits, 20 mm planning clearance,
@@ -132,7 +133,7 @@ rollouts, but adding it would not turn a scripted action source into a VLA.
 |---|---|
 | Local guard benchmark | Windows, Python 3.10.8, Intel i9-12900H, Intel Iris Xe |
 | MuJoCo physics/rendering | CPU + OpenGL; no NVIDIA GPU or CUDA required |
-| OpenPI client | Same Windows environment; lightweight WebSocket client |
+| OpenPI client | Same Windows environment; official serializer plus bounded WebSocket transport |
 | pi0/pi0.5 policy server | Separate Ubuntu/NVIDIA machine; official OpenPI says inference needs more than 8 GB VRAM and gives RTX 4090 as an example |
 | Real Franka Panda | Not implemented; no ROS2, `libfranka`, calibration, watchdog, or safety PLC adapter |
 | Other robot embodiments | Not plug-and-play; observation/action transforms and MJCF mappings must change |
@@ -215,6 +216,7 @@ $ArmbenchPython = 'D:\arm-planning-control-project\.venv\Scripts\python.exe'
 Set-Location 'D:\arm-planning-control-project\project'
 & $ArmbenchPython -m armbench vla-probe `
   --host '<GPU_SERVER_IP>' --port 8000 `
+  --connect-timeout-s 3 --inference-timeout-s 1 `
   --scenario single_block `
   --output-directory 'results\openpi_probe_001'
 ```

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+import threading
 from time import monotonic
 from typing import Any, Protocol
 
@@ -26,8 +27,103 @@ class ActionChunkPolicy(Protocol):
     def infer(self, observation: VLAObservation) -> ActionChunk: ...
 
 
+class BoundedOpenPIBackend:
+    """OpenPI wire-compatible WebSocket transport with bounded blocking calls."""
+
+    def __init__(
+        self,
+        host: str,
+        port: int | None,
+        *,
+        api_key: str | None,
+        connect_timeout_s: float,
+        inference_timeout_s: float,
+    ) -> None:
+        if not host.strip():
+            raise ValueError("OpenPI host must be nonempty")
+        if port is not None and not 0 < port <= 65535:
+            raise ValueError("OpenPI port must be within [1, 65535]")
+        if (
+            not np.isfinite(connect_timeout_s)
+            or not np.isfinite(inference_timeout_s)
+            or connect_timeout_s <= 0.0
+            or inference_timeout_s <= 0.0
+        ):
+            raise ValueError("OpenPI transport timeouts must be finite and positive")
+        try:
+            from openpi_client import msgpack_numpy
+            from websockets.sync.client import connect
+        except ImportError as error:
+            raise RuntimeError(
+                "OpenPI client is not installed; install ArmBench with the "
+                "'vla' optional dependency"
+            ) from error
+        uri = host if host.startswith(("ws://", "wss://")) else f"ws://{host}"
+        if port is not None:
+            uri = f"{uri}:{port}"
+        headers = {"Authorization": f"Api-Key {api_key}"} if api_key else None
+        self._inference_timeout_s = float(inference_timeout_s)
+        self._packer = msgpack_numpy.Packer()
+        self._unpack = msgpack_numpy.unpackb
+        self._lock = threading.Lock()
+        self._connection: Any | None = None
+        try:
+            self._connection = connect(
+                uri,
+                compression=None,
+                max_size=None,
+                additional_headers=headers,
+                open_timeout=float(connect_timeout_s),
+                close_timeout=min(float(connect_timeout_s), 0.25),
+            )
+            packed_metadata = self._connection.recv(
+                timeout=float(connect_timeout_s)
+            )
+            metadata = self._unpack(packed_metadata)
+            if not isinstance(metadata, dict):
+                raise ValueError("OpenPI server metadata must be a mapping")
+            self._server_metadata = dict(metadata)
+        except Exception:
+            self.close()
+            raise
+
+    def get_server_metadata(self) -> dict[str, object]:
+        return dict(self._server_metadata)
+
+    def infer(self, observation: dict[str, object]) -> dict[str, object]:
+        with self._lock:
+            connection = self._connection
+            if connection is None:
+                raise ConnectionError("OpenPI WebSocket connection is closed")
+            try:
+                connection.send(self._packer.pack(observation))
+                packed_response = connection.recv(
+                    timeout=self._inference_timeout_s
+                )
+                if isinstance(packed_response, str):
+                    raise RuntimeError(
+                        f"OpenPI inference server error: {packed_response}"
+                    )
+                response = self._unpack(packed_response)
+                if not isinstance(response, dict):
+                    raise ValueError("OpenPI response must be a mapping")
+                return dict(response)
+            except Exception:
+                self.close()
+                raise
+
+    def close(self) -> None:
+        connection = self._connection
+        self._connection = None
+        if connection is not None:
+            try:
+                connection.close()
+            except Exception:
+                pass
+
+
 class OpenPIPolicyClient:
-    """Thin wrapper around Physical Intelligence's official WebSocket client."""
+    """Validated DROID policy wrapper with bounded OpenPI transport by default."""
 
     def __init__(
         self,
@@ -36,20 +132,19 @@ class OpenPIPolicyClient:
         *,
         api_key: str | None = None,
         expected_horizon: int = PI05_DROID_ACTION_HORIZON,
+        connect_timeout_s: float = 3.0,
+        inference_timeout_s: float = 1.0,
         backend: PolicyBackend | None = None,
     ) -> None:
         if expected_horizon <= 0:
             raise ValueError("expected_horizon must be positive")
         if backend is None:
-            try:
-                from openpi_client import websocket_client_policy
-            except ImportError as error:
-                raise RuntimeError(
-                    "OpenPI client is not installed; install ArmBench with the "
-                    "'vla' optional dependency"
-                ) from error
-            backend = websocket_client_policy.WebsocketClientPolicy(
-                host=host, port=port, api_key=api_key
+            backend = BoundedOpenPIBackend(
+                host,
+                port,
+                api_key=api_key,
+                connect_timeout_s=connect_timeout_s,
+                inference_timeout_s=inference_timeout_s,
             )
         self._backend = backend
         self.expected_horizon = int(expected_horizon)
@@ -78,6 +173,17 @@ class OpenPIPolicyClient:
             received_at_s=received,
             server_timing=dict(result.get("server_timing", {})),
         )
+
+    def close(self) -> None:
+        close = getattr(self._backend, "close", None)
+        if callable(close):
+            close()
+
+    def __enter__(self) -> "OpenPIPolicyClient":
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        self.close()
 
 
 class ScriptedActionChunkPolicy:

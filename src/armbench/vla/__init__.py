@@ -9,6 +9,7 @@ from armbench.vla.online import (
 )
 from armbench.vla.policy import (
     ActionChunkPolicy,
+    BoundedOpenPIBackend,
     OpenPIPolicyClient,
     ScriptedActionChunkPolicy,
 )
@@ -19,6 +20,7 @@ __all__ = [
     "ActionChunk",
     "ActionChunkPolicy",
     "ActionChunkGuard",
+    "BoundedOpenPIBackend",
     "GuardConfig",
     "GuardResult",
     "OpenPIPolicyClient",

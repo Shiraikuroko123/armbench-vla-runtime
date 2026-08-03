@@ -31,9 +31,9 @@ loaded at runtime. ArmBench does not modify or redistribute its mesh assets.
 - Pinned commit: `15a9616a00943ada6c20a0f158e3adb39df2ccac`
 - Package: `packages/openpi-client`
 - License: Apache-2.0
-- Use: official MessagePack/WebSocket protocol for remote pi0/pi0.5 policy
-  inference and the DROID observation/action contract.
+- Use: official MessagePack NumPy serialization and the DROID
+  observation/action contract for remote pi0/pi0.5 policy inference.
 
 The full OpenPI model stack is not embedded in ArmBench. It remains an optional
-Ubuntu/NVIDIA policy-server environment; only the lightweight client is used by
-the Windows MuJoCo runtime.
+Ubuntu/NVIDIA policy-server environment. The Windows runtime uses the pinned
+client serializer with its own bounded WebSocket connection/receive policy.

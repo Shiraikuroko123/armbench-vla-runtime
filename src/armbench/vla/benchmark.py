@@ -913,6 +913,7 @@ def execute_openpi_probe(
     prompt: str,
     api_key: str | None = None,
     connect_timeout_s: float = 3.0,
+    inference_timeout_s: float = 1.0,
 ) -> Path:
     config = load_vla_config(config_path)
     if scenario_name not in mujoco_scenarios():
@@ -937,8 +938,15 @@ def execute_openpi_probe(
     observation_robot.set_configuration(data, scenario.start)
     with MuJoCoDroidObservationBuilder(observation_robot) as builder:
         observation = builder.capture(data, prompt=prompt, sequence_id=0)
-    client = OpenPIPolicyClient(host=host, port=port, api_key=api_key)
-    chunk = client.infer(observation)
+    with OpenPIPolicyClient(
+        host=host,
+        port=port,
+        api_key=api_key,
+        connect_timeout_s=connect_timeout_s,
+        inference_timeout_s=inference_timeout_s,
+    ) as client:
+        chunk = client.infer(observation)
+        server_metadata = client.server_metadata
     raw_guard = dict(config["guard"])
     guard_robot = MuJoCoPanda.create(
         obstacles=inflate_obstacles(
@@ -972,7 +980,7 @@ def execute_openpi_probe(
             "actual_openpi_inference": True,
             "openpi_commit": OPENPI_COMMIT,
             "server": f"{host}:{port}",
-            "server_metadata": client.server_metadata,
+            "server_metadata": server_metadata,
             "scenario": scenario_name,
             "prompt": prompt,
             "action_shape": list(chunk.actions.shape),
