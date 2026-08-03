@@ -142,6 +142,21 @@
       "justMyCode": true
     },
     {
+      "name": "ArmBench: OpenPI wire fault matrix",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "armbench",
+      "args": [
+        "vla-loopback-matrix",
+        "--output-directory",
+        "results/${input:loopbackMatrixRunId}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "ArmBench: MuJoCo trajectory viewer",
       "type": "debugpy",
       "request": "launch",
@@ -215,6 +230,12 @@
       "type": "promptString",
       "description": "New loopback fault result directory name",
       "default": "openpi_loopback_timeout_01"
+    },
+    {
+      "id": "loopbackMatrixRunId",
+      "type": "promptString",
+      "description": "New OpenPI wire fault matrix directory name",
+      "default": "openpi_fault_matrix_01"
     },
     {
       "id": "openpiOnlineRunId",

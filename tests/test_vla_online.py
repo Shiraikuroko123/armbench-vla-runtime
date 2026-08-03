@@ -18,6 +18,7 @@ from armbench.vla.artifact import (
     ArtifactValidationError,
     validate_online_artifact,
 )
+from armbench.vla.fault_matrix import execute_loopback_fault_matrix
 from armbench.vla.guard import GuardConfig
 from armbench.vla.online import (
     OnlineExecutionConfig,
@@ -1094,3 +1095,68 @@ def test_loopback_wire_faults_fail_closed_with_auditable_artifact(
         assert trace["failure_messages"].tolist()[0]
         assert trace["exterior_images"].shape == (1, 224, 224, 3)
         assert trace["wrist_images"].shape == (1, 224, 224, 3)
+
+
+def test_loopback_fault_matrix_writes_matched_validated_report(
+    tmp_path: Path,
+) -> None:
+    project_root = Path(__file__).resolve().parents[1]
+    config = json.loads(
+        (project_root / "configs" / "vla_guard_benchmark.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    config["guard"]["deadline_ms"] = 5000.0
+    config["online"]["warmup_s"] = 0.01
+    config["online"]["hold_s"] = 0.01
+    config["online"]["max_extra_actions"] = 0
+    config_path = tmp_path / "matrix_config.json"
+    config_path.write_text(json.dumps(config), encoding="utf-8")
+    output_directory = tmp_path / "fault_matrix"
+
+    execute_loopback_fault_matrix(
+        config_path,
+        output_directory,
+        fault_modes=("none", "nonfinite"),
+        fault_delay_ms=120.0,
+        inference_timeout_s=0.05,
+    )
+
+    manifest = json.loads(
+        (output_directory / "manifest.json").read_text("utf-8")
+    )
+    assert manifest["artifact_type"] == (
+        "armbench_openpi_loopback_fault_matrix_v1"
+    )
+    assert manifest["matrix_passed"] is True
+    assert manifest["case_count"] == 2
+    assert manifest["fault_case_count"] == 1
+    assert manifest["passed_case_count"] == 2
+    assert manifest["record_full_observations"] is True
+    assert manifest["matrix_sha256"] == hashlib.sha256(
+        (output_directory / "matrix.json").read_bytes()
+    ).hexdigest()
+
+    rows = json.loads((output_directory / "matrix.json").read_text("utf-8"))
+    assert [row["fault_mode"] for row in rows] == ["none", "nonfinite"]
+    assert all(row["case_passed"] for row in rows)
+    assert all(row["physical_safe"] for row in rows)
+    assert all(row["safety_violation_steps"] == 0 for row in rows)
+    assert all(row["request_hashes_match"] for row in rows)
+    nominal, nonfinite = rows
+    assert nominal["validated_remote_chunks"] == 1
+    assert nominal["runtime_fallback_chunks"] == 0
+    assert nominal["failure_type"] == ""
+    assert nonfinite["validated_remote_chunks"] == 0
+    assert nonfinite["runtime_fallback_chunks"] == 1
+    assert nonfinite["failure_type"] == "ValueError"
+    assert all(row["full_observation_frames"] == 2 for row in rows)
+
+    assert (output_directory / "overview.png").stat().st_size > 10_000
+    summary = (output_directory / "summary.md").read_text("utf-8")
+    assert "Matrix passed: `true`" in summary
+    assert "failed closed: `1/1`" in summary
+    assert "Total physical safety violation steps: `0`" in summary
+    for mode in ("none", "nonfinite"):
+        validation = validate_online_artifact(output_directory / mode)
+        assert validation.full_observation_frames == 2

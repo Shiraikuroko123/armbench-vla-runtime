@@ -218,6 +218,19 @@ appear in the NPZ failure arrays and aggregate type list. The aggregate must
 report zero validated chunks, one runtime fallback, task failure, and physical
 safety. A timeout delay must be greater than the client inference timeout.
 
+Run every wire fault under matched conditions:
+
+```powershell
+& $ArmbenchPython -m armbench vla-loopback-matrix `
+  --output-directory 'results\openpi_fault_matrix_debug_01'
+```
+
+Open `overview.png`, then compare `matrix.csv` with each child
+`loopback_server.json` and `per_chunk.csv`. The command exits nonzero when any
+case fails its expected authority, hash, or physical-safety condition. For a
+faster breakpoint cycle, add `--fault-modes none nonfinite`; do not use the
+reduced subset as the four-fault evidence claim.
+
 Only after the nominal loopback passes, replace it with a real GPU server:
 
 ```powershell

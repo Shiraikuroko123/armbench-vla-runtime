@@ -22,6 +22,7 @@ from armbench.vla.benchmark import (
     load_vla_config,
 )
 from armbench.vla.artifact import validate_online_artifact
+from armbench.vla.fault_matrix import execute_loopback_fault_matrix
 from armbench.vla.online_benchmark import (
     execute_openpi_online_run,
     execute_vla_online_benchmark,
@@ -338,6 +339,44 @@ def build_parser() -> argparse.ArgumentParser:
         help="store both full 224x224 policy images for every request",
     )
 
+    vla_loopback_matrix = subparsers.add_parser(
+        "vla-loopback-matrix",
+        help="run a matched OpenPI nominal/response/transport fault matrix",
+    )
+    vla_loopback_matrix.add_argument(
+        "--config", type=Path, default=Path("configs/vla_guard_benchmark.json")
+    )
+    vla_loopback_matrix.add_argument(
+        "--output-directory", type=Path, required=True
+    )
+    vla_loopback_matrix.add_argument(
+        "--scenario",
+        choices=("single_block", "narrow_gate"),
+        default="single_block",
+    )
+    vla_loopback_matrix.add_argument(
+        "--horizon", type=int, choices=range(1, 16), default=1
+    )
+    vla_loopback_matrix.add_argument("--payload", type=float, default=0.0)
+    vla_loopback_matrix.add_argument(
+        "--fault-modes",
+        nargs="+",
+        choices=LOOPBACK_FAULT_MODES,
+        default=list(LOOPBACK_FAULT_MODES),
+    )
+    vla_loopback_matrix.add_argument(
+        "--fault-delay-ms", type=float, default=250.0
+    )
+    vla_loopback_matrix.add_argument(
+        "--inference-timeout-s", type=float, default=0.1
+    )
+    vla_loopback_matrix.add_argument("--videos", action="store_true")
+    vla_loopback_matrix.add_argument(
+        "--no-save-observations",
+        action="store_true",
+        help="omit full per-request camera arrays from child artifacts",
+    )
+
     vla_probe = subparsers.add_parser(
         "vla-probe",
         help="send one MuJoCo observation to a real remote OpenPI server",
@@ -512,6 +551,23 @@ def main(arguments: list[str] | None = None) -> int:
         )
         print(f"results: {output.resolve()}")
         return 0
+    if args.command == "vla-loopback-matrix":
+        output = execute_loopback_fault_matrix(
+            args.config,
+            args.output_directory,
+            scenario_name=args.scenario,
+            execution_horizon=args.horizon,
+            payload_mass=args.payload,
+            fault_modes=args.fault_modes,
+            fault_delay_ms=args.fault_delay_ms,
+            inference_timeout_s=args.inference_timeout_s,
+            make_videos=args.videos,
+            record_full_observations=not args.no_save_observations,
+        )
+        matrix = json.loads((output / "manifest.json").read_text("utf-8"))
+        print(json.dumps(matrix, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
+        return 0 if bool(matrix["matrix_passed"]) else 1
     if args.command == "vla-probe":
         config = load_vla_config(args.config)
         prompt = args.prompt or str(dict(config["prompts"])[args.scenario])

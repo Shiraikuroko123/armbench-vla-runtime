@@ -5,6 +5,7 @@ from armbench.vla.artifact import (
     ArtifactValidationResult,
     validate_online_artifact,
 )
+from armbench.vla.fault_matrix import execute_loopback_fault_matrix
 from armbench.vla.guard import ActionChunkGuard, GuardConfig, GuardResult
 from armbench.vla.online import (
     OnlineEpisodeResult,
@@ -61,6 +62,7 @@ __all__ = [
     "VLAObservationGuard",
     "VLAObservation",
     "execute_openpi_loopback_run",
+    "execute_loopback_fault_matrix",
     "run_online_episode",
     "validate_online_artifact",
 ]

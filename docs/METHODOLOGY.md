@@ -150,6 +150,15 @@ Each chunk retains the failure stage, client exception type, and a 500-character
 message in both CSV and NPZ form; the aggregate retains the unique stage/type
 set. These are runtime observations, not inferred server-side causes.
 
+`vla-loopback-matrix` holds scene, payload, execution horizon, query budget,
+camera recording, and client timeout constant while changing only the injected
+fault. Its nominal positive control must produce one validated chunk without a
+runtime fallback. Every fault case must produce zero validated chunks, one
+policy-inference fallback, matching server/client camera hashes, and zero
+contact/self-contact/joint-limit steps. The combined manifest reports a Boolean
+matrix result and hashes the structured matrix JSON; each child artifact remains
+independently validatable.
+
 The bundled online policy follows a collision-free reference and is labeled
 `scripted_non_learned_reference`. It exists to isolate the effect and query cost
 of feedback horizon. Its configured latency is synthetic: MuJoCo advances under

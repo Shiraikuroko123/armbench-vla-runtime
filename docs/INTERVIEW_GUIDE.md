@@ -42,6 +42,8 @@ performance or certified safety.
   path and independently audits request hashes without claiming learned inference.
 - Deterministic wrong-shape, nonfinite, disconnect, and timeout injections on
   that socket path, with fail-closed MuJoCo artifacts and server-side audits.
+- A one-command matched fault matrix with a nominal positive control, child
+  artifact validation, request-hash pairing, CI status, and comparison plot.
 - A stateful runtime guard with sequence/age checks, deadline latch/reset,
   action bounds, joint limits, sampled mesh-edge lookahead, backtracking, and
   hold fallback.
@@ -130,6 +132,11 @@ contacts. This tests deterministic injected failures; it does not estimate real
 server availability. The client-visible exception type is retained separately
 from the injected server cause, so a real deployment does not depend on access
 to server logs.
+
+The matrix is stronger than four screenshots because it fixes the scene,
+horizon, payload, and one-query budget, includes a nominal positive control, and
+computes pass/fail from structured child artifacts. It still establishes only
+the tested deterministic failure paths, not arbitrary network fault coverage.
 
 ### Why not execute only the first action and re-query immediately?
 

@@ -347,6 +347,21 @@ The same arrays are stored in the NPZ trace, and aggregate rows list the unique
 runtime failure stages/types. This keeps real-server diagnostics useful even
 when no server-side audit is available.
 
+Run the matched nominal plus four-fault matrix in one command:
+
+```powershell
+& $ArmbenchPython -m armbench vla-loopback-matrix `
+  --output-directory 'results\openpi_fault_matrix_001'
+```
+
+The matrix fixes the request budget at one query per case and saves exact dual
+camera inputs by default. It writes `matrix.csv`, `matrix.json`, `overview.png`,
+`summary.md`, and `manifest.json`, while retaining each complete child artifact.
+`matrix_passed=true` requires matching server/client camera hashes, zero physical
+safety violations, one valid nominal reply, and a fail-closed runtime fallback
+for every selected fault. The CLI returns a nonzero status when that condition
+is false. Use `--no-save-observations` only for a lightweight smoke run.
+
 ## Validate an online artifact
 
 `vla-artifact-validate` is a read-only integrity and consistency check for
