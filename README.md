@@ -11,7 +11,8 @@ checks the chunk before torque-controlled execution.
 The project does **not** train pi0/pi0.5 and the tracked benchmark does **not**
 claim learned-policy performance. Its contribution is the system around a VLA:
 observation adapters, remote inference boundary, deadline handling, action
-validation/repair, physics execution, failure injection, and auditable evidence.
+validation/repair, fail-closed runtime supervision, physics execution, failure
+injection, and auditable evidence.
 
 ## System boundary
 
@@ -58,6 +59,8 @@ velocity limits. The final value is a normalized gripper position.
   both camera views, not merely nonblank pixels.
 - A thin wrapper around Physical Intelligence's official `openpi-client`, with
   strict request keys, response shape, timing, sequence, and provenance checks.
+- A runtime supervisor that converts policy transport/contract failures into a
+  provenance-safe hold and prevents inference retries until explicit reset.
 - A real local WebSocket/MessagePack protocol test using the official client,
   plus `vla-probe` for a real remote OpenPI checkpoint.
 - Training-free action-chunk assurance: end-to-end deadline checking, a latched

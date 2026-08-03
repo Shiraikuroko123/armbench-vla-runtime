@@ -3,7 +3,7 @@
 Debug this project as five separate boundaries:
 
 ```text
-MuJoCo observation -> OpenPI request -> action chunk -> runtime guard -> physics
+MuJoCo observation -> OpenPI request -> action chunk -> supervisor/guard -> physics
 ```
 
 Do not tune the planner when the camera is wrong, and do not tune the controller
@@ -49,7 +49,8 @@ The tests cover:
 3. exterior/wrist camera shape, dtype, and visible red/green task objects;
 4. collision-fault intervention and safe predicted positions;
 5. stale-chunk hold and deadline latch/reset behavior;
-6. a complete artifact with honest `scripted_non_learned` provenance.
+6. policy/contract failure conversion to a latched runtime hold;
+7. a complete artifact with honest `scripted_non_learned` provenance.
 
 If these fail, do not start a formal run.
 

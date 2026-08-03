@@ -6,6 +6,7 @@ from armbench.vla.policy import (
     OpenPIPolicyClient,
     ScriptedActionChunkPolicy,
 )
+from armbench.vla.runtime import RuntimeDecision, RuntimeFailure, VLARuntimeSupervisor
 from armbench.vla.types import ActionChunk, VLAObservation
 
 __all__ = [
@@ -15,6 +16,9 @@ __all__ = [
     "GuardConfig",
     "GuardResult",
     "OpenPIPolicyClient",
+    "RuntimeDecision",
+    "RuntimeFailure",
     "ScriptedActionChunkPolicy",
+    "VLARuntimeSupervisor",
     "VLAObservation",
 ]

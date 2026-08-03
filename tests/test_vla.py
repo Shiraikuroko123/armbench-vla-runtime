@@ -17,6 +17,7 @@ from armbench.vla.guard import ActionChunkGuard, GuardConfig
 from armbench.vla.benchmark import execute_vla_guard_benchmark
 from armbench.vla.observation import MuJoCoDroidObservationBuilder
 from armbench.vla.policy import OpenPIPolicyClient, ScriptedActionChunkPolicy
+from armbench.vla.runtime import VLARuntimeSupervisor
 from armbench.vla.types import ActionChunk, VLAObservation
 
 
@@ -332,6 +333,13 @@ def test_state_mismatch_holds_and_latches_until_resynchronization() -> None:
     assert latched.fallback_reason == "state_mismatch_latched"
     assert latched.hold_steps == 15
 
+    with pytest.raises(ValueError, match="exceeds configured limits"):
+        guard.reset(previous_joint_velocity=np.full(7, 2.0))
+    still_latched = guard.guard(
+        actual_q, 1.0, synchronized_observation, synchronized_chunk
+    )
+    assert still_latched.fallback_reason == "state_mismatch_latched"
+
     guard.reset()
     recovered = guard.guard(
         actual_q, 1.0, synchronized_observation, synchronized_chunk
@@ -447,6 +455,103 @@ def test_guard_applies_robot_velocity_limits_to_executed_action() -> None:
     )
     assert result.steps[0].reason == "action_bounds_repaired"
     assert result.intervention_steps == 1
+
+
+class _FailingPolicy:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def infer(self, observation: VLAObservation) -> ActionChunk:
+        self.calls += 1
+        raise ConnectionError("policy server disconnected")
+
+
+def test_runtime_supervisor_converts_policy_failure_to_latched_hold() -> None:
+    scenario = mujoco_scenarios()["single_block"]
+    robot = MuJoCoPanda.create(obstacles=())
+    policy = _FailingPolicy()
+    supervisor = VLARuntimeSupervisor(
+        policy,
+        ActionChunkGuard(MuJoCoCollisionChecker(robot)),
+    )
+    observation = _observation(scenario.start)
+
+    failed = supervisor.infer_and_guard(scenario.start, 1.0, observation)
+
+    assert failed.used_runtime_fallback
+    assert failed.policy_source is None
+    assert failed.failure is not None
+    assert failed.failure.stage == "policy_inference"
+    assert failed.failure.error_type == "ConnectionError"
+    assert failed.runtime_failure_latched
+    assert failed.actions.shape == (15, 8)
+    np.testing.assert_allclose(failed.actions[:, :7], 0.0)
+    np.testing.assert_allclose(failed.actions[:, 7], 1.0)
+    np.testing.assert_allclose(
+        failed.predicted_positions,
+        np.repeat(scenario.start[None, :], 16, axis=0),
+    )
+
+    latched = supervisor.infer_and_guard(scenario.start, 1.0, observation)
+    assert latched.failure is not None
+    assert latched.failure.stage == "runtime_latched"
+    assert policy.calls == 1
+
+    supervisor.reset()
+    supervisor.infer_and_guard(scenario.start, 1.0, observation)
+    assert policy.calls == 2
+
+
+def test_runtime_supervisor_catches_policy_guard_contract_mismatch() -> None:
+    scenario = mujoco_scenarios()["single_block"]
+    robot = MuJoCoPanda.create(obstacles=())
+
+    class WrongSequencePolicy:
+        def infer(self, observation: VLAObservation) -> ActionChunk:
+            return ActionChunk(
+                actions=np.zeros((15, 8)),
+                source="contract_fault",
+                observation_sequence_id=observation.sequence_id + 1,
+                inference_latency_ms=1.0,
+                received_at_s=observation.captured_at_s + 0.001,
+            )
+
+    supervisor = VLARuntimeSupervisor(
+        WrongSequencePolicy(),
+        ActionChunkGuard(MuJoCoCollisionChecker(robot)),
+    )
+
+    decision = supervisor.infer_and_guard(
+        scenario.start, 1.0, _observation(scenario.start)
+    )
+
+    assert decision.used_runtime_fallback
+    assert decision.policy_source == "contract_fault"
+    assert decision.failure is not None
+    assert decision.failure.stage == "guard_validation"
+    assert decision.failure.error_type == "ValueError"
+
+
+def test_runtime_supervisor_preserves_successful_policy_provenance() -> None:
+    scenario = mujoco_scenarios()["single_block"]
+    robot = MuJoCoPanda.create(obstacles=())
+    actions = np.zeros((15, 8))
+    actions[:, 7] = 1.0
+    supervisor = VLARuntimeSupervisor(
+        ScriptedActionChunkPolicy([actions]),
+        ActionChunkGuard(MuJoCoCollisionChecker(robot)),
+    )
+
+    decision = supervisor.infer_and_guard(
+        scenario.start, 1.0, _observation(scenario.start)
+    )
+
+    assert not decision.used_runtime_fallback
+    assert decision.status == "guarded"
+    assert decision.policy_source == "scripted_non_learned"
+    assert decision.failure is None
+    assert decision.guard_result is not None
+    assert decision.metrics()["guard"] is not None
 
 
 def test_vla_benchmark_writes_honest_reproducible_artifact(

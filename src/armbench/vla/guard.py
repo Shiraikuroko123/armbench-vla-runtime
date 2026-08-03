@@ -165,17 +165,20 @@ class ActionChunkGuard:
     def reset(self, previous_joint_velocity: ArrayLike | None = None) -> None:
         """Clear latched fallbacks after an explicit runtime resynchronization."""
 
+        if previous_joint_velocity is None:
+            velocity = np.zeros(7, dtype=float)
+        else:
+            velocity = np.asarray(previous_joint_velocity, dtype=float)
+            if velocity.shape != (7,) or not np.all(np.isfinite(velocity)):
+                raise ValueError(
+                    "previous_joint_velocity must be a finite 7-vector"
+                )
+            if np.any(np.abs(velocity) > self._velocity_limits() + 1e-12):
+                raise ValueError("previous_joint_velocity exceeds configured limits")
+            velocity = velocity.copy()
         self._deadline_latched = False
         self._state_mismatch_latched = False
-        if previous_joint_velocity is None:
-            self._previous_velocity = np.zeros(7, dtype=float)
-            return
-        velocity = np.asarray(previous_joint_velocity, dtype=float)
-        if velocity.shape != (7,) or not np.all(np.isfinite(velocity)):
-            raise ValueError("previous_joint_velocity must be a finite 7-vector")
-        if np.any(np.abs(velocity) > self._velocity_limits() + 1e-12):
-            raise ValueError("previous_joint_velocity exceeds configured limits")
-        self._previous_velocity = velocity.copy()
+        self._previous_velocity = velocity
 
     def _velocity_limits(self) -> FloatArray:
         return np.minimum(
