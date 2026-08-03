@@ -278,11 +278,12 @@ Set-Location 'D:\arm-planning-control-project\project'
   --output-directory 'results\openpi_probe_001'
 ```
 
-`probe.json` is written only after a real response passes shape validation and
-the guard runs. It records `actual_openpi_inference: true`, server metadata,
-latency, raw/guarded actions, and both camera images. A successful probe proves
-protocol integration, not task success: the synthetic obstacle scene is outside
-the DROID training distribution unless the policy is adapted and evaluated.
+`probe.json` is written only after a remote response passes shape validation and
+the guard runs. It records `remote_policy_response_validated: true`, server
+metadata, latency, raw/guarded actions, and both camera images. It also records
+`checkpoint_identity_verified: false`: the official wire protocol does not
+attest which checkpoint produced the response. A successful probe proves
+protocol integration, not task success or pi0/pi0.5 checkpoint identity.
 
 After the one-shot probe succeeds, run a bounded live feedback episode:
 
@@ -299,11 +300,12 @@ After the one-shot probe succeeds, run a bounded live feedback episode:
 This command repeatedly captures both MuJoCo cameras and proprioception, sends
 the exact DROID request, validates and guards the remote chunk, executes five
 actions, and re-observes. The query budget bounds GPU cost. `aggregate.json`
-sets `actual_openpi_inference=true` only when at least one remote `15x8` reply
-passes contract validation; a timeout or malformed reply produces a latched
-hold artifact with the field set to false. The wire protocol does not attest
-checkpoint identity, so preserve the GPU server launch command/log before
-making a pi0/pi0.5-specific claim.
+sets `remote_policy_response_validated=true` only when at least one remote
+`15x8` reply passes contract validation; a timeout or malformed reply produces a latched
+hold artifact with `remote_policy_response_validated=false`. The separate
+`checkpoint_identity_verified` field remains false because the wire protocol
+does not attest checkpoint identity, so preserve the GPU server launch command
+and log before making a pi0/pi0.5-specific claim.
 
 ## Debugging and outputs
 

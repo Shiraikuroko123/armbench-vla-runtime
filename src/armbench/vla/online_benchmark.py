@@ -32,7 +32,7 @@ from armbench.vla.online import (
 )
 from armbench.vla.policy import OpenPIPolicyClient
 
-ONLINE_ARTIFACT_SCHEMA_VERSION = 2
+ONLINE_ARTIFACT_SCHEMA_VERSION = 3
 
 
 def _online_config(config: dict[str, object]) -> dict[str, object]:
@@ -455,7 +455,8 @@ def execute_vla_online_benchmark(
         "artifact_schema_version": ONLINE_ARTIFACT_SCHEMA_VERSION,
         "camera_recapture_per_query": True,
         "policy_provenance": "scripted_non_learned_reference",
-        "actual_openpi_inference": False,
+        "remote_policy_response_validated": False,
+        "checkpoint_identity_verified": False,
         "synthetic_state_jump": fault_config.enabled,
         "online_video_recording": bool(make_videos),
         "openpi_contract": dict(config["openpi_contract"]),
@@ -558,7 +559,8 @@ def execute_vla_online_benchmark(
                                 ONLINE_ARTIFACT_SCHEMA_VERSION
                             ),
                             "camera_recapture_per_query": True,
-                            "actual_openpi_inference": False,
+                            "remote_policy_response_validated": False,
+                            "checkpoint_identity_verified": False,
                             "policy_latency_ms": selected_policy_latency_ms,
                             "policy_latency_schedule_ms": (
                                 selected_latency_schedule
@@ -607,7 +609,7 @@ def execute_vla_online_benchmark(
 def _remote_summary(
     row: dict[str, object], server: str, server_metadata: dict[str, object]
 ) -> str:
-    actual = bool(row["actual_openpi_inference"])
+    remote_validated = bool(row["remote_policy_response_validated"])
     validated = int(row["validated_remote_chunks"])
     metadata_text = json.dumps(
         server_metadata,
@@ -618,12 +620,14 @@ def _remote_summary(
     )
     return "\n".join(
         [
-            "# Remote OpenPI closed-loop MuJoCo run",
+            "# OpenPI-compatible remote closed-loop MuJoCo run",
             "",
             f"- Server: `{server}`",
             f"- Server metadata: `{metadata_text}`",
             f"- Validated remote 15x8 chunks: `{validated}`",
-            f"- Actual OpenPI inference: `{str(actual).lower()}`",
+            "- Remote policy response validated: "
+            f"`{str(remote_validated).lower()}`",
+            "- Checkpoint identity verified by protocol: `false`",
             f"- Termination: `{row['termination_reason']}`",
             "",
             "| Scenario | Horizon | Queries | Valid replies | Task | Safe | P95 end-to-end ms | Interventions |",
@@ -637,7 +641,7 @@ def _remote_summary(
             "This command uses the real bounded OpenPI WebSocket transport and "
             "recaptures live MuJoCo state and both cameras between action "
             "prefixes. A connected server without a validated reply is not "
-            "counted as actual OpenPI inference.",
+            "counted as a validated remote policy response.",
             "",
             "The WebSocket protocol does not attest checkpoint identity. "
             "Preserve the GPU server launch command/log alongside this "
@@ -745,7 +749,7 @@ def execute_openpi_online_run(
         and record.raw_actions is not None
         for record in result.chunks
     )
-    actual_openpi_inference = validated_remote_chunks > 0
+    remote_policy_response_validated = validated_remote_chunks > 0
     config_snapshot = dict(config)
     config_snapshot["openpi_online_selected"] = {
         "artifact_schema_version": ONLINE_ARTIFACT_SCHEMA_VERSION,
@@ -775,7 +779,8 @@ def execute_openpi_online_run(
         "artifact_schema_version": ONLINE_ARTIFACT_SCHEMA_VERSION,
         "camera_recapture_per_query": True,
         "remote_openpi_transport": True,
-        "actual_openpi_inference": actual_openpi_inference,
+        "remote_policy_response_validated": remote_policy_response_validated,
+        "checkpoint_identity_verified": False,
         "validated_remote_chunks": validated_remote_chunks,
         "server": server,
         "server_metadata": server_metadata,
@@ -796,7 +801,10 @@ def execute_openpi_online_run(
                 "artifact_schema_version": ONLINE_ARTIFACT_SCHEMA_VERSION,
                 "camera_recapture_per_query": True,
                 "remote_inference_attempted": True,
-                "actual_openpi_inference": actual_openpi_inference,
+                "remote_policy_response_validated": (
+                    remote_policy_response_validated
+                ),
+                "checkpoint_identity_verified": False,
                 "validated_remote_chunks": validated_remote_chunks,
                 "server": server,
                 "openpi_commit": OPENPI_COMMIT,

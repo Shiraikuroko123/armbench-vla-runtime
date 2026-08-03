@@ -821,7 +821,8 @@ def execute_vla_guard_benchmark(
                         "condition": condition_name,
                         "stream": stream_name,
                         "policy_source": "scripted_non_learned",
-                        "actual_openpi_inference": False,
+                        "remote_policy_response_validated": False,
+                        "checkpoint_identity_verified": False,
                         "mode": mode_name,
                         "latency_profile_ms": json.dumps(
                             condition.get(
@@ -977,7 +978,8 @@ def execute_openpi_probe(
     _write_json(
         output_directory / "probe.json",
         {
-            "actual_openpi_inference": True,
+            "remote_policy_response_validated": True,
+            "checkpoint_identity_verified": False,
             "openpi_commit": OPENPI_COMMIT,
             "server": f"{host}:{port}",
             "server_metadata": server_metadata,

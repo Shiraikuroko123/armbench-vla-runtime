@@ -95,7 +95,7 @@ reason. A positive `max_policy_queries` budget can bound remote inference cost;
 reaching it causes a pose hold and is reported as `query_budget`.
 When enabled, online MP4 frames are rendered during these same physics steps
 from the exterior camera. They are not reconstructed later from joint traces.
-Online artifact schema version 2 also normalizes every checked action into
+Online artifact schema version 3 also normalizes every checked action into
 `per_action.csv`. The `executed` field separates the action prefix applied to
 physics from the unexecuted remainder that was only validated; raw/guarded
 values, intervention reason/scale, and predicted before/after state remain
@@ -104,12 +104,13 @@ query-addressable.
 `vla-openpi-run` replaces the reference policy with the bounded transport built
 on official OpenPI serialization while retaining the same live physics loop. It
 records server metadata and separates attempted remote calls from validated
-replies. The artifact marks `actual_openpi_inference=true` only if at least one
-remote reply
-passes the `15x8` and finite-value contract and is bound to the current
-observation record. A malformed reply or timeout advances MuJoCo under hold for
-the measured wait, then produces a latched runtime fallback rather than a
-fabricated successful inference.
+replies. The artifact marks `remote_policy_response_validated=true` only if at
+least one remote reply passes the `15x8` and finite-value contract and is bound
+to the current observation record. `checkpoint_identity_verified` remains false
+because the OpenPI wire protocol does not attest the loaded checkpoint. A
+malformed reply or timeout advances MuJoCo under hold for the measured wait,
+then produces a latched runtime fallback rather than a fabricated successful
+inference.
 
 The bundled online policy follows a collision-free reference and is labeled
 `scripted_non_learned_reference`. It exists to isolate the effect and query cost
@@ -273,7 +274,9 @@ directory is created with `exist_ok=False` and cannot be silently overwritten.
 The VLA artifact additionally stores policy/OpenPI provenance, camera inputs,
 per-case metrics, every chunk deadline/latch record, every raw and repaired
 action, predicted/desired/actual joint arrays, an overview figure, and selected
-MP4 executions. Local artifacts explicitly set `actual_openpi_inference=false`.
+MP4 executions. Local artifacts explicitly set
+`remote_policy_response_validated=false` and
+`checkpoint_identity_verified=false`.
 A separate online artifact stores every re-observed joint state and action
 offset, the 1/5/15 horizon comparison, first/last camera frames, and live physics
 traces.

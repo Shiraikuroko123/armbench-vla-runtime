@@ -7,7 +7,6 @@
     "action_horizon": 15,
     "action_dim": 8,
     "control_hz": 15.0,
-    "actual_openpi_inference": false,
     "local_action_source": "scripted_non_learned"
   },
   "scenarios": [

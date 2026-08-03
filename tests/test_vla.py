@@ -695,7 +695,8 @@ def test_vla_benchmark_writes_honest_reproducible_artifact(
     )
     assert {row["mode"] for row in rows} == {"unguarded", "guarded"}
     assert all(row["policy_source"] == "scripted_non_learned" for row in rows)
-    assert all(row["actual_openpi_inference"] is False for row in rows)
+    assert all(row["remote_policy_response_validated"] is False for row in rows)
+    assert all(row["checkpoint_identity_verified"] is False for row in rows)
     assert environment["packages"]["mujoco"] == mujoco.__version__
     assert environment["packages"]["openpi-client"] != "not-installed"
     guarded = next(row for row in rows if row["mode"] == "guarded")

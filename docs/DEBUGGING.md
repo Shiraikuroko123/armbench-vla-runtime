@@ -166,8 +166,10 @@ Set breakpoints in `vla/policy.py: OpenPIPolicyClient.infer`. Verify:
 An unreachable server raises `ConnectionError`; a stalled WebSocket handshake
 or inference raises `TimeoutError`. Both leave no output directory. Set
 `--connect-timeout-s` and `--inference-timeout-s` explicitly when diagnosing a
-remote server. A successful `probe.json` has `actual_openpi_inference: true`.
-The normal local benchmark always has `false`.
+remote server. A successful `probe.json` has
+`remote_policy_response_validated: true`; it still has
+`checkpoint_identity_verified: false` because the wire protocol cannot prove
+which checkpoint the server loaded. Preserve the server launch command and log.
 
 Only after the probe passes, test the bounded closed loop:
 
@@ -183,8 +185,8 @@ Only after the probe passes, test the bounded closed loop:
 Inspect `summary.md`, then `per_chunk.csv`. Check
 `validated_policy_response`, `client_inference_latency_ms`,
 `policy_latency_ms`, `server_timing`, raw/guarded actions, and
-`termination_reason`. `actual_openpi_inference=true` requires at least one
-validated `15x8` reply. If the connection succeeds but inference times out or
+`termination_reason`. `remote_policy_response_validated=true` requires at least
+one validated `15x8` reply. If the connection succeeds but inference times out or
 returns a malformed chunk, the supervisor advances simulated time for the wait,
 executes a latched hold, and writes a failure artifact with the field set to
 false. A connection/handshake failure occurs before an output directory exists.
