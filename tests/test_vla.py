@@ -292,9 +292,14 @@ def test_vla_benchmark_writes_honest_reproducible_artifact(
     )
 
     rows = json.loads((run_directory / "aggregate.json").read_text("utf-8"))
+    environment = json.loads(
+        (run_directory / "environment.json").read_text("utf-8")
+    )
     assert {row["mode"] for row in rows} == {"unguarded", "guarded"}
     assert all(row["policy_source"] == "scripted_non_learned" for row in rows)
     assert all(row["actual_openpi_inference"] is False for row in rows)
+    assert environment["packages"]["mujoco"] == mujoco.__version__
+    assert environment["packages"]["openpi-client"] != "not-installed"
     guarded = next(row for row in rows if row["mode"] == "guarded")
     assert guarded["intervention_steps"] > 0
     assert guarded["executed_kinematic_valid"] is True

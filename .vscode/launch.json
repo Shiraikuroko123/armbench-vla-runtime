@@ -1,0 +1,90 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "ArmBench: VLA tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["tests/test_vla.py", "-q", "-s"],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "ArmBench: VLA quick benchmark",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "armbench",
+      "args": [
+        "vla-guard-run",
+        "--quick",
+        "--run-id",
+        "${input:vlaRunId}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "ArmBench: OpenPI remote probe",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "armbench",
+      "args": [
+        "vla-probe",
+        "--host",
+        "${input:openpiHost}",
+        "--port",
+        "8000",
+        "--scenario",
+        "single_block",
+        "--output-directory",
+        "results/${input:probeRunId}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "ArmBench: MuJoCo trajectory viewer",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "armbench",
+      "args": [
+        "mujoco-view",
+        "--scenario",
+        "narrow_gate",
+        "--clearance-mm",
+        "20"
+      ],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ],
+  "inputs": [
+    {
+      "id": "vlaRunId",
+      "type": "promptString",
+      "description": "New result directory name",
+      "default": "vscode_vla_debug_01"
+    },
+    {
+      "id": "openpiHost",
+      "type": "promptString",
+      "description": "OpenPI policy server hostname or IP",
+      "default": "127.0.0.1"
+    },
+    {
+      "id": "probeRunId",
+      "type": "promptString",
+      "description": "New OpenPI probe directory name",
+      "default": "openpi_probe_01"
+    }
+  ]
+}

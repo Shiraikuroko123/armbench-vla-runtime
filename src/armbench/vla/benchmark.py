@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+from importlib.metadata import PackageNotFoundError, version
 import json
 import os
 from datetime import datetime, timezone
@@ -29,6 +30,13 @@ from armbench.vla.policy import OpenPIPolicyClient, ScriptedActionChunkPolicy
 
 OPENPI_COMMIT = "15a9616a00943ada6c20a0f158e3adb39df2ccac"
 LogFunction = Callable[[str], None]
+
+
+def _package_version(distribution: str) -> str:
+    try:
+        return version(distribution)
+    except PackageNotFoundError:
+        return "not-installed"
 
 
 def load_vla_config(path: Path) -> dict[str, object]:
@@ -457,14 +465,17 @@ def _summary(rows: list[dict[str, object]], contract: dict[str, object]) -> str:
         f"`{contract['upstream_commit']}`: two 224x224 RGB images, 8-D state, "
         "language prompt, and 15x8 action chunks.",
         "",
-        "| Scenario | Condition | Mode | Interventions | Contacts | Task | Safe |",
-        "|---|---|---|---:|---:|---:|---:|",
+        "| Scenario | Condition | Mode | Interventions | Deadline chunks | "
+        "Guard P95 ms | Contacts | Task | Safe |",
+        "|---|---|---|---:|---:|---:|---:|---:|---:|",
     ]
     for row in rows:
         lines.append(
             f"| {row['scenario']} | {row['condition']} | {row['mode']} | "
-            f"{row['intervention_steps']} | {row['obstacle_contact_steps']} | "
-            f"{row['task_success']} | {row['physical_safe']} |"
+            f"{row['intervention_steps']} | {row['deadline_chunks']} | "
+            f"{float(row['guard_latency_p95_ms']):.3f} | "
+            f"{row['obstacle_contact_steps']} | {row['task_success']} | "
+            f"{row['physical_safe']} |"
         )
     lines.extend(
         [
@@ -473,6 +484,9 @@ def _summary(rows: list[dict[str, object]], contract: dict[str, object]) -> str:
             "It is not evidence of learned-policy task performance. Use "
             "`armbench vla-probe` with an official remote OpenPI server before "
             "making a pi0/pi0.5 inference claim.",
+            "",
+            "A deadline miss latches hold until an explicit runtime reset; later "
+            "fresh chunks do not silently resume an open-loop stream.",
             "",
         ]
     )
@@ -577,6 +591,20 @@ def execute_vla_guard_benchmark(
         "vla_guard_%Y%m%dT%H%M%SZ"
     )
     run_directory = output_root / resolved_id
+    metadata = environment_metadata(Path(__file__).resolve().parents[3])
+    metadata["packages"].update(
+        {
+            "imageio": _package_version("imageio"),
+            "msgpack": _package_version("msgpack"),
+            "mujoco": _package_version("mujoco"),
+            "openpi-client": _package_version("openpi-client"),
+            "websockets": _package_version("websockets"),
+        }
+    )
+    metadata["vla"] = {
+        **dict(config["openpi_contract"]),
+        "benchmark_policy_provenance": "scripted_non_learned",
+    }
     run_directory.mkdir(parents=True, exist_ok=False)
     log_lines: list[str] = []
 
@@ -587,11 +615,6 @@ def execute_vla_guard_benchmark(
 
     try:
         _write_json(run_directory / "config.json", config)
-        metadata = environment_metadata(Path(__file__).resolve().parents[3])
-        metadata["vla"] = {
-            **dict(config["openpi_contract"]),
-            "benchmark_policy_provenance": "scripted_non_learned",
-        }
         _write_json(run_directory / "environment.json", metadata)
         guard_config = _guard_config(config)
         execution_config = dict(config["execution"])

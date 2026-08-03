@@ -1,5 +1,100 @@
 # Methodology and claim boundaries
 
+## VLA runtime question
+
+The primary VLA experiment asks a systems question: can a training-free runtime
+layer reject stale or kinematically unsafe DROID action chunks while preserving
+a known-safe chunk stream? It does not ask whether pi0.5 solves the synthetic
+task. The tracked experiment uses deterministic non-learned action sources so
+that faults and expected outcomes are controlled.
+
+The policy/runtime boundary is compatible with OpenPI commit
+`15a9616a00943ada6c20a0f158e3adb39df2ccac` and model config `pi05_droid`:
+
+```text
+observation/exterior_image_1_left : uint8[224, 224, 3]
+observation/wrist_image_left      : uint8[224, 224, 3]
+observation/joint_position        : float[7]
+observation/gripper_position      : float[1]
+prompt                            : nonempty string
+actions                           : float[15, 8]
+```
+
+The official lightweight client supplies MessagePack NumPy serialization and a
+WebSocket transport. ArmBench validates the exact input keys and refuses a
+response whose horizon or dimension differs. Each observation and action chunk
+also carries a local sequence ID, capture/receive timestamps, policy-source
+label, client latency, and optional server timing.
+
+## VLA observation construction
+
+The Panda model is composed with two cameras before MuJoCo compilation. The
+exterior camera views the complete workcell. The fixed hand-mounted camera uses
+a wide field of view and offset selected from the official `hand` body frame so
+that obstacles and target remain visible. Both views are rendered as 224x224
+RGB `uint8`. Automated tests require red obstacle and green target pixels in
+both views.
+
+The green target is placed at the official MJCF hand position for the scenario
+goal and has contact disabled. It provides a visual task referent but cannot
+affect collision or physics metrics. The language prompts explicitly identify
+the red obstacles and goal. Joint and finger positions come from the same
+MuJoCo state used for rendering.
+
+## DROID action semantics
+
+The first seven output dimensions are joint-velocity commands; the eighth is a
+gripper-position command. The pinned OpenPI DROID example clips every returned
+dimension to `[-1, 1]` before stepping a joint-velocity environment. ArmBench
+uses +/-1 rad/s for the seven velocity commands and also caps them by the Panda
+joint-specific velocity limits. The gripper value is clipped to `[0, 1]`.
+
+This is not implemented as a normalized fraction multiplied by each hardware
+limit. That alternative would incorrectly amplify a DROID command by roughly
+the Panda velocity limit.
+
+## Runtime assurance algorithm
+
+For a chunk captured at time `t_obs` and received at `t_recv`, end-to-end age is
+`1000 * (t_recv - t_obs)` milliseconds. A chunk older than 200 ms is replaced by
+hold. The failure is latched for the remainder of the episode until an explicit
+`reset`, because automatically resuming an old open-loop stream after a missed
+chunk can be inconsistent with the actual state.
+
+For a fresh finite action, the runtime:
+
+1. clips joint velocity and gripper values to the configured bounds;
+2. integrates one 15 Hz step from the current predicted joint state;
+3. checks Panda joint limits and enabled MuJoCo mesh contacts;
+4. checks the complete joint edge at at most 0.02 rad interpolation spacing;
+5. tries velocity scales `1.0`, `0.75`, `0.5`, `0.25`, then `0.0`;
+6. commits the first valid candidate and repeats from that predicted state.
+
+The planning/check model inflates each physical obstacle by 20 mm. Execution
+uses the physical radius. The output records every scale, reason, raw/executed
+action, and before/after joint state. This is sampled runtime validation, not a
+control-barrier-function proof or continuous swept-volume guarantee.
+
+## VLA fault protocol
+
+The positive-control stream is produced by fixed-seed RRT-Connect, mesh-checked
+shortcutting, and velocity timing, then converted into 15 Hz DROID-shaped
+chunks. The negative-control stream directly interpolates start to goal through
+the obstacle. Both are exposed through the same `ActionChunkPolicy.infer`
+interface and labeled `scripted_non_learned`.
+
+Each of two scenarios runs guarded and unguarded under three conditions:
+
+- safe stream with repeating `0/40/80/160 ms` inference jitter;
+- direct collision fault at 50 ms;
+- safe stream with repeating `0/40/80/240 ms` jitter, where 240 ms crosses the
+  deadline and activates the latch.
+
+Task success and physical safety are separate. Physical safety requires zero
+obstacle contacts, self-contacts, and joint-limit samples. Task success requires
+final maximum joint error no greater than 0.05 rad. A guard that stops a
+collision but does not reach the goal is safe and task-incomplete.
+
 ## Primary robot model
 
 The primary experiment loads `franka_emika_panda/scene.xml` from MuJoCo
@@ -117,6 +212,13 @@ planning rows, raw execution rows, all collision samples, aggregate JSON,
 successful paths, control traces, videos, posters, and a timestamped log. A run
 directory is created with `exist_ok=False` and cannot be silently overwritten.
 
+The VLA artifact additionally stores policy/OpenPI provenance, camera inputs,
+per-case metrics, every chunk deadline/latch record, every raw and repaired
+action, predicted/desired/actual joint arrays, an overview figure, and selected
+MP4 executions. Local artifacts explicitly set `actual_openpi_inference=false`.
+A successful `vla-probe` writes a separate artifact with that field set to true
+only after a remote response passes validation.
+
 Wall-clock planning latency varies with host load. Fixed seeds preserve sampled
 sequences, but a search near the 2 s boundary can change status on a different
 machine. Hardware, software, commit, and raw timeout rows must accompany any
@@ -135,6 +237,8 @@ be cited as Panda mesh geometry, rigid-body simulation, or real-robot evidence.
 
 There is no real robot adapter, ROS2 node, `libfranka` integration, emergency
 stop, safety PLC, or hardware-in-the-loop result. Environments are spherical,
-delay is deterministic, and no camera/VLA inference is present. Random jitter,
-dropped observations, hard compute deadlines, arbitrary workcell meshes,
-acceleration/jerk timing, and real-Panda experiments are future work.
+and there is no tracked real pi0/pi0.5 checkpoint rollout. The current jitter is
+a deterministic injected schedule; dropped/corrupted frames, OS-level hard
+real-time scheduling, arbitrary workcell meshes, acceleration/jerk constraints,
+uncertainty calibration, cross-model comparison, and real-Panda experiments are
+future work.

@@ -1,228 +1,281 @@
-# ArmBench: Franka Panda Planning Under Delay and Contact
+# ArmBench: OpenPI-Compatible VLA Runtime Assurance
 
-ArmBench is a reproducible motion-planning and rigid-body execution project for
-the seven-axis Franka Emika Panda. It connects sampling-based planning to an
-official MuJoCo robot model, torque-limited control, delayed observations,
-payload changes, mesh contacts, contact forces, fixed-seed evaluation, and
-recorded evidence.
+ArmBench is a VLA deployment and evaluation project for a simulated Franka
+Panda. It turns MuJoCo camera images, proprioception, and a language instruction
+into the exact `pi05_droid` request contract, accepts a 15x8 action chunk from
+either the official OpenPI remote client or a deterministic test policy, and
+checks the chunk before torque-controlled execution.
 
-![Recorded MuJoCo outcomes](evidence/mujoco_formal_20260803/videos/comparison.png)
+![OpenPI-contract runtime benchmark](evidence/vla_guard_formal_20260803/overview.png)
 
-The central experiment is deliberately narrow: a geometrically valid path can
-still contact an obstacle when tracking error, feedback delay, and payload are
-introduced. A matched low-bandwidth controller is evaluated with and without
-20 mm of planning clearance so the effect of clearance is visible separately
-from controller tuning.
+The project does **not** train pi0/pi0.5 and the tracked benchmark does **not**
+claim learned-policy performance. Its contribution is the system around a VLA:
+observation adapters, remote inference boundary, deadline handling, action
+validation/repair, physics execution, failure injection, and auditable evidence.
 
-## Why this is a standalone project
-
-This is not a planner animation or a renamed simulator example. The repository
-owns the complete experimental path:
+## System boundary
 
 ```text
-versioned scenario
-  -> Menagerie Panda collision meshes
-  -> bounded RRT-Connect / first-solution RRT* baseline
-  -> collision-revalidated shortcutting
-  -> velocity-limited joint trajectory
-  -> delayed torque PD + gravity/bias compensation
-  -> 2 ms MuJoCo rigid-body simulation
-  -> contacts, forces, tracking, limits, traces, CSV/JSON, and MP4
+MuJoCo Panda episode
+  exterior RGB (224x224 uint8)
+  wrist RGB    (224x224 uint8)
+  7 joint positions + 1 gripper position
+  language prompt
+              |
+              v
+VLAObservation.to_openpi_droid()       exact official DROID keys
+              |
+              v
+ActionChunkPolicy.infer(observation)
+  | scripted_non_learned               local deterministic tests
+  | openpi_remote                      real WebSocket/MessagePack server
+              |
+              v
+15x8 DROID action chunk
+  7 joint-velocity commands + 1 gripper-position command
+              |
+              v
+deadline -> latched hold until explicit reset
+velocity/gripper bounds -> joint limits -> mesh-edge lookahead
+unsafe action -> backtrack 1.0 / 0.75 / 0.5 / 0.25 / hold
+              |
+              v
+MuJoCo torque execution -> contacts / task error / latency / interventions
+                         -> per-case, per-chunk, per-action, NPZ, PNG, MP4
 ```
 
-The robot assets are the pinned Apache-2.0 MuJoCo Menagerie model; they are not
-presented as original work. The planner integration, experiment harness,
-clearance protocol, execution controller, metrics, trace viewer, tests, and
-evidence packaging are ArmBench code.
+The OpenPI client is pinned to commit
+`15a9616a00943ada6c20a0f158e3adb39df2ccac`. The request uses the exact
+`DroidInputs` keys, and responses must have shape `(15, 8)`. The first seven
+values are treated as DROID joint-velocity commands and clipped to `[-1, 1]`
+rad/s, matching the official DROID example before applying the Panda hardware
+velocity limits. The final value is a normalized gripper position.
 
-## Verified scope and devices
+## What was implemented
 
-| Layer | Current support |
+- A dual-camera MuJoCo observation adapter with visible red obstacles and a
+  non-colliding green task target. Automated render tests require both colors in
+  both camera views, not merely nonblank pixels.
+- A thin wrapper around Physical Intelligence's official `openpi-client`, with
+  strict request keys, response shape, timing, sequence, and provenance checks.
+- A real local WebSocket/MessagePack protocol test using the official client,
+  plus `vla-probe` for a real remote OpenPI checkpoint.
+- Training-free action-chunk assurance: end-to-end deadline checking, a latched
+  hold state, velocity/gripper clipping, Panda joint limits, 20 mm planning
+  clearance, sampled MuJoCo mesh-edge checks, and action backtracking.
+- Reproducible jitter schedules (`0/40/80/160 ms`) and a mixed schedule with a
+  `240 ms` deadline miss. A deadline miss latches the runtime in hold until an
+  explicit reset; silently resuming an old open-loop stream is forbidden.
+- Official MuJoCo Menagerie Panda dynamics, torque PD with bias compensation,
+  contact forces, self-contact and joint-limit monitoring, fixed configs, raw
+  traces, videos, and action-level rejection reasons.
+- RRT-Connect-derived safe action streams and direct-interpolation collision
+  faults. They are deliberately labeled `scripted_non_learned` everywhere.
+
+## Verified VLA-runtime result
+
+The formal artifact was generated from source commit `c979eca` on 2026-08-03:
+[`evidence/vla_guard_formal_20260803`](evidence/vla_guard_formal_20260803/summary.md).
+It contains 12 rigid-body cases, 128 action chunks, and 1,920 action records.
+
+| Condition across two scenes | Task success | Physical safe | Contacts | Interpretation |
+|---|---:|---:|---:|---|
+| Safe jitter, unguarded | 2/2 | 2/2 | 0 | Valid reference stream |
+| Safe jitter, guarded | 2/2 | 2/2 | 0 | Guard preserves safe actions |
+| Collision fault, unguarded | 0/2 | 0/2 | 2,314 steps | Injected unsafe stream reaches obstacles |
+| Collision fault, guarded | 0/2 | 2/2 | 0 | Guard stops safely; task is intentionally incomplete |
+| Mixed deadline, unguarded | 2/2 | 2/2 | 0 | Baseline ignores stale-action deadlines |
+| Mixed deadline, guarded | 0/2 | 2/2 | 0 | Deadline triggers latched hold |
+
+All 6/6 guarded cases were contact-free. Safe streams were accepted without
+intervention and still completed both tasks. Collision-fault cases were repaired
+or held for 80 action steps total, reducing 2,314 contact simulation steps to
+zero. The mixed-deadline cases latched after the first 240 ms chunk and stopped
+safely instead of claiming task completion. The maximum per-case guard P95 was
+8.39 ms on the verified Intel CPU host.
+
+These are fixed simulation cases, not a statistical safety guarantee. A safe
+but incomplete episode is not counted as task success.
+
+### Visual evidence
+
+- [Unsafe direct action chunk](evidence/vla_guard_formal_20260803/videos/single_block__fresh_collision_fault__unguarded.mp4)
+- [Same fault with runtime guard](evidence/vla_guard_formal_20260803/videos/single_block__fresh_collision_fault__guarded.mp4)
+- [Safe jitter stream through the narrow gate](evidence/vla_guard_formal_20260803/videos/narrow_gate__fresh_safe_jitter__guarded.mp4)
+- [Exterior camera input](evidence/vla_guard_formal_20260803/observations/narrow_gate_external.png)
+- [Wrist camera input](evidence/vla_guard_formal_20260803/observations/narrow_gate_wrist.png)
+
+## pi0, pi0.5, Isaac Lab, and ArmBench
+
+| Component | Role | Present here? |
+|---|---|---|
+| pi0 / pi0.5 | Learned VLA policy: images + language + state -> action chunk | Remote client contract only; no local checkpoint result |
+| OpenPI | Official model code, checkpoints, transforms, and remote protocol | Official lightweight client pinned and tested |
+| Isaac Gym | Legacy NVIDIA GPU simulator / RL environment stack | No |
+| Isaac Lab | Current NVIDIA/Omniverse robot simulation and training framework | No |
+| MuJoCo | CPU-capable rigid-body simulator used to execute and measure actions | Yes |
+| ArmBench | Runtime/evaluation layer between a policy and the robot simulator | Yes |
+
+pi0/pi0.5 and MuJoCo/Isaac Lab are not competing tools. The first pair produces
+actions; the second pair simulates what those actions do. ArmBench sits between
+them. MuJoCo was selected because the available Windows laptop has Intel Iris Xe
+graphics and no CUDA GPU. Isaac Lab becomes useful for large parallel GPU
+rollouts, but adding it would not turn a scripted action source into a VLA.
+
+## Supported devices
+
+| Layer | Verified / required environment |
 |---|---|
-| Simulated robot | Franka Emika Panda, 7 arm joints and 2 fingers |
-| Physics | MuJoCo 3.11.0, 2 ms step, CPU rigid-body dynamics |
-| Rendering | OpenGL offscreen and interactive viewer |
-| Verified host | Windows, Python 3.10.8, Intel Core i9-12900H |
-| Verified graphics | Intel Iris Xe; no NVIDIA GPU or CUDA required |
-| Real robot | Not implemented; no `libfranka`, ROS2, or safety-rated adapter |
-| Other arms | Not plug-and-play; requires a new MJCF and explicit joint/body mapping |
+| Local guard benchmark | Windows, Python 3.10.8, Intel i9-12900H, Intel Iris Xe |
+| MuJoCo physics/rendering | CPU + OpenGL; no NVIDIA GPU or CUDA required |
+| OpenPI client | Same Windows environment; lightweight WebSocket client |
+| pi0/pi0.5 policy server | Separate Ubuntu/NVIDIA machine; official OpenPI says inference needs more than 8 GB VRAM and gives RTX 4090 as an example |
+| Real Franka Panda | Not implemented; no ROS2, `libfranka`, calibration, watchdog, or safety PLC adapter |
+| Other robot embodiments | Not plug-and-play; observation/action transforms and MJCF mappings must change |
 
-Isaac Lab is not used. It would add an NVIDIA/CUDA requirement without solving
-the current CPU-scale question better than MuJoCo. The project can be ported to
-Isaac Lab later, but that would be a separate validation rather than a truthful
-description of the current repository.
+## Setup on Windows
 
-## Implemented behavior
-
-- Runtime composition of the pinned Menagerie Panda MJCF with obstacles and an
-  optional 0.5 kg attached payload.
-- Explicit mapping of Panda joints, limits, arm bodies, actuators, and effort
-  limits; no reuse of the legacy DH coordinates for physics claims.
-- Contact-based configuration and 0.05 rad resolution-bounded edge checks using
-  MuJoCo collision meshes, including enabled self-contacts.
-- Independently implemented bounded RRT-Connect and a first-feasible RRT*
-  comparison under the same geometry, seeds, step size, and deadline.
-- Collision-revalidated shortcutting and per-joint velocity-limited timing.
-- Torque PD through `qfrc_applied`, MuJoCo bias-force compensation, Panda effort
-  clipping, 10 ms control updates, and delayed feedback history.
-- Metrics for goal error, RMSE, torque saturation, obstacle contact duration and
-  events, maximum contact force and penetration, self-contact, and joint limits.
-- A fixed experiment matrix over 0/40/80 ms feedback delay, 0/0.5 kg payload,
-  two obstacle scenes, and three planning/control profiles.
-- A collision-consistency audit comparing a 50 mm capsule skeleton built from
-  official MuJoCo body origins against MuJoCo mesh contacts.
-- Reproducible configs, environment capture, raw CSV, JSON aggregates, saved
-  paths/traces, MP4 recordings, and an interactive trace viewer.
-
-## Verified result snapshot
-
-The formal run was captured from clean commit `aa9f185` on 2026-08-03. Its
-tracked evidence is in
-[`evidence/mujoco_formal_20260803`](evidence/mujoco_formal_20260803/summary.md).
-
-### Planning
-
-| Planner | Conditions | Success | P95 first-solution latency |
-|---|---:|---:|---:|
-| RRT-Connect | 2 scenes x 2 clearances x 10 seeds | 40/40 | 58.0-123.3 ms |
-| RRT* first-solution baseline | same 40 trials | 13/40 | 2003.8-2005.3 ms |
-
-The RRT* result is a bounded time-to-feasibility comparison, not a claim that
-RRT-Connect generally dominates an asymptotically optimizing planner.
-
-### Physics execution
-
-Each profile has 12 deterministic conditions: two scenes, three delays, and two
-payload masses.
-
-| Profile | Clearance | Speed / gains | Safe executions |
-|---|---:|---|---:|
-| `nominal_fast` | 0 mm | 35%, high-bandwidth PD | 2/12 |
-| `nominal_slow` | 0 mm | 10%, `kp=5`, `kd=2` | 0/12 |
-| `clearance_slow` | 20 mm | same 10%, `kp=5`, `kd=2` | 12/12 |
-
-All 12 `clearance_slow` executions reached the goal with zero obstacle contact,
-zero self-contact, and zero joint-limit violation steps. The matched
-`nominal_slow` profile reached the goals but recorded brief obstacle contacts in
-all 12 cases. This is evidence for these fixed scenes and parameters, not a
-general safety guarantee.
-
-The capsule audit found 9 dangerous false-safe classifications and 4
-false-collision classifications across 1,202 fixed random samples. That is why
-the primary planner is checked against the official collision meshes.
-
-### Videos
-
-- [Three obstacles, 20 mm clearance, 80 ms delay, 0.5 kg payload](evidence/mujoco_formal_20260803/videos/narrow_gate__clearance_slow__delay_080ms__payload_0.5kg.mp4)
-- [Single obstacle, 20 mm clearance, 80 ms delay](evidence/mujoco_formal_20260803/videos/single_block__clearance_slow__delay_080ms__payload_0.0kg.mp4)
-- [Single obstacle, no clearance, nominal 0 ms execution](evidence/mujoco_formal_20260803/videos/single_block__nominal_fast__delay_000ms__payload_0.0kg.mp4)
-- [Single obstacle, no clearance, unstable 80 ms execution](evidence/mujoco_formal_20260803/videos/single_block__nominal_fast__delay_080ms__payload_0.0kg.mp4)
-
-## Setup
-
-The repository expects the Menagerie model in the workspace-level `upstream`
-directory. From `D:\arm-planning-control-project`:
+The commands below work regardless of the PowerShell starting directory. The
+Menagerie assets stay in the workspace-level `upstream` folder.
 
 ```powershell
+$ArmbenchWorkspace = 'D:\arm-planning-control-project'
+Set-Location $ArmbenchWorkspace
+
 git clone --filter=blob:none --no-checkout `
   https://github.com/google-deepmind/mujoco_menagerie.git `
-  .\upstream\mujoco_menagerie
-git -C .\upstream\mujoco_menagerie sparse-checkout init --cone
-git -C .\upstream\mujoco_menagerie sparse-checkout set franka_emika_panda
-git -C .\upstream\mujoco_menagerie checkout `
+  '.\upstream\mujoco_menagerie'
+git -C '.\upstream\mujoco_menagerie' sparse-checkout init --cone
+git -C '.\upstream\mujoco_menagerie' sparse-checkout set franka_emika_panda
+git -C '.\upstream\mujoco_menagerie' checkout `
   71f066ad0be9cd271f7ed58c030243ef157af9f4
 
-py -3.10 -m venv .venv
-& '.\.venv\Scripts\python.exe' -m pip install --editable '.\project[test]'
-Set-Location '.\project'
+py -3.10 -m venv '.venv'
+$ArmbenchPython = Join-Path $ArmbenchWorkspace '.venv\Scripts\python.exe'
+& $ArmbenchPython -m pip install --editable '.\project[test,vla]'
 ```
 
-Validate the physical scenarios and run all tests:
+If the checkout and environment already exist, use the self-locating launcher
+from any directory, including `C:\WINDOWS\system32`:
 
 ```powershell
-& '..\.venv\Scripts\python.exe' -m armbench mujoco-validate
-& '..\.venv\Scripts\python.exe' -m pytest -q
+# Dependency, scenario, camera/protocol, guard, and artifact checks only.
+& 'D:\arm-planning-control-project\project\scripts\vla_demo.cmd' -CheckOnly
+
+# One-scene smoke run without video.
+& 'D:\arm-planning-control-project\project\scripts\vla_demo.cmd'
+
+# Two-scene formal run with three MP4 files.
+& 'D:\arm-planning-control-project\project\scripts\vla_demo.cmd' -Formal
 ```
 
-Run a planning-only smoke artifact, then the full physics experiment:
+The `.cmd` wrapper handles restrictive PowerShell execution policies without
+changing the system-wide policy.
+
+Direct commands are also available:
 
 ```powershell
-& '..\.venv\Scripts\python.exe' -m armbench mujoco-run --quick `
-  --run-id my_smoke
-& '..\.venv\Scripts\python.exe' -m armbench mujoco-run `
-  --run-id my_formal_run
+$ArmbenchProject = 'D:\arm-planning-control-project\project'
+$ArmbenchPython = 'D:\arm-planning-control-project\.venv\Scripts\python.exe'
+Set-Location $ArmbenchProject
+
+& $ArmbenchPython -m pytest -q
+& $ArmbenchPython -m armbench vla-guard-run --quick --run-id my_vla_smoke
+& $ArmbenchPython -m armbench vla-guard-run --run-id my_vla_formal
 ```
 
-An existing run directory is never overwritten.
+Existing run directories are never overwritten.
 
-## Visual debugging
+## Real OpenPI probe
 
-Inspect an inflated planning scene and attached payload interactively:
+Run the official server on an Ubuntu/NVIDIA machine using the pinned OpenPI
+checkout and its documented `uv` environment:
+
+```bash
+uv run scripts/serve_policy.py policy:checkpoint \
+  --policy.config=pi05_droid \
+  --policy.dir=gs://openpi-assets/checkpoints/pi05_droid
+```
+
+Then query it from the Windows runtime:
 
 ```powershell
-& '..\.venv\Scripts\python.exe' -m armbench mujoco-view `
-  --scenario narrow_gate --clearance-mm 20 --payload 0.5
+$ArmbenchPython = 'D:\arm-planning-control-project\.venv\Scripts\python.exe'
+Set-Location 'D:\arm-planning-control-project\project'
+& $ArmbenchPython -m armbench vla-probe `
+  --host '<GPU_SERVER_IP>' --port 8000 `
+  --scenario single_block `
+  --output-directory 'results\openpi_probe_001'
 ```
 
-Replay the measured joint states from a formal execution:
+`probe.json` is written only after a real response passes shape validation and
+the guard runs. It records `actual_openpi_inference: true`, server metadata,
+latency, raw/guarded actions, and both camera images. A successful probe proves
+protocol integration, not task success: the synthetic obstacle scene is outside
+the DROID training distribution unless the policy is adapted and evaluated.
 
-```powershell
-& '..\.venv\Scripts\python.exe' -m armbench mujoco-view `
-  --scenario narrow_gate --payload 0.5 --play `
-  --trace 'results\mujoco_formal_20260803\traces\narrow_gate__clearance_slow__delay_080ms__payload_0.5kg.npz'
-```
+## Debugging and outputs
 
-Use `--array desired_positions` to replay the command instead of measured
-motion, or `--frame N` to freeze one recorded sample. See
-[`docs/DEBUGGING.md`](docs/DEBUGGING.md) for the failure-isolation sequence and
-code entry points.
+Start with [`docs/DEBUGGING.md`](docs/DEBUGGING.md). The important VLA files are:
 
-## Output contract
+| Question | Artifact / code |
+|---|---|
+| What did the policy receive? | `observations/*.png`, `VLAObservation.to_openpi_droid` |
+| Did the server reply correctly? | `OpenPIPolicyClient.infer`, `probe.json` |
+| Which chunk missed its deadline? | `per_chunk.csv` |
+| Which action was changed and why? | `per_action.csv` (`scale`, `reason`, raw/executed action) |
+| Was the predicted path valid? | `ActionChunkGuard.guard`, saved `predicted_positions` |
+| Did physics still make contact? | `per_case.csv`, MP4, saved `actual_positions` |
 
 ```text
 results/<run_id>/
-  config.json
-  environment.json
-  scenario_validation.json
-  planning_per_trial.csv
-  execution_per_trial.csv
-  collision_samples.csv
-  aggregate.json
+  config.json                 resolved protocol and fault matrix
+  environment.json            Git, Python, host, package, OpenPI provenance
+  overview.png                camera inputs and outcome comparison
   summary.md
-  paths/*.npz
-  traces/*.npz
+  aggregate.json
+  per_case.csv                task, safety, contact, latency, intervention metrics
+  per_chunk.csv               deadline/latch and guard timings
+  per_action.csv              action-level accept/backtrack/hold audit
+  observations/*.png
   videos/*.mp4
-  videos/*.png
+  <case>.npz                  raw/executed actions and predicted/actual states
   run.log
 ```
 
 ## Claim boundaries
 
-- This is MuJoCo simulation, not real-Panda validation or safety certification.
-- Edge checking is interpolation at a configured joint-space resolution, not
-  analytic continuous collision detection.
-- Current environments contain spheres; arbitrary CAD workcells are not yet
-  part of the scenario schema.
-- Timing constrains velocity, not acceleration or jerk.
-- Delay is deterministic feedback staleness. Random jitter, dropped frames, and
-  compute-deadline enforcement remain future extensions.
-- Ten planning seeds per condition provide a reproducible project comparison,
-  not a statistically broad robotics-paper claim.
+- The tracked VLA artifact uses scripted non-learned action streams. No pi0 or
+  pi0.5 checkpoint produced those results.
+- `vla-probe` performs one real remote inference when a server is supplied; no
+  such real-checkpoint artifact is tracked yet.
+- Collision checking uses exact MuJoCo mesh contacts at configurations and
+  joint interpolation at 0.02 rad resolution along edges. It is not analytic
+  continuous collision detection or a formal safety certificate.
+- The guard limits velocity but does not yet enforce acceleration or jerk.
+- The deadline is a runtime policy threshold, not an operating-system hard
+  real-time guarantee.
+- Results are MuJoCo simulation on two spherical-obstacle scenes, not a real
+  robot or publication-scale learned-policy benchmark.
 
-The original NumPy/DH and decoupled-joint benchmark remains available through
-`armbench run` as a legacy algorithm baseline. Its historical results are not
-used as evidence about official Panda geometry or rigid-body behavior.
+The classical planner/control foundation remains documented in
+[`evidence/mujoco_formal_20260803`](evidence/mujoco_formal_20260803/summary.md)
+and [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md). It is now the execution and
+fault-generation substrate for the VLA runtime, not the headline claim.
 
-## Evidence-based resume wording
+## Resume wording
 
-> Built a reproducible Franka Panda planning and MuJoCo execution benchmark
-> around the pinned official Menagerie model, integrating mesh-contact
-> RRT-Connect/RRT*, collision-revalidated smoothing, torque-limited delayed PD,
-> payload perturbations, contact-force logging, trace replay, and fixed-seed
-> artifacts. RRT-Connect solved 40/40 planning trials across two scenes and
-> 0/20 mm clearance; in 36 rigid-body executions, the matched 20 mm-clearance
-> profile completed 12/12 delay/load conditions without contacts, versus 0/12
-> for the same low-bandwidth controller without clearance.
+After reproducing the experiment and understanding the code, a defensible entry
+for a VLA systems / embodied deployment role is:
 
-Use this wording only after reproducing the commands and being able to explain
-the implementation and limitations in an interview.
+> Built an OpenPI-compatible VLA action runtime for a MuJoCo Franka Panda,
+> converting dual 224x224 RGB views, language, and proprioception into the
+> pi0.5-DROID remote inference contract and validating 15x8 action chunks with
+> deadline-latched fallback, joint/velocity constraints, mesh-collision
+> lookahead, and action backtracking. Across two fixed fault-injection scenes,
+> preserved 2/2 safe trajectories and reduced 2,314 injected contact steps to
+> zero, with guard P95 at most 8.39 ms on an Intel laptop; packaged per-action
+> audit logs, tests, camera evidence, and MP4 replays.
+
+Do not write “deployed pi0.5” until a real checkpoint artifact exists. This is a
+strong VLA runtime/evaluation project, not yet a VLA model-training project.

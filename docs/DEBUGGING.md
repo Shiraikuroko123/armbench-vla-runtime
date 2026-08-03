@@ -1,155 +1,254 @@
-# Debugging ArmBench
+# Debugging ArmBench VLA Runtime
 
-This guide follows the shortest path from environment failure to a specific
-planner, collision, controller, or rendering defect.
+Debug this project as five separate boundaries:
 
-## 1. Verify the environment boundary
-
-Run from the project directory:
-
-```powershell
-& '..\.venv\Scripts\python.exe' -c `
-  "import mujoco, armbench; print(mujoco.__version__)"
-& '..\.venv\Scripts\python.exe' -m armbench mujoco-validate
+```text
+MuJoCo observation -> OpenPI request -> action chunk -> runtime guard -> physics
 ```
 
-Expected: MuJoCo `3.11.0` and four passing records covering both scenes at 0
-and 20 mm clearance. A missing Menagerie checkout raises a path containing the
-exact expected model location.
+Do not tune the planner when the camera is wrong, and do not tune the controller
+when the server returned a malformed action. Find the first boundary whose
+contract is false.
 
-If `mujoco-validate` reports an endpoint collision, do not increase planner
-iterations. Fix the scene first. Each scene must keep both endpoints valid at
-the largest configured clearance while blocking direct interpolation.
+## 1. Recover from the PowerShell path error
 
-## 2. Run the contract tests
+The command `..\.venv\Scripts\python.exe` only works when PowerShell is already
+inside `D:\arm-planning-control-project\project`. Your earlier terminal was in
+`C:\WINDOWS\system32`, so `..` pointed to `C:\WINDOWS`, where no environment
+exists.
+
+Run the self-locating check from any directory:
 
 ```powershell
-& '..\.venv\Scripts\python.exe' -m pytest -q
+& 'D:\arm-planning-control-project\project\scripts\vla_demo.cmd' -CheckOnly
 ```
 
-The MuJoCo tests cover joint-name mapping, official limits, endpoint/direct-edge
-geometry, named obstacle contact, torque execution, nonblank rendering, the
-minimal artifact contract, and trace loading. A model or renderer regression
-should fail here before a long experiment is started.
-
-## 3. Create a cheap smoke artifact
+Or set explicit paths once per terminal:
 
 ```powershell
-& '..\.venv\Scripts\python.exe' -m armbench mujoco-run --quick `
-  --run-id debug_smoke
+$ArmbenchProject = 'D:\arm-planning-control-project\project'
+$ArmbenchPython = 'D:\arm-planning-control-project\.venv\Scripts\python.exe'
+Set-Location $ArmbenchProject
+& $ArmbenchPython -c `
+  "import mujoco, openpi_client, armbench; print(mujoco.__version__)"
 ```
 
-This uses two planning seeds, 40 collision samples, and skips rigid-body
-execution. Inspect these files in order:
+Expected: MuJoCo `3.11.0` and no import error.
 
-1. `scenario_validation.json`: protocol errors.
-2. `planning_per_trial.csv`: status, seed, latency, and failure detail.
-3. `collision_samples.csv`: exact versus capsule labels and the seven-joint
-   configuration for every mismatch.
-4. `run.log`: the last completed case if a run stops.
-
-## 4. Inspect geometry interactively
-
-Open the actual obstacle geometry:
+## 2. Run the smallest contract tests
 
 ```powershell
-& '..\.venv\Scripts\python.exe' -m armbench mujoco-view `
-  --scenario single_block --pose start
+& $ArmbenchPython -m pytest tests\test_vla.py -q
 ```
 
-Open the 20 mm planning volumes and attached payload:
+The tests cover:
+
+1. exact `pi05_droid` request keys and `(15, 8)` response shape;
+2. a real local MessagePack/WebSocket round trip through official
+   `openpi-client`;
+3. exterior/wrist camera shape, dtype, and visible red/green task objects;
+4. collision-fault intervention and safe predicted positions;
+5. stale-chunk hold and deadline latch/reset behavior;
+6. a complete artifact with honest `scripted_non_learned` provenance.
+
+If these fail, do not start a formal run.
+
+## 3. Create a cheap end-to-end artifact
 
 ```powershell
-& '..\.venv\Scripts\python.exe' -m armbench mujoco-view `
-  --scenario narrow_gate --clearance-mm 20 --payload 0.5
+& $ArmbenchPython -m armbench vla-guard-run --quick `
+  --run-id debug_vla_01
 ```
 
-Closing the viewer prints the inspected joint vector, hand position, obstacle
-contacts, and self-contacts as JSON. Use `--pose goal` for the other endpoint.
+Use a new run ID on every attempt. Inspect in this order:
 
-## 5. Replay a failed execution
+1. `run.log`: last completed physical case;
+2. `summary.md` and `overview.png`: high-level outcome and camera inputs;
+3. `per_case.csv`: task success, physical safety, contacts, guard P95;
+4. `per_chunk.csv`: inference age, deadline miss, latch state;
+5. `per_action.csv`: exact raw/executed actions, scale, and reason;
+6. `<case>.npz`: raw actions and predicted/desired/actual joint arrays.
 
-Every physics case stores the command, measured position, applied torque, and
-control timestamps in `traces/<case>.npz`. Replay measured motion at real time:
+Expected quick behavior:
+
+| Condition | Unguarded | Guarded |
+|---|---|---|
+| Safe jitter | completes without contact | unchanged, completes without contact |
+| Collision fault | contacts obstacle | zero contact, stops before goal |
+| Mixed deadline jitter | ignores deadline | latches hold, zero contact, task incomplete |
+
+Task failure in the last two guarded rows is intentional. A rejected unsafe
+command must not be reported as task success.
+
+## 4. Debug the observation boundary
+
+Open `observations/<scenario>_external.png` and
+`observations/<scenario>_wrist.png`. Both must be 224x224 RGB images showing red
+obstacles and the green target. The wrist view may include the gripper edge, but
+the task objects must remain visible.
+
+Set breakpoints in:
+
+- `mujoco_sim/model.py: MuJoCoPanda.create` for camera mounts/goal marker;
+- `vla/observation.py: MuJoCoDroidObservationBuilder.capture` for render and
+  proprioception;
+- `vla/types.py: VLAObservation.to_openpi_droid` for final official keys.
+
+At `capture`, inspect image `shape`, `dtype`, `std`, the seven-element
+`joint_position`, normalized one-element `gripper_position`, `sequence_id`, and
+`captured_at_s`.
+
+## 5. Debug the OpenPI boundary
+
+The local benchmark intentionally does not load a checkpoint. To test a real
+server:
 
 ```powershell
-& '..\.venv\Scripts\python.exe' -m armbench mujoco-view `
+& $ArmbenchPython -m armbench vla-probe `
+  --host '<GPU_SERVER_IP>' --port 8000 `
+  --scenario single_block `
+  --output-directory 'results\openpi_probe_debug_01'
+```
+
+Set breakpoints in `vla/policy.py: OpenPIPolicyClient.infer`. Verify:
+
+- the request has exactly two images, joint state, gripper state, and prompt;
+- `server_metadata` identifies the expected server/config;
+- `actions.shape == (15, 8)`;
+- `source == "openpi_remote"`;
+- `inference_latency_ms` measures the client call;
+- action age from observation capture is not greater than the configured
+  deadline unless you expect fallback.
+
+An unreachable server raises `ConnectionError` and leaves no output directory.
+A successful `probe.json` has `actual_openpi_inference: true`. The normal local
+benchmark always has `false`.
+
+## 6. Debug the runtime guard
+
+Set the main breakpoint at `vla/guard.py: ActionChunkGuard.guard`. For one bad
+action inspect:
+
+- `raw_velocity` and `raw_gripper`;
+- `raw_failure`;
+- `deadline_exceeded`, `fallback_latched`, and `deadline_fallback`;
+- each `scale` in `(1.0, 0.75, 0.5, 0.25, 0.0)`;
+- `q_before`, `candidate_q`, and `selected_q`;
+- `configuration_failure` and `edge_is_valid` in the MuJoCo checker.
+
+Action-level reasons have these meanings:
+
+| Reason | Meaning |
+|---|---|
+| `accepted` | raw command passed all configured checks |
+| `action_bounds_repaired` | value was clipped into the command bounds |
+| `backtracked:<failure>` | velocity was scaled to make the edge valid |
+| `deadline` | this chunk crossed the 200 ms threshold |
+| `deadline_latched` | an earlier miss keeps the episode in hold |
+| `guard_disabled` | unguarded comparison; no safety conclusion was computed |
+
+Call `guard.reset()` only after explicit resynchronization or a new episode. Do
+not clear the latch merely because a later server reply is fast.
+
+## 7. Separate predicted safety from physical safety
+
+`executed_kinematic_valid=True` means the sampled reference path passed the
+checker. `physical_safe=True` additionally requires zero MuJoCo obstacle/self
+contacts and zero joint-limit violation steps during torque execution.
+
+If the predicted path is valid but physics contacts an obstacle:
+
+1. compare `predicted_positions`, `desired_positions`, and `actual_positions`;
+2. inspect RMSE and maximum contact force in `per_case.csv`;
+3. replay the `.npz` through `mujoco-view`;
+4. check command discontinuities around a repaired/held action;
+5. increase model fidelity or clearance only after identifying the mechanism.
+
+Do not call the current sampled edge check continuous collision detection.
+
+## 8. Visual replay
+
+Replay a VLA case from its root-level NPZ:
+
+```powershell
+& $ArmbenchPython -m armbench mujoco-view `
   --scenario single_block --play `
-  --trace 'results\mujoco_formal_20260803\traces\single_block__nominal_fast__delay_080ms__payload_0.0kg.npz'
+  --trace 'evidence\vla_guard_formal_20260803\single_block__fresh_collision_fault__guarded.npz' `
+  --array actual_positions
 ```
 
-Useful variants:
+Compare the protected command:
 
 ```powershell
-# Compare the desired motion.
-& '..\.venv\Scripts\python.exe' -m armbench mujoco-view `
-  --scenario single_block --play --array desired_positions `
-  --trace '<trace.npz>'
-
-# Freeze the measured state at one control sample.
-& '..\.venv\Scripts\python.exe' -m armbench mujoco-view `
-  --scenario single_block --frame 120 --trace '<trace.npz>'
+& $ArmbenchPython -m armbench mujoco-view `
+  --scenario single_block --play `
+  --trace 'evidence\vla_guard_formal_20260803\single_block__fresh_collision_fault__guarded.npz' `
+  --array predicted_positions
 ```
 
-The viewer is kinematic replay of recorded states. It does not rerun the
-controller, so it is safe to use for isolating the first visibly bad frame.
+The viewer is a kinematic replay. The recorded MP4 is the physics execution.
 
-## 6. Read the metrics correctly
+## 9. VS Code debugging
 
-- Low RMSE with nonzero contact means the path has insufficient clearance; it
-  is not a successful safety result.
-- Zero contact with a large final error or joint-limit count means the
-  controller failed without hitting the configured obstacle.
-- High torque saturation under delay usually indicates stale-feedback
-  oscillation. Compare the trace with the 0 ms case before changing the planner.
-- Small contact penetration can still produce a high peak force in a stiff
-  contact model. Use steps/events/duration together with force.
-- A planner timeout is retained as data. It must not be removed from latency
-  percentiles or rerun with a hand-picked seed.
+Open `D:\arm-planning-control-project\project` as the VS Code workspace. The
+tracked `.vscode/launch.json` provides:
 
-## 7. Code entry points and breakpoints
+- `ArmBench: VLA tests`;
+- `ArmBench: VLA quick benchmark`;
+- `ArmBench: OpenPI remote probe`;
+- `ArmBench: MuJoCo trajectory viewer`.
+
+Choose a configuration in **Run and Debug**, set a breakpoint in the files
+listed above, and press F5. Enter a new run directory name when prompted.
+
+## Code map
 
 | Question | File / function |
 |---|---|
-| Did the official MJCF map correctly? | `mujoco_sim/model.py: MuJoCoPanda.create` |
-| Why is this pose invalid? | `mujoco_sim/collision.py: configuration_failure` |
-| Which interpolation sample fails? | `mujoco_sim/collision.py: edge_is_valid` |
-| Why did search stop? | `planners/rrt_connect.py: plan` or `rrt_star.py: plan` |
-| Was smoothing responsible? | `postprocess/shortcut.py: shortcut_path` |
-| What torque was requested/clipped? | `mujoco_sim/execution.py: execute_trajectory` |
-| Which geom contacted which link? | `mujoco_sim/model.py: obstacle_contacts` |
-| How was a case configured? | `mujoco_sim/benchmark.py: _run_execution` |
-| Why will a trace not load? | `mujoco_sim/viewer.py: load_pose_sequence` |
-
-At the controller breakpoint, inspect `desired_q`, `observed_q`, `observed_dq`,
-`requested`, `applied`, and `data.qfrc_bias`. Delay is represented by
-`observed_index`; for 80 ms at a 10 ms control period it should select eight
-control ticks behind the current observation.
+| What is the OpenPI data contract? | `vla/types.py` |
+| How is the official client called? | `vla/policy.py: OpenPIPolicyClient` |
+| How are MuJoCo observations built? | `vla/observation.py` |
+| Why was an action changed? | `vla/guard.py: ActionChunkGuard.guard` |
+| How are fault matrices executed? | `vla/benchmark.py: execute_vla_guard_benchmark` |
+| Where is a real server probed? | `vla/benchmark.py: execute_openpi_probe` |
+| Which geom caused contact? | `mujoco_sim/model.py: obstacle_contacts` |
+| How are torques applied? | `mujoco_sim/execution.py: execute_trajectory` |
+| Where are CLI commands wired? | `cli.py` |
 
 ## Common failures
 
-### Menagerie model not found
+### `..\.venv\Scripts\python.exe` is not recognized
 
-Repeat the sparse-checkout commands in the README and verify that
-`..\upstream\mujoco_menagerie\franka_emika_panda\scene.xml` exists. Do not copy
-only `scene.xml`; it references meshes and included files in the model folder.
+Your current directory is wrong. Use the absolute `$ArmbenchPython` shown in
+section 1 or run `scripts\vla_demo.cmd`.
 
-### OpenGL or blank frames
+### OpenPI client import fails
 
-Update the graphics driver, close software that has exhausted graphics
-contexts, and rerun only `test_offscreen_render_is_nonblank`. Physics and
-planning can still run with `mujoco-run --no-videos`, but a portfolio video
-should not be claimed until the render test passes.
+Install the VLA extra with the pinned official client:
 
-### Start or goal suddenly collides
+```powershell
+& $ArmbenchPython -m pip install --editable `
+  'D:\arm-planning-control-project\project[test,vla]'
+```
 
-Check both physical and inflated obstacles. A center that is valid at 55 mm can
-be invalid after 20 mm inflation. Keep the automated four-record validation as
-the acceptance criterion.
+### Menagerie model is missing
 
-### Different planning latency
+Verify
+`D:\arm-planning-control-project\upstream\mujoco_menagerie\franka_emika_panda\scene.xml`.
+Do not copy only `scene.xml`; it references included XML and mesh assets.
 
-Paths are seed-controlled; wall time is not. Check CPU load and compare status,
-iterations, nodes, and path arrays before treating latency drift as an
-algorithm regression. A seed near the 2 s deadline can change status across
-hosts.
+### OpenGL or camera test fails
+
+Update the graphics driver, close programs consuming graphics contexts, and run
+only `test_mujoco_builder_captures_nonblank_droid_observation`. A portfolio
+video should not be claimed until both cameras pass the color/visibility test.
+
+### Result directory already exists
+
+Runs are immutable by design. Choose a new `--run-id` or probe output path; do
+not overwrite evidence while debugging.
+
+### Planning latency differs
+
+Seeds preserve sampled sequences, not wall-clock load. Compare status, nodes,
+paths, and the environment record before treating latency drift as a regression.

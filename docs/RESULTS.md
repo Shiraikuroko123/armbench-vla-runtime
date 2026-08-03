@@ -1,6 +1,60 @@
 # Verified result snapshots
 
-## Primary MuJoCo result
+## Primary OpenPI-contract VLA runtime result
+
+### Provenance
+
+- Run ID: `vla_guard_formal_20260803`
+- Source commit: `c979eca7da3ed9e558dca49998154555634736c1`
+- OpenPI commit: `15a9616a00943ada6c20a0f158e3adb39df2ccac`
+- OpenPI config contract: `pi05_droid`, 15x8 actions at about 15 Hz
+- Policy source: `scripted_non_learned`
+- Actual OpenPI checkpoint inference: `false`
+- Python / MuJoCo: 3.10.8 / 3.11.0
+- CPU / graphics: Intel i9-12900H / Intel Iris Xe
+- Protocol: 2 scenes x 3 fault/timing conditions x guarded/unguarded
+- Artifact size: 12 cases, 128 chunks, 1,920 action records, 3 MP4 files
+
+The run environment marked Git dirty only because the output directory being
+created and the pre-existing untracked `MJMODEL.TXT` were visible to `git
+status`; no source file differed from commit `c979eca`. The complete snapshot is
+in
+[`evidence/vla_guard_formal_20260803`](../evidence/vla_guard_formal_20260803/summary.md).
+
+### Outcomes
+
+| Scene | Condition | Mode | Task | Physical safe | Contacts | Interventions |
+|---|---|---|---:|---:|---:|---:|
+| single block | safe 0/40/80/160 ms jitter | unguarded | yes | yes | 0 | 0 |
+| single block | safe 0/40/80/160 ms jitter | guarded | yes | yes | 0 | 0 |
+| single block | direct collision fault | unguarded | no | no | 673 | 0 |
+| single block | direct collision fault | guarded | no | yes | 0 | 40 |
+| single block | mixed 0/40/80/240 ms jitter | unguarded | yes | yes | 0 | 0 |
+| single block | mixed 0/40/80/240 ms jitter | guarded | no | yes | 0 | 195 |
+| narrow gate | safe 0/40/80/160 ms jitter | unguarded | yes | yes | 0 | 0 |
+| narrow gate | safe 0/40/80/160 ms jitter | guarded | yes | yes | 0 | 0 |
+| narrow gate | direct collision fault | unguarded | no | no | 1,641 | 0 |
+| narrow gate | direct collision fault | guarded | no | yes | 0 | 40 |
+| narrow gate | mixed 0/40/80/240 ms jitter | unguarded | yes | yes | 0 | 0 |
+| narrow gate | mixed 0/40/80/240 ms jitter | guarded | no | yes | 0 | 150 |
+
+The guard preserved both positive-control streams without modifying any action.
+It reduced 2,314 contact simulation steps from the direct fault streams to zero,
+but those guarded episodes intentionally stopped before the goal. The mixed
+deadline schedules had seven total 240 ms chunks. The first miss in each guarded
+episode latched hold, giving zero contact and task failure rather than an unsafe
+resume.
+
+All 6/6 guarded cases were physically safe. Guard P95 ranged from 4.05 to 8.38
+ms per case; the maximum was 8.381 ms in the narrow-gate collision fault. These
+timings are from the fixed Intel host and include sampled MuJoCo mesh-edge
+checks, not remote policy inference.
+
+The experiment validates the runtime contract, fault response, and physics
+outcome. It does not establish pi0/pi0.5 task performance, learned-policy
+generalization, real-time scheduling, or formal safety.
+
+## Classical MuJoCo planning/control foundation
 
 ### Provenance
 
