@@ -101,6 +101,11 @@ state machine enters hold and requires explicit reset/resynchronization. The
 formal rerun had zero contacts but did not complete the task. This is a concrete
 example of safety taking priority over availability.
 
+The live online loop has a separate matched check: repeating
+`0/40/80/160 ms` completed safely, while changing only the final entry to
+`240 ms` triggered a fourth-query hold. That evidence isolates the configured
+200 ms deadline from scene, payload, horizon, and action-source changes.
+
 ### Why not execute only the first action and re-query immediately?
 
 The fault-injection benchmark validates complete chunks because chunking is the

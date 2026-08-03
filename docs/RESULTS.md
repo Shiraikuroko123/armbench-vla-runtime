@@ -65,6 +65,33 @@ The nominal environment snapshot lists only the pre-existing untracked
 because the two immutable runs were generated sequentially before this evidence
 commit; neither snapshot reports a modified source file.
 
+### Online latency-jitter contrast
+
+Source commit: `fc9bd4150afea861530f36aca7ed91613d8e67ba`. Both runs use
+the same `single_block`, zero-payload, horizon-15 reference-policy setup. The
+only changed variable is the fourth entry of the repeating synthetic latency
+profile.
+
+| Profile ms | Queries | Simulated wait s | Deadline chunks | Termination | Goal error rad | Task | Safe |
+|---|---:|---:|---:|---|---:|---:|---:|
+| 0/40/80/160 | 16 | 1.12 | 0 | `goal_reached` | 0.00021 | yes | yes |
+| 0/40/80/240 | 4 | 0.36 | 1 | `guard_fallback:deadline` | 1.32538 | no | yes |
+
+The [below-deadline artifact](../evidence/vla_online_jitter_safe_20260804/summary.md)
+shows four complete schedule cycles. The
+[deadline artifact](../evidence/vla_online_jitter_deadline_20260804/summary.md)
+executes three valid chunks, advances physics for the 240 ms fourth wait, then
+latches hold. Aggregate SHA-256 values are respectively
+`87757576A21C970D6835B0DBF2FD2FE8A5B4FAE644D97B304232B3A143CCE525`
+and
+`BAFE7C6CFB6F9B085D13C585B0D435E5AF99CADE77DF782D6AB0F736184AB704`.
+These are controlled synthetic delays, not measured pi0/pi0.5 inference or an
+OS hard-real-time experiment.
+
+The safe-jitter environment snapshot lists only `MJMODEL.TXT`; the deadline
+snapshot additionally lists the previously generated safe-jitter directory.
+Neither records a modified source file.
+
 ## OpenPI-contract fault-response result
 
 ### Provenance
