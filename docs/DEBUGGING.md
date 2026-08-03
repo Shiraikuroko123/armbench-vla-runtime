@@ -94,6 +94,9 @@ higher for horizon 1, while both rows have `online_physics_feedback=True` and
 actual observation joint state and the post-execution state.
 The matching `videos/*.mp4` is recorded from the same live MuJoCo state; it is
 not a kinematic reconstruction from the saved NPZ.
+Use online `per_action.csv` to distinguish the checked 15-action tail from the
+prefix that was actually sent to physics. Filter `executed=True`, then inspect
+`raw_action`, `guarded_action`, `reason`, `scale`, `q_before`, and `q_after`.
 
 To force a deadline in the online physics loop, add
 `--policy-latency-ms 240`. The run should execute one held prefix, report one

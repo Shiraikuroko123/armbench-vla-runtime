@@ -32,6 +32,8 @@ from armbench.vla.online import (
 )
 from armbench.vla.policy import OpenPIPolicyClient
 
+ONLINE_ARTIFACT_SCHEMA_VERSION = 2
+
 
 def _online_config(config: dict[str, object]) -> dict[str, object]:
     if "online" not in config:
@@ -196,7 +198,13 @@ def _write_episode_artifacts(
     reference_positions: np.ndarray,
     *,
     extra_metrics: dict[str, object],
-) -> tuple[dict[str, object], list[dict[str, object]], Path, Path]:
+) -> tuple[
+    dict[str, object],
+    list[dict[str, object]],
+    list[dict[str, object]],
+    Path,
+    Path,
+]:
     image_directory = run_directory / "observations"
     image_directory.mkdir(parents=True, exist_ok=True)
     first_external_path = image_directory / f"{case_name}__first_external.png"
@@ -252,6 +260,9 @@ def _write_episode_artifacts(
         ),
         raw_action_chunks=raw_action_chunks,
         guarded_action_chunks=guarded_action_chunks,
+        predicted_position_chunks=np.asarray(
+            [record.predicted_positions for record in result.chunks]
+        ),
     )
     row = {
         **result.metrics(),
@@ -282,7 +293,50 @@ def _write_episode_artifacts(
         }
         for record in result.chunks
     ]
-    return row, chunk_rows, first_external_path, first_wrist_path
+    action_rows: list[dict[str, object]] = []
+    for record in result.chunks:
+        for action_index, guarded_action in enumerate(record.guarded_actions):
+            raw_action = (
+                record.raw_actions[action_index]
+                if record.raw_actions is not None
+                else None
+            )
+            action_rows.append(
+                {
+                    "scenario": result.scenario,
+                    "payload_mass": result.payload_mass,
+                    "execution_horizon": result.execution_horizon,
+                    "query_index": record.query_index,
+                    "sequence_id": record.sequence_id,
+                    "action_offset": record.action_offset,
+                    "action_index": action_index,
+                    "executed": action_index < record.executed_horizon,
+                    "decision_status": record.decision_status,
+                    "policy_source": record.policy_source,
+                    "reason": record.action_reasons[action_index],
+                    "intervened": record.action_interventions[action_index],
+                    "scale": float(record.action_scales[action_index]),
+                    "raw_action": (
+                        json.dumps(raw_action.tolist())
+                        if raw_action is not None
+                        else None
+                    ),
+                    "guarded_action": json.dumps(guarded_action.tolist()),
+                    "q_before": json.dumps(
+                        record.predicted_positions[action_index].tolist()
+                    ),
+                    "q_after": json.dumps(
+                        record.predicted_positions[action_index + 1].tolist()
+                    ),
+                }
+            )
+    return (
+        row,
+        chunk_rows,
+        action_rows,
+        first_external_path,
+        first_wrist_path,
+    )
 
 
 def execute_vla_online_benchmark(
@@ -361,6 +415,7 @@ def execute_vla_online_benchmark(
     run_directory.mkdir(parents=True, exist_ok=False)
     config_snapshot = dict(config)
     config_snapshot["online_selected"] = {
+        "artifact_schema_version": ONLINE_ARTIFACT_SCHEMA_VERSION,
         "scenarios": selected_scenarios,
         "execution_horizons": horizons,
         "payload_masses_kg": payloads,
@@ -381,6 +436,7 @@ def execute_vla_online_benchmark(
     )
     metadata["vla_online"] = {
         "online_physics_feedback": True,
+        "artifact_schema_version": ONLINE_ARTIFACT_SCHEMA_VERSION,
         "camera_recapture_per_query": True,
         "policy_provenance": "scripted_non_learned_reference",
         "actual_openpi_inference": False,
@@ -404,6 +460,7 @@ def execute_vla_online_benchmark(
     raw_guard = dict(config["guard"])
     rows: list[dict[str, object]] = []
     chunk_rows: list[dict[str, object]] = []
+    action_rows: list[dict[str, object]] = []
     representative_external: Path | None = None
     representative_wrist: Path | None = None
     log_lines: list[str] = []
@@ -459,28 +516,36 @@ def execute_vla_online_benchmark(
                         video_path=video_path,
                         video_fps=int(dict(config["execution"])["video_fps"]),
                     )
-                    row, case_chunks, first_external_path, first_wrist_path = (
-                        _write_episode_artifacts(
-                            run_directory,
-                            case_name,
-                            result,
-                            references,
-                            extra_metrics={
-                                "online_physics_feedback": True,
-                                "camera_recapture_per_query": True,
-                                "actual_openpi_inference": False,
-                                "policy_latency_ms": selected_policy_latency_ms,
-                                "synthetic_state_jump": fault_config.enabled,
-                                "state_jump_query": selected_state_jump_query,
-                                "state_jump_rad": selected_state_jump.tolist(),
-                            },
-                        )
+                    (
+                        row,
+                        case_chunks,
+                        case_actions,
+                        first_external_path,
+                        first_wrist_path,
+                    ) = _write_episode_artifacts(
+                        run_directory,
+                        case_name,
+                        result,
+                        references,
+                        extra_metrics={
+                            "online_physics_feedback": True,
+                            "artifact_schema_version": (
+                                ONLINE_ARTIFACT_SCHEMA_VERSION
+                            ),
+                            "camera_recapture_per_query": True,
+                            "actual_openpi_inference": False,
+                            "policy_latency_ms": selected_policy_latency_ms,
+                            "synthetic_state_jump": fault_config.enabled,
+                            "state_jump_query": selected_state_jump_query,
+                            "state_jump_rad": selected_state_jump.tolist(),
+                        },
                     )
                     if representative_external is None:
                         representative_external = first_external_path
                         representative_wrist = first_wrist_path
                     rows.append(row)
                     chunk_rows.extend(case_chunks)
+                    action_rows.extend(case_actions)
                     log(
                         f"{case_name}: task={result.task_success} "
                         f"safe={result.physical_safe} queries={result.policy_queries} "
@@ -488,6 +553,7 @@ def execute_vla_online_benchmark(
                     )
         _write_csv(run_directory / "per_episode.csv", rows)
         _write_csv(run_directory / "per_chunk.csv", chunk_rows)
+        _write_csv(run_directory / "per_action.csv", action_rows)
         _write_json(run_directory / "aggregate.json", rows)
         if representative_external is None or representative_wrist is None:
             raise RuntimeError("online benchmark produced no camera evidence")
@@ -654,6 +720,7 @@ def execute_openpi_online_run(
     actual_openpi_inference = validated_remote_chunks > 0
     config_snapshot = dict(config)
     config_snapshot["openpi_online_selected"] = {
+        "artifact_schema_version": ONLINE_ARTIFACT_SCHEMA_VERSION,
         "server": server,
         "scenario": scenario_name,
         "execution_horizon": execution_horizon,
@@ -677,6 +744,7 @@ def execute_openpi_online_run(
     )
     metadata["vla_online"] = {
         "online_physics_feedback": True,
+        "artifact_schema_version": ONLINE_ARTIFACT_SCHEMA_VERSION,
         "camera_recapture_per_query": True,
         "remote_openpi_transport": True,
         "actual_openpi_inference": actual_openpi_inference,
@@ -689,24 +757,28 @@ def execute_openpi_online_run(
     }
     _write_json(output_directory / "config.json", config_snapshot)
     _write_json(output_directory / "environment.json", metadata)
-    row, chunks, exterior_path, wrist_path = _write_episode_artifacts(
-        output_directory,
-        case_name,
-        result,
-        references,
-        extra_metrics={
-            "online_physics_feedback": True,
-            "camera_recapture_per_query": True,
-            "remote_inference_attempted": True,
-            "actual_openpi_inference": actual_openpi_inference,
-            "validated_remote_chunks": validated_remote_chunks,
-            "server": server,
-            "openpi_commit": OPENPI_COMMIT,
-            "synthetic_state_jump": False,
-        },
+    row, chunks, action_rows, exterior_path, wrist_path = (
+        _write_episode_artifacts(
+            output_directory,
+            case_name,
+            result,
+            references,
+            extra_metrics={
+                "online_physics_feedback": True,
+                "artifact_schema_version": ONLINE_ARTIFACT_SCHEMA_VERSION,
+                "camera_recapture_per_query": True,
+                "remote_inference_attempted": True,
+                "actual_openpi_inference": actual_openpi_inference,
+                "validated_remote_chunks": validated_remote_chunks,
+                "server": server,
+                "openpi_commit": OPENPI_COMMIT,
+                "synthetic_state_jump": False,
+            },
+        )
     )
     _write_csv(output_directory / "per_episode.csv", [row])
     _write_csv(output_directory / "per_chunk.csv", chunks)
+    _write_csv(output_directory / "per_action.csv", action_rows)
     _write_json(output_directory / "aggregate.json", [row])
     _write_overview(
         output_directory / "overview.png",

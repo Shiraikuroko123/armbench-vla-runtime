@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import json
 from pathlib import Path
 import threading
@@ -117,6 +118,8 @@ def test_online_episode_reobserves_actual_mujoco_state_each_action() -> None:
     assert result.chunks[0].raw_actions.shape == (15, 8)
     assert result.chunks[0].guarded_actions.shape == (15, 8)
     assert result.chunks[0].server_timing == {}
+    assert len(result.chunks[0].action_reasons) == 15
+    assert result.chunks[0].predicted_positions.shape == (16, 7)
     assert result.physical_safe
 
 
@@ -256,6 +259,8 @@ def test_online_episode_latches_on_injected_dispatch_state_jump() -> None:
     assert record.fault_injected
     assert record.guard_fallback
     assert record.fallback_reason == "state_mismatch"
+    assert set(record.action_reasons) == {"state_mismatch"}
+    assert all(record.action_interventions)
     assert record.state_mismatch_rad == pytest.approx(0.08, abs=1e-9)
     np.testing.assert_allclose(
         record.dispatch_q - record.observation_q,
@@ -378,6 +383,7 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     assert len(rows) == 1
     row = rows[0]
     assert row["online_physics_feedback"] is True
+    assert row["artifact_schema_version"] == 2
     assert row["camera_recapture_per_query"] is True
     assert row["actual_openpi_inference"] is False
     assert row["policy_source"] == "scripted_non_learned_reference"
@@ -390,6 +396,7 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     assert environment["vla_online"]["openpi_contract"]["model_config"] == (
         "pi05_droid"
     )
+    assert environment["vla_online"]["artifact_schema_version"] == 2
     assert (run_directory / row["external_image"]).is_file()
     assert (run_directory / row["trace"]).is_file()
     assert row["video_path"] is not None
@@ -397,6 +404,16 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     with np.load(run_directory / row["trace"]) as trace:
         assert trace["raw_action_chunks"].shape[1:] == (15, 8)
         assert trace["guarded_action_chunks"].shape[1:] == (15, 8)
+        assert trace["predicted_position_chunks"].shape[1:] == (16, 7)
+    with (run_directory / "per_action.csv").open(
+        encoding="utf-8", newline=""
+    ) as handle:
+        action_rows = list(csv.DictReader(handle))
+    assert len(action_rows) == row["policy_queries"] * 15
+    assert sum(item["executed"] == "True" for item in action_rows) == row[
+        "action_steps"
+    ]
+    assert {item["reason"] for item in action_rows}
     assert (run_directory / "overview.png").stat().st_size > 10_000
     summary = (run_directory / "summary.md").read_text("utf-8")
     assert "No pi0/pi0.5 checkpoint" in summary
@@ -486,6 +503,7 @@ def test_remote_openpi_online_run_uses_network_policy_in_feedback_loop(
     rows = json.loads((output_directory / "aggregate.json").read_text("utf-8"))
     row = rows[0]
     assert row["remote_inference_attempted"] is True
+    assert row["artifact_schema_version"] == 2
     assert row["actual_openpi_inference"] is True
     assert row["validated_remote_chunks"] == 2
     assert row["policy_source"] == "openpi_remote"
@@ -502,6 +520,13 @@ def test_remote_openpi_online_run_uses_network_policy_in_feedback_loop(
     with np.load(output_directory / row["trace"]) as trace:
         assert trace["raw_action_chunks"].shape == (2, 15, 8)
         assert trace["guarded_action_chunks"].shape == (2, 15, 8)
+    with (output_directory / "per_action.csv").open(
+        encoding="utf-8", newline=""
+    ) as handle:
+        action_rows = list(csv.DictReader(handle))
+    assert len(action_rows) == 30
+    assert sum(item["executed"] == "True" for item in action_rows) == 2
+    assert all(item["raw_action"] for item in action_rows)
     summary = (output_directory / "summary.md").read_text("utf-8")
     assert "Actual OpenPI inference: `true`" in summary
     assert "integration result" in summary
@@ -564,5 +589,13 @@ def test_remote_openpi_online_run_does_not_count_invalid_reply(
     assert row["validated_remote_chunks"] == 0
     assert row["runtime_fallback_chunks"] == 1
     assert row["termination_reason"] == "runtime_fallback:policy_inference"
+    with (output_directory / "per_action.csv").open(
+        encoding="utf-8", newline=""
+    ) as handle:
+        action_rows = list(csv.DictReader(handle))
+    assert {item["reason"] for item in action_rows} == {
+        "runtime_fallback:policy_inference"
+    }
+    assert all(not item["raw_action"] for item in action_rows)
     summary = (output_directory / "summary.md").read_text("utf-8")
     assert "Actual OpenPI inference: `false`" in summary

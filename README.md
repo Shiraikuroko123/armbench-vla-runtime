@@ -313,7 +313,7 @@ results/<run_id>/
   aggregate.json
   per_case.csv                task, safety, contact, latency, intervention metrics
   per_chunk.csv               deadline/latch and guard timings
-  per_action.csv              action-level accept/backtrack/hold audit
+  per_action.csv              raw/guarded action, reason, scale, executed flag
   observations/*.png
   videos/*.mp4
   <case>.npz                  raw/executed actions and predicted/actual states

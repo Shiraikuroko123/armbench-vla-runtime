@@ -193,6 +193,10 @@ class OnlineChunkRecord:
     supervisor_latency_ms: float
     raw_actions: FloatArray | None
     guarded_actions: FloatArray
+    predicted_positions: FloatArray
+    action_reasons: tuple[str, ...]
+    action_scales: FloatArray
+    action_interventions: tuple[bool, ...]
 
     def metrics(self) -> dict[str, object]:
         return {
@@ -219,12 +223,7 @@ class OnlineChunkRecord:
             "executed_interventions": self.executed_interventions,
             "planned_interventions": self.planned_interventions,
             "supervisor_latency_ms": self.supervisor_latency_ms,
-            "raw_actions": (
-                self.raw_actions.tolist()
-                if self.raw_actions is not None
-                else None
-            ),
-            "guarded_actions": self.guarded_actions.tolist(),
+            "raw_action_available": self.raw_actions is not None,
             "observation_q": self.observation_q.tolist(),
             "dispatch_q": self.dispatch_q.tolist(),
             "actual_q_after": self.actual_q_after.tolist(),
@@ -708,6 +707,25 @@ def run_online_episode(
                 if guard_result is not None
                 else len(decision.actions)
             )
+            if guard_result is not None:
+                action_reasons = tuple(
+                    step.reason for step in guard_result.steps
+                )
+                action_scales = np.asarray(
+                    [step.scale for step in guard_result.steps], dtype=float
+                )
+                action_interventions = tuple(
+                    step.intervened for step in guard_result.steps
+                )
+            else:
+                fallback_reason = (
+                    f"runtime_fallback:{decision.failure.stage}"
+                    if decision.failure is not None
+                    else "runtime_fallback"
+                )
+                action_reasons = (fallback_reason,) * len(decision.actions)
+                action_scales = np.zeros(len(decision.actions), dtype=float)
+                action_interventions = (True,) * len(decision.actions)
             records.append(
                 OnlineChunkRecord(
                     query_index=query_index,
@@ -770,6 +788,10 @@ def run_online_episode(
                         else None
                     ),
                     guarded_actions=decision.actions.copy(),
+                    predicted_positions=decision.predicted_positions.copy(),
+                    action_reasons=action_reasons,
+                    action_scales=action_scales,
+                    action_interventions=action_interventions,
                 )
             )
             action_offset += execute_count
