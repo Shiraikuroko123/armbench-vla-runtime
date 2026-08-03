@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "scenario_version": "2.0-mujoco",
+  "scenarios": [
+    "single_block",
+    "narrow_gate"
+  ],
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "planning": {
+    "clearances_m": [
+      0.0,
+      0.02
+    ],
+    "collision_resolution_rad": 0.05,
+    "shortcut_attempts": 150,
+    "planners": {
+      "rrt_connect": {
+        "step_size": 0.35,
+        "max_iterations": 2000,
+        "timeout_s": 2.0,
+        "goal_sample_rate": 0.05
+      },
+      "rrt_star": {
+        "step_size": 0.35,
+        "max_iterations": 4000,
+        "timeout_s": 2.0,
+        "goal_sample_rate": 0.1,
+        "goal_connection_radius": 0.6,
+        "rewire_radius": 2.5
+      }
+    }
+  },
+  "execution": {
+    "scenarios": [
+      "single_block",
+      "narrow_gate"
+    ],
+    "planning_seed": 0,
+    "control_dt_s": 0.01,
+    "warmup_s": 0.3,
+    "hold_s": 1.0,
+    "goal_tolerance_rad": 0.05,
+    "delays_ms": [
+      0,
+      40,
+      80
+    ],
+    "payload_masses": [
+      0.0,
+      0.5
+    ],
+    "video_fps": 30,
+    "profiles": [
+      {
+        "name": "nominal_fast",
+        "clearance_m": 0.0,
+        "speed_scale": 0.35,
+        "kp": [120.0, 120.0, 100.0, 100.0, 60.0, 40.0, 30.0],
+        "kd": [22.0, 22.0, 18.0, 18.0, 12.0, 8.0, 6.0]
+      },
+      {
+        "name": "nominal_slow",
+        "clearance_m": 0.0,
+        "speed_scale": 0.1,
+        "kp": 5.0,
+        "kd": 2.0
+      },
+      {
+        "name": "clearance_slow",
+        "clearance_m": 0.02,
+        "speed_scale": 0.1,
+        "kp": 5.0,
+        "kd": 2.0
+      }
+    ],
+    "render_cases": [
+      {
+        "scenario": "single_block",
+        "profile": "nominal_fast",
+        "delay_ms": 0,
+        "payload_mass": 0.0
+      },
+      {
+        "scenario": "single_block",
+        "profile": "nominal_fast",
+        "delay_ms": 80,
+        "payload_mass": 0.0
+      },
+      {
+        "scenario": "single_block",
+        "profile": "clearance_slow",
+        "delay_ms": 80,
+        "payload_mass": 0.0
+      },
+      {
+        "scenario": "narrow_gate",
+        "profile": "clearance_slow",
+        "delay_ms": 80,
+        "payload_mass": 0.5
+      }
+    ]
+  },
+  "collision_consistency": {
+    "scenarios": [
+      "single_block",
+      "narrow_gate"
+    ],
+    "samples": 601,
+    "seed": 20260803,
+    "capsule_radius_m": 0.05
+  }
+}

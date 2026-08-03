@@ -5,13 +5,16 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "armbench"
 version = "0.1.0"
-description = "CPU-only 7-DoF manipulator planning and constrained tracking benchmark"
+description = "Reproducible 7-DoF planning and MuJoCo physics benchmark"
 readme = "README.md"
 requires-python = ">=3.10,<3.11"
 license = {text = "MIT"}
 dependencies = [
   "numpy==1.26.4",
   "matplotlib==3.7.2",
+  "mujoco==3.11.0",
+  "imageio==2.37.4",
+  "imageio-ffmpeg==0.6.0",
 ]
 
 [project.optional-dependencies]
@@ -26,4 +29,3 @@ where = ["src"]
 [tool.pytest.ini_options]
 addopts = "-ra"
 testpaths = ["tests"]
-
