@@ -131,6 +131,8 @@ but incomplete episode is not counted as task success.
 ### Visual evidence
 
 - [Online horizon/payload overview](evidence/vla_online_formal_20260804/overview.png)
+- [Nominal H15 live-physics video](evidence/vla_online_visual_nominal_20260804/videos/single_block__payload_0kg__horizon_15.mp4)
+- [State-mismatch fail-closed video](evidence/vla_online_visual_state_jump_20260804/videos/single_block__payload_0kg__horizon_15.mp4)
 - [Unsafe direct action chunk](evidence/vla_guard_formal_20260803/videos/single_block__fresh_collision_fault__unguarded.mp4)
 - [Same fault with runtime guard](evidence/vla_guard_formal_20260803/videos/single_block__fresh_collision_fault__guarded.mp4)
 - [Safe jitter stream through the narrow gate](evidence/vla_guard_formal_20260803/videos/narrow_gate__fresh_safe_jitter__guarded.mp4)

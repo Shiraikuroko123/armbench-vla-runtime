@@ -41,6 +41,30 @@ fallback, deadline, or state-mismatch event in the zero-latency matrix. Horizon
 horizon 15 reduced query count by roughly 14-15x. This is a responsiveness-cost
 comparison, not evidence that a learned VLA solved the task.
 
+### Live-video contrast
+
+The optional online recorder was verified from source commit
+`f51196e6b6e2c6c3382025df04c17911d41d1803`. Both cases use the same
+`single_block`, zero-payload, horizon-15 setup and the explicitly non-learned
+reference policy.
+
+| Case | Queries | Termination | Task | Safe | Video |
+|---|---:|---|---:|---:|---|
+| Nominal | 16 | `goal_reached` | yes | yes | [490 frames, 2.47 MB](../evidence/vla_online_visual_nominal_20260804/videos/single_block__payload_0kg__horizon_15.mp4) |
+| 0.08 rad joint-1 jump | 1 | `guard_fallback:state_mismatch` | no | yes | [40 frames, 0.12 MB](../evidence/vla_online_visual_state_jump_20260804/videos/single_block__payload_0kg__horizon_15.mp4) |
+
+The nominal MP4 SHA-256 is
+`A315DDEA5A65088EDD796B28C2EAB881005796C1430556597CE845A03EF3310F`;
+the state-jump MP4 SHA-256 is
+`2B7F033673C1E1F96260253FBF1A156C254226398E0D63E4D4FEC7BEEFC9E662`.
+Both decode as nonblank `640x480` H.264 at 30 fps. Frames were captured during
+the physics loop, not reconstructed from the NPZ trace.
+
+The nominal environment snapshot lists only the pre-existing untracked
+`MJMODEL.TXT`. The state-jump snapshot also lists the nominal evidence directory
+because the two immutable runs were generated sequentially before this evidence
+commit; neither snapshot reports a modified source file.
+
 ## OpenPI-contract fault-response result
 
 ### Provenance
