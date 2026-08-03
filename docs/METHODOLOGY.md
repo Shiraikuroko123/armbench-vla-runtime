@@ -48,3 +48,7 @@ Planner seeds and controller noise seeds are recorded separately. Every run
 stores the resolved config, Python/dependency/platform metadata, Git state,
 raw trial tables, aggregate metrics, successful paths, failures, and figures.
 Wall-clock latency is expected to vary across machines even when paths match.
+Because the formal benchmark enforces a wall-clock deadline, seeds whose first
+solution lies near that boundary can also change success status under different
+machine load. The sampled sequence remains seed-controlled; deadline outcomes
+must always be reported with hardware, software, and run ID.

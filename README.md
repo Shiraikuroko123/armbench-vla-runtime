@@ -57,6 +57,10 @@ Run the formal 30-seed planning experiment and configured control trials:
 Each run is written to `results/<run_id>/`. An existing run directory is never
 overwritten.
 
+The verified local result snapshot is documented in
+[`docs/RESULTS.md`](docs/RESULTS.md). Its formal run used commit `a19883c`, 30
+paired planning seeds per scenario/planner, and five controller noise seeds.
+
 ## Output contract
 
 ```text
@@ -94,3 +98,16 @@ enforces velocity but not acceleration/jerk. Tracking uses simplified decoupled
 joint dynamics, not a rigid-body simulator or real robot. These constraints are
 detailed in [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md) and must remain visible
 in any resume or interview description.
+
+## Evidence-based resume wording
+
+> Built a CPU-only 7-DoF manipulator planning and tracking benchmark with
+> whole-link collision checks, bounded RRT-Connect/RRT*, shortcut smoothing,
+> and delayed PD/LQR control. Across three fixed scenarios and 30 paired seeds,
+> RRT-Connect achieved 30/30 success per scenario; in the constrained passage
+> its P95 first-solution latency was 622 ms versus the RRT* baseline's 2013 ms
+> at 5/30 success under a 2 s deadline. Reported Wilson intervals, retained all
+> failures, and separated tracking collisions from joint-limit violations.
+
+This wording is specific to the checked-in configuration and the machine in the
+result report. It must not be reframed as real-robot or rigid-body validation.
