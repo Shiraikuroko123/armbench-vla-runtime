@@ -296,6 +296,24 @@ false. A connection/handshake failure occurs before an output directory exists.
 The NPZ trace contains a 16x16 RGB thumbnail from both cameras for every query;
 use it to debug observation order without loading full-size frame sequences.
 
+For a deterministic input-side comparison before a closed loop, replay a saved
+request:
+
+```powershell
+& $ArmbenchPython -m armbench vla-recorded-probe `
+  evidence\vla_openpi_request_replay_20260804 `
+  --query 1 --host '<GPU_SERVER_IP>' --port 8000 `
+  --connect-timeout-s 3 --inference-timeout-s 1 `
+  --output-directory 'results\recorded_probe_debug_01'
+```
+
+Set breakpoints in `vla/request_replay.py`, `vla/policy.py`, and
+`vla/replay_probe.py`. Verify `response.json` keeps the source payload SHA,
+strict response shape/hash, latency, metadata, and guard result. The NPZ contains
+raw and guarded actions plus predicted positions. There is no MuJoCo stepping in
+this command, so `guard_safe_after` is a sampled kinematic check and
+`physical_safe` must remain null.
+
 ## 6. Debug the runtime guard
 
 Set the main breakpoint at `vla/guard.py: ActionChunkGuard.guard`. For one bad

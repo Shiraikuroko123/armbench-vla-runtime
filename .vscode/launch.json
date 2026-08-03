@@ -130,6 +130,28 @@
       "justMyCode": true
     },
     {
+      "name": "ArmBench: probe server with recorded request",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "armbench",
+      "args": [
+        "vla-recorded-probe",
+        "${input:requestArtifactDirectory}",
+        "--query",
+        "0",
+        "--host",
+        "${input:openpiHost}",
+        "--port",
+        "8000",
+        "--output-directory",
+        "results/${input:recordedProbeRunId}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "ArmBench: OpenPI loopback timeout fault",
       "type": "debugpy",
       "request": "launch",
@@ -258,6 +280,12 @@
       "type": "promptString",
       "description": "Recorded online artifact directory",
       "default": "results/openpi_loopback_01"
+    },
+    {
+      "id": "recordedProbeRunId",
+      "type": "promptString",
+      "description": "New recorded OpenPI probe directory name",
+      "default": "recorded_openpi_probe_01"
     },
     {
       "id": "openpiOnlineRunId",

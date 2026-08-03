@@ -128,6 +128,15 @@ hashes the raw received payload before unpacking; equality with the reconstructe
 payload hash provides a byte-level round trip. Older artifacts lacking gripper
 or prompt arrays remain schema-valid but report zero replayable requests.
 
+`vla-recorded-probe` sends one reconstructed request through the same bounded
+OpenPI client used by the online runtime. It validates a finite 15x8 reply,
+stores raw/guarded action arrays and predicted positions, and hashes the raw
+response for paired server comparison. The observation gets a fresh local
+capture timestamp before inference because timestamps are runtime metadata, not
+DROID payload fields; this lets the guard measure the replay call's actual age
+without changing request bytes. No physics is stepped, so the artifact reports
+no physical-safety outcome.
+
 `vla-openpi-run` replaces the reference policy with the bounded transport built
 on official OpenPI serialization while retaining the same live physics loop. It
 records server metadata and separates attempted remote calls from validated

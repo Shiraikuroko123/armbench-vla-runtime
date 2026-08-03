@@ -37,6 +37,7 @@ from armbench.vla.request_replay import (
     RecordedOpenPIRequest,
     load_recorded_openpi_request,
 )
+from armbench.vla.replay_probe import execute_recorded_openpi_probe
 from armbench.vla.types import ActionChunk, VLAObservation
 
 __all__ = [
@@ -67,6 +68,7 @@ __all__ = [
     "VLAObservationGuard",
     "VLAObservation",
     "execute_openpi_loopback_run",
+    "execute_recorded_openpi_probe",
     "execute_loopback_fault_matrix",
     "run_online_episode",
     "load_recorded_openpi_request",

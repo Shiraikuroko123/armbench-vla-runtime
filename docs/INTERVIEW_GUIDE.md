@@ -62,6 +62,9 @@ performance or certified safety.
 - A complete DROID request loader that aligns images, joint/gripper state,
   prompt, and sequence, then verifies repacked MessagePack bytes against the
   server-received payload SHA when loopback evidence is available.
+- A recorded-request OpenPI probe for paired checkpoint/server comparison,
+  retaining fixed input SHA, validated action SHA, timing, metadata, and guard
+  output without mislabeling offline inference as a physics rollout.
 - Client-visible failure stage, exception type, and bounded message mirrored
   between per-chunk CSV and NPZ traces for remote-server diagnosis.
 - A schema-v5 artifact validator that cross-checks JSON/CSV/NPZ counts, camera
@@ -223,8 +226,10 @@ validation. The present guard is research simulation code, not safety-rated.
 ### What would you do next with a GPU budget?
 
 First run `pi05_droid` on a remote RTX 4090 and store an honest probe artifact.
-Then use `vla-openpi-run` with a small query budget before comparing pi0, pi0.5,
-and the non-learned baseline under paired observations, horizons, seeds, jitter,
+Then replay the same recorded requests against each preserved checkpoint server
+to separate model-output differences from camera/state differences. Only after
+that should `vla-openpi-run` use a small query budget for closed-loop comparison
+of pi0, pi0.5, and the non-learned baseline under paired horizons, seeds, jitter,
 and fault injection. Because these synthetic scenes are out of DROID's
 training distribution, task claims would require adaptation or an appropriate
 benchmark such as LIBERO, plus confidence intervals and failure taxonomy.

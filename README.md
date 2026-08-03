@@ -459,6 +459,23 @@ Set-Location 'D:\arm-planning-control-project\project'
   --output-directory 'results\openpi_probe_001'
 ```
 
+To compare servers/checkpoints on an identical saved input without rerendering
+MuJoCo, probe one replayable request:
+
+```powershell
+& $ArmbenchPython -m armbench vla-recorded-probe `
+  evidence\vla_openpi_request_replay_20260804 `
+  --query 1 --host '<GPU_SERVER_IP>' --port 8000 `
+  --output-directory 'results\pi05_recorded_probe_001'
+```
+
+The output stores the fixed input payload SHA, validated raw 15x8 action SHA,
+guarded actions, predicted joint positions, client/server timing, and server
+metadata. It deliberately records `physics_executed=false`,
+`physical_safe=null`, and `checkpoint_identity_verified=false`. Run the same
+query against multiple preserved server launch logs for paired checkpoint
+comparison; do not call the result a rollout or physical-safety experiment.
+
 `probe.json` is written only after a remote response passes shape validation and
 the guard runs. It records `remote_policy_response_validated: true`, server
 metadata, latency, raw/guarded actions, and both camera images. It also records

@@ -32,6 +32,7 @@ from armbench.vla.loopback import (
     execute_openpi_loopback_run,
 )
 from armbench.vla.request_replay import load_recorded_openpi_request
+from armbench.vla.replay_probe import execute_recorded_openpi_probe
 
 
 def _validate(config_path: Path) -> int:
@@ -427,6 +428,35 @@ def build_parser() -> argparse.ArgumentParser:
     vla_request.add_argument(
         "--horizon", type=int, choices=range(1, 16)
     )
+
+    vla_recorded_probe = subparsers.add_parser(
+        "vla-recorded-probe",
+        help="query an OpenPI server with one exact recorded request",
+    )
+    vla_recorded_probe.add_argument(
+        "--config", type=Path, default=Path("configs/vla_guard_benchmark.json")
+    )
+    vla_recorded_probe.add_argument("artifact_directory", type=Path)
+    vla_recorded_probe.add_argument(
+        "--output-directory", type=Path, required=True
+    )
+    vla_recorded_probe.add_argument("--host", default="localhost")
+    vla_recorded_probe.add_argument("--port", type=int, default=8000)
+    vla_recorded_probe.add_argument("--query", type=int, default=0)
+    vla_recorded_probe.add_argument("--scenario")
+    vla_recorded_probe.add_argument("--payload", type=float)
+    vla_recorded_probe.add_argument(
+        "--horizon", type=int, choices=range(1, 16)
+    )
+    vla_recorded_probe.add_argument(
+        "--api-key-env", default="OPENPI_API_KEY"
+    )
+    vla_recorded_probe.add_argument(
+        "--connect-timeout-s", type=float, default=3.0
+    )
+    vla_recorded_probe.add_argument(
+        "--inference-timeout-s", type=float, default=1.0
+    )
     return parser
 
 
@@ -612,6 +642,23 @@ def main(arguments: list[str] | None = None) -> int:
             execution_horizon=args.horizon,
         )
         print(json.dumps(request.metrics(), indent=2, ensure_ascii=False))
+        return 0
+    if args.command == "vla-recorded-probe":
+        output = execute_recorded_openpi_probe(
+            args.config,
+            args.artifact_directory,
+            args.output_directory,
+            host=args.host,
+            port=args.port,
+            query_index=args.query,
+            scenario=args.scenario,
+            payload_mass=args.payload,
+            execution_horizon=args.horizon,
+            api_key=os.environ.get(args.api_key_env),
+            connect_timeout_s=args.connect_timeout_s,
+            inference_timeout_s=args.inference_timeout_s,
+        )
+        print(f"results: {output.resolve()}")
         return 0
     planning_seeds = parse_seed_spec(args.seeds) if args.seeds else None
     control_seeds = (

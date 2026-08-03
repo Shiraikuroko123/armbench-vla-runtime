@@ -32,6 +32,7 @@ from armbench.vla.online_benchmark import (
 )
 from armbench.vla.loopback import (
     LOOPBACK_POLICY_PROVENANCE,
+    OpenPIProtocolLoopbackServer,
     execute_openpi_loopback_run,
 )
 from armbench.vla.observation_guard import (
@@ -40,6 +41,7 @@ from armbench.vla.observation_guard import (
     VLAObservationGuard,
 )
 from armbench.vla.request_replay import load_recorded_openpi_request
+from armbench.vla.replay_probe import execute_recorded_openpi_probe
 from armbench.vla.types import ActionChunk, VLAObservation
 
 
@@ -1025,6 +1027,50 @@ def test_loopback_cli_backend_exercises_complete_remote_policy_path(
     assert request["observation/gripper_position"].shape == (1,)
 
     trace_path = output_directory / row["trace"]
+    with np.load(trace_path, allow_pickle=False) as trace:
+        references = trace["reference_positions"].copy()
+    replay_output = tmp_path / "recorded_probe"
+    with OpenPIProtocolLoopbackServer(
+        references,
+        action_dt_s=(
+            1.0 / float(config["openpi_contract"]["control_hz"])
+        ),
+    ) as replay_server:
+        assert replay_server.port is not None
+        execute_recorded_openpi_probe(
+            config_path,
+            output_directory,
+            replay_output,
+            host="127.0.0.1",
+            port=replay_server.port,
+            query_index=0,
+            connect_timeout_s=0.5,
+            inference_timeout_s=0.5,
+            policy_provenance="scripted_non_learned_replay_probe",
+        )
+        replay_requests = replay_server.request_audit
+    response = json.loads(
+        (replay_output / "response.json").read_text("utf-8")
+    )
+    assert response["remote_policy_response_validated"] is True
+    assert response["checkpoint_identity_verified"] is False
+    assert response["action_shape"] == [15, 8]
+    assert len(response["action_sha256"]) == 64
+    assert response["guard_safe_after"] is True
+    assert response["physics_executed"] is False
+    assert response["physical_safe"] is None
+    assert response["source_request"]["server_payload_matches"] is True
+    assert response["policy_provenance"] == (
+        "scripted_non_learned_replay_probe"
+    )
+    assert replay_requests[0]["request_payload_sha256"] == (
+        recorded.packed_payload_sha256
+    )
+    with np.load(replay_output / "response.npz") as replay_trace:
+        assert replay_trace["raw_actions"].shape == (15, 8)
+        assert replay_trace["guarded_actions"].shape == (15, 8)
+        assert replay_trace["predicted_positions"].shape == (16, 7)
+
     with np.load(trace_path, allow_pickle=False) as trace:
         trace_arrays = {key: trace[key] for key in trace.files}
     changed_prompt = str(trace_arrays["prompts"][0]).replace("move", "push")
