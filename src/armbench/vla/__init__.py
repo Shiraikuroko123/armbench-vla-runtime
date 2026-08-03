@@ -4,6 +4,7 @@ from armbench.vla.guard import ActionChunkGuard, GuardConfig, GuardResult
 from armbench.vla.online import (
     OnlineEpisodeResult,
     OnlineExecutionConfig,
+    OnlineFaultConfig,
     ReferenceActionChunkPolicy,
     run_online_episode,
 )
@@ -26,6 +27,7 @@ __all__ = [
     "OpenPIPolicyClient",
     "OnlineEpisodeResult",
     "OnlineExecutionConfig",
+    "OnlineFaultConfig",
     "ReferenceActionChunkPolicy",
     "RuntimeDecision",
     "RuntimeFailure",

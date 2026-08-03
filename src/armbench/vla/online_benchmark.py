@@ -142,13 +142,14 @@ def _summary(rows: list[dict[str, object]]) -> str:
         "The policy is `scripted_non_learned_reference`. No pi0/pi0.5 "
         "checkpoint or learned-policy inference was used.",
         "",
-        "| Scenario | Payload kg | Horizon | Queries | Task | Safe | Faults | Deadlines | State mismatches | Goal error rad | RMSE rad |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "| Scenario | Payload kg | Horizon | Queries | Termination | Task | Safe | Faults | Deadlines | State mismatches | Goal error rad | RMSE rad |",
+        "|---|---:|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for row in rows:
         lines.append(
             f"| {row['scenario']} | {float(row['payload_mass']):g} | "
             f"{row['execution_horizon']} | {row['policy_queries']} | "
+            f"{row['termination_reason']} | "
             f"{row['task_success']} | {row['physical_safe']} | "
             f"{row['fault_injections']} | {row['deadline_chunks']} | "
             f"{row['state_mismatch_chunks']} | "
@@ -378,6 +379,19 @@ def execute_vla_online_benchmark(
                         ),
                         action_offsets=np.asarray(
                             [record.action_offset for record in result.chunks]
+                        ),
+                        raw_action_chunks=np.asarray(
+                            [
+                                record.raw_actions
+                                if record.raw_actions is not None
+                                else np.full_like(
+                                    record.guarded_actions, np.nan
+                                )
+                                for record in result.chunks
+                            ]
+                        ),
+                        guarded_action_chunks=np.asarray(
+                            [record.guarded_actions for record in result.chunks]
                         ),
                     )
                     row = {

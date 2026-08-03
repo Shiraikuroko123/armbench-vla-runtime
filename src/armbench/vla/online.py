@@ -31,6 +31,7 @@ class OnlineExecutionConfig:
     hold_s: float = 0.3
     goal_tolerance_rad: float = 0.05
     max_extra_actions: int = 15
+    max_policy_queries: int | None = None
     kp: tuple[float, ...] = tuple(float(value) for value in DEFAULT_KP)
     kd: tuple[float, ...] = tuple(float(value) for value in DEFAULT_KD)
 
@@ -53,6 +54,10 @@ class OnlineExecutionConfig:
             or self.hold_s < 0.0
             or self.goal_tolerance_rad < 0.0
             or self.max_extra_actions < 0
+            or (
+                self.max_policy_queries is not None
+                and self.max_policy_queries <= 0
+            )
         ):
             raise ValueError("online execution timing/tolerance is invalid")
         for name, values in (("kp", self.kp), ("kd", self.kd)):
@@ -115,10 +120,14 @@ class OnlineChunkRecord:
     fault_injected: bool
     injected_state_jump_rad: FloatArray
     policy_latency_ms: float
+    client_inference_latency_ms: float
+    server_timing: dict[str, float]
     simulated_inference_wait_s: float
     executed_interventions: int
     planned_interventions: int
     supervisor_latency_ms: float
+    raw_actions: FloatArray | None
+    guarded_actions: FloatArray
 
     def metrics(self) -> dict[str, object]:
         return {
@@ -138,10 +147,18 @@ class OnlineChunkRecord:
             "fault_injected": self.fault_injected,
             "injected_state_jump_rad": self.injected_state_jump_rad.tolist(),
             "policy_latency_ms": self.policy_latency_ms,
+            "client_inference_latency_ms": self.client_inference_latency_ms,
+            "server_timing": dict(self.server_timing),
             "simulated_inference_wait_s": self.simulated_inference_wait_s,
             "executed_interventions": self.executed_interventions,
             "planned_interventions": self.planned_interventions,
             "supervisor_latency_ms": self.supervisor_latency_ms,
+            "raw_actions": (
+                self.raw_actions.tolist()
+                if self.raw_actions is not None
+                else None
+            ),
+            "guarded_actions": self.guarded_actions.tolist(),
             "observation_q": self.observation_q.tolist(),
             "dispatch_q": self.dispatch_q.tolist(),
             "actual_q_after": self.actual_q_after.tolist(),
@@ -156,6 +173,7 @@ class OnlineEpisodeResult:
     policy_source: str
     action_steps: int
     policy_queries: int
+    termination_reason: str
     task_success: bool
     physical_safe: bool
     final_goal_error_rad: float
@@ -182,6 +200,13 @@ class OnlineEpisodeResult:
     last_wrist_image: UInt8Array
 
     def metrics(self) -> dict[str, object]:
+        end_to_end_latencies = np.asarray(
+            [record.policy_latency_ms for record in self.chunks], dtype=float
+        )
+        client_latencies = np.asarray(
+            [record.client_inference_latency_ms for record in self.chunks],
+            dtype=float,
+        )
         return {
             "scenario": self.scenario,
             "execution_horizon": self.execution_horizon,
@@ -189,6 +214,7 @@ class OnlineEpisodeResult:
             "policy_source": self.policy_source,
             "action_steps": self.action_steps,
             "policy_queries": self.policy_queries,
+            "termination_reason": self.termination_reason,
             "task_success": self.task_success,
             "physical_safe": self.physical_safe,
             "safe_task_success": self.task_success and self.physical_safe,
@@ -206,6 +232,17 @@ class OnlineEpisodeResult:
             "fault_injections": self.fault_injections,
             "executed_interventions": self.executed_interventions,
             "simulated_inference_wait_s": self.simulated_inference_wait_s,
+            "mean_policy_latency_ms": float(np.mean(end_to_end_latencies)),
+            "p95_policy_latency_ms": float(
+                np.percentile(end_to_end_latencies, 95)
+            ),
+            "max_policy_latency_ms": float(np.max(end_to_end_latencies)),
+            "mean_client_inference_latency_ms": float(
+                np.mean(client_latencies)
+            ),
+            "p95_client_inference_latency_ms": float(
+                np.percentile(client_latencies, 95)
+            ),
         }
 
 
@@ -412,9 +449,17 @@ def run_online_episode(
     last_command = np.zeros(7, dtype=float)
     last_gripper = 1.0
     hold_target = references[-1].copy()
+    termination_reason = "action_limit"
 
     with MuJoCoDroidObservationBuilder(robot) as builder:
         while action_offset < action_limit:
+            if (
+                execution_config.max_policy_queries is not None
+                and len(records) >= execution_config.max_policy_queries
+            ):
+                termination_reason = "query_budget"
+                hold_target = data.qpos[arm_qpos].copy()
+                break
             guard.synchronize_velocity(last_command)
             observation = builder.capture(
                 data,
@@ -429,6 +474,8 @@ def run_online_episode(
             q_before = data.qpos[arm_qpos].copy()
             dispatch_q = q_before.copy()
             policy_latency_ms = 0.0
+            client_inference_latency_ms = 0.0
+            server_timing: dict[str, float] = {}
             simulated_wait_s = 0.0
             injected_state_jump = np.zeros(7, dtype=float)
             query_index = len(records)
@@ -439,9 +486,13 @@ def run_online_episode(
                 nonlocal dispatch_q
                 nonlocal next_controller_time
                 nonlocal policy_latency_ms
+                nonlocal client_inference_latency_ms
+                nonlocal server_timing
                 nonlocal simulated_wait_s
                 nonlocal injected_state_jump
                 policy_latency_ms = chunk.age_ms(observation)
+                client_inference_latency_ms = chunk.inference_latency_ms
+                server_timing = dict(chunk.server_timing)
                 wait_start = float(data.time)
                 wait_end = wait_start + policy_latency_ms / 1000.0
                 hold_q = data.qpos[arm_qpos].copy()
@@ -589,10 +640,18 @@ def run_online_episode(
                     ),
                     injected_state_jump_rad=injected_state_jump.copy(),
                     policy_latency_ms=policy_latency_ms,
+                    client_inference_latency_ms=client_inference_latency_ms,
+                    server_timing=server_timing,
                     simulated_inference_wait_s=simulated_wait_s,
                     executed_interventions=executed_interventions,
                     planned_interventions=planned_interventions,
                     supervisor_latency_ms=decision.supervisor_latency_ms,
+                    raw_actions=(
+                        decision.raw_actions.copy()
+                        if decision.raw_actions is not None
+                        else None
+                    ),
+                    guarded_actions=decision.actions.copy(),
                 )
             )
             action_offset += execute_count
@@ -600,9 +659,17 @@ def run_online_episode(
             last_gripper = float(selected[-1, 7])
             if decision.used_runtime_fallback:
                 hold_target = data.qpos[arm_qpos].copy()
+                termination_reason = (
+                    f"runtime_fallback:{decision.failure.stage}"
+                    if decision.failure is not None
+                    else "runtime_fallback"
+                )
                 break
             if guard_result is not None and guard_result.fallback_latched:
                 hold_target = data.qpos[arm_qpos].copy()
+                termination_reason = (
+                    f"guard_fallback:{guard_result.fallback_reason}"
+                )
                 break
             if (
                 action_offset >= len(references) - 1
@@ -610,6 +677,7 @@ def run_online_episode(
                 <= execution_config.goal_tolerance_rad
                 and np.max(np.abs(data.qvel[arm_dofs])) <= 0.05
             ):
+                termination_reason = "goal_reached"
                 break
 
         hold_end = data.time + execution_config.hold_s
@@ -653,6 +721,7 @@ def run_online_episode(
         policy_source=str(policy_source),
         action_steps=action_offset,
         policy_queries=len(records),
+        termination_reason=termination_reason,
         task_success=final_goal_error <= execution_config.goal_tolerance_rad,
         physical_safe=physical_safe,
         final_goal_error_rad=final_goal_error,

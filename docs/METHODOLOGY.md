@@ -89,7 +89,10 @@ gripper position from one live torque-controlled MuJoCo state; requests and
 guards a 15x8 chunk; executes only a configured prefix of 1, 5, or 15 actions;
 then repeats from the resulting actual `qpos` and `qvel`. The guard's previous
 velocity is synchronized to the last action that was actually executed, not the
-unexecuted tail of the chunk.
+unexecuted tail of the chunk. Every query preserves the raw and guarded action
+chunks, client/end-to-end timing, optional server timing, and termination
+reason. A positive `max_policy_queries` budget can bound remote inference cost;
+reaching it causes a pose hold and is reported as `query_budget`.
 
 The bundled online policy follows a collision-free reference and is labeled
 `scripted_non_learned_reference`. It exists to isolate the effect and query cost

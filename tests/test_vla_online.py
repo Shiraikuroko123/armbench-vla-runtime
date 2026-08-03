@@ -88,6 +88,7 @@ def test_online_episode_reobserves_actual_mujoco_state_each_action() -> None:
     )
 
     assert result.policy_queries == 4
+    assert result.termination_reason == "action_limit"
     assert result.action_steps == 4
     assert [record.sequence_id for record in result.chunks] == [0, 1, 2, 3]
     for previous, current in zip(result.chunks, result.chunks[1:]):
@@ -104,6 +105,10 @@ def test_online_episode_reobserves_actual_mujoco_state_each_action() -> None:
     assert float(result.first_exterior_image.std()) > 10.0
     assert result.policy_source == "scripted_non_learned_reference"
     assert result.runtime_fallback_chunks == 0
+    assert result.chunks[0].raw_actions is not None
+    assert result.chunks[0].raw_actions.shape == (15, 8)
+    assert result.chunks[0].guarded_actions.shape == (15, 8)
+    assert result.chunks[0].server_timing == {}
     assert result.physical_safe
 
 
@@ -149,6 +154,7 @@ def test_online_episode_advances_physics_during_stale_inference() -> None:
     assert record.executed_interventions == 1
     assert result.physical_safe
     assert result.obstacle_contact_steps == 0
+    assert result.termination_reason == "guard_fallback:deadline"
 
 
 def test_online_episode_latches_on_injected_dispatch_state_jump() -> None:
@@ -195,6 +201,7 @@ def test_online_episode_latches_on_injected_dispatch_state_jump() -> None:
     assert result.runtime_fallback_chunks == 0
     assert not result.task_success
     assert result.physical_safe
+    assert result.termination_reason == "guard_fallback:state_mismatch"
     record = result.chunks[0]
     assert record.fault_injected
     assert record.guard_fallback
@@ -214,6 +221,46 @@ def test_online_fault_config_rejects_partial_or_invalid_state_jump() -> None:
         OnlineFaultConfig(state_jump_rad=(0.1,) + (0.0,) * 6)
     with pytest.raises(ValueError, match="seven finite"):
         OnlineFaultConfig(state_jump_query=0, state_jump_rad=(0.1,))
+
+
+def test_online_episode_stops_at_policy_query_budget() -> None:
+    start = mujoco_scenarios()["single_block"].start
+    reference = np.repeat(start[None, :], 8, axis=0)
+    reference[:, 0] += np.arange(8) * 0.02
+    policy = ReferenceActionChunkPolicy(
+        reference,
+        action_dt_s=0.1,
+        velocity_limit_rad_s=0.5,
+    )
+
+    result = run_online_episode(
+        "single_block",
+        policy,
+        reference,
+        execution_horizon=1,
+        clearance_m=0.0,
+        guard_config=GuardConfig(
+            control_dt_s=0.1,
+            joint_velocity_clip_rad_s=0.5,
+            joint_acceleration_clip_rad_s2=15.0,
+        ),
+        execution_config=OnlineExecutionConfig(
+            action_dt_s=0.1,
+            warmup_s=0.01,
+            hold_s=0.01,
+            max_extra_actions=0,
+            max_policy_queries=2,
+        ),
+    )
+
+    assert result.policy_queries == 2
+    assert result.action_steps == 2
+    assert result.termination_reason == "query_budget"
+    assert result.physical_safe
+    assert not result.task_success
+
+    with pytest.raises(ValueError, match="timing/tolerance"):
+        OnlineExecutionConfig(max_policy_queries=0)
 
 
 def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
@@ -251,6 +298,7 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     assert row["policy_queries"] > 1
     assert row["fault_injections"] == 0
     assert row["state_mismatch_chunks"] == 0
+    assert row["termination_reason"] in {"goal_reached", "action_limit"}
     assert environment["packages"]["mujoco"] == "3.11.0"
     assert environment["packages"]["websockets"] == "16.1.1"
     assert environment["vla_online"]["openpi_contract"]["model_config"] == (
@@ -258,8 +306,12 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     )
     assert (run_directory / row["external_image"]).is_file()
     assert (run_directory / row["trace"]).is_file()
+    with np.load(run_directory / row["trace"]) as trace:
+        assert trace["raw_action_chunks"].shape[1:] == (15, 8)
+        assert trace["guarded_action_chunks"].shape[1:] == (15, 8)
     assert (run_directory / "overview.png").stat().st_size > 10_000
     summary = (run_directory / "summary.md").read_text("utf-8")
     assert "No pi0/pi0.5 checkpoint" in summary
     assert "recaptures both 224x224 cameras" in summary
     assert "State mismatches" in summary
+    assert "Termination" in summary
