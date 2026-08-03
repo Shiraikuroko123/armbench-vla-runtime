@@ -1,6 +1,47 @@
 # Verified result snapshots
 
-## Primary OpenPI-contract VLA runtime result
+## Primary online VLA runtime result
+
+### Provenance
+
+- Run ID: `vla_online_formal_20260804`
+- Source commit: `3e58994d4fd29ed4020c40b5d5ece1e9abed4afd`
+- OpenPI config contract: `pi05_droid`, 15x8 actions at about 15 Hz
+- Policy source: `scripted_non_learned_reference`
+- Actual OpenPI checkpoint inference: `false`
+- Python / MuJoCo: 3.10.8 / 3.11.0
+- Protocol: 2 scenes x 2 payloads x execution horizons 1/5/15
+- Artifact size: 12 episodes, 1,082 chunk records, 48 observation PNGs, 12 NPZ traces
+
+The run environment marked Git dirty only because the pre-existing untracked
+`MJMODEL.TXT` was visible to `git status`; no source file differed from commit
+`3e58994`. The complete snapshot is in
+[`evidence/vla_online_formal_20260804`](../evidence/vla_online_formal_20260804/summary.md).
+
+### Outcomes
+
+| Scene | Payload kg | Horizon | Queries | Task | Safe | Goal error rad | RMSE rad |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| single block | 0.0 | 1 | 233 | yes | yes | 0.00081 | 0.00078 |
+| single block | 0.0 | 5 | 47 | yes | yes | 0.00029 | 0.00167 |
+| single block | 0.0 | 15 | 16 | yes | yes | 0.00015 | 0.00213 |
+| single block | 0.5 | 1 | 233 | yes | yes | 0.00091 | 0.00088 |
+| single block | 0.5 | 5 | 47 | yes | yes | 0.00037 | 0.00179 |
+| single block | 0.5 | 15 | 16 | yes | yes | 0.00017 | 0.00221 |
+| narrow gate | 0.0 | 1 | 193 | yes | yes | 0.00370 | 0.00089 |
+| narrow gate | 0.0 | 5 | 39 | yes | yes | 0.00258 | 0.00196 |
+| narrow gate | 0.0 | 15 | 13 | yes | yes | 0.00230 | 0.00277 |
+| narrow gate | 0.5 | 1 | 193 | yes | yes | 0.00448 | 0.00097 |
+| narrow gate | 0.5 | 5 | 39 | yes | yes | 0.00330 | 0.00202 |
+| narrow gate | 0.5 | 15 | 13 | yes | yes | 0.00288 | 0.00283 |
+
+All 12/12 episodes were physically safe and task-successful, with no runtime
+fallback, deadline, or state-mismatch event in the zero-latency matrix. Horizon
+1 recaptured state and both cameras after every action and had the lowest RMSE;
+horizon 15 reduced query count by roughly 14-15x. This is a responsiveness-cost
+comparison, not evidence that a learned VLA solved the task.
+
+## OpenPI-contract fault-response result
 
 ### Provenance
 

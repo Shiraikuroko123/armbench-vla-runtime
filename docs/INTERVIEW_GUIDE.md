@@ -18,16 +18,16 @@ single remote `vla-probe` would prove integration, not close that gap.
 ArmBench is an OpenPI-compatible runtime assurance layer for VLA action chunks.
 The simulated Franka Panda produces an exterior image, a wrist image, seven
 joint positions, a gripper position, and a language prompt using the exact
-`pi05_droid` input keys. A common policy interface can call the official OpenPI
-WebSocket client or a deterministic fault-injection policy. It validates the
-returned 15-by-8 DROID chunk before torque execution: stale chunks trigger a
-latched hold, joint velocities and gripper commands are bounded, and each joint
-edge is checked against MuJoCo Panda meshes with 20 mm clearance. Unsafe actions
-are backtracked or replaced by hold. In two fixed scenes, the guard preserved
-both safe streams, reduced 2,314 injected contact steps to zero, and had a worst
-per-case P95 of 7.96 ms on an Intel laptop. The benchmark uses scripted actions,
-not a pi0.5 checkpoint, so the claim is runtime integration and evaluation, not
-learned-policy performance or certified safety.
+`pi05_droid` input keys. A common policy interface uses a bounded OpenPI
+transport or deterministic test policy. A fail-closed supervisor and stateful
+guard validate each 15-by-8 chunk for deadline, observation mismatch, velocity,
+acceleration, joint, and sampled mesh-collision constraints. The live loop then
+executes only 1, 5, or 15 actions before recapturing actual physics state and
+both cameras. Across two scenes, two payloads, and three horizons, all 12 runs
+completed safely; horizon 15 reduced query count from 193-233 to 13-16. A
+separate fault matrix reduced 2,314 injected contact steps to zero. Both policies
+are scripted, so the claim is runtime integration/evaluation, not learned-policy
+performance or certified safety.
 
 ## What you actually built
 
@@ -40,6 +40,8 @@ learned-policy performance or certified safety.
   hold fallback.
 - Deterministic safe/fault streams, inference jitter schedules, and matched
   guarded/unguarded physics cases.
+- A receding-horizon live physics loop with actual state/camera feedback and
+  1/5/15-action query-cost comparison under 0/0.5 kg payloads.
 - Per-case, per-chunk, and per-action audit trails with raw and executed actions,
   reasons, scales, predicted/actual states, images, plots, and videos.
 - A Windows self-locating launcher, VS Code debug configurations, tests, pinned
@@ -59,7 +61,7 @@ transports it, validates the reply, handles deadlines, checks execution
 constraints, applies or rejects actions, and measures the physical result.
 
 The project has an OpenPI client path but the tracked experiment uses a
-non-learned source. Therefore “OpenPI-compatible” is correct; “deployed pi0.5”
+non-learned source. Therefore "OpenPI-compatible" is correct; "deployed pi0.5"
 is not yet correct.
 
 ### Why use the `pi05_droid` contract?
@@ -177,21 +179,22 @@ Do not claim:
 - formal or certified safety.
 
 The strongest current claim is an end-to-end, OpenPI-compatible VLA
-runtime/evaluation system with deterministic fault injection, physics evidence,
-deadline state handling, and action-level auditability.
+runtime/evaluation system with live receding-horizon physics feedback,
+deterministic fault injection, bounded failure handling, and action-level
+auditability.
 
 ## Resume wording
 
 > Built an OpenPI-compatible VLA action runtime for a MuJoCo Franka Panda,
 > converting dual 224x224 RGB views, language, and proprioception into the
-> pi0.5-DROID remote inference contract and validating 15x8 action chunks with
-> deadline-latched fallback, joint/velocity constraints, mesh-collision
-> lookahead, and action backtracking. Across two fixed fault-injection scenes,
-> preserved 2/2 safe trajectories and reduced 2,314 injected contact steps to
-> zero, with guard P95 at most 7.96 ms on an Intel laptop; packaged per-action
-> audit logs, tests, camera evidence, and MP4 replays.
+> pi0.5-DROID remote contract; implemented bounded transport, fail-closed
+> supervision, deadline/state latches, velocity/acceleration repair, and sampled
+> mesh-collision lookahead. Built a live MuJoCo loop comparing 1/5/15-action
+> horizons: 12/12 scene/payload runs completed safely while horizon 15 reduced
+> policy/camera queries from 193-233 to 13-16. In separate collision injection,
+> reduced 2,314 contact steps to zero and retained per-action audit evidence.
 
-Use “OpenPI-compatible,” not “pi0.5 deployment,” until real checkpoint evidence
+Use "OpenPI-compatible," not "pi0.5 deployment," until real checkpoint evidence
 exists.
 
 ## Before placing it on a resume
@@ -201,10 +204,11 @@ You should be able to do all of the following without reading a prepared answer:
 1. draw the five runtime boundaries and state every tensor shape;
 2. explain why pi0/pi0.5 is not a simulator and why Isaac Lab is not a VLA;
 3. reproduce the quick run and locate one rejected action in `per_action.csv`;
-4. explain the deadline-latch regression and the safety/task-success tradeoff;
-5. distinguish sampled kinematic validity from contact-free physics execution;
-6. change a prompt, latency schedule, or guard threshold and predict the result;
-7. state which code/assets are yours and which are pinned dependencies.
+4. run the online quick comparison and explain why horizon changes query count;
+5. explain the deadline-latch regression and the safety/task-success tradeoff;
+6. distinguish sampled kinematic validity from contact-free physics execution;
+7. change a prompt, latency schedule, or guard threshold and predict the result;
+8. state which code/assets are yours and which are pinned dependencies.
 
 AI assistance produced substantial implementation and documentation. Your
 defensible ownership comes from being able to reproduce, inspect, modify,

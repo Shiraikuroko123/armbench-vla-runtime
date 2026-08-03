@@ -6,7 +6,7 @@ into the exact `pi05_droid` request contract, accepts a 15x8 action chunk from
 an OpenPI-compatible bounded remote transport or a deterministic test policy,
 and checks the chunk before torque-controlled execution.
 
-![OpenPI-contract runtime benchmark](evidence/vla_guard_formal_20260803/overview.png)
+![Receding-horizon VLA runtime benchmark](evidence/vla_online_formal_20260804/overview.png)
 
 The project does **not** train pi0/pi0.5 and the tracked benchmark does **not**
 claim learned-policy performance. Its contribution is the system around a VLA:
@@ -76,8 +76,34 @@ velocity limits. The final value is a normalized gripper position.
   traces, videos, and action-level rejection reasons.
 - RRT-Connect-derived safe action streams and direct-interpolation collision
   faults. They are deliberately labeled `scripted_non_learned` everywhere.
+- A live receding-horizon loop that executes 1, 5, or 15 actions, advances
+  torque-controlled MuJoCo, and recaptures actual state plus both cameras before
+  every subsequent query.
 
-## Verified VLA-runtime result
+## Verified online feedback result
+
+The formal online artifact was generated from source commit `3e58994`:
+[`evidence/vla_online_formal_20260804`](evidence/vla_online_formal_20260804/summary.md).
+It contains 12 episodes, 1,082 policy queries/camera recaptures, 48 first/last
+observation images, and 12 physics traces.
+
+| Executed horizon | Queries per scene | Goal-error range rad | RMSE range rad |
+|---:|---:|---:|---:|
+| 1 | 193-233 | 0.00081-0.00448 | 0.00078-0.00097 |
+| 5 | 39-47 | 0.00029-0.00330 | 0.00167-0.00202 |
+| 15 | 13-16 | 0.00015-0.00288 | 0.00213-0.00283 |
+
+All 12/12 scene/payload/horizon episodes completed and were contact-,
+self-contact-, and joint-limit-free, including 0.5 kg payload cases. Horizon 1
+used the most feedback and had the lowest tracking RMSE; horizon 15 cut policy
+queries by roughly 14-15x. Final goal error is not monotonic with RMSE because
+the stop/settle criterion is evaluated at chunk boundaries.
+
+This uses `scripted_non_learned_reference`, not a learned checkpoint. It proves
+the online observation/action/physics loop and feedback-horizon instrumentation,
+not pi0/pi0.5 task performance.
+
+## Verified fault-response result
 
 The formal artifact was generated from source commit `b6996ed` on 2026-08-03:
 [`evidence/vla_guard_formal_20260803`](evidence/vla_guard_formal_20260803/summary.md).
@@ -104,6 +130,7 @@ but incomplete episode is not counted as task success.
 
 ### Visual evidence
 
+- [Online horizon/payload overview](evidence/vla_online_formal_20260804/overview.png)
 - [Unsafe direct action chunk](evidence/vla_guard_formal_20260803/videos/single_block__fresh_collision_fault__unguarded.mp4)
 - [Same fault with runtime guard](evidence/vla_guard_formal_20260803/videos/single_block__fresh_collision_fault__guarded.mp4)
 - [Safe jitter stream through the narrow gate](evidence/vla_guard_formal_20260803/videos/narrow_gate__fresh_safe_jitter__guarded.mp4)
@@ -287,12 +314,12 @@ for a VLA systems / embodied deployment role is:
 
 > Built an OpenPI-compatible VLA action runtime for a MuJoCo Franka Panda,
 > converting dual 224x224 RGB views, language, and proprioception into the
-> pi0.5-DROID remote inference contract and validating 15x8 action chunks with
-> deadline-latched fallback, joint/velocity constraints, mesh-collision
-> lookahead, and action backtracking. Across two fixed fault-injection scenes,
-> preserved 2/2 safe trajectories and reduced 2,314 injected contact steps to
-> zero, with guard P95 at most 7.96 ms on an Intel laptop; packaged per-action
-> audit logs, tests, camera evidence, and MP4 replays.
+> pi0.5-DROID remote contract; implemented bounded transport, fail-closed
+> supervision, deadline/state latches, velocity/acceleration repair, and sampled
+> mesh-collision lookahead. Built a live MuJoCo loop comparing 1/5/15-action
+> horizons: 12/12 scene/payload runs completed safely while horizon 15 reduced
+> policy/camera queries from 193-233 to 13-16. In separate collision injection,
+> reduced 2,314 contact steps to zero and retained per-action audit evidence.
 
-Do not write “deployed pi0.5” until a real checkpoint artifact exists. This is a
+Do not write "deployed pi0.5" until a real checkpoint artifact exists. This is a
 strong VLA runtime/evaluation project, not yet a VLA model-training project.
