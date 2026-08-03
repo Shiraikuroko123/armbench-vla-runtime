@@ -183,10 +183,17 @@ def build_parser() -> argparse.ArgumentParser:
         "--horizons", nargs="+", type=int, choices=range(1, 16)
     )
     vla_online.add_argument("--payloads", nargs="+", type=float)
-    vla_online.add_argument(
+    vla_online_latency = vla_online.add_mutually_exclusive_group()
+    vla_online_latency.add_argument(
         "--policy-latency-ms",
         type=float,
         help="synthetic inference delay that advances MuJoCo under pose hold",
+    )
+    vla_online_latency.add_argument(
+        "--policy-latency-schedule-ms",
+        nargs="+",
+        type=float,
+        help="repeating synthetic per-query inference latency schedule",
     )
     vla_online.add_argument(
         "--state-jump-joint",
@@ -351,6 +358,7 @@ def main(arguments: list[str] | None = None) -> int:
             execution_horizons=[1, 15] if args.quick else args.horizons,
             payload_masses=[0.0] if args.quick else args.payloads,
             policy_latency_ms=args.policy_latency_ms,
+            policy_latency_schedule_ms=args.policy_latency_schedule_ms,
             state_jump_query=args.state_jump_query,
             state_jump_joint=args.state_jump_joint,
             state_jump_rad=args.state_jump_rad,

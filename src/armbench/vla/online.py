@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from time import monotonic
@@ -324,6 +325,7 @@ class ReferenceActionChunkPolicy:
         action_horizon: int = 15,
         velocity_limit_rad_s: float = 1.0,
         latency_ms: float = 0.0,
+        latency_schedule_ms: Sequence[float] | None = None,
     ) -> None:
         positions = np.asarray(reference_positions, dtype=float)
         if (
@@ -345,13 +347,32 @@ class ReferenceActionChunkPolicy:
             or latency_ms < 0.0
         ):
             raise ValueError("reference policy timing/limits are invalid")
+        if latency_schedule_ms is None:
+            schedule = (float(latency_ms),)
+        else:
+            schedule = tuple(float(value) for value in latency_schedule_ms)
+            if latency_ms != 0.0:
+                raise ValueError(
+                    "use either latency_ms or latency_schedule_ms, not both"
+                )
+            if not schedule or any(
+                not np.isfinite(value) or value < 0.0 for value in schedule
+            ):
+                raise ValueError(
+                    "latency schedule must be finite, nonnegative, and nonempty"
+                )
         self.reference_positions = positions.copy()
         self.action_dt_s = float(action_dt_s)
         self.action_horizon = int(action_horizon)
         self.velocity_limit_rad_s = float(velocity_limit_rad_s)
-        self.latency_ms = float(latency_ms)
+        self.latency_schedule_ms = schedule
+        self._query_index = 0
 
     def infer(self, observation: VLAObservation) -> ActionChunk:
+        latency_ms = self.latency_schedule_ms[
+            self._query_index % len(self.latency_schedule_ms)
+        ]
+        self._query_index += 1
         cursor = min(observation.sequence_id, len(self.reference_positions) - 1)
         predicted_q = observation.joint_position.copy()
         actions = np.zeros((self.action_horizon, 8), dtype=float)
@@ -372,9 +393,9 @@ class ReferenceActionChunkPolicy:
             actions=actions,
             source="scripted_non_learned_reference",
             observation_sequence_id=observation.sequence_id,
-            inference_latency_ms=self.latency_ms,
+            inference_latency_ms=latency_ms,
             received_at_s=(
-                observation.captured_at_s + self.latency_ms / 1000.0
+                observation.captured_at_s + latency_ms / 1000.0
             ),
         )
 

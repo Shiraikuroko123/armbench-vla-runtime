@@ -103,6 +103,12 @@ To force a deadline in the online physics loop, add
 deadline chunk, remain physically safe, and fail the task rather than silently
 continuing the reference stream.
 
+To exercise jitter after several successful chunks, use
+`--policy-latency-schedule-ms 0 40 80 160` for a below-deadline profile or
+`--policy-latency-schedule-ms 0 40 80 240` for a fourth-query deadline. The
+profile repeats by policy query, not by executed action index. Verify the exact
+sequence in `per_chunk.csv` and the resolved profile in `config.json`.
+
 To reproduce a dispatch-state consistency failure, run:
 
 ```powershell

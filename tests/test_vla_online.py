@@ -65,6 +65,32 @@ def test_reference_policy_replans_chunk_from_observed_state() -> None:
         OnlineExecutionConfig(action_dt_s=float("nan"))
 
 
+def test_reference_policy_repeats_deterministic_latency_schedule() -> None:
+    start = mujoco_scenarios()["single_block"].start
+    reference = np.repeat(start[None, :], 3, axis=0)
+    policy = ReferenceActionChunkPolicy(
+        reference,
+        latency_schedule_ms=[0.0, 40.0, 80.0],
+    )
+
+    ages = [
+        policy.infer(_observation(start, sequence_id=index)).age_ms(
+            _observation(start, sequence_id=index)
+        )
+        for index in range(4)
+    ]
+
+    assert ages == pytest.approx([0.0, 40.0, 80.0, 0.0])
+    with pytest.raises(ValueError, match="either latency"):
+        ReferenceActionChunkPolicy(
+            reference,
+            latency_ms=1.0,
+            latency_schedule_ms=[2.0],
+        )
+    with pytest.raises(ValueError, match="latency schedule"):
+        ReferenceActionChunkPolicy(reference, latency_schedule_ms=[])
+
+
 def test_online_episode_reobserves_actual_mujoco_state_each_action() -> None:
     start = mujoco_scenarios()["single_block"].start
     reference = np.repeat(start[None, :], 5, axis=0)
@@ -208,6 +234,49 @@ def test_online_episode_advances_physics_during_stale_inference() -> None:
     assert result.physical_safe
     assert result.obstacle_contact_steps == 0
     assert result.termination_reason == "guard_fallback:deadline"
+
+
+def test_online_episode_applies_latency_schedule_until_deadline() -> None:
+    start = mujoco_scenarios()["single_block"].start
+    reference = np.repeat(start[None, :], 5, axis=0)
+    reference[:, 0] += np.arange(5) * 0.01
+    action_dt = 0.1
+    policy = ReferenceActionChunkPolicy(
+        reference,
+        action_dt_s=action_dt,
+        velocity_limit_rad_s=0.5,
+        latency_schedule_ms=[0.0, 250.0],
+    )
+
+    result = run_online_episode(
+        "single_block",
+        policy,
+        reference,
+        execution_horizon=1,
+        clearance_m=0.0,
+        guard_config=GuardConfig(
+            control_dt_s=action_dt,
+            deadline_ms=200.0,
+            joint_velocity_clip_rad_s=0.5,
+            joint_acceleration_clip_rad_s2=15.0,
+        ),
+        execution_config=OnlineExecutionConfig(
+            action_dt_s=action_dt,
+            warmup_s=0.01,
+            hold_s=0.01,
+            max_extra_actions=0,
+        ),
+    )
+
+    assert result.policy_queries == 2
+    assert [record.policy_latency_ms for record in result.chunks] == (
+        pytest.approx([0.0, 250.0])
+    )
+    assert result.deadline_chunks == 1
+    assert result.guard_fallback_chunks == 1
+    assert result.simulated_inference_wait_s == pytest.approx(0.25, abs=0.003)
+    assert result.termination_reason == "guard_fallback:deadline"
+    assert result.physical_safe
 
 
 def test_online_episode_latches_on_injected_dispatch_state_jump() -> None:
@@ -390,6 +459,7 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     assert row["policy_queries"] > 1
     assert row["fault_injections"] == 0
     assert row["state_mismatch_chunks"] == 0
+    assert row["policy_latency_schedule_ms"] == [0.0]
     assert row["termination_reason"] in {"goal_reached", "action_limit"}
     assert environment["packages"]["mujoco"] == "3.11.0"
     assert environment["packages"]["websockets"] == "16.1.1"
@@ -420,6 +490,7 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     assert "recaptures both 224x224 cameras" in summary
     assert "State mismatches" in summary
     assert "Termination" in summary
+    assert "Repeating synthetic latency profile" in summary
 
 
 def test_remote_openpi_online_run_uses_network_policy_in_feedback_loop(

@@ -118,6 +118,11 @@ a pose-hold controller for that duration, then the response is checked against
 the new dispatch state. This supports controlled delay/state-mismatch tests but
 is not measured pi0/pi0.5 server latency or OS scheduling evidence.
 
+A latency schedule is indexed by policy query and repeats deterministically.
+This matters when comparing horizons: one query always consumes one schedule
+entry even though that reply may execute 1, 5, or 15 actions. The complete
+resolved profile and per-query realized waits are stored with the run.
+
 The optional online state-jump fault changes one MuJoCo joint after observation
 capture and immediately before guard dispatch. It is indexed by policy query
 and records the exact injected seven-joint offset. The default 0.08 rad example

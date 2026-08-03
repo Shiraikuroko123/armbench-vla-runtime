@@ -240,6 +240,19 @@ configured 0.05 rad state-consistency threshold, latch a hold, remain
 physically safe, and report task failure. It is a controlled fault, not a
 modeled impact.
 
+For deterministic per-query jitter, use a repeating schedule:
+
+```powershell
+& $ArmbenchPython -m armbench vla-online-run `
+  --scenarios single_block --horizons 15 --payloads 0 `
+  --policy-latency-schedule-ms 0 40 80 160 `
+  --run-id my_online_jitter
+```
+
+Replace `160` with `240` to cross the configured 200 ms deadline on the fourth
+query. The resolved schedule, every observed latency, simulated wait time, and
+fallback reason are retained in the artifact.
+
 ## Real OpenPI probe and closed loop
 
 Run the official server on an Ubuntu/NVIDIA machine using the pinned OpenPI

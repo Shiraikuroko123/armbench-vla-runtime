@@ -152,6 +152,9 @@ def _summary(rows: list[dict[str, object]]) -> str:
         "The policy is `scripted_non_learned_reference`. No pi0/pi0.5 "
         "checkpoint or learned-policy inference was used.",
         "",
+        "Repeating synthetic latency profile (ms): "
+        f"`{json.dumps(rows[0]['policy_latency_schedule_ms'])}`.",
+        "",
         "| Scenario | Payload kg | Horizon | Queries | Termination | Task | Safe | Faults | Deadlines | State mismatches | Goal error rad | RMSE rad |",
         "|---|---:|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|",
     ]
@@ -169,9 +172,9 @@ def _summary(rows: list[dict[str, object]]) -> str:
     lines.extend(
         [
             "",
-            "`policy_latency_ms` is synthetic in the reference-policy benchmark. "
-            "MuJoCo advances under a pose-hold controller for that duration "
-            "before the response is guarded; it is not measured model latency.",
+            "The latency profile is synthetic in the reference-policy benchmark. "
+            "MuJoCo advances under a pose-hold controller for each delay before "
+            "the response is guarded; it is not measured model latency.",
             "",
             "The comparison isolates runtime feedback frequency and physics "
             "tracking. It is not evidence of VLA task competence.",
@@ -348,6 +351,7 @@ def execute_vla_online_benchmark(
     execution_horizons: Sequence[int] | None = None,
     payload_masses: Sequence[float] | None = None,
     policy_latency_ms: float | None = None,
+    policy_latency_schedule_ms: Sequence[float] | None = None,
     state_jump_query: int | None = None,
     state_jump_joint: int | None = None,
     state_jump_rad: float | None = None,
@@ -377,16 +381,27 @@ def execute_vla_online_benchmark(
         not np.isfinite(value) or value < 0.0 for value in payloads
     ):
         raise ValueError("online payload masses must be nonnegative and nonempty")
-    selected_policy_latency_ms = (
-        float(online["policy_latency_ms"])
-        if policy_latency_ms is None
-        else float(policy_latency_ms)
-    )
-    if (
-        not np.isfinite(selected_policy_latency_ms)
-        or selected_policy_latency_ms < 0.0
+    if policy_latency_ms is not None and policy_latency_schedule_ms is not None:
+        raise ValueError("use either policy latency or a latency schedule")
+    if policy_latency_schedule_ms is None:
+        selected_policy_latency_ms = (
+            float(online["policy_latency_ms"])
+            if policy_latency_ms is None
+            else float(policy_latency_ms)
+        )
+        selected_latency_schedule = [selected_policy_latency_ms]
+    else:
+        selected_policy_latency_ms = None
+        selected_latency_schedule = [
+            float(value) for value in policy_latency_schedule_ms
+        ]
+    if not selected_latency_schedule or any(
+        not np.isfinite(value) or value < 0.0
+        for value in selected_latency_schedule
     ):
-        raise ValueError("online policy latency must be finite and nonnegative")
+        raise ValueError(
+            "online policy latency profile must be finite, nonnegative, and nonempty"
+        )
     jump_arguments = (state_jump_joint, state_jump_rad)
     if (jump_arguments[0] is None) != (jump_arguments[1] is None):
         raise ValueError("state jump requires both joint and magnitude")
@@ -420,6 +435,7 @@ def execute_vla_online_benchmark(
         "execution_horizons": horizons,
         "payload_masses_kg": payloads,
         "policy_latency_ms": selected_policy_latency_ms,
+        "policy_latency_schedule_ms": selected_latency_schedule,
         "state_jump_query": selected_state_jump_query,
         "state_jump_rad": selected_state_jump.tolist(),
         "make_videos": bool(make_videos),
@@ -497,7 +513,16 @@ def execute_vla_online_benchmark(
                         velocity_limit_rad_s=(
                             guard_config.joint_velocity_clip_rad_s
                         ),
-                        latency_ms=selected_policy_latency_ms,
+                        latency_ms=(
+                            float(selected_policy_latency_ms)
+                            if selected_policy_latency_ms is not None
+                            else 0.0
+                        ),
+                        latency_schedule_ms=(
+                            selected_latency_schedule
+                            if selected_policy_latency_ms is None
+                            else None
+                        ),
                     )
                     result = run_online_episode(
                         scenario_name,
@@ -535,6 +560,9 @@ def execute_vla_online_benchmark(
                             "camera_recapture_per_query": True,
                             "actual_openpi_inference": False,
                             "policy_latency_ms": selected_policy_latency_ms,
+                            "policy_latency_schedule_ms": (
+                                selected_latency_schedule
+                            ),
                             "synthetic_state_jump": fault_config.enabled,
                             "state_jump_query": selected_state_jump_query,
                             "state_jump_rad": selected_state_jump.tolist(),
