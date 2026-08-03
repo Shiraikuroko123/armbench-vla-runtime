@@ -95,11 +95,12 @@ example of safety taking priority over availability.
 
 ### Why not execute only the first action and re-query immediately?
 
-That is another valid closed-loop design, but it increases inference traffic
-and may not fit model latency. This benchmark validates complete chunks because
-chunking is the public OpenPI/DROID interface. A follow-up experiment should
-vary the executed open-loop horizon and compare responsiveness, deadline rate,
-smoothness, and task success.
+The fault-injection benchmark validates complete chunks because chunking is the
+public OpenPI/DROID interface. The separate `vla-online-run` experiment now
+executes prefixes of 1, 5, or 15 actions and recaptures actual MuJoCo state plus
+both cameras each time. Horizon 1 provides the highest feedback frequency but
+requires many more policy queries. The current comparison uses a non-learned
+reference policy, so it measures runtime behavior rather than VLA competence.
 
 ### Is the guard guaranteed safe?
 
@@ -143,11 +144,11 @@ validation. The present guard is research simulation code, not safety-rated.
 ### What would you do next with a GPU budget?
 
 First run `pi05_droid` on a remote RTX 4090 and store honest probe artifacts.
-Then build a closed-loop rollout with controlled open-loop horizons and compare
-pi0, pi0.5, and a non-learned baseline under paired observations, seeds, jitter,
-and fault injection. Because these synthetic scenes are out of DROID's training
-distribution, task claims would require adaptation or an appropriate benchmark
-such as LIBERO, plus confidence intervals and failure taxonomy.
+Then connect that server to the existing receding-horizon loop and compare pi0,
+pi0.5, and the non-learned baseline under paired observations, horizons, seeds,
+jitter, and fault injection. Because these synthetic scenes are out of DROID's
+training distribution, task claims would require adaptation or an appropriate
+benchmark such as LIBERO, plus confidence intervals and failure taxonomy.
 
 ## How to live-debug it in an interview
 

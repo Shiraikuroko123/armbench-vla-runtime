@@ -186,9 +186,16 @@ Set-Location $ArmbenchProject
 & $ArmbenchPython -m pytest -q
 & $ArmbenchPython -m armbench vla-guard-run --quick --run-id my_vla_smoke
 & $ArmbenchPython -m armbench vla-guard-run --run-id my_vla_formal
+& $ArmbenchPython -m armbench vla-online-run --quick --run-id my_online_smoke
 ```
 
 Existing run directories are never overwritten.
+
+`vla-guard-run` is the controlled fault-injection experiment. `vla-online-run`
+is a separate receding-horizon physics loop: it compares executing `1/5/15`
+actions from each chunk, then recaptures the two cameras and actual MuJoCo state
+before querying again. Its built-in reference policy is explicitly non-learned;
+the loop accepts the same `ActionChunkPolicy` interface as the OpenPI client.
 
 ## Real OpenPI probe
 
@@ -227,6 +234,7 @@ Start with [`docs/DEBUGGING.md`](docs/DEBUGGING.md). The important VLA files are
 | What did the policy receive? | `observations/*.png`, `VLAObservation.to_openpi_droid` |
 | Did the server reply correctly? | `OpenPIPolicyClient.infer`, `probe.json` |
 | Which chunk missed its deadline? | `per_chunk.csv` |
+| Was state really recaptured online? | online `per_chunk.csv` observation states and NPZ action offsets |
 | Which action was changed and why? | `per_action.csv` (`scale`, `reason`, raw/executed action) |
 | Was the predicted path valid? | `ActionChunkGuard.guard`, saved `predicted_positions` |
 | Did physics still make contact? | `per_case.csv`, MP4, saved `actual_positions` |

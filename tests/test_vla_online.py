@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import numpy as np
+import pytest
 
 from armbench.mujoco_sim.scenarios import mujoco_scenarios
 from armbench.vla.guard import GuardConfig
@@ -9,6 +13,7 @@ from armbench.vla.online import (
     ReferenceActionChunkPolicy,
     run_online_episode,
 )
+from armbench.vla.online_benchmark import execute_vla_online_benchmark
 from armbench.vla.types import VLAObservation
 
 
@@ -43,6 +48,11 @@ def test_reference_policy_replans_chunk_from_observed_state() -> None:
     assert chunk.source == "scripted_non_learned_reference"
     assert chunk.actions.shape == (3, 8)
     np.testing.assert_allclose(chunk.actions[0, 0], 0.15)
+
+    with pytest.raises(ValueError, match="timing/limits"):
+        ReferenceActionChunkPolicy(reference, latency_ms=float("nan"))
+    with pytest.raises(ValueError, match="timing/tolerance"):
+        OnlineExecutionConfig(action_dt_s=float("nan"))
 
 
 def test_online_episode_reobserves_actual_mujoco_state_each_action() -> None:
@@ -94,3 +104,41 @@ def test_online_episode_reobserves_actual_mujoco_state_each_action() -> None:
     assert result.policy_source == "scripted_non_learned_reference"
     assert result.runtime_fallback_chunks == 0
     assert result.physical_safe
+
+
+def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
+    project_root = Path(__file__).resolve().parents[1]
+    config = json.loads(
+        (project_root / "configs" / "vla_guard_benchmark.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    config["scenarios"] = ["single_block"]
+    config["online"]["execution_horizons"] = [15]
+    config["online"]["payload_masses_kg"] = [0.0]
+    config["online"]["warmup_s"] = 0.01
+    config["online"]["hold_s"] = 0.01
+    config["online"]["max_extra_actions"] = 0
+    config_path = tmp_path / "online_config.json"
+    config_path.write_text(json.dumps(config), encoding="utf-8")
+
+    run_directory = execute_vla_online_benchmark(
+        config_path,
+        tmp_path / "results",
+        run_id="online_test",
+    )
+
+    rows = json.loads((run_directory / "aggregate.json").read_text("utf-8"))
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["online_physics_feedback"] is True
+    assert row["camera_recapture_per_query"] is True
+    assert row["actual_openpi_inference"] is False
+    assert row["policy_source"] == "scripted_non_learned_reference"
+    assert row["policy_queries"] > 1
+    assert (run_directory / row["external_image"]).is_file()
+    assert (run_directory / row["trace"]).is_file()
+    assert (run_directory / "overview.png").stat().st_size > 10_000
+    summary = (run_directory / "summary.md").read_text("utf-8")
+    assert "No pi0/pi0.5 checkpoint" in summary
+    assert "recaptures both 224x224 cameras" in summary

@@ -35,8 +35,19 @@ class OnlineExecutionConfig:
     kd: tuple[float, ...] = tuple(float(value) for value in DEFAULT_KD)
 
     def __post_init__(self) -> None:
+        timing = np.asarray(
+            [
+                self.action_dt_s,
+                self.controller_dt_s,
+                self.warmup_s,
+                self.hold_s,
+                self.goal_tolerance_rad,
+            ],
+            dtype=float,
+        )
         if (
-            self.action_dt_s <= 0.0
+            not np.all(np.isfinite(timing))
+            or self.action_dt_s <= 0.0
             or self.controller_dt_s <= 0.0
             or self.warmup_s < 0.0
             or self.hold_s < 0.0
@@ -46,7 +57,11 @@ class OnlineExecutionConfig:
             raise ValueError("online execution timing/tolerance is invalid")
         for name, values in (("kp", self.kp), ("kd", self.kd)):
             array = np.asarray(values, dtype=float)
-            if array.shape != (7,) or np.any(array < 0.0):
+            if (
+                array.shape != (7,)
+                or not np.all(np.isfinite(array))
+                or np.any(array < 0.0)
+            ):
                 raise ValueError(f"{name} must contain seven nonnegative gains")
 
 
@@ -158,7 +173,12 @@ class ReferenceActionChunkPolicy:
         ):
             raise ValueError("reference_positions must be a finite Nx7 path")
         if (
-            action_dt_s <= 0.0
+            not np.all(
+                np.isfinite(
+                    [action_dt_s, velocity_limit_rad_s, latency_ms]
+                )
+            )
+            or action_dt_s <= 0.0
             or action_horizon <= 0
             or velocity_limit_rad_s <= 0.0
             or latency_ms < 0.0
@@ -222,7 +242,12 @@ def run_online_episode(
 
     if execution_horizon <= 0 or execution_horizon > 15:
         raise ValueError("execution_horizon must be within [1, 15]")
-    if payload_mass < 0.0 or clearance_m < 0.0:
+    if (
+        not np.isfinite(payload_mass)
+        or not np.isfinite(clearance_m)
+        or payload_mass < 0.0
+        or clearance_m < 0.0
+    ):
         raise ValueError("payload and clearance must be nonnegative")
     if not np.isclose(guard_config.control_dt_s, execution_config.action_dt_s):
         raise ValueError("guard and online action periods must match")

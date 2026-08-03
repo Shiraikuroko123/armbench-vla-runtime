@@ -63,17 +63,35 @@ chunk can be inconsistent with the actual state.
 
 For a fresh finite action, the runtime:
 
-1. clips joint velocity and gripper values to the configured bounds;
-2. integrates one 15 Hz step from the current predicted joint state;
-3. checks Panda joint limits and enabled MuJoCo mesh contacts;
-4. checks the complete joint edge at at most 0.02 rad interpolation spacing;
-5. tries velocity scales `1.0`, `0.75`, `0.5`, `0.25`, then `0.0`;
-6. commits the first valid candidate and repeats from that predicted state.
+1. rejects a policy/execution joint-state mismatch above 0.05 rad;
+2. clips joint velocity and gripper values to the configured bounds;
+3. limits velocity change relative to the last executed command;
+4. integrates one 15 Hz step from the current predicted joint state;
+5. checks Panda joint limits and enabled MuJoCo mesh contacts;
+6. checks the complete joint edge at no more than 0.02 rad interpolation spacing;
+7. tries velocity scales `1.0`, `0.75`, `0.5`, `0.25`, then `0.0`;
+8. commits the first valid candidate and repeats from that predicted state.
 
 The planning/check model inflates each physical obstacle by 20 mm. Execution
 uses the physical radius. The output records every scale, reason, raw/executed
 action, and before/after joint state. This is sampled runtime validation, not a
 control-barrier-function proof or continuous swept-volume guarantee.
+
+## Receding-horizon physics loop
+
+The online benchmark does not precompute a complete guarded trajectory and run
+physics afterward. It captures exterior RGB, wrist RGB, joint position, and
+gripper position from one live torque-controlled MuJoCo state; requests and
+guards a 15x8 chunk; executes only a configured prefix of 1, 5, or 15 actions;
+then repeats from the resulting actual `qpos` and `qvel`. The guard's previous
+velocity is synchronized to the last action that was actually executed, not the
+unexecuted tail of the chunk.
+
+The bundled online policy follows a collision-free reference and is labeled
+`scripted_non_learned_reference`. It exists to isolate the effect and query cost
+of feedback horizon. Its configured latency is timestamp metadata and does not
+advance physics during a synchronous inference call, so the current online
+artifact supports feedback-frequency claims but not asynchronous timing claims.
 
 ## VLA fault protocol
 
@@ -218,6 +236,9 @@ The VLA artifact additionally stores policy/OpenPI provenance, camera inputs,
 per-case metrics, every chunk deadline/latch record, every raw and repaired
 action, predicted/desired/actual joint arrays, an overview figure, and selected
 MP4 executions. Local artifacts explicitly set `actual_openpi_inference=false`.
+A separate online artifact stores every re-observed joint state and action
+offset, the 1/5/15 horizon comparison, first/last camera frames, and live physics
+traces.
 A successful `vla-probe` writes a separate artifact with that field set to true
 only after a remote response passes validation.
 

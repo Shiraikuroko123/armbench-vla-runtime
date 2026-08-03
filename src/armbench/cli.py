@@ -21,6 +21,7 @@ from armbench.vla.benchmark import (
     execute_vla_guard_benchmark,
     load_vla_config,
 )
+from armbench.vla.online_benchmark import execute_vla_online_benchmark
 
 
 def _validate(config_path: Path) -> int:
@@ -161,6 +162,30 @@ def build_parser() -> argparse.ArgumentParser:
     )
     vla_guard.add_argument("--no-videos", action="store_true")
 
+    vla_online = subparsers.add_parser(
+        "vla-online-run",
+        help="compare receding-horizon VLA execution with live MuJoCo feedback",
+    )
+    vla_online.add_argument(
+        "--config", type=Path, default=Path("configs/vla_guard_benchmark.json")
+    )
+    vla_online.add_argument("--output-root", type=Path, default=Path("results"))
+    vla_online.add_argument("--run-id")
+    vla_online.add_argument(
+        "--scenarios",
+        nargs="+",
+        choices=("single_block", "narrow_gate"),
+    )
+    vla_online.add_argument(
+        "--horizons", nargs="+", type=int, choices=range(1, 16)
+    )
+    vla_online.add_argument("--payloads", nargs="+", type=float)
+    vla_online.add_argument(
+        "--quick",
+        action="store_true",
+        help="run single_block at horizons 1 and 15 with zero payload",
+    )
+
     vla_probe = subparsers.add_parser(
         "vla-probe",
         help="send one MuJoCo observation to a real remote OpenPI server",
@@ -239,6 +264,21 @@ def main(arguments: list[str] | None = None) -> int:
             run_id=args.run_id,
             scenarios=["single_block"] if args.quick else args.scenarios,
             make_videos=not (args.no_videos or args.quick),
+        )
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-online-run":
+        if args.quick and (args.scenarios or args.horizons or args.payloads):
+            parser.error(
+                "--quick cannot be combined with scenarios, horizons, or payloads"
+            )
+        output = execute_vla_online_benchmark(
+            args.config,
+            args.output_root,
+            run_id=args.run_id,
+            scenarios=["single_block"] if args.quick else args.scenarios,
+            execution_horizons=[1, 15] if args.quick else args.horizons,
+            payload_masses=[0.0] if args.quick else args.payloads,
         )
         print(f"results: {output.resolve()}")
         return 0

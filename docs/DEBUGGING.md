@@ -81,6 +81,18 @@ Expected quick behavior:
 Task failure in the last two guarded rows is intentional. A rejected unsafe
 command must not be reported as task success.
 
+For the live-state horizon comparison, run:
+
+```powershell
+& $ArmbenchPython -m armbench vla-online-run --quick `
+  --run-id debug_online_01
+```
+
+The quick run executes horizons 1 and 15. Verify that `policy_queries` is much
+higher for horizon 1, while both rows have `online_physics_feedback=True` and
+`camera_recapture_per_query=True`. Each online `per_chunk.csv` row stores the
+actual observation joint state and the post-execution state.
+
 ## 4. Debug the observation boundary
 
 Open `observations/<scenario>_external.png` and
