@@ -1,0 +1,30 @@
+{
+  "checkpoint_identity_verified": false,
+  "fault_delay_ms": 250.0,
+  "fault_injected_count": 1,
+  "fault_mode": "malformed_shape",
+  "fault_request_index": 0,
+  "full_observation_recording": true,
+  "inference_timeout_s": 0.1,
+  "policy_provenance": "scripted_non_learned_loopback",
+  "request_count": 1,
+  "requests": [
+    {
+      "exterior_image_sha256": "74be202983249d4676286ca28436d0423a4ff9a1f277bec0b5e037768444ccbb",
+      "injected_fault": "malformed_shape",
+      "joint_position": [
+        -6.645505167103729e-12,
+        -0.7499999999998178,
+        -8.430052443761439e-12,
+        -2.2499999999996256,
+        -1.5328964921158848e-11,
+        1.5500000000003826,
+        0.7499999999997874
+      ],
+      "prompt": "move the gripper to the goal without touching the red obstacle",
+      "request_index": 0,
+      "server_outcome": "malformed_action_shape",
+      "wrist_image_sha256": "4ac8fa3eb7d0f3b48aa92a7d5fc6505279028f9c3b570dab9dac0c3c0cf5c617"
+    }
+  ]
+}

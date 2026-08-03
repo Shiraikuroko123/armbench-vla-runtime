@@ -252,11 +252,15 @@ auditability.
 > Built an OpenPI-compatible VLA action runtime for a MuJoCo Franka Panda,
 > converting dual 224x224 RGB views, language, and proprioception into the
 > pi0.5-DROID remote contract; implemented bounded transport, fail-closed
-> supervision, deadline/state latches, velocity/acceleration repair, and sampled
-> mesh-collision lookahead. Built a live MuJoCo loop comparing 1/5/15-action
-> horizons: 12/12 scene/payload runs completed safely while horizon 15 reduced
-> policy/camera queries from 193-233 to 13-16. In separate collision injection,
-> reduced 2,314 contact steps to zero and retained per-action audit evidence.
+> supervision, deadline/state latches, action repair, and sampled mesh-collision
+> lookahead. In a live 1/5/15-action horizon study, all 12 scene/payload runs
+> completed safely while horizon 15 reduced policy queries from 193-233 to 13-16.
+>
+> Built a real-WebSocket fault matrix for malformed, nonfinite, disconnected,
+> and timed-out OpenPI replies: 4/4 faults produced zero validated actions, a
+> latched hold, and zero physical safety violations with exact dual-camera input
+> replay evidence. Separately reduced 2,314 injected contact steps to zero while
+> retaining raw/guarded per-action audit traces.
 
 Use "OpenPI-compatible," not "pi0.5 deployment," until real checkpoint evidence
 exists.

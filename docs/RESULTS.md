@@ -121,6 +121,48 @@ and no modified source file. Both MP4 files decode at `640x480`; they were
 captured from the same physics loops. This establishes exact replay detection
 before policy inference, not general image freshness or semantic correctness.
 
+## OpenPI wire-fault matrix
+
+### Provenance
+
+- Run ID: `vla_openpi_fault_matrix_20260804`
+- Source commit: `9a90c2247cfc9faf37d1faf5904b109012912660`
+- OpenPI commit: `15a9616a00943ada6c20a0f158e3adb39df2ccac`
+- Policy source: `scripted_non_learned_loopback`
+- Actual OpenPI checkpoint inference: `false`
+- Protocol: nominal positive control plus wrong shape, nonfinite, disconnect,
+  and timeout; one query per matched case
+- Artifact size: 5 child episodes, 75 action-audit rows, 10 complete 224x224
+  query frames, 5 NPZ traces, and 5 MP4 files
+
+The matrix was generated from committed source; all five environment snapshots
+list only the pre-existing untracked `MJMODEL.TXT`. The complete report is
+[`evidence/vla_openpi_fault_matrix_20260804`](../evidence/vla_openpi_fault_matrix_20260804/summary.md),
+and the structured matrix SHA-256 is
+`399D938A864342EC2296F68B0F7B4CCE8E537DFF2C876A8753082C17A318F70E`.
+
+### Outcomes
+
+| Mode | Requests | Valid chunks | Fallbacks | Failure type | Safe | Violation steps | Hash pair |
+|---|---:|---:|---:|---|---:|---:|---:|
+| none | 1 | 1 | 0 | - | yes | 0 | match |
+| malformed shape | 1 | 0 | 1 | `ValueError` | yes | 0 | match |
+| nonfinite | 1 | 0 | 1 | `ValueError` | yes | 0 | match |
+| disconnect | 1 | 0 | 1 | `ConnectionClosedError` | yes | 0 | match |
+| timeout | 1 | 0 | 1 | `TimeoutError` | yes | 0 | match |
+
+All 4/4 deterministic faults produced zero validated remote chunks and one
+latched policy-inference fallback. The nominal control produced one validated
+chunk and no fallback. Every child schema-v5 artifact passed JSON/CSV/NPZ,
+camera-hash, complete-frame, safety-field, and MP4 decoding checks. Aggregate
+SHA-256 values are recorded in `matrix.json` for every child.
+
+The experiment fixes execution horizon 1, payload 0 kg, one query, a 100 ms
+client timeout, and a 250 ms injected timeout response. The one-query budget
+means all cases intentionally stop before task completion. This validates the
+tested runtime failure paths and evidence plumbing, not pi0/pi0.5 competence,
+real-network failure rates, or certified safety.
+
 ## OpenPI-contract fault-response result
 
 ### Provenance

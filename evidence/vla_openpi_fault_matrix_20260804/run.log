@@ -1,0 +1,11 @@
+starting none
+completed none: passed=True
+starting malformed_shape
+completed malformed_shape: passed=True
+starting nonfinite
+completed nonfinite: passed=True
+starting disconnect
+completed disconnect: passed=True
+starting timeout
+completed timeout: passed=True
+matrix_passed=True

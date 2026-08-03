@@ -1,0 +1,1 @@
+remote_openpi server=127.0.0.1:51218 scenario=single_block queries=1 validated=0 termination=runtime_fallback:policy_inference task=False safe=True

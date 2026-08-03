@@ -83,8 +83,11 @@ velocity limits. The final value is a normalized gripper position.
   torque-controlled MuJoCo, and recaptures actual state plus both cameras before
   every subsequent query.
 - Per-query SHA-256 camera fingerprints, adjacent-frame pixel deltas, and compact
-  16x16 RGB thumbnail sequences so re-observation can be audited without storing
-  every full-resolution frame.
+  16x16 RGB thumbnail sequences, plus opt-in exact dual-camera frame recording
+  for offline request replay and frame-by-frame hash validation.
+- A matched local OpenPI wire-fault matrix with a nominal positive control,
+  wrong-shape/nonfinite/disconnect/timeout injection, structured CI status, and
+  independently validatable child artifacts.
 
 ## Verified online feedback result
 
@@ -127,6 +130,28 @@ task success.
 This is an exact-replay fault test with a scripted policy, not a learned
 uncertainty result or general camera-fault guarantee.
 
+## Verified OpenPI wire-fault matrix
+
+The formal matrix was generated from source commit `9a90c22`:
+[`evidence/vla_openpi_fault_matrix_20260804`](evidence/vla_openpi_fault_matrix_20260804/summary.md).
+All cases use one matched DROID request, the real OpenPI MessagePack/WebSocket
+client, full dual-camera recording, and live MuJoCo execution.
+
+| Server behavior | Valid chunks | Runtime fallbacks | Client result | Safe |
+|---|---:|---:|---|---:|
+| Nominal | 1 | 0 | accepted | yes |
+| Wrong action shape | 0 | 1 | `ValueError` | yes |
+| Nonfinite action | 0 | 1 | `ValueError` | yes |
+| Disconnect before reply | 0 | 1 | `ConnectionClosedError` | yes |
+| 250 ms response / 100 ms timeout | 0 | 1 | `TimeoutError` | yes |
+
+The manifest reports `matrix_passed=true`: 4/4 injected faults failed closed,
+all five server/client camera-hash pairs matched, and total obstacle-contact,
+self-contact, and joint-limit violation steps were zero. The 86-file artifact
+contains 10 exact 224x224 request frames and five decoded MP4s. Every episode
+has a one-query budget, so none is a task-completion benchmark; the nominal case
+is a protocol positive control, not learned-policy evidence.
+
 ## Verified fault-response result
 
 The formal artifact was generated from source commit `b6996ed` on 2026-08-03:
@@ -162,6 +187,8 @@ but incomplete episode is not counted as task success.
 - [Nominal per-query camera audit](evidence/vla_online_camera_nominal_20260804/summary.md)
 - [Pre-inference frozen-camera rejection](evidence/vla_online_camera_freeze_20260804/summary.md)
 - [Frozen-camera fail-closed video](evidence/vla_online_camera_freeze_20260804/videos/single_block__payload_0kg__horizon_15.mp4)
+- [OpenPI nominal/fault matrix overview](evidence/vla_openpi_fault_matrix_20260804/overview.png)
+- [OpenPI timeout fail-closed video](evidence/vla_openpi_fault_matrix_20260804/timeout/videos/single_block__openpi_remote__horizon_01.mp4)
 - [Unsafe direct action chunk](evidence/vla_guard_formal_20260803/videos/single_block__fresh_collision_fault__unguarded.mp4)
 - [Same fault with runtime guard](evidence/vla_guard_formal_20260803/videos/single_block__fresh_collision_fault__guarded.mp4)
 - [Safe jitter stream through the narrow gate](evidence/vla_guard_formal_20260803/videos/narrow_gate__fresh_safe_jitter__guarded.mp4)

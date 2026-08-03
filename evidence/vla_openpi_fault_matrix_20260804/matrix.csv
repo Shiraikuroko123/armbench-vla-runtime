@@ -1,0 +1,6 @@
+fault_mode,artifact_directory,request_count,request_hashes_match,policy_queries,validated_remote_chunks,runtime_fallback_chunks,failure_type,termination_reason,task_success,physical_safe,safety_violation_steps,p95_client_inference_latency_ms,p95_policy_latency_ms,full_observation_frames,artifact_sha256,case_passed
+none,none,1,True,1,1,0,,query_budget,False,True,0,0.0,125.0,2,63752f9981ccbcf944d0561edcd5b2542419fe41e5103fca0c579d136aae4b15,True
+malformed_shape,malformed_shape,1,True,1,0,1,ValueError,runtime_fallback:policy_inference,False,True,0,15.999999988707714,140.9999999887077,2,56f545a77ee9fa6b7271af28f888f6cf6ad23ccfd5fb4a64fc0c434787c56788,True
+nonfinite,nonfinite,1,True,1,0,1,ValueError,runtime_fallback:policy_inference,False,True,0,16.00000000325963,141.00000000325963,2,df304c5c33b1ca0c53ce1b468d7b1e05ccb324ade0768a97df4cbf3dbf3eae62,True
+disconnect,disconnect,1,True,1,0,1,ConnectionClosedError,runtime_fallback:policy_inference,False,True,0,16.00000000325963,141.00000000325963,2,43379127abb8e8d4bea1b4caced7f02dca409bdbf569bb44124ee48ac96ec2af,True
+timeout,timeout,1,True,1,0,1,TimeoutError,runtime_fallback:policy_inference,False,True,0,125.0,233.99999999674037,2,feae5d5751fb1a21b6de89311c34cba7cb2a55b09ed22b2edf867cc8ce5abe54,True
