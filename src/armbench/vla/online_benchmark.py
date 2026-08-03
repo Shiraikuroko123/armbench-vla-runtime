@@ -14,6 +14,7 @@ from armbench.benchmark import environment_metadata
 from armbench.mujoco_sim.model import MuJoCoPanda
 from armbench.mujoco_sim.scenarios import mujoco_scenarios
 from armbench.vla.benchmark import (
+    OPENPI_COMMIT,
     _guard_config,
     _integrate_actions,
     _package_version,
@@ -23,11 +24,13 @@ from armbench.vla.benchmark import (
     load_vla_config,
 )
 from armbench.vla.online import (
+    OnlineEpisodeResult,
     OnlineExecutionConfig,
     OnlineFaultConfig,
     ReferenceActionChunkPolicy,
     run_online_episode,
 )
+from armbench.vla.policy import OpenPIPolicyClient
 
 
 def _online_config(config: dict[str, object]) -> dict[str, object]:
@@ -70,6 +73,11 @@ def _write_overview(
     rows: list[dict[str, object]],
     exterior_path: Path,
     wrist_path: Path,
+    *,
+    title: str = "ArmBench receding-horizon VLA runtime",
+    footer: str = (
+        "Policy: scripted non-learned reference; no pi0/pi0.5 checkpoint used"
+    ),
 ) -> None:
     import matplotlib
 
@@ -117,11 +125,11 @@ def _write_overview(
     axes[1, 1].set_title("Responsiveness cost")
     axes[1, 1].grid(alpha=0.25)
     axes[1, 1].legend(fontsize=8)
-    figure.suptitle("ArmBench receding-horizon VLA runtime", fontsize=16)
+    figure.suptitle(title, fontsize=16)
     figure.text(
         0.5,
         0.015,
-        "Policy: scripted non-learned reference; no pi0/pi0.5 checkpoint used",
+        footer,
         ha="center",
         fontsize=9,
         color="#444444",
@@ -179,6 +187,93 @@ def _summary(rows: list[dict[str, object]]) -> str:
             ]
         )
     return "\n".join(lines)
+
+
+def _write_episode_artifacts(
+    run_directory: Path,
+    case_name: str,
+    result: OnlineEpisodeResult,
+    reference_positions: np.ndarray,
+    *,
+    extra_metrics: dict[str, object],
+) -> tuple[dict[str, object], list[dict[str, object]], Path, Path]:
+    image_directory = run_directory / "observations"
+    image_directory.mkdir(parents=True, exist_ok=True)
+    first_external_path = image_directory / f"{case_name}__first_external.png"
+    first_wrist_path = image_directory / f"{case_name}__first_wrist.png"
+    last_external_path = image_directory / f"{case_name}__last_external.png"
+    last_wrist_path = image_directory / f"{case_name}__last_wrist.png"
+    imageio.imwrite(first_external_path, result.first_exterior_image)
+    imageio.imwrite(first_wrist_path, result.first_wrist_image)
+    imageio.imwrite(last_external_path, result.last_exterior_image)
+    imageio.imwrite(last_wrist_path, result.last_wrist_image)
+
+    raw_action_chunks = np.asarray(
+        [
+            record.raw_actions
+            if record.raw_actions is not None
+            else np.full_like(record.guarded_actions, np.nan)
+            for record in result.chunks
+        ]
+    )
+    guarded_action_chunks = np.asarray(
+        [record.guarded_actions for record in result.chunks]
+    )
+    trace_name = f"{case_name}.npz"
+    np.savez_compressed(
+        run_directory / trace_name,
+        reference_positions=reference_positions,
+        times=result.times,
+        desired_positions=result.desired_positions,
+        actual_positions=result.actual_positions,
+        observation_positions=np.asarray(
+            [record.observation_q for record in result.chunks]
+        ),
+        dispatch_positions=np.asarray(
+            [record.dispatch_q for record in result.chunks]
+        ),
+        post_chunk_positions=np.asarray(
+            [record.actual_q_after for record in result.chunks]
+        ),
+        query_indices=np.asarray(
+            [record.query_index for record in result.chunks], dtype=int
+        ),
+        action_offsets=np.asarray(
+            [record.action_offset for record in result.chunks], dtype=int
+        ),
+        executed_horizons=np.asarray(
+            [record.executed_horizon for record in result.chunks], dtype=int
+        ),
+        policy_latencies_ms=np.asarray(
+            [record.policy_latency_ms for record in result.chunks]
+        ),
+        client_inference_latencies_ms=np.asarray(
+            [record.client_inference_latency_ms for record in result.chunks]
+        ),
+        raw_action_chunks=raw_action_chunks,
+        guarded_action_chunks=guarded_action_chunks,
+    )
+    row = {
+        **result.metrics(),
+        **extra_metrics,
+        "external_image": str(first_external_path.relative_to(run_directory)),
+        "wrist_image": str(first_wrist_path.relative_to(run_directory)),
+        "last_external_image": str(
+            last_external_path.relative_to(run_directory)
+        ),
+        "last_wrist_image": str(last_wrist_path.relative_to(run_directory)),
+        "trace": trace_name,
+    }
+    chunk_rows = [
+        {
+            "scenario": result.scenario,
+            "payload_mass": result.payload_mass,
+            "execution_horizon": result.execution_horizon,
+            **record.metrics(),
+        }
+        for record in result.chunks
+    ]
+    return row, chunk_rows, first_external_path, first_wrist_path
 
 
 def execute_vla_online_benchmark(
@@ -345,88 +440,28 @@ def execute_vla_online_benchmark(
                     case_name = (
                         f"{scenario_name}__payload_{payload:g}kg__horizon_{horizon:02d}"
                     )
-                    image_directory = run_directory / "observations"
-                    image_directory.mkdir(parents=True, exist_ok=True)
-                    first_external_path = (
-                        image_directory / f"{case_name}__first_external.png"
+                    row, case_chunks, first_external_path, first_wrist_path = (
+                        _write_episode_artifacts(
+                            run_directory,
+                            case_name,
+                            result,
+                            references,
+                            extra_metrics={
+                                "online_physics_feedback": True,
+                                "camera_recapture_per_query": True,
+                                "actual_openpi_inference": False,
+                                "policy_latency_ms": selected_policy_latency_ms,
+                                "synthetic_state_jump": fault_config.enabled,
+                                "state_jump_query": selected_state_jump_query,
+                                "state_jump_rad": selected_state_jump.tolist(),
+                            },
+                        )
                     )
-                    first_wrist_path = (
-                        image_directory / f"{case_name}__first_wrist.png"
-                    )
-                    last_external_path = (
-                        image_directory / f"{case_name}__last_external.png"
-                    )
-                    last_wrist_path = (
-                        image_directory / f"{case_name}__last_wrist.png"
-                    )
-                    imageio.imwrite(
-                        first_external_path, result.first_exterior_image
-                    )
-                    imageio.imwrite(first_wrist_path, result.first_wrist_image)
-                    imageio.imwrite(last_external_path, result.last_exterior_image)
-                    imageio.imwrite(last_wrist_path, result.last_wrist_image)
                     if representative_external is None:
                         representative_external = first_external_path
                         representative_wrist = first_wrist_path
-                    np.savez_compressed(
-                        run_directory / f"{case_name}.npz",
-                        reference_positions=references,
-                        times=result.times,
-                        desired_positions=result.desired_positions,
-                        actual_positions=result.actual_positions,
-                        observation_positions=np.asarray(
-                            [record.observation_q for record in result.chunks]
-                        ),
-                        action_offsets=np.asarray(
-                            [record.action_offset for record in result.chunks]
-                        ),
-                        raw_action_chunks=np.asarray(
-                            [
-                                record.raw_actions
-                                if record.raw_actions is not None
-                                else np.full_like(
-                                    record.guarded_actions, np.nan
-                                )
-                                for record in result.chunks
-                            ]
-                        ),
-                        guarded_action_chunks=np.asarray(
-                            [record.guarded_actions for record in result.chunks]
-                        ),
-                    )
-                    row = {
-                        **result.metrics(),
-                        "online_physics_feedback": True,
-                        "camera_recapture_per_query": True,
-                        "actual_openpi_inference": False,
-                        "policy_latency_ms": selected_policy_latency_ms,
-                        "synthetic_state_jump": fault_config.enabled,
-                        "state_jump_query": selected_state_jump_query,
-                        "state_jump_rad": selected_state_jump.tolist(),
-                        "external_image": str(
-                            first_external_path.relative_to(run_directory)
-                        ),
-                        "wrist_image": str(
-                            first_wrist_path.relative_to(run_directory)
-                        ),
-                        "last_external_image": str(
-                            last_external_path.relative_to(run_directory)
-                        ),
-                        "last_wrist_image": str(
-                            last_wrist_path.relative_to(run_directory)
-                        ),
-                        "trace": f"{case_name}.npz",
-                    }
                     rows.append(row)
-                    for record in result.chunks:
-                        chunk_rows.append(
-                            {
-                                "scenario": scenario_name,
-                                "payload_mass": payload,
-                                "execution_horizon": horizon,
-                                **record.metrics(),
-                            }
-                        )
+                    chunk_rows.extend(case_chunks)
                     log(
                         f"{case_name}: task={result.task_success} "
                         f"safe={result.physical_safe} queries={result.policy_queries} "
@@ -454,3 +489,220 @@ def execute_vla_online_benchmark(
             newline="\n",
         )
     return run_directory
+
+
+def _remote_summary(
+    row: dict[str, object], server: str, server_metadata: dict[str, object]
+) -> str:
+    actual = bool(row["actual_openpi_inference"])
+    validated = int(row["validated_remote_chunks"])
+    metadata_text = json.dumps(
+        server_metadata,
+        sort_keys=True,
+        default=lambda item: item.tolist()
+        if isinstance(item, np.ndarray)
+        else str(item),
+    )
+    return "\n".join(
+        [
+            "# Remote OpenPI closed-loop MuJoCo run",
+            "",
+            f"- Server: `{server}`",
+            f"- Server metadata: `{metadata_text}`",
+            f"- Validated remote 15x8 chunks: `{validated}`",
+            f"- Actual OpenPI inference: `{str(actual).lower()}`",
+            f"- Termination: `{row['termination_reason']}`",
+            "",
+            "| Scenario | Horizon | Queries | Valid replies | Task | Safe | P95 end-to-end ms | Interventions |",
+            "|---|---:|---:|---:|---:|---:|---:|---:|",
+            f"| {row['scenario']} | {row['execution_horizon']} | "
+            f"{row['policy_queries']} | {validated} | {row['task_success']} | "
+            f"{row['physical_safe']} | "
+            f"{float(row['p95_policy_latency_ms']):.2f} | "
+            f"{row['executed_interventions']} |",
+            "",
+            "This command uses the real bounded OpenPI WebSocket transport and "
+            "recaptures live MuJoCo state and both cameras between action "
+            "prefixes. A connected server without a validated reply is not "
+            "counted as actual OpenPI inference.",
+            "",
+            "The WebSocket protocol does not attest checkpoint identity. "
+            "Preserve the GPU server launch command/log alongside this "
+            "artifact when making a pi0/pi0.5-specific claim.",
+            "",
+            "The synthetic workcell is outside the evidence used to train the "
+            "checkpoint. Task success or failure here is an integration result, "
+            "not a general policy-quality benchmark.",
+            "",
+        ]
+    )
+
+
+def execute_openpi_online_run(
+    config_path: Path,
+    output_directory: Path,
+    *,
+    host: str,
+    port: int,
+    scenario_name: str,
+    execution_horizon: int = 5,
+    payload_mass: float = 0.0,
+    max_policy_queries: int = 10,
+    prompt: str | None = None,
+    api_key: str | None = None,
+    connect_timeout_s: float = 3.0,
+    inference_timeout_s: float = 1.0,
+) -> Path:
+    """Run bounded remote OpenPI inference in the live MuJoCo feedback loop."""
+
+    if output_directory.exists():
+        raise FileExistsError(f"output directory already exists: {output_directory}")
+    config = load_vla_config(config_path)
+    online = _online_config(config)
+    scenarios = mujoco_scenarios()
+    if scenario_name not in scenarios:
+        raise ValueError(f"unknown online scenario: {scenario_name}")
+    if execution_horizon <= 0 or execution_horizon > 15:
+        raise ValueError("execution_horizon must be within [1, 15]")
+    if not np.isfinite(payload_mass) or payload_mass < 0.0:
+        raise ValueError("payload_mass must be finite and nonnegative")
+    if max_policy_queries <= 0:
+        raise ValueError("max_policy_queries must be positive")
+
+    scenario = scenarios[scenario_name]
+    task_prompt = prompt or str(dict(config["prompts"])[scenario_name])
+    guard_config = _guard_config(config)
+    raw_guard = dict(config["guard"])
+    reference_robot = MuJoCoPanda.create(obstacles=scenario.obstacles)
+    actions = _safe_stream(scenario_name, config, guard_config)
+    references = _integrate_actions(
+        reference_robot, scenario.start, actions, guard_config
+    )
+    execution_config = OnlineExecutionConfig(
+        action_dt_s=guard_config.control_dt_s,
+        controller_dt_s=float(online["controller_dt_s"]),
+        warmup_s=float(online["warmup_s"]),
+        hold_s=float(online["hold_s"]),
+        goal_tolerance_rad=float(online["goal_tolerance_rad"]),
+        max_extra_actions=int(online["max_extra_actions"]),
+        max_policy_queries=int(max_policy_queries),
+        kp=tuple(float(value) for value in online["kp"]),
+        kd=tuple(float(value) for value in online["kd"]),
+    )
+    expected_horizon = int(dict(config["openpi_contract"])["action_horizon"])
+    server = f"{host}:{port}"
+    with OpenPIPolicyClient(
+        host=host,
+        port=port,
+        api_key=api_key,
+        expected_horizon=expected_horizon,
+        connect_timeout_s=connect_timeout_s,
+        inference_timeout_s=inference_timeout_s,
+    ) as client:
+        server_metadata = client.server_metadata
+        result = run_online_episode(
+            scenario_name,
+            client,
+            references,
+            execution_horizon=execution_horizon,
+            payload_mass=payload_mass,
+            clearance_m=float(raw_guard["clearance_m"]),
+            collision_resolution_rad=float(
+                raw_guard["collision_resolution_rad"]
+            ),
+            guard_config=guard_config,
+            execution_config=execution_config,
+            prompt=task_prompt,
+        )
+
+    validated_remote_chunks = sum(
+        record.validated_policy_response
+        and record.policy_source == "openpi_remote"
+        and record.raw_actions is not None
+        for record in result.chunks
+    )
+    actual_openpi_inference = validated_remote_chunks > 0
+    output_directory.mkdir(parents=True, exist_ok=False)
+    config_snapshot = dict(config)
+    config_snapshot["openpi_online_selected"] = {
+        "server": server,
+        "scenario": scenario_name,
+        "execution_horizon": execution_horizon,
+        "payload_mass_kg": payload_mass,
+        "max_policy_queries": max_policy_queries,
+        "prompt": task_prompt,
+        "connect_timeout_s": connect_timeout_s,
+        "inference_timeout_s": inference_timeout_s,
+        "api_key_configured": api_key is not None,
+    }
+    metadata = environment_metadata(Path(__file__).resolve().parents[3])
+    metadata["packages"].update(
+        {
+            "imageio": _package_version("imageio"),
+            "msgpack": _package_version("msgpack"),
+            "mujoco": _package_version("mujoco"),
+            "openpi-client": _package_version("openpi-client"),
+            "websockets": _package_version("websockets"),
+        }
+    )
+    metadata["vla_online"] = {
+        "online_physics_feedback": True,
+        "camera_recapture_per_query": True,
+        "remote_openpi_transport": True,
+        "actual_openpi_inference": actual_openpi_inference,
+        "validated_remote_chunks": validated_remote_chunks,
+        "server": server,
+        "server_metadata": server_metadata,
+        "openpi_commit": OPENPI_COMMIT,
+        "openpi_contract": dict(config["openpi_contract"]),
+    }
+    _write_json(output_directory / "config.json", config_snapshot)
+    _write_json(output_directory / "environment.json", metadata)
+    case_name = (
+        f"{scenario_name}__openpi_remote__horizon_{execution_horizon:02d}"
+    )
+    row, chunks, exterior_path, wrist_path = _write_episode_artifacts(
+        output_directory,
+        case_name,
+        result,
+        references,
+        extra_metrics={
+            "online_physics_feedback": True,
+            "camera_recapture_per_query": True,
+            "remote_inference_attempted": True,
+            "actual_openpi_inference": actual_openpi_inference,
+            "validated_remote_chunks": validated_remote_chunks,
+            "server": server,
+            "openpi_commit": OPENPI_COMMIT,
+            "synthetic_state_jump": False,
+        },
+    )
+    _write_csv(output_directory / "per_episode.csv", [row])
+    _write_csv(output_directory / "per_chunk.csv", chunks)
+    _write_json(output_directory / "aggregate.json", [row])
+    _write_overview(
+        output_directory / "overview.png",
+        [row],
+        exterior_path,
+        wrist_path,
+        title="ArmBench remote OpenPI closed loop",
+        footer=(
+            f"Policy: openpi_remote; validated replies: "
+            f"{validated_remote_chunks}/{result.policy_queries}"
+        ),
+    )
+    (output_directory / "summary.md").write_text(
+        _remote_summary(row, server, server_metadata),
+        encoding="utf-8",
+        newline="\n",
+    )
+    (output_directory / "run.log").write_text(
+        f"remote_openpi server={server} scenario={scenario_name} "
+        f"queries={result.policy_queries} "
+        f"validated={validated_remote_chunks} "
+        f"termination={result.termination_reason} "
+        f"task={result.task_success} safe={result.physical_safe}\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    return output_directory

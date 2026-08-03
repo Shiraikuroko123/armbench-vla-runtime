@@ -141,7 +141,7 @@ but incomplete episode is not counted as task success.
 
 | Component | Role | Present here? |
 |---|---|---|
-| pi0 / pi0.5 | Learned VLA policy: images + language + state -> action chunk | Remote client contract only; no local checkpoint result |
+| pi0 / pi0.5 | Learned VLA policy: images + language + state -> action chunk | Remote probe and bounded closed-loop client; no tracked checkpoint result |
 | OpenPI | Official model code, checkpoints, transforms, and remote protocol | Official lightweight client pinned and tested |
 | Isaac Gym | Legacy NVIDIA GPU simulator / RL environment stack | No |
 | Isaac Lab | Current NVIDIA/Omniverse robot simulation and training framework | No |
@@ -236,7 +236,7 @@ configured 0.05 rad state-consistency threshold, latch a hold, remain
 physically safe, and report task failure. It is a controlled fault, not a
 modeled impact.
 
-## Real OpenPI probe
+## Real OpenPI probe and closed loop
 
 Run the official server on an Ubuntu/NVIDIA machine using the pinned OpenPI
 checkout and its documented `uv` environment:
@@ -265,6 +265,26 @@ latency, raw/guarded actions, and both camera images. A successful probe proves
 protocol integration, not task success: the synthetic obstacle scene is outside
 the DROID training distribution unless the policy is adapted and evaluated.
 
+After the one-shot probe succeeds, run a bounded live feedback episode:
+
+```powershell
+& $ArmbenchPython -m armbench vla-openpi-run `
+  --host '<GPU_SERVER_IP>' --port 8000 `
+  --scenario single_block --horizon 5 `
+  --max-policy-queries 3 `
+  --connect-timeout-s 3 --inference-timeout-s 1 `
+  --output-directory 'results\openpi_online_001'
+```
+
+This command repeatedly captures both MuJoCo cameras and proprioception, sends
+the exact DROID request, validates and guards the remote chunk, executes five
+actions, and re-observes. The query budget bounds GPU cost. `aggregate.json`
+sets `actual_openpi_inference=true` only when at least one remote `15x8` reply
+passes contract validation; a timeout or malformed reply produces a latched
+hold artifact with the field set to false. The wire protocol does not attest
+checkpoint identity, so preserve the GPU server launch command/log before
+making a pi0/pi0.5-specific claim.
+
 ## Debugging and outputs
 
 Start with [`docs/DEBUGGING.md`](docs/DEBUGGING.md). The important VLA files are:
@@ -272,7 +292,7 @@ Start with [`docs/DEBUGGING.md`](docs/DEBUGGING.md). The important VLA files are
 | Question | Artifact / code |
 |---|---|
 | What did the policy receive? | `observations/*.png`, `VLAObservation.to_openpi_droid` |
-| Did the server reply correctly? | `OpenPIPolicyClient.infer`, `probe.json` |
+| Did the server reply correctly? | `OpenPIPolicyClient.infer`, `probe.json`, online `per_chunk.csv` |
 | Which chunk missed its deadline? | `per_chunk.csv` |
 | Was state really recaptured online? | online `per_chunk.csv` observation states and NPZ action offsets |
 | Which action was changed and why? | `per_action.csv` (`scale`, `reason`, raw/executed action) |
@@ -299,8 +319,9 @@ results/<run_id>/
 
 - The tracked VLA artifact uses scripted non-learned action streams. No pi0 or
   pi0.5 checkpoint produced those results.
-- `vla-probe` performs one real remote inference when a server is supplied; no
-  such real-checkpoint artifact is tracked yet.
+- `vla-probe` and `vla-openpi-run` can perform real remote inference when a
+  server is supplied; no real-checkpoint probe or rollout artifact is tracked
+  yet.
 - Collision checking uses exact MuJoCo mesh contacts at configurations and
   joint interpolation at 0.02 rad resolution along edges. It is not analytic
   continuous collision detection or a formal safety certificate.

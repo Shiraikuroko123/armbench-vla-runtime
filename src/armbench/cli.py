@@ -21,7 +21,10 @@ from armbench.vla.benchmark import (
     execute_vla_guard_benchmark,
     load_vla_config,
 )
-from armbench.vla.online_benchmark import execute_vla_online_benchmark
+from armbench.vla.online_benchmark import (
+    execute_openpi_online_run,
+    execute_vla_online_benchmark,
+)
 
 
 def _validate(config_path: Path) -> int:
@@ -208,6 +211,35 @@ def build_parser() -> argparse.ArgumentParser:
         help="run single_block at horizons 1 and 15 with zero payload",
     )
 
+    vla_openpi_run = subparsers.add_parser(
+        "vla-openpi-run",
+        help="run bounded remote OpenPI inference in the live MuJoCo loop",
+    )
+    vla_openpi_run.add_argument(
+        "--config", type=Path, default=Path("configs/vla_guard_benchmark.json")
+    )
+    vla_openpi_run.add_argument(
+        "--output-directory", type=Path, required=True
+    )
+    vla_openpi_run.add_argument("--host", default="localhost")
+    vla_openpi_run.add_argument("--port", type=int, default=8000)
+    vla_openpi_run.add_argument(
+        "--scenario",
+        choices=("single_block", "narrow_gate"),
+        default="single_block",
+    )
+    vla_openpi_run.add_argument(
+        "--horizon", type=int, choices=range(1, 16), default=5
+    )
+    vla_openpi_run.add_argument("--payload", type=float, default=0.0)
+    vla_openpi_run.add_argument(
+        "--max-policy-queries", type=int, default=10
+    )
+    vla_openpi_run.add_argument("--prompt")
+    vla_openpi_run.add_argument("--api-key-env", default="OPENPI_API_KEY")
+    vla_openpi_run.add_argument("--connect-timeout-s", type=float, default=3.0)
+    vla_openpi_run.add_argument("--inference-timeout-s", type=float, default=1.0)
+
     vla_probe = subparsers.add_parser(
         "vla-probe",
         help="send one MuJoCo observation to a real remote OpenPI server",
@@ -312,6 +344,27 @@ def main(arguments: list[str] | None = None) -> int:
             state_jump_query=args.state_jump_query,
             state_jump_joint=args.state_jump_joint,
             state_jump_rad=args.state_jump_rad,
+        )
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-openpi-run":
+        if args.max_policy_queries <= 0:
+            parser.error("--max-policy-queries must be positive")
+        config = load_vla_config(args.config)
+        prompt = args.prompt or str(dict(config["prompts"])[args.scenario])
+        output = execute_openpi_online_run(
+            args.config,
+            args.output_directory,
+            host=args.host,
+            port=args.port,
+            scenario_name=args.scenario,
+            execution_horizon=args.horizon,
+            payload_mass=args.payload,
+            max_policy_queries=args.max_policy_queries,
+            prompt=prompt,
+            api_key=os.environ.get(args.api_key_env),
+            connect_timeout_s=args.connect_timeout_s,
+            inference_timeout_s=args.inference_timeout_s,
         )
         print(f"results: {output.resolve()}")
         return 0

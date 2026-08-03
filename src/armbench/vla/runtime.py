@@ -134,6 +134,9 @@ class VLARuntimeSupervisor:
         on_policy_response: (
             Callable[[ActionChunk], tuple[ArrayLike, float]] | None
         ) = None,
+        on_policy_failure: (
+            Callable[[], tuple[ArrayLike, float]] | None
+        ) = None,
     ) -> RuntimeDecision:
         started = perf_counter()
         if self._latched_failure is not None:
@@ -157,9 +160,24 @@ class VLARuntimeSupervisor:
         try:
             chunk = self.policy.infer(observation)
         except Exception as error:
+            fallback_q = q_start
+            fallback_gripper = gripper_position
+            if on_policy_failure is not None:
+                try:
+                    fallback_q, fallback_gripper = on_policy_failure()
+                except Exception as dispatch_error:
+                    return self._hold_decision(
+                        q_start,
+                        gripper_position,
+                        observation,
+                        self._failure("response_dispatch", dispatch_error),
+                        policy_source=None,
+                        raw_actions=None,
+                        started=started,
+                    )
             return self._hold_decision(
-                q_start,
-                gripper_position,
+                fallback_q,
+                fallback_gripper,
                 observation,
                 self._failure("policy_inference", error),
                 policy_source=None,

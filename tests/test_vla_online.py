@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import threading
+import time
 
 import numpy as np
 import pytest
+from openpi_client import msgpack_numpy
+from websockets.sync.server import serve
 
 from armbench.mujoco_sim.scenarios import mujoco_scenarios
 from armbench.vla.guard import GuardConfig
@@ -14,8 +18,11 @@ from armbench.vla.online import (
     ReferenceActionChunkPolicy,
     run_online_episode,
 )
-from armbench.vla.online_benchmark import execute_vla_online_benchmark
-from armbench.vla.types import VLAObservation
+from armbench.vla.online_benchmark import (
+    execute_openpi_online_run,
+    execute_vla_online_benchmark,
+)
+from armbench.vla.types import ActionChunk, VLAObservation
 
 
 def _observation(q: np.ndarray, *, sequence_id: int) -> VLAObservation:
@@ -263,6 +270,41 @@ def test_online_episode_stops_at_policy_query_budget() -> None:
         OnlineExecutionConfig(max_policy_queries=0)
 
 
+def test_online_episode_advances_physics_when_policy_times_out() -> None:
+    class SlowFailingPolicy:
+        def infer(self, observation: VLAObservation) -> ActionChunk:
+            time.sleep(0.03)
+            raise TimeoutError("synthetic timeout")
+
+    start = mujoco_scenarios()["single_block"].start
+    reference = np.repeat(start[None, :], 3, axis=0)
+    reference[-1, 0] += 0.2
+    result = run_online_episode(
+        "single_block",
+        SlowFailingPolicy(),
+        reference,
+        execution_horizon=1,
+        clearance_m=0.0,
+        guard_config=GuardConfig(control_dt_s=0.1),
+        execution_config=OnlineExecutionConfig(
+            action_dt_s=0.1,
+            warmup_s=0.01,
+            hold_s=0.01,
+            max_extra_actions=0,
+        ),
+    )
+
+    assert result.policy_queries == 1
+    assert result.termination_reason == "runtime_fallback:policy_inference"
+    record = result.chunks[0]
+    assert not record.validated_policy_response
+    assert record.failure_stage == "policy_inference"
+    assert record.client_inference_latency_ms >= 25.0
+    assert record.policy_latency_ms >= record.client_inference_latency_ms
+    assert record.simulated_inference_wait_s >= 0.025
+    assert result.physical_safe
+
+
 def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     project_root = Path(__file__).resolve().parents[1]
     config = json.loads(
@@ -315,3 +357,166 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     assert "recaptures both 224x224 cameras" in summary
     assert "State mismatches" in summary
     assert "Termination" in summary
+
+
+def test_remote_openpi_online_run_uses_network_policy_in_feedback_loop(
+    tmp_path: Path,
+) -> None:
+    requests: list[dict[str, object]] = []
+
+    def handler(websocket: object) -> None:
+        websocket.send(
+            msgpack_numpy.packb(
+                {"model_config": "pi05_droid", "checkpoint": "test_only"}
+            )
+        )
+        for _ in range(2):
+            request = msgpack_numpy.unpackb(websocket.recv())
+            requests.append(dict(request))
+            actions = np.zeros((15, 8), dtype=float)
+            actions[:, 7] = 1.0
+            websocket.send(
+                msgpack_numpy.packb(
+                    {
+                        "actions": actions,
+                        "server_timing": {"infer_ms": 2.5},
+                    }
+                )
+            )
+
+    server = serve(
+        handler,
+        "127.0.0.1",
+        0,
+        compression=None,
+        max_size=None,
+    )
+    port = int(server.socket.getsockname()[1])
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    project_root = Path(__file__).resolve().parents[1]
+    config = json.loads(
+        (project_root / "configs" / "vla_guard_benchmark.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    config["guard"]["deadline_ms"] = 5000.0
+    config["online"]["warmup_s"] = 0.01
+    config["online"]["hold_s"] = 0.01
+    config["online"]["max_extra_actions"] = 0
+    config_path = tmp_path / "remote_config.json"
+    config_path.write_text(json.dumps(config), encoding="utf-8")
+    output_directory = tmp_path / "remote_online"
+    try:
+        execute_openpi_online_run(
+            config_path,
+            output_directory,
+            host="127.0.0.1",
+            port=port,
+            scenario_name="single_block",
+            execution_horizon=1,
+            max_policy_queries=2,
+            connect_timeout_s=0.5,
+            inference_timeout_s=0.5,
+        )
+    finally:
+        server.shutdown()
+        thread.join(timeout=2.0)
+
+    assert not thread.is_alive()
+    assert len(requests) == 2
+    assert set(requests[0]) == {
+        "observation/exterior_image_1_left",
+        "observation/wrist_image_left",
+        "observation/joint_position",
+        "observation/gripper_position",
+        "prompt",
+    }
+    assert requests[0]["observation/exterior_image_1_left"].shape == (
+        224,
+        224,
+        3,
+    )
+    rows = json.loads((output_directory / "aggregate.json").read_text("utf-8"))
+    row = rows[0]
+    assert row["remote_inference_attempted"] is True
+    assert row["actual_openpi_inference"] is True
+    assert row["validated_remote_chunks"] == 2
+    assert row["policy_source"] == "openpi_remote"
+    assert row["policy_queries"] == 2
+    assert row["termination_reason"] == "query_budget"
+    assert row["physical_safe"] is True
+    environment = json.loads(
+        (output_directory / "environment.json").read_text("utf-8")
+    )
+    assert environment["vla_online"]["remote_openpi_transport"] is True
+    assert environment["vla_online"]["server_metadata"]["model_config"] == (
+        "pi05_droid"
+    )
+    with np.load(output_directory / row["trace"]) as trace:
+        assert trace["raw_action_chunks"].shape == (2, 15, 8)
+        assert trace["guarded_action_chunks"].shape == (2, 15, 8)
+    summary = (output_directory / "summary.md").read_text("utf-8")
+    assert "Actual OpenPI inference: `true`" in summary
+    assert "integration result" in summary
+
+
+def test_remote_openpi_online_run_does_not_count_invalid_reply(
+    tmp_path: Path,
+) -> None:
+    def handler(websocket: object) -> None:
+        websocket.send(msgpack_numpy.packb({"model_config": "bad_test"}))
+        websocket.recv()
+        websocket.send(
+            msgpack_numpy.packb({"actions": np.zeros((1, 8), dtype=float)})
+        )
+
+    server = serve(
+        handler,
+        "127.0.0.1",
+        0,
+        compression=None,
+        max_size=None,
+    )
+    port = int(server.socket.getsockname()[1])
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    project_root = Path(__file__).resolve().parents[1]
+    config = json.loads(
+        (project_root / "configs" / "vla_guard_benchmark.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    config["guard"]["deadline_ms"] = 5000.0
+    config["online"]["warmup_s"] = 0.01
+    config["online"]["hold_s"] = 0.01
+    config_path = tmp_path / "invalid_remote_config.json"
+    config_path.write_text(json.dumps(config), encoding="utf-8")
+    output_directory = tmp_path / "invalid_remote_online"
+    try:
+        execute_openpi_online_run(
+            config_path,
+            output_directory,
+            host="127.0.0.1",
+            port=port,
+            scenario_name="single_block",
+            execution_horizon=1,
+            max_policy_queries=1,
+            connect_timeout_s=0.5,
+            inference_timeout_s=0.5,
+        )
+    finally:
+        server.shutdown()
+        thread.join(timeout=2.0)
+
+    assert not thread.is_alive()
+    row = json.loads(
+        (output_directory / "aggregate.json").read_text("utf-8")
+    )[0]
+    assert row["remote_inference_attempted"] is True
+    assert row["actual_openpi_inference"] is False
+    assert row["validated_remote_chunks"] == 0
+    assert row["runtime_fallback_chunks"] == 1
+    assert row["termination_reason"] == "runtime_fallback:policy_inference"
+    summary = (output_directory / "summary.md").read_text("utf-8")
+    assert "Actual OpenPI inference: `false`" in summary

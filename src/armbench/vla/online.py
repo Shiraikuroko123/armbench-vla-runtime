@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from time import monotonic
 
 import mujoco
 import numpy as np
@@ -121,6 +122,7 @@ class OnlineChunkRecord:
     injected_state_jump_rad: FloatArray
     policy_latency_ms: float
     client_inference_latency_ms: float
+    validated_policy_response: bool
     server_timing: dict[str, float]
     simulated_inference_wait_s: float
     executed_interventions: int
@@ -148,6 +150,7 @@ class OnlineChunkRecord:
             "injected_state_jump_rad": self.injected_state_jump_rad.tolist(),
             "policy_latency_ms": self.policy_latency_ms,
             "client_inference_latency_ms": self.client_inference_latency_ms,
+            "validated_policy_response": self.validated_policy_response,
             "server_timing": dict(self.server_timing),
             "simulated_inference_wait_s": self.simulated_inference_wait_s,
             "executed_interventions": self.executed_interventions,
@@ -475,26 +478,22 @@ def run_online_episode(
             dispatch_q = q_before.copy()
             policy_latency_ms = 0.0
             client_inference_latency_ms = 0.0
+            validated_policy_response = False
             server_timing: dict[str, float] = {}
             simulated_wait_s = 0.0
             injected_state_jump = np.zeros(7, dtype=float)
             query_index = len(records)
 
-            def advance_during_inference(
-                chunk: ActionChunk,
+            policy_call_started = monotonic()
+
+            def advance_for_inference_wait(
+                wait_ms: float,
             ) -> tuple[FloatArray, float]:
                 nonlocal dispatch_q
                 nonlocal next_controller_time
-                nonlocal policy_latency_ms
-                nonlocal client_inference_latency_ms
-                nonlocal server_timing
                 nonlocal simulated_wait_s
-                nonlocal injected_state_jump
-                policy_latency_ms = chunk.age_ms(observation)
-                client_inference_latency_ms = chunk.inference_latency_ms
-                server_timing = dict(chunk.server_timing)
                 wait_start = float(data.time)
-                wait_end = wait_start + policy_latency_ms / 1000.0
+                wait_end = wait_start + wait_ms / 1000.0
                 hold_q = data.qpos[arm_qpos].copy()
                 while data.time + 0.5 * physics_dt < wait_end:
                     if data.time + 1e-12 >= next_controller_time:
@@ -508,13 +507,6 @@ def run_online_episode(
                         next_controller_time += execution_config.controller_dt_s
                     step_physics()
                 simulated_wait_s = float(data.time) - wait_start
-                injected_state_jump = fault_config.offset_for_query(query_index)
-                if np.any(np.abs(injected_state_jump) > 0.0):
-                    jumped_q = data.qpos[arm_qpos].copy() + injected_state_jump
-                    robot.validate_configuration(jumped_q)
-                    data.qpos[arm_qpos] = jumped_q
-                    data.qvel[arm_dofs] = 0.0
-                    mujoco.mj_forward(robot.model, data)
                 dispatch_q = data.qpos[arm_qpos].copy()
                 if simulated_wait_s > 0.0:
                     guard.synchronize_velocity(np.zeros(7, dtype=float))
@@ -527,11 +519,49 @@ def run_online_episode(
                 )
                 return dispatch_q, gripper
 
+            def advance_during_inference(
+                chunk: ActionChunk,
+            ) -> tuple[FloatArray, float]:
+                nonlocal dispatch_q
+                nonlocal policy_latency_ms
+                nonlocal client_inference_latency_ms
+                nonlocal validated_policy_response
+                nonlocal server_timing
+                nonlocal injected_state_jump
+                policy_latency_ms = chunk.age_ms(observation)
+                client_inference_latency_ms = chunk.inference_latency_ms
+                validated_policy_response = True
+                server_timing = dict(chunk.server_timing)
+                dispatch_q, gripper = advance_for_inference_wait(
+                    policy_latency_ms
+                )
+                injected_state_jump = fault_config.offset_for_query(query_index)
+                if np.any(np.abs(injected_state_jump) > 0.0):
+                    jumped_q = data.qpos[arm_qpos].copy() + injected_state_jump
+                    robot.validate_configuration(jumped_q)
+                    data.qpos[arm_qpos] = jumped_q
+                    data.qvel[arm_dofs] = 0.0
+                    mujoco.mj_forward(robot.model, data)
+                dispatch_q = data.qpos[arm_qpos].copy()
+                return dispatch_q, gripper
+
+            def advance_after_policy_failure() -> tuple[FloatArray, float]:
+                nonlocal policy_latency_ms
+                nonlocal client_inference_latency_ms
+                policy_latency_ms = max(
+                    0.0, (monotonic() - observation.captured_at_s) * 1000.0
+                )
+                client_inference_latency_ms = max(
+                    0.0, (monotonic() - policy_call_started) * 1000.0
+                )
+                return advance_for_inference_wait(policy_latency_ms)
+
             decision = supervisor.infer_and_guard(
                 q_before,
                 float(observation.gripper_position[0]),
                 observation,
                 on_policy_response=advance_during_inference,
+                on_policy_failure=advance_after_policy_failure,
             )
             execute_count = min(execution_horizon, action_limit - action_offset)
             selected = decision.actions[:execute_count]
@@ -641,6 +671,7 @@ def run_online_episode(
                     injected_state_jump_rad=injected_state_jump.copy(),
                     policy_latency_ms=policy_latency_ms,
                     client_inference_latency_ms=client_inference_latency_ms,
+                    validated_policy_response=validated_policy_response,
                     server_timing=server_timing,
                     simulated_inference_wait_s=simulated_wait_s,
                     executed_interventions=executed_interventions,

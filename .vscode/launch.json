@@ -6,7 +6,12 @@
       "type": "debugpy",
       "request": "launch",
       "module": "pytest",
-      "args": ["tests/test_vla.py", "-q", "-s"],
+      "args": [
+        "tests/test_vla.py",
+        "tests/test_vla_online.py",
+        "-q",
+        "-s"
+      ],
       "cwd": "${workspaceFolder}",
       "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
       "console": "integratedTerminal",
@@ -85,6 +90,31 @@
       "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
       "console": "integratedTerminal",
       "justMyCode": true
+    },
+    {
+      "name": "ArmBench: OpenPI online closed loop",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "armbench",
+      "args": [
+        "vla-openpi-run",
+        "--host",
+        "${input:openpiHost}",
+        "--port",
+        "8000",
+        "--scenario",
+        "single_block",
+        "--horizon",
+        "1",
+        "--max-policy-queries",
+        "3",
+        "--output-directory",
+        "results/${input:openpiOnlineRunId}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true
     }
   ],
   "inputs": [
@@ -105,6 +135,12 @@
       "type": "promptString",
       "description": "New OpenPI probe directory name",
       "default": "openpi_probe_01"
+    },
+    {
+      "id": "openpiOnlineRunId",
+      "type": "promptString",
+      "description": "New remote OpenPI online result directory name",
+      "default": "openpi_online_01"
     }
   ]
 }

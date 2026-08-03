@@ -11,7 +11,8 @@ provenance, inject failures, and verify behavior in physics.
 It is only a supporting project for **VLA model architecture, pretraining, or
 fine-tuning research** roles. There is no learned model training, dataset
 pipeline, representation ablation, or real-checkpoint task benchmark yet. A
-single remote `vla-probe` would prove integration, not close that gap.
+remote closed-loop artifact would prove deployment integration, not close that
+research gap.
 
 ## Ninety-second explanation
 
@@ -42,6 +43,8 @@ performance or certified safety.
   guarded/unguarded physics cases.
 - A receding-horizon live physics loop with actual state/camera feedback and
   1/5/15-action query-cost comparison under 0/0.5 kg payloads.
+- A query-bounded `vla-openpi-run` path that puts the real WebSocket client in
+  that loop and distinguishes attempts, valid replies, and fail-closed holds.
 - Per-case, per-chunk, and per-action audit trails with raw and executed actions,
   reasons, scales, predicted/actual states, images, plots, and videos.
 - A Windows self-locating launcher, VS Code debug configurations, tests, pinned
@@ -60,9 +63,9 @@ action chunk. ArmBench is the runtime around that policy: it creates the request
 transports it, validates the reply, handles deadlines, checks execution
 constraints, applies or rejects actions, and measures the physical result.
 
-The project has an OpenPI client path but the tracked experiment uses a
-non-learned source. Therefore "OpenPI-compatible" is correct; "deployed pi0.5"
-is not yet correct.
+The project has one-shot and closed-loop OpenPI client paths, but the tracked
+experiments use non-learned sources. Therefore "OpenPI-compatible" is correct;
+"deployed pi0.5" is not yet correct.
 
 ### Why use the `pi05_droid` contract?
 
@@ -146,10 +149,10 @@ validation. The present guard is research simulation code, not safety-rated.
 
 ### What would you do next with a GPU budget?
 
-First run `pi05_droid` on a remote RTX 4090 and store honest probe artifacts.
-Then connect that server to the existing receding-horizon loop and compare pi0,
-pi0.5, and the non-learned baseline under paired observations, horizons, seeds,
-jitter, and fault injection. Because these synthetic scenes are out of DROID's
+First run `pi05_droid` on a remote RTX 4090 and store an honest probe artifact.
+Then use `vla-openpi-run` with a small query budget before comparing pi0, pi0.5,
+and the non-learned baseline under paired observations, horizons, seeds, jitter,
+and fault injection. Because these synthetic scenes are out of DROID's
 training distribution, task claims would require adaptation or an appropriate
 benchmark such as LIBERO, plus confidence intervals and failure taxonomy.
 
@@ -170,7 +173,8 @@ IDs.
 
 Do not claim:
 
-- pi0/pi0.5 checkpoint results without a real `probe.json` and rollout artifact;
+- pi0/pi0.5 checkpoint results without real probe and closed-loop artifacts;
+- a specific checkpoint identity without the matching GPU server launch log;
 - model training, fine-tuning, or DROID/LIBERO dataset evaluation;
 - analytic continuous collision detection;
 - OS-level hard real-time scheduling;

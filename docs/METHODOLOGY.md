@@ -94,6 +94,16 @@ chunks, client/end-to-end timing, optional server timing, and termination
 reason. A positive `max_policy_queries` budget can bound remote inference cost;
 reaching it causes a pose hold and is reported as `query_budget`.
 
+`vla-openpi-run` replaces the reference policy with the bounded transport built
+on official OpenPI serialization while retaining the same live physics loop. It
+records server metadata and separates attempted remote calls from validated
+replies. The artifact marks `actual_openpi_inference=true` only if at least one
+remote reply
+passes the `15x8` and finite-value contract and is bound to the current
+observation record. A malformed reply or timeout advances MuJoCo under hold for
+the measured wait, then produces a latched runtime fallback rather than a
+fabricated successful inference.
+
 The bundled online policy follows a collision-free reference and is labeled
 `scripted_non_learned_reference`. It exists to isolate the effect and query cost
 of feedback horizon. Its configured latency is synthetic: MuJoCo advances under
@@ -256,7 +266,9 @@ A separate online artifact stores every re-observed joint state and action
 offset, the 1/5/15 horizon comparison, first/last camera frames, and live physics
 traces.
 A successful `vla-probe` writes a separate artifact with that field set to true
-only after a remote response passes validation.
+only after a remote response passes validation. `vla-openpi-run` applies the
+same rule to a query-bounded, receding-horizon rollout and also stores every raw
+and guarded remote chunk.
 
 Wall-clock planning latency varies with host load. Fixed seeds preserve sampled
 sequences, but a search near the 2 s boundary can change status on a different

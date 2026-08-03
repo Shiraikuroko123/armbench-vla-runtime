@@ -158,6 +158,25 @@ or inference raises `TimeoutError`. Both leave no output directory. Set
 remote server. A successful `probe.json` has `actual_openpi_inference: true`.
 The normal local benchmark always has `false`.
 
+Only after the probe passes, test the bounded closed loop:
+
+```powershell
+& $ArmbenchPython -m armbench vla-openpi-run `
+  --host '<GPU_SERVER_IP>' --port 8000 `
+  --scenario single_block --horizon 1 `
+  --max-policy-queries 3 `
+  --output-directory 'results\openpi_online_debug_01'
+```
+
+Inspect `summary.md`, then `per_chunk.csv`. Check
+`validated_policy_response`, `client_inference_latency_ms`,
+`policy_latency_ms`, `server_timing`, raw/guarded actions, and
+`termination_reason`. `actual_openpi_inference=true` requires at least one
+validated `15x8` reply. If the connection succeeds but inference times out or
+returns a malformed chunk, the supervisor advances simulated time for the wait,
+executes a latched hold, and writes a failure artifact with the field set to
+false. A connection/handshake failure occurs before an output directory exists.
+
 ## 6. Debug the runtime guard
 
 Set the main breakpoint at `vla/guard.py: ActionChunkGuard.guard`. For one bad
@@ -235,6 +254,7 @@ tracked `.vscode/launch.json` provides:
 - `ArmBench: VLA tests`;
 - `ArmBench: VLA quick benchmark`;
 - `ArmBench: OpenPI remote probe`;
+- `ArmBench: OpenPI online closed loop`;
 - `ArmBench: MuJoCo trajectory viewer`.
 
 Choose a configuration in **Run and Debug**, set a breakpoint in the files
@@ -250,6 +270,7 @@ listed above, and press F5. Enter a new run directory name when prompted.
 | Why was an action changed? | `vla/guard.py: ActionChunkGuard.guard` |
 | How are fault matrices executed? | `vla/benchmark.py: execute_vla_guard_benchmark` |
 | Where is a real server probed? | `vla/benchmark.py: execute_openpi_probe` |
+| Where is a remote closed loop run? | `vla/online_benchmark.py: execute_openpi_online_run` |
 | Which geom caused contact? | `mujoco_sim/model.py: obstacle_contacts` |
 | How are torques applied? | `mujoco_sim/execution.py: execute_trajectory` |
 | Where are CLI commands wired? | `cli.py` |
