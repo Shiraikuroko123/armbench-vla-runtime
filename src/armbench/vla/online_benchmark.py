@@ -256,6 +256,15 @@ def _write_episode_artifacts(
     row = {
         **result.metrics(),
         **extra_metrics,
+        "video_path": (
+            str(
+                Path(result.video_path).relative_to(
+                    run_directory.resolve()
+                )
+            )
+            if result.video_path is not None
+            else None
+        ),
         "external_image": str(first_external_path.relative_to(run_directory)),
         "wrist_image": str(first_wrist_path.relative_to(run_directory)),
         "last_external_image": str(
@@ -288,6 +297,7 @@ def execute_vla_online_benchmark(
     state_jump_query: int | None = None,
     state_jump_joint: int | None = None,
     state_jump_rad: float | None = None,
+    make_videos: bool = False,
 ) -> Path:
     config = load_vla_config(config_path)
     online = _online_config(config)
@@ -357,6 +367,7 @@ def execute_vla_online_benchmark(
         "policy_latency_ms": selected_policy_latency_ms,
         "state_jump_query": selected_state_jump_query,
         "state_jump_rad": selected_state_jump.tolist(),
+        "make_videos": bool(make_videos),
     }
     metadata = environment_metadata(Path(__file__).resolve().parents[3])
     metadata["packages"].update(
@@ -374,6 +385,7 @@ def execute_vla_online_benchmark(
         "policy_provenance": "scripted_non_learned_reference",
         "actual_openpi_inference": False,
         "synthetic_state_jump": fault_config.enabled,
+        "online_video_recording": bool(make_videos),
         "openpi_contract": dict(config["openpi_contract"]),
     }
     _write_json(run_directory / "config.json", config_snapshot)
@@ -411,6 +423,14 @@ def execute_vla_online_benchmark(
             )
             for payload in payloads:
                 for horizon in horizons:
+                    case_name = (
+                        f"{scenario_name}__payload_{payload:g}kg__horizon_{horizon:02d}"
+                    )
+                    video_path = (
+                        run_directory / "videos" / f"{case_name}.mp4"
+                        if make_videos
+                        else None
+                    )
                     policy = ReferenceActionChunkPolicy(
                         references,
                         action_dt_s=guard_config.control_dt_s,
@@ -436,9 +456,8 @@ def execute_vla_online_benchmark(
                         execution_config=execution_config,
                         fault_config=fault_config,
                         prompt=str(dict(config["prompts"])[scenario_name]),
-                    )
-                    case_name = (
-                        f"{scenario_name}__payload_{payload:g}kg__horizon_{horizon:02d}"
+                        video_path=video_path,
+                        video_fps=int(dict(config["execution"])["video_fps"]),
                     )
                     row, case_chunks, first_external_path, first_wrist_path = (
                         _write_episode_artifacts(
@@ -552,6 +571,7 @@ def execute_openpi_online_run(
     api_key: str | None = None,
     connect_timeout_s: float = 3.0,
     inference_timeout_s: float = 1.0,
+    make_video: bool = False,
 ) -> Path:
     """Run bounded remote OpenPI inference in the live MuJoCo feedback loop."""
 
@@ -591,6 +611,9 @@ def execute_openpi_online_run(
     )
     expected_horizon = int(dict(config["openpi_contract"])["action_horizon"])
     server = f"{host}:{port}"
+    case_name = (
+        f"{scenario_name}__openpi_remote__horizon_{execution_horizon:02d}"
+    )
     with OpenPIPolicyClient(
         host=host,
         port=port,
@@ -600,6 +623,7 @@ def execute_openpi_online_run(
         inference_timeout_s=inference_timeout_s,
     ) as client:
         server_metadata = client.server_metadata
+        output_directory.mkdir(parents=True, exist_ok=False)
         result = run_online_episode(
             scenario_name,
             client,
@@ -613,6 +637,12 @@ def execute_openpi_online_run(
             guard_config=guard_config,
             execution_config=execution_config,
             prompt=task_prompt,
+            video_path=(
+                output_directory / "videos" / f"{case_name}.mp4"
+                if make_video
+                else None
+            ),
+            video_fps=int(dict(config["execution"])["video_fps"]),
         )
 
     validated_remote_chunks = sum(
@@ -622,7 +652,6 @@ def execute_openpi_online_run(
         for record in result.chunks
     )
     actual_openpi_inference = validated_remote_chunks > 0
-    output_directory.mkdir(parents=True, exist_ok=False)
     config_snapshot = dict(config)
     config_snapshot["openpi_online_selected"] = {
         "server": server,
@@ -634,6 +663,7 @@ def execute_openpi_online_run(
         "connect_timeout_s": connect_timeout_s,
         "inference_timeout_s": inference_timeout_s,
         "api_key_configured": api_key is not None,
+        "make_video": bool(make_video),
     }
     metadata = environment_metadata(Path(__file__).resolve().parents[3])
     metadata["packages"].update(
@@ -655,12 +685,10 @@ def execute_openpi_online_run(
         "server_metadata": server_metadata,
         "openpi_commit": OPENPI_COMMIT,
         "openpi_contract": dict(config["openpi_contract"]),
+        "online_video_recording": bool(make_video),
     }
     _write_json(output_directory / "config.json", config_snapshot)
     _write_json(output_directory / "environment.json", metadata)
-    case_name = (
-        f"{scenario_name}__openpi_remote__horizon_{execution_horizon:02d}"
-    )
     row, chunks, exterior_path, wrist_path = _write_episode_artifacts(
         output_directory,
         case_name,

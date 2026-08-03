@@ -45,6 +45,8 @@ performance or certified safety.
   1/5/15-action query-cost comparison under 0/0.5 kg payloads.
 - A query-bounded `vla-openpi-run` path that puts the real WebSocket client in
   that loop and distinguishes attempts, valid replies, and fail-closed holds.
+- Optional live-physics MP4 recording for both reference-policy and remote
+  OpenPI online episodes.
 - Per-case, per-chunk, and per-action audit trails with raw and executed actions,
   reasons, scales, predicted/actual states, images, plots, and videos.
 - A Windows self-locating launcher, VS Code debug configurations, tests, pinned

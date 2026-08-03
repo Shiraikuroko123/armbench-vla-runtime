@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from time import monotonic
 
+import imageio.v2 as imageio
 import mujoco
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -12,7 +14,7 @@ from numpy.typing import ArrayLike, NDArray
 from armbench.mujoco_sim.benchmark import inflate_obstacles
 from armbench.mujoco_sim.collision import MuJoCoCollisionChecker
 from armbench.mujoco_sim.execution import DEFAULT_KD, DEFAULT_KP
-from armbench.mujoco_sim.model import MuJoCoPanda
+from armbench.mujoco_sim.model import MuJoCoPanda, VLA_EXTERNAL_CAMERA
 from armbench.mujoco_sim.scenarios import mujoco_scenarios
 from armbench.vla.guard import ActionChunkGuard, GuardConfig
 from armbench.vla.observation import MuJoCoDroidObservationBuilder
@@ -22,6 +24,67 @@ from armbench.vla.types import ActionChunk, VLAObservation
 
 FloatArray = NDArray[np.float64]
 UInt8Array = NDArray[np.uint8]
+
+
+class _OnlineVideoRecorder:
+    def __init__(
+        self,
+        model: mujoco.MjModel,
+        path: Path | None,
+        *,
+        fps: int,
+        render_size: tuple[int, int],
+    ) -> None:
+        self.path = path
+        self.fps = fps
+        self._next_frame_time: float | None = None
+        self._renderer: mujoco.Renderer | None = None
+        self._writer: object | None = None
+        if path is None:
+            return
+        path.parent.mkdir(parents=True, exist_ok=True)
+        width, height = render_size
+        self._renderer = mujoco.Renderer(
+            model, height=height, width=width
+        )
+        try:
+            self._writer = imageio.get_writer(
+                str(path),
+                fps=fps,
+                codec="libx264",
+                quality=8,
+                macro_block_size=None,
+            )
+        except Exception:
+            self._renderer.close()
+            self._renderer = None
+            raise
+
+    def __enter__(self) -> "_OnlineVideoRecorder":
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        self.close()
+
+    def capture(self, data: mujoco.MjData) -> None:
+        if self._renderer is None or self._writer is None:
+            return
+        if self._next_frame_time is None:
+            self._next_frame_time = float(data.time)
+        while data.time + 1e-12 >= self._next_frame_time:
+            self._renderer.update_scene(data, camera=VLA_EXTERNAL_CAMERA)
+            self._writer.append_data(self._renderer.render())
+            self._next_frame_time += 1.0 / self.fps
+
+    def close(self) -> None:
+        writer = self._writer
+        self._writer = None
+        if writer is not None:
+            writer.close()
+        renderer = self._renderer
+        self._renderer = None
+        if renderer is not None:
+            renderer.close()
 
 
 @dataclass(frozen=True)
@@ -193,6 +256,7 @@ class OnlineEpisodeResult:
     fault_injections: int
     executed_interventions: int
     simulated_inference_wait_s: float
+    video_path: str | None
     times: FloatArray
     desired_positions: FloatArray
     actual_positions: FloatArray
@@ -235,6 +299,7 @@ class OnlineEpisodeResult:
             "fault_injections": self.fault_injections,
             "executed_interventions": self.executed_interventions,
             "simulated_inference_wait_s": self.simulated_inference_wait_s,
+            "video_path": self.video_path,
             "mean_policy_latency_ms": float(np.mean(end_to_end_latencies)),
             "p95_policy_latency_ms": float(
                 np.percentile(end_to_end_latencies, 95)
@@ -335,6 +400,9 @@ def run_online_episode(
     execution_config: OnlineExecutionConfig = OnlineExecutionConfig(),
     fault_config: OnlineFaultConfig = OnlineFaultConfig(),
     prompt: str | None = None,
+    video_path: Path | None = None,
+    video_fps: int = 30,
+    render_size: tuple[int, int] = (640, 480),
 ) -> OnlineEpisodeResult:
     """Execute action prefixes and recapture actual state/images every query."""
 
@@ -349,6 +417,12 @@ def run_online_episode(
         raise ValueError("payload and clearance must be nonnegative")
     if not np.isclose(guard_config.control_dt_s, execution_config.action_dt_s):
         raise ValueError("guard and online action periods must match")
+    if (
+        video_fps <= 0
+        or len(render_size) != 2
+        or any(value <= 0 for value in render_size)
+    ):
+        raise ValueError("online video settings must be positive")
     references = np.asarray(reference_positions, dtype=float)
     if (
         references.ndim != 2
@@ -401,6 +475,7 @@ def run_online_episode(
     obstacle_contact_steps = 0
     self_contact_steps = 0
     joint_limit_violation_steps = 0
+    online_recorder: _OnlineVideoRecorder | None = None
 
     def apply_control(desired_q: FloatArray, desired_dq: FloatArray) -> None:
         nonlocal torque_saturation_count
@@ -434,6 +509,8 @@ def run_online_episode(
             obstacle_contact_steps += 1
         if robot.self_contacts(data):
             self_contact_steps += 1
+        if online_recorder is not None:
+            online_recorder.capture(data)
 
     warmup_end = data.time + execution_config.warmup_s
     while data.time + 0.5 * physics_dt < warmup_end:
@@ -454,7 +531,17 @@ def run_online_episode(
     hold_target = references[-1].copy()
     termination_reason = "action_limit"
 
-    with MuJoCoDroidObservationBuilder(robot) as builder:
+    with (
+        MuJoCoDroidObservationBuilder(robot) as builder,
+        _OnlineVideoRecorder(
+            robot.model,
+            video_path,
+            fps=video_fps,
+            render_size=render_size,
+        ) as active_recorder,
+    ):
+        online_recorder = active_recorder
+        online_recorder.capture(data)
         while action_offset < action_limit:
             if (
                 execution_config.max_policy_queries is not None
@@ -775,6 +862,7 @@ def run_online_episode(
         simulated_inference_wait_s=sum(
             record.simulated_inference_wait_s for record in records
         ),
+        video_path=str(video_path.resolve()) if video_path is not None else None,
         times=np.asarray(times),
         desired_positions=desired_array,
         actual_positions=actual_array,

@@ -93,6 +93,8 @@ unexecuted tail of the chunk. Every query preserves the raw and guarded action
 chunks, client/end-to-end timing, optional server timing, and termination
 reason. A positive `max_policy_queries` budget can bound remote inference cost;
 reaching it causes a pose hold and is reported as `query_budget`.
+When enabled, online MP4 frames are rendered during these same physics steps
+from the exterior camera. They are not reconstructed later from joint traces.
 
 `vla-openpi-run` replaces the reference policy with the bounded transport built
 on official OpenPI serialization while retaining the same live physics loop. It

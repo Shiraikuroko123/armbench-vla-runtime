@@ -214,7 +214,8 @@ Set-Location $ArmbenchProject
 & $ArmbenchPython -m pytest -q
 & $ArmbenchPython -m armbench vla-guard-run --quick --run-id my_vla_smoke
 & $ArmbenchPython -m armbench vla-guard-run --run-id my_vla_formal
-& $ArmbenchPython -m armbench vla-online-run --quick --run-id my_online_smoke
+& $ArmbenchPython -m armbench vla-online-run --quick --videos `
+  --run-id my_online_smoke
 & $ArmbenchPython -m armbench vla-online-run --quick `
   --run-id my_state_jump_smoke `
   --state-jump-joint 1 --state-jump-rad 0.08
@@ -228,7 +229,8 @@ actions from each chunk, then recaptures the two cameras and actual MuJoCo state
 before querying again. Its built-in reference policy is explicitly non-learned;
 the loop accepts the same `ActionChunkPolicy` interface as the OpenPI client.
 Each query records end-to-end/client timing, optional server timing, termination
-reason, and raw plus guarded `15x8` chunks for offline inspection.
+reason, and raw plus guarded `15x8` chunks for offline inspection. `--videos`
+records the live exterior-camera physics execution for every selected episode.
 Use `--policy-latency-ms 240` to verify deadline hold while MuJoCo continues
 under the inference-wait controller. The state-jump command injects a
 deterministic 0.08 rad change after observation capture. It should exceed the
@@ -273,6 +275,7 @@ After the one-shot probe succeeds, run a bounded live feedback episode:
   --scenario single_block --horizon 5 `
   --max-policy-queries 3 `
   --connect-timeout-s 3 --inference-timeout-s 1 `
+  --video `
   --output-directory 'results\openpi_online_001'
 ```
 

@@ -210,6 +210,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="run single_block at horizons 1 and 15 with zero payload",
     )
+    vla_online.add_argument(
+        "--videos",
+        action="store_true",
+        help="record live MuJoCo MP4 for every selected online episode",
+    )
 
     vla_openpi_run = subparsers.add_parser(
         "vla-openpi-run",
@@ -239,6 +244,11 @@ def build_parser() -> argparse.ArgumentParser:
     vla_openpi_run.add_argument("--api-key-env", default="OPENPI_API_KEY")
     vla_openpi_run.add_argument("--connect-timeout-s", type=float, default=3.0)
     vla_openpi_run.add_argument("--inference-timeout-s", type=float, default=1.0)
+    vla_openpi_run.add_argument(
+        "--video",
+        action="store_true",
+        help="record the live MuJoCo episode as MP4",
+    )
 
     vla_probe = subparsers.add_parser(
         "vla-probe",
@@ -344,6 +354,7 @@ def main(arguments: list[str] | None = None) -> int:
             state_jump_query=args.state_jump_query,
             state_jump_joint=args.state_jump_joint,
             state_jump_rad=args.state_jump_rad,
+            make_videos=args.videos,
         )
         print(f"results: {output.resolve()}")
         return 0
@@ -365,6 +376,7 @@ def main(arguments: list[str] | None = None) -> int:
             api_key=os.environ.get(args.api_key_env),
             connect_timeout_s=args.connect_timeout_s,
             inference_timeout_s=args.inference_timeout_s,
+            make_video=args.video,
         )
         print(f"results: {output.resolve()}")
         return 0

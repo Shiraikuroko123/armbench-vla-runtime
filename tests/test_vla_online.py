@@ -5,6 +5,7 @@ from pathlib import Path
 import threading
 import time
 
+import imageio.v2 as imageio
 import numpy as np
 import pytest
 from openpi_client import msgpack_numpy
@@ -117,6 +118,48 @@ def test_online_episode_reobserves_actual_mujoco_state_each_action() -> None:
     assert result.chunks[0].guarded_actions.shape == (15, 8)
     assert result.chunks[0].server_timing == {}
     assert result.physical_safe
+
+
+def test_online_episode_records_nonblank_live_video(tmp_path: Path) -> None:
+    start = mujoco_scenarios()["single_block"].start
+    reference = np.repeat(start[None, :], 4, axis=0)
+    reference[:, 0] += np.arange(4) * 0.01
+    video_path = tmp_path / "online.mp4"
+    result = run_online_episode(
+        "single_block",
+        ReferenceActionChunkPolicy(
+            reference,
+            action_dt_s=0.1,
+            velocity_limit_rad_s=0.5,
+        ),
+        reference,
+        execution_horizon=1,
+        clearance_m=0.0,
+        guard_config=GuardConfig(
+            control_dt_s=0.1,
+            joint_velocity_clip_rad_s=0.5,
+            joint_acceleration_clip_rad_s2=15.0,
+        ),
+        execution_config=OnlineExecutionConfig(
+            action_dt_s=0.1,
+            warmup_s=0.01,
+            hold_s=0.01,
+            max_extra_actions=0,
+        ),
+        video_path=video_path,
+        video_fps=10,
+        render_size=(320, 240),
+    )
+
+    assert result.video_path == str(video_path.resolve())
+    assert video_path.stat().st_size > 3000
+    reader = imageio.get_reader(video_path)
+    try:
+        frame = reader.get_data(0)
+    finally:
+        reader.close()
+    assert frame.shape == (240, 320, 3)
+    assert float(frame.std()) > 10.0
 
 
 def test_online_episode_advances_physics_during_stale_inference() -> None:
@@ -325,6 +368,7 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
         config_path,
         tmp_path / "results",
         run_id="online_test",
+        make_videos=True,
     )
 
     rows = json.loads((run_directory / "aggregate.json").read_text("utf-8"))
@@ -348,6 +392,8 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     )
     assert (run_directory / row["external_image"]).is_file()
     assert (run_directory / row["trace"]).is_file()
+    assert row["video_path"] is not None
+    assert (run_directory / row["video_path"]).stat().st_size > 3000
     with np.load(run_directory / row["trace"]) as trace:
         assert trace["raw_action_chunks"].shape[1:] == (15, 8)
         assert trace["guarded_action_chunks"].shape[1:] == (15, 8)
