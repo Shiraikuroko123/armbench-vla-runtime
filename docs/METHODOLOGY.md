@@ -123,6 +123,13 @@ malformed reply or timeout advances MuJoCo under hold for the measured wait,
 then produces a latched runtime fallback rather than a fabricated successful
 inference.
 
+`vla-loopback-run` exercises that identical transport and execution path against
+an ephemeral local server. The server validates the exact DROID keys and image,
+state, gripper, and prompt contracts, then returns deterministic reference
+actions. It stores a separate request audit with both image hashes. Its policy
+provenance is always `scripted_non_learned_loopback`; a valid network response
+does not become evidence of learned-policy or checkpoint performance.
+
 The bundled online policy follows a collision-free reference and is labeled
 `scripted_non_learned_reference`. It exists to isolate the effect and query cost
 of feedback horizon. Its configured latency is synthetic: MuJoCo advances under

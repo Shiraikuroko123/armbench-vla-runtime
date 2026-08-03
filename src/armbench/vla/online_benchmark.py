@@ -726,13 +726,13 @@ def _remote_summary(
         if isinstance(item, np.ndarray)
         else str(item),
     )
-    return "\n".join(
-        [
+    lines = [
             "# OpenPI-compatible remote closed-loop MuJoCo run",
             "",
             f"- Server: `{server}`",
             f"- Server metadata: `{metadata_text}`",
             f"- Validated remote 15x8 chunks: `{validated}`",
+            f"- Policy provenance: `{row['policy_provenance']}`",
             "- Remote policy response validated: "
             f"`{str(remote_validated).lower()}`",
             "- Checkpoint identity verified by protocol: `false`",
@@ -751,16 +751,30 @@ def _remote_summary(
             "prefixes. A connected server without a validated reply is not "
             "counted as a validated remote policy response.",
             "",
-            "The WebSocket protocol does not attest checkpoint identity. "
-            "Preserve the GPU server launch command/log alongside this "
-            "artifact when making a pi0/pi0.5-specific claim.",
-            "",
-            "The synthetic workcell is outside the evidence used to train the "
-            "checkpoint. Task success or failure here is an integration result, "
-            "not a general policy-quality benchmark.",
-            "",
         ]
-    )
+    if str(row["policy_provenance"]).startswith("scripted_non_learned"):
+        lines.extend(
+            [
+                "This server is a scripted non-learned protocol diagnostic. "
+                "No learned checkpoint produced these actions; task outcomes "
+                "are integration results only.",
+                "",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                "The WebSocket protocol does not attest checkpoint identity. "
+                "Preserve the GPU server launch command/log alongside this "
+                "artifact when making a pi0/pi0.5-specific claim.",
+                "",
+                "The synthetic workcell is outside the evidence used to train "
+                "the checkpoint. Task success or failure here is an integration "
+                "result, not a general policy-quality benchmark.",
+                "",
+            ]
+        )
+    return "\n".join(lines)
 
 
 def execute_openpi_online_run(
@@ -778,6 +792,7 @@ def execute_openpi_online_run(
     connect_timeout_s: float = 3.0,
     inference_timeout_s: float = 1.0,
     make_video: bool = False,
+    policy_provenance: str = "remote_server_unverified",
 ) -> Path:
     """Run bounded remote OpenPI inference in the live MuJoCo feedback loop."""
 
@@ -794,6 +809,8 @@ def execute_openpi_online_run(
         raise ValueError("payload_mass must be finite and nonnegative")
     if max_policy_queries <= 0:
         raise ValueError("max_policy_queries must be positive")
+    if not policy_provenance.strip():
+        raise ValueError("policy_provenance must be nonempty")
 
     scenario = scenarios[scenario_name]
     task_prompt = prompt or str(dict(config["prompts"])[scenario_name])
@@ -873,6 +890,7 @@ def execute_openpi_online_run(
         "inference_timeout_s": inference_timeout_s,
         "api_key_configured": api_key is not None,
         "make_video": bool(make_video),
+        "policy_provenance": policy_provenance,
     }
     metadata = environment_metadata(Path(__file__).resolve().parents[3])
     metadata["packages"].update(
@@ -897,6 +915,7 @@ def execute_openpi_online_run(
         "remote_policy_response_validated": remote_policy_response_validated,
         "checkpoint_identity_verified": False,
         "validated_remote_chunks": validated_remote_chunks,
+        "policy_provenance": policy_provenance,
         "server": server,
         "server_metadata": server_metadata,
         "openpi_commit": OPENPI_COMMIT,
@@ -921,6 +940,7 @@ def execute_openpi_online_run(
                 ),
                 "checkpoint_identity_verified": False,
                 "validated_remote_chunks": validated_remote_chunks,
+                "policy_provenance": policy_provenance,
                 "server": server,
                 "openpi_commit": OPENPI_COMMIT,
                 "synthetic_state_jump": False,

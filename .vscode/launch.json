@@ -76,6 +76,28 @@
       "justMyCode": true
     },
     {
+      "name": "ArmBench: OpenPI local loopback",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "armbench",
+      "args": [
+        "vla-loopback-run",
+        "--scenario",
+        "single_block",
+        "--horizon",
+        "5",
+        "--max-policy-queries",
+        "3",
+        "--video",
+        "--output-directory",
+        "results/${input:loopbackRunId}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "ArmBench: MuJoCo trajectory viewer",
       "type": "debugpy",
       "request": "launch",
@@ -137,6 +159,12 @@
       "type": "promptString",
       "description": "New OpenPI probe directory name",
       "default": "openpi_probe_01"
+    },
+    {
+      "id": "loopbackRunId",
+      "type": "promptString",
+      "description": "New local OpenPI loopback directory name",
+      "default": "openpi_loopback_01"
     },
     {
       "id": "openpiOnlineRunId",

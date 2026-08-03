@@ -159,8 +159,20 @@ At `capture`, inspect image `shape`, `dtype`, `std`, the seven-element
 
 ## 5. Debug the OpenPI boundary
 
-The local benchmark intentionally does not load a checkpoint. To test a real
-server:
+First run the complete wire path without a GPU:
+
+```powershell
+& $ArmbenchPython -m armbench vla-loopback-run `
+  --scenario single_block --horizon 5 --max-policy-queries 3 `
+  --video `
+  --output-directory 'results\openpi_loopback_debug_01'
+```
+
+Set breakpoints in `vla/loopback.py`, `vla/policy.py`, and `vla/runtime.py`.
+Compare `loopback_server.json` request hashes with `per_chunk.csv`. This path
+uses the real serializer, socket transport, response validator, guard, and live
+physics loop, but its server is deterministic and non-learned. Only after this
+passes, replace it with a real GPU server:
 
 ```powershell
 & $ArmbenchPython -m armbench vla-probe `
@@ -287,6 +299,7 @@ tracked `.vscode/launch.json` provides:
 - `ArmBench: VLA tests`;
 - `ArmBench: VLA quick benchmark`;
 - `ArmBench: OpenPI remote probe`;
+- `ArmBench: OpenPI local loopback`;
 - `ArmBench: OpenPI online closed loop`;
 - `ArmBench: MuJoCo trajectory viewer`.
 
@@ -299,6 +312,7 @@ listed above, and press F5. Enter a new run directory name when prompted.
 |---|---|
 | What is the OpenPI data contract? | `vla/types.py` |
 | How is the OpenPI protocol called? | `vla/policy.py: BoundedOpenPIBackend` |
+| How can I debug the wire path locally? | `vla/loopback.py` |
 | How are MuJoCo observations built? | `vla/observation.py` |
 | Why was an observation rejected? | `vla/observation_guard.py` |
 | Why was an action changed? | `vla/guard.py: ActionChunkGuard.guard` |

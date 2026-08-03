@@ -293,6 +293,26 @@ Replace `160` with `240` to cross the configured 200 ms deadline on the fourth
 query. The resolved schedule, every observed latency, simulated wait time, and
 fallback reason are retained in the artifact.
 
+## Local OpenPI protocol loopback
+
+Before renting a GPU, exercise the real remote-policy boundary locally:
+
+```powershell
+& $ArmbenchPython -m armbench vla-loopback-run `
+  --scenario single_block --horizon 5 --max-policy-queries 3 `
+  --video `
+  --output-directory 'results\openpi_loopback_001'
+```
+
+This starts an ephemeral local WebSocket server, sends the exact two-camera
+DROID request through the official MessagePack serializer, returns a 15x8
+reference-action chunk, and executes it through the same bounded client, guard,
+and MuJoCo loop used by `vla-openpi-run`. `loopback_server.json` independently
+records request hashes and states. The artifact is labeled
+`scripted_non_learned_loopback`, `remote_policy_response_validated=true`, and
+`checkpoint_identity_verified=false`; it tests integration and breakpoints, not
+pi0/pi0.5 competence.
+
 ## Real OpenPI probe and closed loop
 
 Run the official server on an Ubuntu/NVIDIA machine using the pinned OpenPI
@@ -339,8 +359,8 @@ This command repeatedly captures both MuJoCo cameras and proprioception, sends
 the exact DROID request, validates and guards the remote chunk, executes five
 actions, and re-observes. The query budget bounds GPU cost. `aggregate.json`
 sets `remote_policy_response_validated=true` only when at least one remote
-`15x8` reply passes contract validation; a timeout or malformed reply produces a latched
-hold artifact with `remote_policy_response_validated=false`. The separate
+`15x8` reply passes contract validation; a timeout or malformed reply produces
+a latched hold artifact with `remote_policy_response_validated=false`. The separate
 `checkpoint_identity_verified` field remains false because the wire protocol
 does not attest checkpoint identity, so preserve the GPU server launch command
 and log before making a pi0/pi0.5-specific claim.
@@ -372,6 +392,7 @@ results/<run_id>/
   observations/*.png
   videos/*.mp4
   <case>.npz                  actions, states, camera hashes/deltas/thumbnails
+  loopback_server.json        local protocol request audit (loopback only)
   run.log
 ```
 

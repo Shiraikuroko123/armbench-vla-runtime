@@ -14,6 +14,11 @@ from armbench.vla.observation_guard import (
     ObservationRejectedError,
     VLAObservationGuard,
 )
+from armbench.vla.loopback import (
+    LOOPBACK_POLICY_PROVENANCE,
+    OpenPIProtocolLoopbackServer,
+    execute_openpi_loopback_run,
+)
 from armbench.vla.policy import (
     ActionChunkPolicy,
     BoundedOpenPIBackend,
@@ -30,7 +35,9 @@ __all__ = [
     "BoundedOpenPIBackend",
     "GuardConfig",
     "GuardResult",
+    "LOOPBACK_POLICY_PROVENANCE",
     "OpenPIPolicyClient",
+    "OpenPIProtocolLoopbackServer",
     "OnlineEpisodeResult",
     "OnlineExecutionConfig",
     "OnlineFaultConfig",
@@ -44,5 +51,6 @@ __all__ = [
     "VLARuntimeSupervisor",
     "VLAObservationGuard",
     "VLAObservation",
+    "execute_openpi_loopback_run",
     "run_online_episode",
 ]

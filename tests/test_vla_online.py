@@ -25,6 +25,10 @@ from armbench.vla.online_benchmark import (
     execute_openpi_online_run,
     execute_vla_online_benchmark,
 )
+from armbench.vla.loopback import (
+    LOOPBACK_POLICY_PROVENANCE,
+    execute_openpi_loopback_run,
+)
 from armbench.vla.observation_guard import (
     ObservationGuardConfig,
     ObservationRejectedError,
@@ -772,6 +776,7 @@ def test_remote_openpi_online_run_uses_network_policy_in_feedback_loop(
     assert row["checkpoint_identity_verified"] is False
     assert row["validated_remote_chunks"] == 2
     assert row["policy_source"] == "openpi_remote"
+    assert row["policy_provenance"] == "remote_server_unverified"
     assert row["policy_queries"] == 2
     assert row["termination_reason"] == "query_budget"
     assert row["physical_safe"] is True
@@ -866,3 +871,68 @@ def test_remote_openpi_online_run_does_not_count_invalid_reply(
     assert all(not item["raw_action"] for item in action_rows)
     summary = (output_directory / "summary.md").read_text("utf-8")
     assert "Remote policy response validated: `false`" in summary
+
+
+def test_loopback_cli_backend_exercises_complete_remote_policy_path(
+    tmp_path: Path,
+) -> None:
+    project_root = Path(__file__).resolve().parents[1]
+    config = json.loads(
+        (project_root / "configs" / "vla_guard_benchmark.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    config["guard"]["deadline_ms"] = 5000.0
+    config["online"]["warmup_s"] = 0.01
+    config["online"]["hold_s"] = 0.01
+    config["online"]["max_extra_actions"] = 0
+    config_path = tmp_path / "loopback_config.json"
+    config_path.write_text(json.dumps(config), encoding="utf-8")
+    output_directory = tmp_path / "loopback_online"
+
+    execute_openpi_loopback_run(
+        config_path,
+        output_directory,
+        scenario_name="single_block",
+        execution_horizon=1,
+        max_policy_queries=2,
+    )
+
+    row = json.loads(
+        (output_directory / "aggregate.json").read_text("utf-8")
+    )[0]
+    assert row["remote_policy_response_validated"] is True
+    assert row["checkpoint_identity_verified"] is False
+    assert row["policy_provenance"] == LOOPBACK_POLICY_PROVENANCE
+    assert row["policy_source"] == "openpi_remote"
+    assert row["policy_queries"] == 2
+    assert row["observation_cycles"] == 2
+    assert row["termination_reason"] == "query_budget"
+    assert row["physical_safe"] is True
+    environment = json.loads(
+        (output_directory / "environment.json").read_text("utf-8")
+    )
+    server_metadata = environment["vla_online"]["server_metadata"]
+    assert server_metadata["armbench_loopback"] is True
+    assert server_metadata["checkpoint_identity_verified"] is False
+    assert server_metadata["policy_source"] == LOOPBACK_POLICY_PROVENANCE
+    audit = json.loads(
+        (output_directory / "loopback_server.json").read_text("utf-8")
+    )
+    assert audit["request_count"] == 2
+    assert audit["checkpoint_identity_verified"] is False
+    assert len(audit["requests"]) == 2
+    with (output_directory / "per_chunk.csv").open(
+        encoding="utf-8", newline=""
+    ) as handle:
+        chunks = list(csv.DictReader(handle))
+    assert [item["policy_inference_attempted"] for item in chunks] == [
+        "True",
+        "True",
+    ]
+    assert audit["requests"][0]["exterior_image_sha256"] == chunks[0][
+        "exterior_image_sha256"
+    ]
+    summary = (output_directory / "summary.md").read_text("utf-8")
+    assert f"Policy provenance: `{LOOPBACK_POLICY_PROVENANCE}`" in summary
+    assert "No learned checkpoint produced these actions" in summary

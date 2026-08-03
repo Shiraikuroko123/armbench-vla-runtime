@@ -38,6 +38,8 @@ performance or certified safety.
 - Immutable Python data contracts for DROID observations and action chunks.
 - A bounded WebSocket transport using official OpenPI MessagePack serialization,
   including round-trip, refusal, stalled-inference, and real-server probe paths.
+- A one-command local OpenPI loopback that exercises the real wire/client/runtime
+  path and independently audits request hashes without claiming learned inference.
 - A stateful runtime guard with sequence/age checks, deadline latch/reset,
   action bounds, joint limits, sampled mesh-edge lookahead, backtracking, and
   hold fallback.

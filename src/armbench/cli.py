@@ -25,6 +25,7 @@ from armbench.vla.online_benchmark import (
     execute_openpi_online_run,
     execute_vla_online_benchmark,
 )
+from armbench.vla.loopback import execute_openpi_loopback_run
 
 
 def _validate(config_path: Path) -> int:
@@ -267,6 +268,33 @@ def build_parser() -> argparse.ArgumentParser:
         help="record the live MuJoCo episode as MP4",
     )
 
+    vla_loopback = subparsers.add_parser(
+        "vla-loopback-run",
+        help="exercise the OpenPI wire path with a non-learned local server",
+    )
+    vla_loopback.add_argument(
+        "--config", type=Path, default=Path("configs/vla_guard_benchmark.json")
+    )
+    vla_loopback.add_argument(
+        "--output-directory", type=Path, required=True
+    )
+    vla_loopback.add_argument(
+        "--scenario",
+        choices=("single_block", "narrow_gate"),
+        default="single_block",
+    )
+    vla_loopback.add_argument(
+        "--horizon", type=int, choices=range(1, 16), default=5
+    )
+    vla_loopback.add_argument("--payload", type=float, default=0.0)
+    vla_loopback.add_argument("--max-policy-queries", type=int, default=3)
+    vla_loopback.add_argument("--prompt")
+    vla_loopback.add_argument(
+        "--video",
+        action="store_true",
+        help="record the live MuJoCo episode as MP4",
+    )
+
     vla_probe = subparsers.add_parser(
         "vla-probe",
         help="send one MuJoCo observation to a real remote OpenPI server",
@@ -402,6 +430,23 @@ def main(arguments: list[str] | None = None) -> int:
             api_key=os.environ.get(args.api_key_env),
             connect_timeout_s=args.connect_timeout_s,
             inference_timeout_s=args.inference_timeout_s,
+            make_video=args.video,
+        )
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-loopback-run":
+        if args.max_policy_queries <= 0:
+            parser.error("--max-policy-queries must be positive")
+        config = load_vla_config(args.config)
+        prompt = args.prompt or str(dict(config["prompts"])[args.scenario])
+        output = execute_openpi_loopback_run(
+            args.config,
+            args.output_directory,
+            scenario_name=args.scenario,
+            execution_horizon=args.horizon,
+            payload_mass=args.payload,
+            max_policy_queries=args.max_policy_queries,
+            prompt=prompt,
             make_video=args.video,
         )
         print(f"results: {output.resolve()}")
