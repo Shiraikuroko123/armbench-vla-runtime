@@ -1,0 +1,176 @@
+{
+  "conditions": [
+    {
+      "latency_schedule_ms": [
+        0.0,
+        40.0,
+        80.0,
+        160.0
+      ],
+      "name": "fresh_safe_jitter",
+      "stream": "planner_safe"
+    },
+    {
+      "latency_ms": 50.0,
+      "name": "fresh_collision_fault",
+      "stream": "direct_unsafe"
+    },
+    {
+      "latency_schedule_ms": [
+        0.0,
+        40.0,
+        80.0,
+        240.0
+      ],
+      "name": "mixed_deadline_jitter",
+      "stream": "planner_safe"
+    }
+  ],
+  "direct_stream": {
+    "steps": 45
+  },
+  "execution": {
+    "controller_dt_s": 0.01,
+    "goal_tolerance_rad": 0.05,
+    "hold_s": 1.0,
+    "kd": 2.0,
+    "kp": 5.0,
+    "render_cases": [
+      {
+        "condition": "fresh_collision_fault",
+        "mode": "unguarded",
+        "scenario": "single_block"
+      },
+      {
+        "condition": "fresh_collision_fault",
+        "mode": "guarded",
+        "scenario": "single_block"
+      },
+      {
+        "condition": "fresh_safe_jitter",
+        "mode": "guarded",
+        "scenario": "narrow_gate"
+      }
+    ],
+    "video_fps": 30,
+    "warmup_s": 0.3
+  },
+  "guard": {
+    "backtracking_scales": [
+      1.0,
+      0.75,
+      0.5,
+      0.25,
+      0.0
+    ],
+    "clearance_m": 0.02,
+    "collision_resolution_rad": 0.02,
+    "deadline_ms": 200.0,
+    "joint_acceleration_clip_rad_s2": 15.0,
+    "joint_velocity_clip_rad_s": 1.0,
+    "latch_on_deadline": true,
+    "latch_on_state_mismatch": true,
+    "max_state_mismatch_rad": 0.05
+  },
+  "modes": [
+    "unguarded",
+    "guarded"
+  ],
+  "observation_guard": {
+    "min_image_std": 5.0,
+    "motion_threshold_rad": 0.005
+  },
+  "online": {
+    "controller_dt_s": 0.01,
+    "execution_horizons": [
+      1,
+      5,
+      15
+    ],
+    "goal_tolerance_rad": 0.05,
+    "hold_s": 0.3,
+    "kd": [
+      22.0,
+      22.0,
+      18.0,
+      18.0,
+      12.0,
+      8.0,
+      6.0
+    ],
+    "kp": [
+      120.0,
+      120.0,
+      100.0,
+      100.0,
+      60.0,
+      40.0,
+      30.0
+    ],
+    "max_extra_actions": 15,
+    "payload_masses_kg": [
+      0.0,
+      0.5
+    ],
+    "policy_latency_ms": 0.0,
+    "warmup_s": 0.1
+  },
+  "online_selected": {
+    "artifact_schema_version": 5,
+    "camera_freeze_query": null,
+    "camera_freeze_target": null,
+    "execution_horizons": [
+      15
+    ],
+    "make_videos": true,
+    "payload_masses_kg": [
+      0.0
+    ],
+    "policy_latency_ms": 0.0,
+    "policy_latency_schedule_ms": [
+      0.0
+    ],
+    "scenarios": [
+      "single_block"
+    ],
+    "state_jump_query": null,
+    "state_jump_rad": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "openpi_contract": {
+    "action_dim": 8,
+    "action_horizon": 15,
+    "control_hz": 15.0,
+    "local_action_source": "scripted_non_learned",
+    "model_config": "pi05_droid",
+    "upstream_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac"
+  },
+  "prompts": {
+    "narrow_gate": "move the gripper through the red obstacles to the goal",
+    "single_block": "move the gripper to the goal without touching the red obstacle"
+  },
+  "safe_stream": {
+    "planner": {
+      "goal_sample_rate": 0.05,
+      "max_iterations": 2000,
+      "step_size": 0.35,
+      "timeout_s": 2.0
+    },
+    "planning_seed": 0,
+    "shortcut_attempts": 150,
+    "speed_scale": 0.1
+  },
+  "scenario_version": "2.0-mujoco",
+  "scenarios": [
+    "single_block",
+    "narrow_gate"
+  ],
+  "schema_version": 2
+}

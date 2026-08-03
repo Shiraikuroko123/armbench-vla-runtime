@@ -109,6 +109,24 @@ This uses `scripted_non_learned_reference`, not a learned checkpoint. It proves
 the online observation/action/physics loop and feedback-horizon instrumentation,
 not pi0/pi0.5 task performance.
 
+## Verified camera-freeze result
+
+The matched schema-v5 artifacts were generated from source commit `5a14c61`.
+The nominal horizon-15 episode used 16 observation cycles and 16 policy calls,
+produced 16 unique hashes from each camera, reached the goal, and remained safe.
+Changing only observation cycle 1 to replay both preceding images yielded two
+observation cycles but one policy call: the guard rejected both repeated frames
+before inference, latched hold, and remained physically safe without claiming
+task success.
+
+| Input | Observation cycles | Policy calls | Observation rejects | Task | Safe |
+|---|---:|---:|---:|---:|---:|
+| Live cameras | 16 | 16 | 0 | yes | yes |
+| Both cameras replayed at cycle 1 | 2 | 1 | 1 | no | yes |
+
+This is an exact-replay fault test with a scripted policy, not a learned
+uncertainty result or general camera-fault guarantee.
+
 ## Verified fault-response result
 
 The formal artifact was generated from source commit `b6996ed` on 2026-08-03:
@@ -141,6 +159,9 @@ but incomplete episode is not counted as task success.
 - [State-mismatch fail-closed video](evidence/vla_online_visual_state_jump_20260804/videos/single_block__payload_0kg__horizon_15.mp4)
 - [Below-deadline online jitter](evidence/vla_online_jitter_safe_20260804/summary.md)
 - [Fourth-query deadline fallback](evidence/vla_online_jitter_deadline_20260804/summary.md)
+- [Nominal per-query camera audit](evidence/vla_online_camera_nominal_20260804/summary.md)
+- [Pre-inference frozen-camera rejection](evidence/vla_online_camera_freeze_20260804/summary.md)
+- [Frozen-camera fail-closed video](evidence/vla_online_camera_freeze_20260804/videos/single_block__payload_0kg__horizon_15.mp4)
 - [Unsafe direct action chunk](evidence/vla_guard_formal_20260803/videos/single_block__fresh_collision_fault__unguarded.mp4)
 - [Same fault with runtime guard](evidence/vla_guard_formal_20260803/videos/single_block__fresh_collision_fault__guarded.mp4)
 - [Safe jitter stream through the narrow gate](evidence/vla_guard_formal_20260803/videos/narrow_gate__fresh_safe_jitter__guarded.mp4)

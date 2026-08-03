@@ -127,6 +127,11 @@ the observation before policy inference and latches hold. A deterministic frozen
 camera test therefore has two observation cycles but only one policy query. This
 detects exact replay, not every possible stale or corrupted image.
 
+The tracked matched evidence is concrete: nominal execution produced 16 unique
+hashes per camera and completed, while replaying both cycle-0 frames at cycle 1
+produced one observation rejection and only one policy call. The rejection run
+remained contact-free but intentionally did not complete the task.
+
 ### Is the guard guaranteed safe?
 
 No. Configuration contacts use MuJoCo meshes, but edge validation samples joint

@@ -92,6 +92,35 @@ The safe-jitter environment snapshot lists only `MJMODEL.TXT`; the deadline
 snapshot additionally lists the previously generated safe-jitter directory.
 Neither records a modified source file.
 
+### Pre-inference camera-replay contrast
+
+Source commit: `5a14c613221d4842a6f2a50a56c4de4d81a22e55`. Both runs use
+the same `single_block`, zero-payload, horizon-15 reference-policy setup and
+schema-v5 observation audit. The only changed variable is whether observation
+cycle 1 replays both frames from cycle 0.
+
+| Input | Observation cycles | Policy queries | Unique exterior/wrist hashes | Rejects | Termination | Goal error rad | Task | Safe |
+|---|---:|---:|---:|---:|---|---:|---:|---:|
+| Live cameras | 16 | 16 | 16/16 | 0 | `goal_reached` | 0.00015 | yes | yes |
+| Both frames replayed at cycle 1 | 2 | 1 | 1/1 | 1 | `runtime_fallback:observation_validation` | 1.24075 | no | yes |
+
+In the [replay artifact](../evidence/vla_online_camera_freeze_20260804/summary.md),
+the second `per_chunk.csv` row has the same two SHA-256 values as the first row,
+zero mean absolute pixel delta, both `*_frame_replayed` flags, and
+`policy_inference_attempted=false`. The
+[nominal artifact](../evidence/vla_online_camera_nominal_20260804/summary.md)
+has 16 unique hashes per camera and no observation rejection. Aggregate
+SHA-256 values are respectively
+`3AAFBCF669FC74A0A88AF0E2627DA9428EB953C024AF233984FA217D6766C632`
+for replay and
+`13F9CEC7CAA1169640C2D8821881F9243C51084131983EE9DF6925ECBC26AF55`
+for nominal.
+
+Both environment snapshots list only the pre-existing untracked `MJMODEL.TXT`
+and no modified source file. Both MP4 files decode at `640x480`; they were
+captured from the same physics loops. This establishes exact replay detection
+before policy inference, not general image freshness or semantic correctness.
+
 ## OpenPI-contract fault-response result
 
 ### Provenance
