@@ -105,9 +105,9 @@ smoothness, and task success.
 
 No. Configuration contacts use MuJoCo meshes, but edge validation samples joint
 interpolation at 0.02 rad resolution. Physics can deviate from the predicted
-path, and no acceleration/jerk constraint or formal reachable set is present.
-The evidence is zero contact in fixed cases, not a theorem or safety
-certification.
+path. The runtime bounds command-space acceleration, but it has no jerk bound,
+dynamics-level reachable set, or formal proof. The evidence is zero contact in
+fixed cases, not a theorem or safety certification.
 
 ### Why does the collision guard fail the task?
 
@@ -170,7 +170,7 @@ Do not claim:
 - model training, fine-tuning, or DROID/LIBERO dataset evaluation;
 - analytic continuous collision detection;
 - OS-level hard real-time scheduling;
-- acceleration/jerk constraints;
+- jerk constraints or dynamics-verified acceleration guarantees;
 - Isaac Lab, ROS2, `libfranka`, or real-robot deployment;
 - formal or certified safety.
 

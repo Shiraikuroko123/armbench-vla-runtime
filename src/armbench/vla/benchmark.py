@@ -137,6 +137,9 @@ def _guard_config(config: dict[str, object]) -> GuardConfig:
         deadline_ms=float(raw["deadline_ms"]),
         max_state_mismatch_rad=float(raw.get("max_state_mismatch_rad", 0.05)),
         joint_velocity_clip_rad_s=float(raw["joint_velocity_clip_rad_s"]),
+        joint_acceleration_clip_rad_s2=float(
+            raw.get("joint_acceleration_clip_rad_s2", 15.0)
+        ),
         latch_on_deadline=bool(raw["latch_on_deadline"]),
         latch_on_state_mismatch=bool(
             raw.get("latch_on_state_mismatch", True)
@@ -397,6 +400,19 @@ def _protect_stream(
                             "state_mismatch_rad": result.state_mismatch_rad,
                             "fallback_latched": result.fallback_latched,
                             "fallback_reason": result.fallback_reason,
+                            "raw_acceleration_safe": (
+                                step.raw_acceleration_safe
+                            ),
+                            "selected_acceleration_safe": (
+                                step.selected_acceleration_safe
+                            ),
+                            "acceleration_limited": step.acceleration_limited,
+                            "max_raw_acceleration_rad_s2": (
+                                step.max_raw_acceleration_rad_s2
+                            ),
+                            "max_selected_acceleration_rad_s2": (
+                                step.max_selected_acceleration_rad_s2
+                            ),
                             "raw_safe": step.raw_safe,
                             "repaired_safe": step.repaired_safe,
                             "intervened": step.intervened,
@@ -433,6 +449,10 @@ def _protect_stream(
                         "unsafe_raw_steps": None,
                         "intervention_steps": 0,
                         "hold_steps": 0,
+                        "slew_limited_steps": None,
+                        "acceleration_override_steps": None,
+                        "max_raw_acceleration_rad_s2": None,
+                        "max_guarded_acceleration_rad_s2": None,
                         "safe_after_guard": None,
                     }
                 )
@@ -452,6 +472,11 @@ def _protect_stream(
                             "state_mismatch_rad": 0.0,
                             "fallback_latched": False,
                             "fallback_reason": None,
+                            "raw_acceleration_safe": None,
+                            "selected_acceleration_safe": None,
+                            "acceleration_limited": None,
+                            "max_raw_acceleration_rad_s2": None,
+                            "max_selected_acceleration_rad_s2": None,
                             "raw_safe": None,
                             "repaired_safe": None,
                             "intervened": False,
@@ -755,6 +780,30 @@ def execute_vla_guard_benchmark(
                     fallback_latched_chunks = sum(
                         bool(row["fallback_latched"]) for row in guard_rows
                     )
+                    slew_limited_steps = (
+                        sum(
+                            int(row["slew_limited_steps"] or 0)
+                            for row in guard_rows
+                        )
+                        if mode_name == "guarded"
+                        else None
+                    )
+                    acceleration_override_steps = (
+                        sum(
+                            int(row["acceleration_override_steps"] or 0)
+                            for row in guard_rows
+                        )
+                        if mode_name == "guarded"
+                        else None
+                    )
+                    max_guarded_acceleration = (
+                        max(
+                            float(row["max_guarded_acceleration_rad_s2"])
+                            for row in guard_rows
+                        )
+                        if mode_name == "guarded"
+                        else None
+                    )
                     guard_latencies = [
                         float(row["guard_latency_ms"]) for row in guard_rows
                     ]
@@ -794,6 +843,13 @@ def execute_vla_guard_benchmark(
                             physical_robot, resolution=0.02
                         ).path_is_valid(positions),
                         "intervention_steps": intervention_steps,
+                        "slew_limited_steps": slew_limited_steps,
+                        "acceleration_override_steps": (
+                            acceleration_override_steps
+                        ),
+                        "max_guarded_acceleration_rad_s2": (
+                            max_guarded_acceleration
+                        ),
                         "deadline_chunks": deadline_chunks,
                         "fallback_latched_chunks": fallback_latched_chunks,
                         "guard_latency_p50_ms": float(

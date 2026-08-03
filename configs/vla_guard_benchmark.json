@@ -24,6 +24,7 @@
     "deadline_ms": 200.0,
     "max_state_mismatch_rad": 0.05,
     "joint_velocity_clip_rad_s": 1.0,
+    "joint_acceleration_clip_rad_s2": 15.0,
     "latch_on_deadline": true,
     "latch_on_state_mismatch": true,
     "backtracking_scales": [

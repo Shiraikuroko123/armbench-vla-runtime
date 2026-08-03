@@ -341,6 +341,114 @@ def test_state_mismatch_holds_and_latches_until_resynchronization() -> None:
     assert recovered.hold_steps == 0
 
 
+def test_guard_limits_velocity_slew_with_cross_chunk_state() -> None:
+    scenario = mujoco_scenarios()["single_block"]
+    robot = MuJoCoPanda.create(obstacles=())
+    guard = ActionChunkGuard(
+        MuJoCoCollisionChecker(robot),
+        GuardConfig(
+            control_dt_s=0.1,
+            joint_velocity_clip_rad_s=1.0,
+            joint_acceleration_clip_rad_s2=2.0,
+        ),
+    )
+    observation = _observation(scenario.start)
+    first_actions = np.zeros((2, 8))
+    first_actions[:, 7] = 1.0
+    first_actions[0, 0] = 1.0
+    first_actions[1, 0] = -1.0
+    first_chunk = ActionChunk(
+        actions=first_actions,
+        source="openpi_remote",
+        observation_sequence_id=observation.sequence_id,
+        inference_latency_ms=10.0,
+        received_at_s=observation.captured_at_s + 0.01,
+    )
+
+    first = guard.guard(scenario.start, 1.0, observation, first_chunk)
+
+    np.testing.assert_allclose(first.guarded_actions[:, 0], [0.2, 0.0])
+    assert first.slew_limited_steps == 2
+    assert first.acceleration_override_steps == 0
+    assert first.max_guarded_acceleration_rad_s2 == pytest.approx(2.0)
+    assert {step.reason for step in first.steps} == {"slew_rate_repaired"}
+    assert first.safe_after_guard
+
+    second_observation = _observation(
+        first.predicted_positions[-1], captured_at_s=101.0
+    )
+    second_actions = np.zeros((1, 8))
+    second_actions[0, 0] = 1.0
+    second_actions[0, 7] = 1.0
+    second_chunk = ActionChunk(
+        actions=second_actions,
+        source="openpi_remote",
+        observation_sequence_id=second_observation.sequence_id,
+        inference_latency_ms=10.0,
+        received_at_s=101.01,
+    )
+
+    second = guard.guard(
+        first.predicted_positions[-1],
+        1.0,
+        second_observation,
+        second_chunk,
+    )
+    assert second.guarded_actions[0, 0] == pytest.approx(0.2)
+
+    guard.reset(previous_joint_velocity=np.full(7, 0.6))
+    reset_observation = _observation(
+        second.predicted_positions[-1], captured_at_s=102.0
+    )
+    reset_chunk_actions = -np.ones((1, 8))
+    reset_chunk_actions[:, 7] = 1.0
+    reset_chunk = ActionChunk(
+        actions=reset_chunk_actions,
+        source="openpi_remote",
+        observation_sequence_id=reset_observation.sequence_id,
+        inference_latency_ms=10.0,
+        received_at_s=102.01,
+    )
+    after_reset = guard.guard(
+        second.predicted_positions[-1],
+        1.0,
+        reset_observation,
+        reset_chunk,
+    )
+    np.testing.assert_allclose(after_reset.guarded_actions[0, :7], 0.4)
+
+
+def test_guard_applies_robot_velocity_limits_to_executed_action() -> None:
+    scenario = mujoco_scenarios()["single_block"]
+    robot = MuJoCoPanda.create(obstacles=())
+    guard = ActionChunkGuard(
+        MuJoCoCollisionChecker(robot),
+        GuardConfig(
+            joint_velocity_clip_rad_s=3.0,
+            joint_acceleration_clip_rad_s2=100.0,
+        ),
+    )
+    observation = _observation(scenario.start)
+    actions = np.zeros((1, 8))
+    actions[0, 0] = 2.5
+    actions[0, 7] = 1.0
+    chunk = ActionChunk(
+        actions=actions,
+        source="openpi_remote",
+        observation_sequence_id=observation.sequence_id,
+        inference_latency_ms=10.0,
+        received_at_s=observation.captured_at_s + 0.01,
+    )
+
+    result = guard.guard(scenario.start, 1.0, observation, chunk)
+
+    assert result.guarded_actions[0, 0] == pytest.approx(
+        robot.velocity_limits[0]
+    )
+    assert result.steps[0].reason == "action_bounds_repaired"
+    assert result.intervention_steps == 1
+
+
 def test_vla_benchmark_writes_honest_reproducible_artifact(
     tmp_path: Path,
 ) -> None:
@@ -382,6 +490,8 @@ def test_vla_benchmark_writes_honest_reproducible_artifact(
     assert environment["packages"]["openpi-client"] != "not-installed"
     guarded = next(row for row in rows if row["mode"] == "guarded")
     assert guarded["intervention_steps"] > 0
+    assert guarded["max_guarded_acceleration_rad_s2"] <= 15.0 + 1e-9
+    assert guarded["acceleration_override_steps"] == 0
     assert guarded["executed_kinematic_valid"] is True
     assert (run_directory / guarded["external_image"]).is_file()
     assert (run_directory / guarded["wrist_image"]).is_file()

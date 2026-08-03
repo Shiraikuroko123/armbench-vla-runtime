@@ -20,6 +20,7 @@ class GuardConfig:
     deadline_ms: float = 200.0
     max_state_mismatch_rad: float = 0.05
     joint_velocity_clip_rad_s: float = 1.0
+    joint_acceleration_clip_rad_s2: float = 15.0
     latch_on_deadline: bool = True
     latch_on_state_mismatch: bool = True
     backtracking_scales: tuple[float, ...] = (1.0, 0.75, 0.5, 0.25, 0.0)
@@ -34,6 +35,13 @@ class GuardConfig:
             raise ValueError("max_state_mismatch_rad must be finite and nonnegative")
         if self.joint_velocity_clip_rad_s <= 0.0:
             raise ValueError("joint_velocity_clip_rad_s must be positive")
+        if (
+            self.joint_acceleration_clip_rad_s2 <= 0.0
+            or not np.isfinite(self.joint_acceleration_clip_rad_s2)
+        ):
+            raise ValueError(
+                "joint_acceleration_clip_rad_s2 must be finite and positive"
+            )
         if not self.backtracking_scales or self.backtracking_scales[-1] != 0.0:
             raise ValueError("backtracking scales must end with a hold action")
         if any(
@@ -53,6 +61,12 @@ class GuardStep:
     intervened: bool
     scale: float
     reason: str
+    raw_acceleration_safe: bool
+    selected_acceleration_safe: bool
+    acceleration_limited: bool
+    max_raw_acceleration_rad_s2: float
+    max_selected_acceleration_rad_s2: float
+    holding: bool
     q_before: FloatArray
     q_after: FloatArray
 
@@ -83,11 +97,30 @@ class GuardResult:
 
     @property
     def hold_steps(self) -> int:
-        return sum(step.scale == 0.0 for step in self.steps)
+        return sum(step.holding and step.scale == 0.0 for step in self.steps)
+
+    @property
+    def slew_limited_steps(self) -> int:
+        return sum(step.acceleration_limited for step in self.steps)
+
+    @property
+    def acceleration_override_steps(self) -> int:
+        return sum(not step.selected_acceleration_safe for step in self.steps)
+
+    @property
+    def max_raw_acceleration_rad_s2(self) -> float:
+        return max(step.max_raw_acceleration_rad_s2 for step in self.steps)
+
+    @property
+    def max_guarded_acceleration_rad_s2(self) -> float:
+        return max(step.max_selected_acceleration_rad_s2 for step in self.steps)
 
     @property
     def safe_after_guard(self) -> bool:
-        return all(step.repaired_safe for step in self.steps)
+        return all(
+            step.repaired_safe and step.selected_acceleration_safe
+            for step in self.steps
+        )
 
     def metrics(self) -> dict[str, object]:
         return {
@@ -105,6 +138,12 @@ class GuardResult:
             "unsafe_raw_steps": self.unsafe_raw_steps,
             "intervention_steps": self.intervention_steps,
             "hold_steps": self.hold_steps,
+            "slew_limited_steps": self.slew_limited_steps,
+            "acceleration_override_steps": self.acceleration_override_steps,
+            "max_raw_acceleration_rad_s2": self.max_raw_acceleration_rad_s2,
+            "max_guarded_acceleration_rad_s2": (
+                self.max_guarded_acceleration_rad_s2
+            ),
             "safe_after_guard": self.safe_after_guard,
         }
 
@@ -121,12 +160,28 @@ class ActionChunkGuard:
         self.config = config
         self._deadline_latched = False
         self._state_mismatch_latched = False
+        self._previous_velocity = np.zeros(7, dtype=float)
 
-    def reset(self) -> None:
+    def reset(self, previous_joint_velocity: ArrayLike | None = None) -> None:
         """Clear latched fallbacks after an explicit runtime resynchronization."""
 
         self._deadline_latched = False
         self._state_mismatch_latched = False
+        if previous_joint_velocity is None:
+            self._previous_velocity = np.zeros(7, dtype=float)
+            return
+        velocity = np.asarray(previous_joint_velocity, dtype=float)
+        if velocity.shape != (7,) or not np.all(np.isfinite(velocity)):
+            raise ValueError("previous_joint_velocity must be a finite 7-vector")
+        if np.any(np.abs(velocity) > self._velocity_limits() + 1e-12):
+            raise ValueError("previous_joint_velocity exceeds configured limits")
+        self._previous_velocity = velocity.copy()
+
+    def _velocity_limits(self) -> FloatArray:
+        return np.minimum(
+            self.checker.robot.velocity_limits,
+            self.config.joint_velocity_clip_rad_s,
+        )
 
     def _candidate_failure(self, q_start: FloatArray, q_end: FloatArray) -> str | None:
         failure = self.checker.configuration_failure(q_end)
@@ -137,12 +192,7 @@ class ActionChunkGuard:
         return None
 
     def _integrate(self, q: FloatArray, joint_velocity: FloatArray) -> FloatArray:
-        velocity = np.clip(
-            joint_velocity,
-            -self.checker.robot.velocity_limits,
-            self.checker.robot.velocity_limits,
-        )
-        return q + self.config.control_dt_s * velocity
+        return q + self.config.control_dt_s * joint_velocity
 
     def guard(
         self,
@@ -187,6 +237,12 @@ class ActionChunkGuard:
         positions = [q.copy()]
         records: list[GuardStep] = []
         current_gripper = float(gripper_position)
+        previous_velocity = self._previous_velocity.copy()
+        velocity_limits = self._velocity_limits()
+        max_velocity_delta = (
+            self.config.joint_acceleration_clip_rad_s2
+            * self.config.control_dt_s
+        )
 
         for index, raw_action in enumerate(chunk.actions):
             q_before = q.copy()
@@ -194,20 +250,31 @@ class ActionChunkGuard:
             raw_gripper = float(raw_action[7])
             finite = bool(np.all(np.isfinite(raw_action)))
             bounded = finite and bool(
-                np.all(
-                    np.abs(raw_velocity)
-                    <= self.config.joint_velocity_clip_rad_s + 1e-12
-                )
+                np.all(np.abs(raw_velocity) <= velocity_limits + 1e-12)
             )
             gripper_bounded = finite and 0.0 <= raw_gripper <= 1.0
+            max_raw_acceleration = (
+                float(
+                    np.max(np.abs(raw_velocity - previous_velocity))
+                    / self.config.control_dt_s
+                )
+                if finite
+                else float("inf")
+            )
+            raw_acceleration_safe = (
+                finite
+                and max_raw_acceleration
+                <= self.config.joint_acceleration_clip_rad_s2 + 1e-12
+            )
             raw_candidate = (
                 self._integrate(q, raw_velocity) if finite else q.copy()
             )
-            raw_failure = (
-                self._candidate_failure(q, raw_candidate)
-                if finite and bounded and gripper_bounded
-                else "nonfinite_or_action_bounds"
-            )
+            if not finite or not bounded or not gripper_bounded:
+                raw_failure = "nonfinite_or_action_bounds"
+            elif not raw_acceleration_safe:
+                raw_failure = "joint_acceleration_limit"
+            else:
+                raw_failure = self._candidate_failure(q, raw_candidate)
             raw_safe = raw_failure is None and not fallback_active
 
             selected_scale = 0.0
@@ -219,15 +286,24 @@ class ActionChunkGuard:
             selected_q = q.copy()
             selected_gripper = current_gripper
             repaired_safe = True
+            acceleration_limited = False
             if not fallback_active and finite:
                 clipped_velocity = np.clip(
                     raw_velocity,
-                    -self.config.joint_velocity_clip_rad_s,
-                    self.config.joint_velocity_clip_rad_s,
+                    -velocity_limits,
+                    velocity_limits,
                 )
                 clipped_gripper = float(np.clip(raw_gripper, 0.0, 1.0))
+                slew_lower = previous_velocity - max_velocity_delta
+                slew_upper = previous_velocity + max_velocity_delta
                 for scale in self.config.backtracking_scales:
-                    candidate_velocity = clipped_velocity * scale
+                    scaled_velocity = clipped_velocity * scale
+                    candidate_velocity = np.clip(
+                        scaled_velocity, slew_lower, slew_upper
+                    )
+                    candidate_velocity = np.clip(
+                        candidate_velocity, -velocity_limits, velocity_limits
+                    )
                     candidate_q = self._integrate(q, candidate_velocity)
                     failure = self._candidate_failure(q, candidate_q)
                     if failure is None:
@@ -235,9 +311,20 @@ class ActionChunkGuard:
                         selected_velocity = candidate_velocity
                         selected_q = candidate_q
                         selected_gripper = clipped_gripper
-                        if raw_safe and scale == 1.0:
+                        acceleration_limited = not np.allclose(
+                            candidate_velocity, scaled_velocity, atol=1e-12
+                        )
+                        if raw_safe and scale == 1.0 and not acceleration_limited:
                             selected_reason = "accepted"
-                        elif raw_failure is None:
+                        elif (
+                            raw_failure == "joint_acceleration_limit"
+                            and scale == 1.0
+                        ):
+                            selected_reason = "slew_rate_repaired"
+                        elif (
+                            raw_failure == "nonfinite_or_action_bounds"
+                            and scale == 1.0
+                        ):
                             selected_reason = "action_bounds_repaired"
                         else:
                             selected_reason = f"backtracked:{raw_failure}"
@@ -246,10 +333,20 @@ class ActionChunkGuard:
                     repaired_safe = False
                     selected_reason = "no_safe_fallback"
 
+            max_selected_acceleration = float(
+                np.max(np.abs(selected_velocity - previous_velocity))
+                / self.config.control_dt_s
+            )
+            selected_acceleration_safe = (
+                max_selected_acceleration
+                <= self.config.joint_acceleration_clip_rad_s2 + 1e-12
+            )
+
             guarded[index, :7] = selected_velocity
             guarded[index, 7] = selected_gripper
             q = selected_q
             current_gripper = selected_gripper
+            previous_velocity = selected_velocity.copy()
             positions.append(q.copy())
             records.append(
                 GuardStep(
@@ -259,10 +356,19 @@ class ActionChunkGuard:
                     intervened=not raw_safe or selected_scale != 1.0,
                     scale=selected_scale,
                     reason=selected_reason,
+                    raw_acceleration_safe=raw_acceleration_safe,
+                    selected_acceleration_safe=selected_acceleration_safe,
+                    acceleration_limited=acceleration_limited,
+                    max_raw_acceleration_rad_s2=max_raw_acceleration,
+                    max_selected_acceleration_rad_s2=(
+                        max_selected_acceleration
+                    ),
+                    holding=bool(np.all(np.abs(selected_velocity) <= 1e-12)),
                     q_before=q_before,
                     q_after=q.copy(),
                 )
             )
+        self._previous_velocity = previous_velocity.copy()
         return GuardResult(
             source=chunk.source,
             deadline_exceeded=deadline_exceeded,

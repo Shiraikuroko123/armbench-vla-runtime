@@ -131,7 +131,8 @@ action inspect:
 
 - `raw_velocity` and `raw_gripper`;
 - `raw_failure`;
-- `deadline_exceeded`, `fallback_latched`, and `deadline_fallback`;
+- `deadline_exceeded`, `state_mismatch_rad`, and `fallback_reason`;
+- `previous_velocity`, `max_raw_acceleration`, and `candidate_velocity`;
 - each `scale` in `(1.0, 0.75, 0.5, 0.25, 0.0)`;
 - `q_before`, `candidate_q`, and `selected_q`;
 - `configuration_failure` and `edge_is_valid` in the MuJoCo checker.
@@ -142,13 +143,17 @@ Action-level reasons have these meanings:
 |---|---|
 | `accepted` | raw command passed all configured checks |
 | `action_bounds_repaired` | value was clipped into the command bounds |
+| `slew_rate_repaired` | velocity was limited relative to the previous command |
 | `backtracked:<failure>` | velocity was scaled to make the edge valid |
 | `deadline` | this chunk crossed the 200 ms threshold |
 | `deadline_latched` | an earlier miss keeps the episode in hold |
+| `state_mismatch` | execution state differs from the policy observation |
+| `state_mismatch_latched` | an earlier state mismatch keeps the episode in hold |
 | `guard_disabled` | unguarded comparison; no safety conclusion was computed |
 
-Call `guard.reset()` only after explicit resynchronization or a new episode. Do
-not clear the latch merely because a later server reply is fast.
+Call `guard.reset(previous_joint_velocity=measured_velocity)` only after explicit
+resynchronization, or `guard.reset()` for a stationary new episode. Do not clear
+the latch merely because a later server reply is fast.
 
 ## 7. Separate predicted safety from physical safety
 

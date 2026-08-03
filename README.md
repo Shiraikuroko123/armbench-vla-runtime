@@ -35,8 +35,8 @@ ActionChunkPolicy.infer(observation)
   7 joint-velocity commands + 1 gripper-position command
               |
               v
-deadline -> latched hold until explicit reset
-velocity/gripper bounds -> joint limits -> mesh-edge lookahead
+deadline/state mismatch -> latched hold until explicit reset
+velocity/gripper bounds -> acceleration slew limit -> joint/mesh-edge checks
 unsafe action -> backtrack 1.0 / 0.75 / 0.5 / 0.25 / hold
               |
               v
@@ -61,8 +61,9 @@ velocity limits. The final value is a normalized gripper position.
 - A real local WebSocket/MessagePack protocol test using the official client,
   plus `vla-probe` for a real remote OpenPI checkpoint.
 - Training-free action-chunk assurance: end-to-end deadline checking, a latched
-  hold state, velocity/gripper clipping, Panda joint limits, 20 mm planning
-  clearance, sampled MuJoCo mesh-edge checks, and action backtracking.
+  hold state, observation/execution state consistency, velocity/gripper clipping,
+  cross-chunk acceleration limiting, Panda joint limits, 20 mm planning clearance,
+  sampled MuJoCo mesh-edge checks, and action backtracking.
 - Reproducible jitter schedules (`0/40/80/160 ms`) and a mixed schedule with a
   `240 ms` deadline miss. A deadline miss latches the runtime in hold until an
   explicit reset; silently resuming an old open-loop stream is forbidden.
@@ -252,7 +253,8 @@ results/<run_id>/
 - Collision checking uses exact MuJoCo mesh contacts at configurations and
   joint interpolation at 0.02 rad resolution along edges. It is not analytic
   continuous collision detection or a formal safety certificate.
-- The guard limits velocity but does not yet enforce acceleration or jerk.
+- The guard limits commanded velocity slew to a configured acceleration bound;
+  it does not constrain jerk or prove acceleration tracking in the dynamics.
 - The deadline is a runtime policy threshold, not an operating-system hard
   real-time guarantee.
 - Results are MuJoCo simulation on two spherical-obstacle scenes, not a real

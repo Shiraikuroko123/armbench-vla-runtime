@@ -154,7 +154,9 @@ comparison but too small for a broad algorithmic superiority claim.
 Random shortcutting accepts a replacement only after checking the complete new
 edge and revalidates the final path. First-order time parameterization limits
 each joint velocity using the slowest joint in a segment. It does not constrain
-acceleration or jerk.
+acceleration or jerk. The VLA runtime adds a separate command-space acceleration
+limit while validating action chunks; this does not change the planner's
+first-order trajectory parameterization.
 
 The `nominal_fast` profile runs at 35% of Panda velocity limits. The matched
 `nominal_slow` and `clearance_slow` profiles both use 10%; their only planning
@@ -239,6 +241,6 @@ There is no real robot adapter, ROS2 node, `libfranka` integration, emergency
 stop, safety PLC, or hardware-in-the-loop result. Environments are spherical,
 and there is no tracked real pi0/pi0.5 checkpoint rollout. The current jitter is
 a deterministic injected schedule; dropped/corrupted frames, OS-level hard
-real-time scheduling, arbitrary workcell meshes, acceleration/jerk constraints,
-uncertainty calibration, cross-model comparison, and real-Panda experiments are
-future work.
+real-time scheduling, arbitrary workcell meshes, jerk constraints,
+dynamics-level acceleration guarantees, uncertainty calibration, cross-model
+comparison, and real-Panda experiments are future work.
