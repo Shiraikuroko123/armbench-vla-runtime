@@ -32,7 +32,7 @@ from armbench.vla.online import (
 )
 from armbench.vla.policy import OpenPIPolicyClient
 
-ONLINE_ARTIFACT_SCHEMA_VERSION = 3
+ONLINE_ARTIFACT_SCHEMA_VERSION = 4
 
 
 def _online_config(config: dict[str, object]) -> dict[str, object]:
@@ -261,6 +261,34 @@ def _write_episode_artifacts(
         client_inference_latencies_ms=np.asarray(
             [record.client_inference_latency_ms for record in result.chunks]
         ),
+        exterior_image_sha256=np.asarray(
+            [record.exterior_image_sha256 for record in result.chunks]
+        ),
+        wrist_image_sha256=np.asarray(
+            [record.wrist_image_sha256 for record in result.chunks]
+        ),
+        exterior_frame_delta_mean_abs=np.asarray(
+            [
+                np.nan
+                if record.exterior_frame_delta_mean_abs is None
+                else record.exterior_frame_delta_mean_abs
+                for record in result.chunks
+            ]
+        ),
+        wrist_frame_delta_mean_abs=np.asarray(
+            [
+                np.nan
+                if record.wrist_frame_delta_mean_abs is None
+                else record.wrist_frame_delta_mean_abs
+                for record in result.chunks
+            ]
+        ),
+        exterior_image_thumbnails=np.asarray(
+            [record.exterior_thumbnail for record in result.chunks]
+        ),
+        wrist_image_thumbnails=np.asarray(
+            [record.wrist_thumbnail for record in result.chunks]
+        ),
         raw_action_chunks=raw_action_chunks,
         guarded_action_chunks=guarded_action_chunks,
         predicted_position_chunks=np.asarray(
@@ -454,6 +482,11 @@ def execute_vla_online_benchmark(
         "online_physics_feedback": True,
         "artifact_schema_version": ONLINE_ARTIFACT_SCHEMA_VERSION,
         "camera_recapture_per_query": True,
+        "camera_observation_audit": {
+            "full_frame_hash": "sha256",
+            "frame_delta": "mean_abs_uint8",
+            "thumbnail_shape": [16, 16, 3],
+        },
         "policy_provenance": "scripted_non_learned_reference",
         "remote_policy_response_validated": False,
         "checkpoint_identity_verified": False,
@@ -778,6 +811,11 @@ def execute_openpi_online_run(
         "online_physics_feedback": True,
         "artifact_schema_version": ONLINE_ARTIFACT_SCHEMA_VERSION,
         "camera_recapture_per_query": True,
+        "camera_observation_audit": {
+            "full_frame_hash": "sha256",
+            "frame_delta": "mean_abs_uint8",
+            "thumbnail_shape": [16, 16, 3],
+        },
         "remote_openpi_transport": True,
         "remote_policy_response_validated": remote_policy_response_validated,
         "checkpoint_identity_verified": False,

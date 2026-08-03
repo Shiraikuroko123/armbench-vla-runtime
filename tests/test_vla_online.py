@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 from pathlib import Path
 import threading
@@ -144,6 +145,17 @@ def test_online_episode_reobserves_actual_mujoco_state_each_action() -> None:
     assert result.chunks[0].raw_actions.shape == (15, 8)
     assert result.chunks[0].guarded_actions.shape == (15, 8)
     assert result.chunks[0].server_timing == {}
+    assert len(result.chunks[0].exterior_image_sha256) == 64
+    assert len(result.chunks[0].wrist_image_sha256) == 64
+    assert result.chunks[0].exterior_frame_delta_mean_abs is None
+    assert result.chunks[0].wrist_frame_delta_mean_abs is None
+    assert result.chunks[0].exterior_thumbnail.shape == (16, 16, 3)
+    assert result.chunks[0].wrist_thumbnail.shape == (16, 16, 3)
+    assert all(
+        record.exterior_frame_delta_mean_abs is not None
+        for record in result.chunks[1:]
+    )
+    assert len({record.exterior_image_sha256 for record in result.chunks}) > 1
     assert len(result.chunks[0].action_reasons) == 15
     assert result.chunks[0].predicted_positions.shape == (16, 7)
     assert result.physical_safe
@@ -452,12 +464,15 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     assert len(rows) == 1
     row = rows[0]
     assert row["online_physics_feedback"] is True
-    assert row["artifact_schema_version"] == 3
+    assert row["artifact_schema_version"] == 4
     assert row["camera_recapture_per_query"] is True
     assert row["remote_policy_response_validated"] is False
     assert row["checkpoint_identity_verified"] is False
     assert row["policy_source"] == "scripted_non_learned_reference"
     assert row["policy_queries"] > 1
+    assert row["camera_audit_queries"] == row["policy_queries"]
+    assert row["unique_exterior_observation_hashes"] > 1
+    assert row["unique_wrist_observation_hashes"] > 1
     assert row["fault_injections"] == 0
     assert row["state_mismatch_chunks"] == 0
     assert row["policy_latency_schedule_ms"] == [0.0]
@@ -467,15 +482,48 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     assert environment["vla_online"]["openpi_contract"]["model_config"] == (
         "pi05_droid"
     )
-    assert environment["vla_online"]["artifact_schema_version"] == 3
+    assert environment["vla_online"]["artifact_schema_version"] == 4
+    assert environment["vla_online"]["camera_observation_audit"] == {
+        "frame_delta": "mean_abs_uint8",
+        "full_frame_hash": "sha256",
+        "thumbnail_shape": [16, 16, 3],
+    }
     assert (run_directory / row["external_image"]).is_file()
     assert (run_directory / row["trace"]).is_file()
     assert row["video_path"] is not None
     assert (run_directory / row["video_path"]).stat().st_size > 3000
     with np.load(run_directory / row["trace"]) as trace:
+        query_count = row["policy_queries"]
         assert trace["raw_action_chunks"].shape[1:] == (15, 8)
         assert trace["guarded_action_chunks"].shape[1:] == (15, 8)
         assert trace["predicted_position_chunks"].shape[1:] == (16, 7)
+        assert trace["exterior_image_sha256"].shape == (query_count,)
+        assert trace["wrist_image_sha256"].shape == (query_count,)
+        assert trace["exterior_image_thumbnails"].shape == (
+            query_count,
+            16,
+            16,
+            3,
+        )
+        assert trace["wrist_image_thumbnails"].shape == (
+            query_count,
+            16,
+            16,
+            3,
+        )
+        assert np.isnan(trace["exterior_frame_delta_mean_abs"][0])
+        first_exterior = imageio.imread(run_directory / row["external_image"])
+        assert str(trace["exterior_image_sha256"][0]) == hashlib.sha256(
+            first_exterior.tobytes(order="C")
+        ).hexdigest()
+    with (run_directory / "per_chunk.csv").open(
+        encoding="utf-8", newline=""
+    ) as handle:
+        chunk_rows = list(csv.DictReader(handle))
+    assert len(chunk_rows) == row["policy_queries"]
+    assert all(len(item["exterior_image_sha256"]) == 64 for item in chunk_rows)
+    assert chunk_rows[0]["exterior_frame_delta_mean_abs"] == ""
+    assert all(item["exterior_frame_delta_mean_abs"] for item in chunk_rows[1:])
     with (run_directory / "per_action.csv").open(
         encoding="utf-8", newline=""
     ) as handle:
@@ -575,7 +623,7 @@ def test_remote_openpi_online_run_uses_network_policy_in_feedback_loop(
     rows = json.loads((output_directory / "aggregate.json").read_text("utf-8"))
     row = rows[0]
     assert row["remote_inference_attempted"] is True
-    assert row["artifact_schema_version"] == 3
+    assert row["artifact_schema_version"] == 4
     assert row["remote_policy_response_validated"] is True
     assert row["checkpoint_identity_verified"] is False
     assert row["validated_remote_chunks"] == 2

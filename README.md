@@ -79,6 +79,9 @@ velocity limits. The final value is a normalized gripper position.
 - A live receding-horizon loop that executes 1, 5, or 15 actions, advances
   torque-controlled MuJoCo, and recaptures actual state plus both cameras before
   every subsequent query.
+- Per-query SHA-256 camera fingerprints, adjacent-frame pixel deltas, and compact
+  16x16 RGB thumbnail sequences so re-observation can be audited without storing
+  every full-resolution frame.
 
 ## Verified online feedback result
 
@@ -313,7 +316,7 @@ Start with [`docs/DEBUGGING.md`](docs/DEBUGGING.md). The important VLA files are
 
 | Question | Artifact / code |
 |---|---|
-| What did the policy receive? | `observations/*.png`, `VLAObservation.to_openpi_droid` |
+| What did the policy receive? | `observations/*.png`, per-query hashes/thumbnails, `VLAObservation.to_openpi_droid` |
 | Did the server reply correctly? | `OpenPIPolicyClient.infer`, `probe.json`, online `per_chunk.csv` |
 | Which chunk missed its deadline? | `per_chunk.csv` |
 | Was state really recaptured online? | online `per_chunk.csv` observation states and NPZ action offsets |
@@ -329,11 +332,11 @@ results/<run_id>/
   summary.md
   aggregate.json
   per_case.csv                task, safety, contact, latency, intervention metrics
-  per_chunk.csv               deadline/latch and guard timings
+  per_chunk.csv               deadline/latch, camera hashes/deltas, guard timings
   per_action.csv              raw/guarded action, reason, scale, executed flag
   observations/*.png
   videos/*.mp4
-  <case>.npz                  raw/executed actions and predicted/actual states
+  <case>.npz                  actions, states, camera hashes/deltas/thumbnails
   run.log
 ```
 

@@ -95,11 +95,14 @@ reason. A positive `max_policy_queries` budget can bound remote inference cost;
 reaching it causes a pose hold and is reported as `query_budget`.
 When enabled, online MP4 frames are rendered during these same physics steps
 from the exterior camera. They are not reconstructed later from joint traces.
-Online artifact schema version 3 also normalizes every checked action into
+Online artifact schema version 4 also normalizes every checked action into
 `per_action.csv`. The `executed` field separates the action prefix applied to
 physics from the unexecuted remainder that was only validated; raw/guarded
 values, intervention reason/scale, and predicted before/after state remain
-query-addressable.
+query-addressable. Every query also records SHA-256 for both full RGB frames and
+the mean absolute pixel delta from the preceding query. The NPZ stores matching
+16x16 RGB thumbnail sequences, preserving low-cost visual audit evidence without
+retaining every full 224x224 frame.
 
 `vla-openpi-run` replaces the reference policy with the bounded transport built
 on official OpenPI serialization while retaining the same live physics loop. It

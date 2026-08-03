@@ -184,12 +184,15 @@ Only after the probe passes, test the bounded closed loop:
 
 Inspect `summary.md`, then `per_chunk.csv`. Check
 `validated_policy_response`, `client_inference_latency_ms`,
-`policy_latency_ms`, `server_timing`, raw/guarded actions, and
+`policy_latency_ms`, `server_timing`, both image SHA-256 values, adjacent-frame
+pixel deltas, raw/guarded actions, and
 `termination_reason`. `remote_policy_response_validated=true` requires at least
 one validated `15x8` reply. If the connection succeeds but inference times out or
 returns a malformed chunk, the supervisor advances simulated time for the wait,
 executes a latched hold, and writes a failure artifact with the field set to
 false. A connection/handshake failure occurs before an output directory exists.
+The NPZ trace contains a 16x16 RGB thumbnail from both cameras for every query;
+use it to debug observation order without loading full-size frame sequences.
 
 ## 6. Debug the runtime guard
 

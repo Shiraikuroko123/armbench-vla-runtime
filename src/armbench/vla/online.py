@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+import hashlib
 from pathlib import Path
 from time import monotonic
 
@@ -25,6 +26,37 @@ from armbench.vla.types import ActionChunk, VLAObservation
 
 FloatArray = NDArray[np.float64]
 UInt8Array = NDArray[np.uint8]
+OBSERVATION_THUMBNAIL_SHAPE = (16, 16, 3)
+
+
+def _image_sha256(image: UInt8Array) -> str:
+    return hashlib.sha256(image.tobytes(order="C")).hexdigest()
+
+
+def _mean_abs_image_delta(
+    image: UInt8Array, previous: UInt8Array | None
+) -> float | None:
+    if previous is None:
+        return None
+    difference = image.astype(np.int16) - previous.astype(np.int16)
+    return float(np.mean(np.abs(difference)))
+
+
+def _image_thumbnail(image: UInt8Array) -> UInt8Array:
+    height, width, channels = image.shape
+    target_height, target_width, target_channels = OBSERVATION_THUMBNAIL_SHAPE
+    if channels != target_channels:
+        raise ValueError("observation image must have three channels")
+    if height % target_height or width % target_width:
+        raise ValueError("observation image cannot be evenly downsampled")
+    blocks = image.reshape(
+        target_height,
+        height // target_height,
+        target_width,
+        width // target_width,
+        channels,
+    )
+    return np.rint(blocks.mean(axis=(1, 3))).astype(np.uint8)
 
 
 class _OnlineVideoRecorder:
@@ -184,6 +216,12 @@ class OnlineChunkRecord:
     state_mismatch_rad: float
     fault_injected: bool
     injected_state_jump_rad: FloatArray
+    exterior_image_sha256: str
+    wrist_image_sha256: str
+    exterior_frame_delta_mean_abs: float | None
+    wrist_frame_delta_mean_abs: float | None
+    exterior_thumbnail: UInt8Array
+    wrist_thumbnail: UInt8Array
     policy_latency_ms: float
     client_inference_latency_ms: float
     validated_policy_response: bool
@@ -216,6 +254,12 @@ class OnlineChunkRecord:
             "state_mismatch_rad": self.state_mismatch_rad,
             "fault_injected": self.fault_injected,
             "injected_state_jump_rad": self.injected_state_jump_rad.tolist(),
+            "exterior_image_sha256": self.exterior_image_sha256,
+            "wrist_image_sha256": self.wrist_image_sha256,
+            "exterior_frame_delta_mean_abs": (
+                self.exterior_frame_delta_mean_abs
+            ),
+            "wrist_frame_delta_mean_abs": self.wrist_frame_delta_mean_abs,
             "policy_latency_ms": self.policy_latency_ms,
             "client_inference_latency_ms": self.client_inference_latency_ms,
             "validated_policy_response": self.validated_policy_response,
@@ -274,6 +318,16 @@ class OnlineEpisodeResult:
             [record.client_inference_latency_ms for record in self.chunks],
             dtype=float,
         )
+        exterior_deltas = [
+            record.exterior_frame_delta_mean_abs
+            for record in self.chunks
+            if record.exterior_frame_delta_mean_abs is not None
+        ]
+        wrist_deltas = [
+            record.wrist_frame_delta_mean_abs
+            for record in self.chunks
+            if record.wrist_frame_delta_mean_abs is not None
+        ]
         return {
             "scenario": self.scenario,
             "execution_horizon": self.execution_horizon,
@@ -299,6 +353,19 @@ class OnlineEpisodeResult:
             "fault_injections": self.fault_injections,
             "executed_interventions": self.executed_interventions,
             "simulated_inference_wait_s": self.simulated_inference_wait_s,
+            "camera_audit_queries": len(self.chunks),
+            "unique_exterior_observation_hashes": len(
+                {record.exterior_image_sha256 for record in self.chunks}
+            ),
+            "unique_wrist_observation_hashes": len(
+                {record.wrist_image_sha256 for record in self.chunks}
+            ),
+            "min_exterior_frame_delta_mean_abs": (
+                min(exterior_deltas) if exterior_deltas else None
+            ),
+            "min_wrist_frame_delta_mean_abs": (
+                min(wrist_deltas) if wrist_deltas else None
+            ),
             "video_path": self.video_path,
             "mean_policy_latency_ms": float(np.mean(end_to_end_latencies)),
             "p95_policy_latency_ms": float(
@@ -576,6 +643,12 @@ def run_online_episode(
                 prompt=task_prompt,
                 sequence_id=action_offset,
             )
+            exterior_delta = _mean_abs_image_delta(
+                observation.exterior_image, last_exterior
+            )
+            wrist_delta = _mean_abs_image_delta(
+                observation.wrist_image, last_wrist
+            )
             if first_exterior is None:
                 first_exterior = observation.exterior_image.copy()
                 first_wrist = observation.wrist_image.copy()
@@ -795,6 +868,20 @@ def run_online_episode(
                         np.any(np.abs(injected_state_jump) > 0.0)
                     ),
                     injected_state_jump_rad=injected_state_jump.copy(),
+                    exterior_image_sha256=_image_sha256(
+                        observation.exterior_image
+                    ),
+                    wrist_image_sha256=_image_sha256(
+                        observation.wrist_image
+                    ),
+                    exterior_frame_delta_mean_abs=exterior_delta,
+                    wrist_frame_delta_mean_abs=wrist_delta,
+                    exterior_thumbnail=_image_thumbnail(
+                        observation.exterior_image
+                    ),
+                    wrist_thumbnail=_image_thumbnail(
+                        observation.wrist_image
+                    ),
                     policy_latency_ms=policy_latency_ms,
                     client_inference_latency_ms=client_inference_latency_ms,
                     validated_policy_response=validated_policy_response,
