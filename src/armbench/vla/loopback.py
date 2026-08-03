@@ -171,6 +171,11 @@ class OpenPIProtocolLoopbackServer:
                 return
             started = perf_counter()
             try:
+                if not isinstance(packed_request, bytes):
+                    raise ValueError("loopback request payload must be binary")
+                request_payload_sha256 = hashlib.sha256(
+                    packed_request
+                ).hexdigest()
                 request = self._validated_request(
                     msgpack_numpy.unpackb(packed_request)
                 )
@@ -196,6 +201,8 @@ class OpenPIProtocolLoopbackServer:
                     "request_index": request_index,
                     "prompt": request["prompt"],
                     "joint_position": np.asarray(request["q"]).tolist(),
+                    "gripper_position": float(request["gripper"]),
+                    "request_payload_sha256": request_payload_sha256,
                     "exterior_image_sha256": hashlib.sha256(
                         np.asarray(request["exterior"]).tobytes(order="C")
                     ).hexdigest(),

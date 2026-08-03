@@ -31,6 +31,7 @@ from armbench.vla.loopback import (
     LOOPBACK_FAULT_MODES,
     execute_openpi_loopback_run,
 )
+from armbench.vla.request_replay import load_recorded_openpi_request
 
 
 def _validate(config_path: Path) -> int:
@@ -414,6 +415,18 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="decode and inspect the first frame of every recorded MP4",
     )
+
+    vla_request = subparsers.add_parser(
+        "vla-request-inspect",
+        help="reconstruct and hash one recorded OpenPI DROID request",
+    )
+    vla_request.add_argument("directory", type=Path)
+    vla_request.add_argument("--query", type=int, default=0)
+    vla_request.add_argument("--scenario")
+    vla_request.add_argument("--payload", type=float)
+    vla_request.add_argument(
+        "--horizon", type=int, choices=range(1, 16)
+    )
     return parser
 
 
@@ -589,6 +602,16 @@ def main(arguments: list[str] | None = None) -> int:
             args.directory, decode_videos=args.decode_videos
         )
         print(json.dumps(result.metrics(), indent=2, ensure_ascii=False))
+        return 0
+    if args.command == "vla-request-inspect":
+        request = load_recorded_openpi_request(
+            args.directory,
+            query_index=args.query,
+            scenario=args.scenario,
+            payload_mass=args.payload,
+            execution_horizon=args.horizon,
+        )
+        print(json.dumps(request.metrics(), indent=2, ensure_ascii=False))
         return 0
     planning_seeds = parse_seed_spec(args.seeds) if args.seeds else None
     control_seeds = (

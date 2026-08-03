@@ -114,6 +114,22 @@
       "justMyCode": true
     },
     {
+      "name": "ArmBench: inspect recorded OpenPI request",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "armbench",
+      "args": [
+        "vla-request-inspect",
+        "${input:requestArtifactDirectory}",
+        "--query",
+        "0"
+      ],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "ArmBench: OpenPI loopback timeout fault",
       "type": "debugpy",
       "request": "launch",
@@ -236,6 +252,12 @@
       "type": "promptString",
       "description": "New OpenPI wire fault matrix directory name",
       "default": "openpi_fault_matrix_01"
+    },
+    {
+      "id": "requestArtifactDirectory",
+      "type": "promptString",
+      "description": "Recorded online artifact directory",
+      "default": "results/openpi_loopback_01"
     },
     {
       "id": "openpiOnlineRunId",

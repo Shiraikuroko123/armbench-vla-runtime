@@ -349,6 +349,20 @@ hashes, deltas, 16x16 thumbnails, and first/last PNGs. Budget approximately
 301 KiB uncompressed per query for two RGB images before NPZ compression, so
 enable it selectively for debug/evidence runs rather than every large sweep.
 
+Inspect and byte-verify one complete recorded DROID request:
+
+```powershell
+& $ArmbenchPython -m armbench vla-request-inspect `
+  'results\openpi_loopback_001' --query 0
+```
+
+New runs also store per-query joint state, gripper state, prompt, and sequence.
+The command reconstructs the exact five-key request, repacks it with the official
+OpenPI serializer, and compares its payload SHA-256 with the server-received
+payload when a loopback audit is present. `replayable_requests` is nonzero only
+when complete images and request metadata both exist. Older schema-v5 evidence
+remains valid but is not retroactively labeled request-replayable.
+
 Inject a deterministic response or transport failure through the same socket
 path:
 
@@ -397,7 +411,8 @@ JSON, CSV, and NPZ files; verifies action, query, safety, camera-hash, thumbnail
 and saved-image fields; and reports the SHA-256 of `aggregate.json`. Add
 `--decode-videos` to decode the first frame of every referenced MP4. A successful
 result ends with `"valid": true`; `full_observation_frames` reports how many
-original camera inputs were present and rehashed. Any missing, malformed, or
+original camera inputs were present and rehashed, while `replayable_requests`
+requires aligned image/state/gripper/prompt fields. Any missing, malformed, or
 inconsistent field exits with an error. This detects accidental corruption and
 incomplete evidence, not intentional tampering or physical safety.
 

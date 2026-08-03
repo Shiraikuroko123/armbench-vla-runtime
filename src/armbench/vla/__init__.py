@@ -33,6 +33,10 @@ from armbench.vla.policy import (
     ScriptedActionChunkPolicy,
 )
 from armbench.vla.runtime import RuntimeDecision, RuntimeFailure, VLARuntimeSupervisor
+from armbench.vla.request_replay import (
+    RecordedOpenPIRequest,
+    load_recorded_openpi_request,
+)
 from armbench.vla.types import ActionChunk, VLAObservation
 
 __all__ = [
@@ -55,6 +59,7 @@ __all__ = [
     "ObservationGuardConfig",
     "ObservationRejectedError",
     "ReferenceActionChunkPolicy",
+    "RecordedOpenPIRequest",
     "RuntimeDecision",
     "RuntimeFailure",
     "ScriptedActionChunkPolicy",
@@ -64,5 +69,6 @@ __all__ = [
     "execute_openpi_loopback_run",
     "execute_loopback_fault_matrix",
     "run_online_episode",
+    "load_recorded_openpi_request",
     "validate_online_artifact",
 ]

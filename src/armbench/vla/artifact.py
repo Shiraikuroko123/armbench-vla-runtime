@@ -27,6 +27,7 @@ class ArtifactValidationResult:
     policy_queries: int
     action_rows: int
     full_observation_frames: int
+    replayable_requests: int
     videos_decoded: int
     aggregate_sha256: str
     checks: tuple[str, ...]
@@ -40,6 +41,7 @@ class ArtifactValidationResult:
             "policy_queries": self.policy_queries,
             "action_rows": self.action_rows,
             "full_observation_frames": self.full_observation_frames,
+            "replayable_requests": self.replayable_requests,
             "videos_decoded": self.videos_decoded,
             "aggregate_sha256": self.aggregate_sha256,
             "checks": list(self.checks),
@@ -176,6 +178,8 @@ def validate_online_artifact(
     videos_decoded = 0
     failure_audit_traces = 0
     full_observation_frames = 0
+    request_metadata_traces = 0
+    replayable_requests = 0
     for row, episode_key in zip(rows, row_keys, strict=True):
         chunks = [item for item in chunk_rows if _key(item) == episode_key]
         actions = [item for item in action_rows if _key(item) == episode_key]
@@ -228,6 +232,9 @@ def validate_online_artifact(
                 guarded = np.asarray(trace["guarded_action_chunks"])
                 raw = np.asarray(trace["raw_action_chunks"])
                 predicted = np.asarray(trace["predicted_position_chunks"])
+                observation_positions = np.asarray(
+                    trace["observation_positions"]
+                )
                 attempted = np.asarray(trace["policy_inference_attempted"])
                 exterior_hashes = np.asarray(trace["exterior_image_sha256"])
                 wrist_hashes = np.asarray(trace["wrist_image_sha256"])
@@ -275,6 +282,29 @@ def validate_online_artifact(
                     if present_full_image_fields
                     else None
                 )
+                request_metadata_fields = (
+                    "observation_gripper_positions",
+                    "prompts",
+                )
+                present_request_metadata_fields = {
+                    field
+                    for field in request_metadata_fields
+                    if field in trace.files
+                }
+                _require(
+                    not present_request_metadata_fields
+                    or present_request_metadata_fields
+                    == set(request_metadata_fields),
+                    f"incomplete request metadata trace for {episode_key}",
+                )
+                request_metadata_values = (
+                    {
+                        field: np.asarray(trace[field])
+                        for field in request_metadata_fields
+                    }
+                    if present_request_metadata_fields
+                    else None
+                )
         except (OSError, KeyError, ValueError) as error:
             raise ArtifactValidationError(
                 f"invalid NPZ trace for {episode_key}"
@@ -282,6 +312,11 @@ def validate_online_artifact(
         _require(guarded.shape == (cycles, 15, 8), "guarded action shape mismatch")
         _require(raw.shape == (cycles, 15, 8), "raw action shape mismatch")
         _require(predicted.shape == (cycles, 16, 7), "prediction shape mismatch")
+        _require(
+            observation_positions.shape == (cycles, 7)
+            and np.all(np.isfinite(observation_positions)),
+            f"observation position trace mismatch for {episode_key}",
+        )
         _require(attempted.shape == (cycles,), "attempted-query shape mismatch")
         _require(
             int(np.count_nonzero(attempted)) == policy_queries,
@@ -358,6 +393,41 @@ def validate_online_artifact(
                     f"{field} trace mismatch for {episode_key}",
                 )
             failure_audit_traces += 1
+        if request_metadata_values is not None:
+            grippers = request_metadata_values[
+                "observation_gripper_positions"
+            ]
+            prompts = request_metadata_values["prompts"]
+            _require(
+                grippers.shape == (cycles, 1)
+                and np.all(np.isfinite(grippers))
+                and np.all((grippers >= 0.0) & (grippers <= 1.0)),
+                f"observation gripper trace mismatch for {episode_key}",
+            )
+            _require(
+                prompts.shape == (cycles,)
+                and all(str(prompt).strip() for prompt in prompts),
+                f"prompt trace mismatch for {episode_key}",
+            )
+            _require(
+                np.allclose(
+                    grippers[:, 0],
+                    [
+                        float(item["observation_gripper_position"])
+                        for item in chunks
+                    ],
+                    rtol=0.0,
+                    atol=0.0,
+                ),
+                f"observation gripper CSV/NPZ mismatch for {episode_key}",
+            )
+            _require(
+                prompts.tolist() == [item["prompt"] for item in chunks],
+                f"prompt CSV/NPZ mismatch for {episode_key}",
+            )
+            request_metadata_traces += 1
+            if full_image_values is not None:
+                replayable_requests += cycles
         _require(
             len(set(csv_exterior_hashes))
             == int(row["unique_exterior_observation_hashes"]),
@@ -427,6 +497,10 @@ def validate_online_artifact(
         checks += ("failure_audit_aligned",)
     if full_observation_frames:
         checks += ("full_observation_frames_hashed",)
+    if request_metadata_traces == len(rows):
+        checks += ("request_metadata_aligned",)
+    if replayable_requests:
+        checks += ("openpi_requests_replayable",)
     checks += (("videos_decoded",) if decode_videos else ())
     return ArtifactValidationResult(
         directory=str(root),
@@ -436,6 +510,7 @@ def validate_online_artifact(
         policy_queries=total_policy_queries,
         action_rows=len(action_rows),
         full_observation_frames=full_observation_frames,
+        replayable_requests=replayable_requests,
         videos_decoded=videos_decoded,
         aggregate_sha256=aggregate_sha256,
         checks=checks,

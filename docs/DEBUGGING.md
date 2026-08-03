@@ -98,6 +98,19 @@ With `--save-observations`, the NPZ additionally contains
 `exterior_images` and `wrist_images` with shape `(queries, 224, 224, 3)` and
 `uint8` dtype. Rehash any indexed frame and compare it with the same
 `per_chunk.csv` row before debugging policy behavior.
+It also stores `observation_gripper_positions` and `prompts`; joint positions and
+sequence/action offsets are already query-addressable. To inspect the exact
+five-key request without printing image arrays:
+
+```powershell
+& $ArmbenchPython -m armbench vla-request-inspect `
+  'results\debug_online_01' `
+  --scenario single_block --payload 0 --horizon 15 --query 0
+```
+
+For a loopback artifact, `server_payload_matches=true` proves the reconstructed
+MessagePack bytes hash to the same value observed by the local server. A remote
+artifact has no server-side hash unless you preserve one separately.
 Use online `per_action.csv` to distinguish the checked 15-action tail from the
 prefix that was actually sent to physics. Filter `executed=True`, then inspect
 `raw_action`, `guarded_action`, `reason`, `scale`, `q_before`, and `q_after`.
@@ -159,6 +172,8 @@ frame-count mismatch. Put a breakpoint in
 `vla/artifact.py: validate_online_artifact` when a run is complete but one
 evidence file disagrees. `valid=true` establishes internal artifact consistency,
 not checkpoint identity or certified safety.
+`replayable_requests=0` is not a validation failure: it means optional complete
+images or request metadata were not recorded, as in older schema-v5 artifacts.
 
 ## 4. Debug the observation boundary
 

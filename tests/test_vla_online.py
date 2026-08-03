@@ -39,6 +39,7 @@ from armbench.vla.observation_guard import (
     ObservationRejectedError,
     VLAObservationGuard,
 )
+from armbench.vla.request_replay import load_recorded_openpi_request
 from armbench.vla.types import ActionChunk, VLAObservation
 
 
@@ -684,6 +685,12 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
         )
         assert trace["exterior_images"].dtype == np.uint8
         assert trace["wrist_images"].dtype == np.uint8
+        assert trace["observation_gripper_positions"].shape == (
+            query_count,
+            1,
+        )
+        assert trace["prompts"].shape == (query_count,)
+        assert all(str(prompt).strip() for prompt in trace["prompts"])
         assert np.isnan(trace["exterior_frame_delta_mean_abs"][0])
         first_exterior = imageio.imread(run_directory / row["external_image"])
         assert str(trace["exterior_image_sha256"][0]) == hashlib.sha256(
@@ -718,6 +725,7 @@ def test_online_benchmark_writes_auditable_artifact(tmp_path: Path) -> None:
     assert validation.observation_cycles == row["observation_cycles"]
     assert validation.policy_queries == row["policy_queries"]
     assert validation.full_observation_frames == row["policy_queries"] * 2
+    assert validation.replayable_requests == row["policy_queries"]
     assert validation.videos_decoded == 1
     assert len(validation.aggregate_sha256) == 64
 
@@ -953,6 +961,7 @@ def test_loopback_cli_backend_exercises_complete_remote_policy_path(
         scenario_name="single_block",
         execution_horizon=1,
         max_policy_queries=2,
+        record_full_observations=True,
     )
 
     row = json.loads(
@@ -979,6 +988,8 @@ def test_loopback_cli_backend_exercises_complete_remote_policy_path(
     assert audit["request_count"] == 2
     assert audit["checkpoint_identity_verified"] is False
     assert len(audit["requests"]) == 2
+    assert audit["requests"][0]["gripper_position"] == pytest.approx(1.0)
+    assert len(audit["requests"][0]["request_payload_sha256"]) == 64
     with (output_directory / "per_chunk.csv").open(
         encoding="utf-8", newline=""
     ) as handle:
@@ -993,6 +1004,42 @@ def test_loopback_cli_backend_exercises_complete_remote_policy_path(
     summary = (output_directory / "summary.md").read_text("utf-8")
     assert f"Policy provenance: `{LOOPBACK_POLICY_PROVENANCE}`" in summary
     assert "No learned checkpoint produced these actions" in summary
+    recorded = load_recorded_openpi_request(output_directory, query_index=0)
+    assert recorded.server_payload_matches is True
+    assert recorded.packed_payload_sha256 == audit["requests"][0][
+        "request_payload_sha256"
+    ]
+    request = recorded.openpi_request()
+    assert list(request) == [
+        "observation/exterior_image_1_left",
+        "observation/wrist_image_left",
+        "observation/joint_position",
+        "observation/gripper_position",
+        "prompt",
+    ]
+    assert request["observation/exterior_image_1_left"].shape == (
+        224,
+        224,
+        3,
+    )
+    assert request["observation/gripper_position"].shape == (1,)
+
+    trace_path = output_directory / row["trace"]
+    with np.load(trace_path, allow_pickle=False) as trace:
+        trace_arrays = {key: trace[key] for key in trace.files}
+    changed_prompt = str(trace_arrays["prompts"][0]).replace("move", "push")
+    trace_arrays["prompts"] = trace_arrays["prompts"].copy()
+    trace_arrays["prompts"][0] = changed_prompt
+    np.savez_compressed(trace_path, **trace_arrays)
+    chunks[0]["prompt"] = changed_prompt
+    with (output_directory / "per_chunk.csv").open(
+        "w", encoding="utf-8", newline=""
+    ) as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(chunks[0]))
+        writer.writeheader()
+        writer.writerows(chunks)
+    with pytest.raises(ValueError, match="repacked OpenPI payload"):
+        load_recorded_openpi_request(output_directory, query_index=0)
 
 
 @pytest.mark.parametrize(
@@ -1081,6 +1128,7 @@ def test_loopback_wire_faults_fail_closed_with_auditable_artifact(
     assert audit["request_count"] == 1
     assert audit["requests"][0]["injected_fault"] == fault_mode
     assert audit["requests"][0]["server_outcome"] == server_outcome
+    assert len(audit["requests"][0]["request_payload_sha256"]) == 64
     summary = (output_directory / "summary.md").read_text("utf-8")
     assert f"Loopback fault injection: `{fault_mode}`" in summary
 
@@ -1089,6 +1137,7 @@ def test_loopback_wire_faults_fail_closed_with_auditable_artifact(
     assert validation.policy_queries == 1
     assert validation.action_rows == 15
     assert validation.full_observation_frames == 2
+    assert validation.replayable_requests == 1
     with np.load(output_directory / row["trace"]) as trace:
         assert trace["failure_stages"].tolist() == ["policy_inference"]
         assert trace["failure_types"].tolist() == [failure_type]

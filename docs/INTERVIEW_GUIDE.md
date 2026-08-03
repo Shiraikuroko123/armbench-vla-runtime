@@ -59,6 +59,9 @@ performance or certified safety.
   reasons, scales, predicted/actual states, images, plots, and videos.
 - Opt-in exact dual-camera query recording for offline input replay, with every
   224x224 frame rehashed against the per-chunk wire audit.
+- A complete DROID request loader that aligns images, joint/gripper state,
+  prompt, and sequence, then verifies repacked MessagePack bytes against the
+  server-received payload SHA when loopback evidence is available.
 - Client-visible failure stage, exception type, and bounded message mirrored
   between per-chunk CSV and NPZ traces for remote-server diagnosis.
 - A schema-v5 artifact validator that cross-checks JSON/CSV/NPZ counts, camera
@@ -161,6 +164,12 @@ For selected debug/evidence runs, `--save-observations` also stores both origina
 224x224 frames for every query. The validator recomputes all hashes, so these
 runs support exact input inspection rather than only freshness evidence. It is
 opt-in because full sweeps can otherwise spend hundreds of megabytes on images.
+
+Do not call images alone a replayable request. A request is reported replayable
+only when both images, joint state, gripper state, prompt, and sequence metadata
+align. In a loopback run, the strongest check is equality between the SHA-256 of
+the reconstructed official MessagePack payload and the raw payload received by
+the server.
 
 The tracked matched evidence is concrete: nominal execution produced 16 unique
 hashes per camera and completed, while replaying both cycle-0 frames at cycle 1

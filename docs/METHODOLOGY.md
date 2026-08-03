@@ -120,6 +120,14 @@ and a SHA-256 match for every frame. The lightweight default retains hashes,
 frame deltas, 16x16 thumbnails, and first/last full PNGs but cannot exactly
 replay every policy input.
 
+Every new online trace also stores the observed seven-joint vector, normalized
+gripper scalar, prompt, and sequence/action offset per query. When full images
+are present, `vla-request-inspect` reconstructs the exact five-key DROID mapping
+and packs it with official OpenPI MessagePack serialization. The loopback server
+hashes the raw received payload before unpacking; equality with the reconstructed
+payload hash provides a byte-level round trip. Older artifacts lacking gripper
+or prompt arrays remain schema-valid but report zero replayable requests.
+
 `vla-openpi-run` replaces the reference policy with the bounded transport built
 on official OpenPI serialization while retaining the same live physics loop. It
 records server metadata and separates attempted remote calls from validated

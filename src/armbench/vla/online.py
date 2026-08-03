@@ -237,6 +237,8 @@ class OnlineChunkRecord:
     action_offset: int
     executed_horizon: int
     observation_q: FloatArray
+    observation_gripper_position: float
+    prompt: str
     dispatch_q: FloatArray
     actual_q_after: FloatArray
     decision_status: str
@@ -330,6 +332,8 @@ class OnlineChunkRecord:
             "supervisor_latency_ms": self.supervisor_latency_ms,
             "raw_action_available": self.raw_actions is not None,
             "observation_q": self.observation_q.tolist(),
+            "observation_gripper_position": self.observation_gripper_position,
+            "prompt": self.prompt,
             "dispatch_q": self.dispatch_q.tolist(),
             "actual_q_after": self.actual_q_after.tolist(),
         }
@@ -945,6 +949,10 @@ def run_online_episode(
                     action_offset=action_offset,
                     executed_horizon=execute_count,
                     observation_q=observation.joint_position.copy(),
+                    observation_gripper_position=float(
+                        observation.gripper_position[0]
+                    ),
+                    prompt=observation.prompt,
                     dispatch_q=dispatch_q.copy(),
                     actual_q_after=data.qpos[arm_qpos].copy(),
                     decision_status=decision.status,

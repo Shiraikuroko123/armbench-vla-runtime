@@ -280,6 +280,13 @@ def _write_episode_artifacts(
         observation_positions=np.asarray(
             [record.observation_q for record in result.chunks]
         ),
+        observation_gripper_positions=np.asarray(
+            [
+                [record.observation_gripper_position]
+                for record in result.chunks
+            ]
+        ),
+        prompts=np.asarray([record.prompt for record in result.chunks]),
         dispatch_positions=np.asarray(
             [record.dispatch_q for record in result.chunks]
         ),
