@@ -9,7 +9,11 @@ import imageio.v2 as imageio
 import numpy as np
 import pytest
 
-from armbench.vla.probe_comparison import execute_recorded_probe_comparison
+from armbench.vla.probe_comparison import (
+    ProbeComparisonValidationError,
+    execute_recorded_probe_comparison,
+    validate_recorded_probe_comparison,
+)
 from armbench.vla.replay_probe import validate_recorded_openpi_probe
 
 
@@ -151,6 +155,11 @@ def test_compare_validated_probes_with_same_request(tmp_path: Path) -> None:
     summary = (output / "summary.md").read_text(encoding="utf-8")
     assert "labels are user-supplied" in summary
     assert "Physics executed: `false`" in summary
+    validation = validate_recorded_probe_comparison(output)
+    assert validation.request_payload_sha256 == request_hash
+    assert validation.raw_action_rmse == pytest.approx(0.1)
+    assert validation.action_rows == 15
+    assert len(validation.artifact_sha256) == 64
 
 
 def test_compare_rejects_different_request_payloads(tmp_path: Path) -> None:
@@ -176,3 +185,39 @@ def test_compare_rejects_different_request_payloads(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="probe requests differ"):
         execute_recorded_probe_comparison(left, right, output)
     assert not output.exists()
+
+
+def test_comparison_validator_rejects_tampered_actions(
+    tmp_path: Path,
+) -> None:
+    request_hash = "c" * 64
+    left = tmp_path / "left_probe"
+    right = tmp_path / "right_probe"
+    _write_probe(
+        left,
+        np.zeros((15, 8), dtype=np.float64),
+        request_hash=request_hash,
+        latency_ms=10.0,
+        interventions=0,
+    )
+    _write_probe(
+        right,
+        np.full((15, 8), 0.2, dtype=np.float64),
+        request_hash=request_hash,
+        latency_ms=11.0,
+        interventions=0,
+    )
+    output = tmp_path / "comparison"
+    execute_recorded_probe_comparison(left, right, output)
+    arrays_path = output / "paired_responses.npz"
+    with np.load(arrays_path, allow_pickle=False) as trace:
+        arrays = {name: trace[name] for name in trace.files}
+    arrays["left_raw_actions"] = arrays["left_raw_actions"].copy()
+    arrays["left_raw_actions"][0, 0] = 0.25
+    np.savez_compressed(arrays_path, **arrays)
+
+    with pytest.raises(
+        ProbeComparisonValidationError,
+        match="left raw action SHA-256 mismatch",
+    ):
+        validate_recorded_probe_comparison(output)

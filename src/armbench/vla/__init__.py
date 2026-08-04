@@ -32,7 +32,12 @@ from armbench.vla.policy import (
     OpenPIPolicyClient,
     ScriptedActionChunkPolicy,
 )
-from armbench.vla.probe_comparison import execute_recorded_probe_comparison
+from armbench.vla.probe_comparison import (
+    ProbeComparisonValidationError,
+    ProbeComparisonValidationResult,
+    execute_recorded_probe_comparison,
+    validate_recorded_probe_comparison,
+)
 from armbench.vla.runtime import RuntimeDecision, RuntimeFailure, VLARuntimeSupervisor
 from armbench.vla.request_replay import (
     RecordedOpenPIRequest,
@@ -65,6 +70,8 @@ __all__ = [
     "ObservationCheck",
     "ObservationGuardConfig",
     "ObservationRejectedError",
+    "ProbeComparisonValidationError",
+    "ProbeComparisonValidationResult",
     "ReferenceActionChunkPolicy",
     "RecordedOpenPIRequest",
     "RecordedProbeValidationError",
@@ -82,5 +89,6 @@ __all__ = [
     "run_online_episode",
     "load_recorded_openpi_request",
     "validate_online_artifact",
+    "validate_recorded_probe_comparison",
     "validate_recorded_openpi_probe",
 ]

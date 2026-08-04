@@ -31,7 +31,10 @@ from armbench.vla.loopback import (
     LOOPBACK_FAULT_MODES,
     execute_openpi_loopback_run,
 )
-from armbench.vla.probe_comparison import execute_recorded_probe_comparison
+from armbench.vla.probe_comparison import (
+    execute_recorded_probe_comparison,
+    validate_recorded_probe_comparison,
+)
 from armbench.vla.request_replay import load_recorded_openpi_request
 from armbench.vla.replay_probe import (
     execute_recorded_openpi_probe,
@@ -477,6 +480,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     vla_recorded_probe_compare.add_argument("--left-label", default="left")
     vla_recorded_probe_compare.add_argument("--right-label", default="right")
+    vla_recorded_probe_compare_validate = subparsers.add_parser(
+        "vla-recorded-probe-compare-validate",
+        help="recompute a paired recorded-probe comparison artifact",
+    )
+    vla_recorded_probe_compare_validate.add_argument("directory", type=Path)
     return parser
 
 
@@ -697,6 +705,10 @@ def main(arguments: list[str] | None = None) -> int:
         )
         print(json.dumps(comparison, indent=2, ensure_ascii=False))
         print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-recorded-probe-compare-validate":
+        result = validate_recorded_probe_comparison(args.directory)
+        print(json.dumps(result.metrics(), indent=2, ensure_ascii=False))
         return 0
     planning_seeds = parse_seed_spec(args.seeds) if args.seeds else None
     control_seeds = (

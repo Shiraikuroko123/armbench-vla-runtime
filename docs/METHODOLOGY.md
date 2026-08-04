@@ -154,6 +154,14 @@ but one request is not a benchmark distribution and latency is not controlled
 across independently provisioned servers. User labels are retained as labels,
 not promoted to checkpoint attestation.
 
+The paired report snapshots both validated response arrays, both guarded
+chunks, and both predicted joint paths. Its independent validator recomputes
+the action hashes and all aggregate/per-step/per-dimension differences from
+those snapshots, then checks CSV, plot, and environment file hashes. This makes
+reported response deltas reproducible without a live policy server. It does not
+embed the original camera request; request inspection continues to use the
+replayable source artifact identified by the matched payload SHA.
+
 `vla-openpi-run` replaces the reference policy with the bounded transport built
 on official OpenPI serialization while retaining the same live physics loop. It
 records server metadata and separates attempted remote calls from validated

@@ -314,6 +314,9 @@ request:
   'results\recorded_probe_server_b' `
   --left-label 'server A' --right-label 'server B' `
   --output-directory 'results\recorded_probe_comparison_01'
+
+& $ArmbenchPython -m armbench vla-recorded-probe-compare-validate `
+  'results\recorded_probe_comparison_01'
 ```
 
 Set breakpoints in `vla/request_replay.py`, `vla/policy.py`, and
@@ -335,6 +338,13 @@ same hash. Then inspect `per_step.csv` for the raw velocity, gripper, and guarde
 action differences. `comparison.png` summarizes differences by chunk step and
 action dimension. Latency values remain host/network observations and labels do
 not attest server checkpoint identity.
+
+The comparison validator reloads `paired_responses.npz`, recomputes both action
+hashes and every reported error metric, checks all 15 CSV rows and eight action
+dimensions, verifies report-file hashes, and decodes the plot. The response
+comparison is therefore locally auditable without reconnecting to either
+server. The original replay artifact is still required to reconstruct and view
+the request represented by the payload SHA.
 
 ## 6. Debug the runtime guard
 

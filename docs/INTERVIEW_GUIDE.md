@@ -69,7 +69,8 @@ performance or certified safety.
   cross-checks arrays, metadata, provenance, and non-physics claim boundaries.
 - A same-request paired server comparator with per-step/per-dimension action
   deltas, guard effects, latency, provenance, and an explicit hash mismatch
-  refusal path for future pi0 versus pi0.5 experiments.
+  refusal path for future pi0 versus pi0.5 experiments; response snapshots and
+  an independent report validator make every displayed delta recomputable.
 - Client-visible failure stage, exception type, and bounded message mirrored
   between per-chunk CSV and NPZ traces for remote-server diagnosis.
 - A schema-v5 artifact validator that cross-checks JSON/CSV/NPZ counts, camera
