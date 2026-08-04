@@ -295,6 +295,17 @@ selection against policy-internal continuation under the identical latency
 trace. This is the shortest route from a strong project to a research-method
 contribution.
 
+Stage B0 now has an executable reference contract in
+`integrations/openpi/realtime_chunking.py`. It reproduces RTC commit `9296f31`'s
+fixed-width overlap window `old[:d] + new[d:E]`, the subsequent `E`-step shift
+and zero padding, and all four public prefix-weight schedules. It also contains
+a hard projected-flow ablation for OpenPI's opposite `t=1 -> 0` convention.
+The remaining Stage B work is model-side: normalize and pad LIBERO reference
+actions to `10 x 32`, execute conditioning inside pi0.5 JAX sampling, attest a
+clean extension commit, and run a newly frozen overlap-scheduled experiment.
+The existing suffix-selection rollouts are not an RTC baseline because they
+advance `d + E` rather than exactly `E` steps per query.
+
 ### Stage C: cross-model and cross-simulator validity
 
 Add OpenVLA-OFT or another open action-chunk model, then repeat a reduced frozen

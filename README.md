@@ -62,6 +62,13 @@ separates formal publications from current preprints and compares ArmBench with
 RTC, OpenVLA-OFT, DPPO, HIL-SERL, and other relevant routes. Its source metadata
 and method figure are reproducible from repository scripts.
 
+The first [RTC/pi0.5 integration stage](docs/RTC_PI05_INTEGRATION.md) now
+reproduces the official RTC overlap scheduler and prefix-weight contract in a
+tested reference module. It also implements a distinctly named hard projected
+flow-inpainting ablation under OpenPI's reverse-time convention. This is
+sampler-integration groundwork, not evidence that RTC has already run on
+pi0.5.
+
 The [measured-age temporal alignment core](docs/MEASURED_LATENCY_RUNTIME.md)
 removes the dispatcher's dependence on a hidden injected-delay label. It uses
 end-to-end observation age, conservative ceil discretization,
