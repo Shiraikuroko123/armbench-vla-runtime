@@ -21,18 +21,20 @@ delay.
 
 The scientific gap is not simply "no RL." The closest formal comparator is RTC
 (NeurIPS 2025), which changes flow-policy inference itself by freezing already
-committed actions and inpainting a continuation. ArmBench currently sees only a
-completed action chunk. It now has both an exploratory measured-age pilot and a
-completed held-out 120-pair confirmation. The successor pairs explicit pi0.5
-flow-sampling noise, improves success by 23.33 points, and remains positive
-under task-cluster sensitivity analyses. ArmBench still cannot claim
-policy-internal replanning, multi-model generality, true concurrent control, or
-real-robot validity.
+committed actions and inpainting a continuation. ArmBench now has both a
+completed held-out 120-pair measured-age confirmation and a clean pi0.5
+sampler extension for hard committed-prefix projection. The measured-age
+successor pairs explicit pi0.5 flow-sampling noise, improves success by 23.33
+points, and remains positive under task-cluster sensitivity analyses. The new
+hard-projection pilot improves motion continuity but not task success. ArmBench
+therefore still cannot claim RTC soft/VJP-guidance efficacy, multi-model
+generality, true concurrent control, or real-robot validity.
 
 The next defensible project thesis is:
 
-> Can a frozen VLA remain useful under measured, variable response age when a
-> runtime must choose a fresh suffix or fail closed before its deadline?
+> Can soft sampler-internal committed-action guidance preserve both continuity
+> and task progress under asynchronous VLA execution where hard projection does
+> not?
 
 That question is closer to the project's demonstrated strength than adding a
 small PPO run that does not address stale actions.
@@ -300,11 +302,31 @@ Stage B0 now has an executable reference contract in
 fixed-width overlap window `old[:d] + new[d:E]`, the subsequent `E`-step shift
 and zero padding, and all four public prefix-weight schedules. It also contains
 a hard projected-flow ablation for OpenPI's opposite `t=1 -> 0` convention.
-The remaining Stage B work is model-side: normalize and pad LIBERO reference
-actions to `10 x 32`, execute conditioning inside pi0.5 JAX sampling, attest a
-clean extension commit, and run a newly frozen overlap-scheduled experiment.
-The existing suffix-selection rollouts are not an RTC baseline because they
-advance `d + E` rather than exactly `E` steps per query.
+
+The model-side hard-projection ablation is now complete. OpenPI extension
+commit `2c8e61d5fbfde4b670ae428ef4b8440d35c1c7fd` normalizes and pads LIBERO
+reference actions to `10 x 32` and projects committed prefixes inside every
+pi0.5 Euler step. Its G0 artifact established legacy parity, zero prefix
+residual, bounded latency, and bounded memory. ArmBench commit
+`baceec016c89bf1def6ea156f63d13c2c7f65d6a` then ran a 20-pair LIBERO-10
+pilot with the exact fixed-width overlap scheduler and paired explicit policy
+noise.
+
+That pilot is a useful negative result. Unconditioned overlap succeeded on
+19/20 pairs and hard projected overlap on 18/20, with 0/1/19 projected
+wins/losses/ties and exact McNemar `p=1.0`. Projection reduced mean motion seam
+from `0.10937` to `0.08689` but did not improve task success and increased the
+mean gripper seam. All 40 videos and 2,165 transitions validate against an
+independent float32 transcript. The project must therefore not promote hard
+projection as RTC or scale this exact ablation as though efficacy were already
+established.
+
+The remaining direct-method gap is now narrower and more specific: implement
+RTC's VJP/pseudoinverse guidance with soft prefix weights, compare it against
+both hard projection and unconditioned overlap under the same keyed noise, and
+then replace blocking simulator catch-up with independently ticking inference
+and control loops. The existing suffix-selection rollouts remain a different
+baseline because they advance `d + E` rather than exactly `E` steps per query.
 
 ### Stage C: cross-model and cross-simulator validity
 

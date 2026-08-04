@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import pathlib
 
 import numpy as np
 import pytest
@@ -19,6 +20,10 @@ from integrations.openpi.validate_projected_overlap_artifact import (
     _sampling_noise_hash,
     validate_artifact,
 )
+
+
+PROJECT_ROOT = pathlib.Path(__file__).resolve().parents[1]
+COMMITTED_EVIDENCE = PROJECT_ROOT / "evidence/pi05_projected_overlap_pilot_001"
 
 
 def _write_json(path, value) -> None:
@@ -179,6 +184,17 @@ def test_independent_transition_artifact_validator(tmp_path) -> None:
     assert report["valid"] is True
     assert report["transition_count"] == 2
     assert report["episode_count"] == 1
+
+
+def test_committed_projected_overlap_pilot_is_valid() -> None:
+    report = validate_artifact(COMMITTED_EVIDENCE)
+
+    assert report["valid"] is True
+    assert report["transition_count"] == 2165
+    assert report["episode_count"] == 40
+    assert report["manifest_sha256"] == (
+        "88ad66d2fce1efedca3ac04200ac569c5fbc5108a6e4c7be65ae38b4d7ccb9f9"
+    )
 
 
 def test_validator_rejects_resigned_transition_tampering(tmp_path) -> None:

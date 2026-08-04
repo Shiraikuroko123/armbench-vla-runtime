@@ -62,6 +62,31 @@ separates formal publications from current preprints and compares ArmBench with
 RTC, OpenVLA-OFT, DPPO, HIL-SERL, and other relevant routes. Its source metadata
 and method figure are reproducible from repository scripts.
 
+### Policy-internal projected-overlap pilot
+
+ArmBench now also modifies the official pi0.5 flow sampler through a clean,
+attested OpenPI extension. Committed LIBERO actions are normalized, padded to
+`10 x 32`, and hard-projected before and after every Euler step without
+fine-tuning the checkpoint. A paired overlap evaluator then compares this
+`projected_overlap` method with an unconditioned sampler under the same
+`H=10`, `E=5`, `d=4` scheduler and identical keyed policy noise.
+
+The exploratory LIBERO-10 pilot completed 40/40 rollouts and does **not** show
+a task-success benefit: unconditioned overlap succeeded on 19/20 pairs and
+projected overlap on 18/20, for 0/1/19 projected wins/losses/ties and exact
+McNemar `p=1.0`. Hard projection reduced mean motion seam by 20.55%
+(`0.10937` to `0.08689`) but increased mean gripper seam by 22.47%. The result
+therefore supports an integration and continuity claim, not an efficacy claim.
+It motivates RTC-style soft/VJP guidance rather than a larger confirmation of
+the same hard-projection ablation.
+
+The preserved [pilot artifact](evidence/pi05_projected_overlap_pilot_001)
+contains all 40 videos and 2,165 exact action transitions. Its independent
+validator regenerates keyed pi0.5 noise hashes, conditioning hashes, the
+`old[:d] + new[d:E]` execution window, `new[E:H] + zeros(E)` shift, and every
+cross-query reference chain from a compressed float32 transcript. See the
+[method, result, and claim boundary](docs/PI05_PROJECTED_OVERLAP_PILOT.md).
+
 The first [RTC/pi0.5 integration stage](docs/RTC_PI05_INTEGRATION.md) now
 reproduces the official RTC overlap scheduler and prefix-weight contract in a
 tested reference module. It also implements a distinctly named hard projected

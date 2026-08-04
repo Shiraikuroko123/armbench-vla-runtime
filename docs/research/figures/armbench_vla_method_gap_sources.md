@@ -30,7 +30,9 @@ boundaries:
 - `docs/PI05_ALIGNMENT_CONFIRMATORY_FREEZE.md`;
 - `docs/PI05_CROSS_SUITE_EXTERNAL_VALIDATION_FREEZE.md`;
 - `docs/PI05_MEASURED_AGE_CONFIRMATORY_FREEZE.md` and the separately labeled
-  exploratory measured-age pilot evidence.
+  exploratory measured-age pilot evidence;
+- `docs/PI05_PROJECTED_OVERLAP_PILOT.md` and its independently validated
+  40-rollout hard-projection evidence.
 
 The row combines the 300-rollout Spatial study and the separately frozen
 300-rollout Object/Goal/LIBERO-10 external-validation family. The figure does
@@ -38,7 +40,9 @@ not promote the measured-age pilot to confirmatory evidence: that legacy pilot
 paired injected jitter but not the policy's mutable internal RNG. The frozen
 successor protocol pairs both jitter and explicit pi0.5 sampling noise. The
 figure does not call ArmBench a paper, preprint, real-robot deployment, RL
-method, or VLA training method.
+method, or VLA training method. The hard-projection pilot is shown as completed
+engineering evidence, not as an efficacy win: it reduced motion seam but did
+not improve paired task success.
 
 ## Comparison works
 
