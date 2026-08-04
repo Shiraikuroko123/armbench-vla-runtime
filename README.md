@@ -32,6 +32,9 @@ analyzer revalidated the full artifact before enforcing the pairing and
 statistics. See the [complete evidence and claim boundaries](evidence/pi05_libero_alignment_core_001/README.md),
 the [derived analysis](evidence/pi05_libero_alignment_core_001/analysis/summary.md),
 and the [frozen protocol](docs/PI05_ALIGNMENT_CONFIRMATORY_FREEZE.md).
+The [validated GitHub Release](https://github.com/Shiraikuroko123/armbench-vla-runtime/releases/tag/evidence-pi05-libero-alignment-core-001)
+contains the complete cloud archive, its SHA-256 record, and both validator
+reports.
 
 The project does **not** train or fine-tune pi0.5. The contribution is runtime
 dispatch and evidence infrastructure: checkpoint/source attestation, delay and

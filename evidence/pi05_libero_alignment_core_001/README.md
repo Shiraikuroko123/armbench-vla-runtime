@@ -50,6 +50,8 @@ present.
   `d9c14a651dcfdeb90eb50b5997793808d67aa23f7d8672a5a4fe6155559ead23`.
 - Full archive SHA-256:
   `045da367f718aeabfb829166f0e98c005a8cbaebff9a6a2f270c1dd50aff4a29`.
+- GitHub Release:
+  [`evidence-pi05-libero-alignment-core-001`](https://github.com/Shiraikuroko123/armbench-vla-runtime/releases/tag/evidence-pi05-libero-alignment-core-001).
 - Root validation: `valid=true`, `complete=true`, 331 protected files checked.
 - Nested evaluation validation: `valid=true`, with no warnings or errors.
 
