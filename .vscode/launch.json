@@ -166,6 +166,28 @@
       "justMyCode": true
     },
     {
+      "name": "ArmBench: sweep recorded OpenPI requests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "armbench",
+      "args": [
+        "vla-recorded-probe-sweep",
+        "${input:requestArtifactDirectory}",
+        "--queries",
+        "${input:recordedProbeQueries}",
+        "--host",
+        "${input:openpiHost}",
+        "--port",
+        "8000",
+        "--output-directory",
+        "results/${input:recordedProbeSweepRunId}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "ArmBench: compare recorded OpenPI probes",
       "type": "debugpy",
       "request": "launch",
@@ -376,6 +398,18 @@
       "type": "promptString",
       "description": "Recorded OpenPI probe artifact directory",
       "default": "results/recorded_openpi_probe_01"
+    },
+    {
+      "id": "recordedProbeQueries",
+      "type": "promptString",
+      "description": "Recorded request query indices",
+      "default": "0:2"
+    },
+    {
+      "id": "recordedProbeSweepRunId",
+      "type": "promptString",
+      "description": "New recorded probe sweep directory name",
+      "default": "recorded_probe_sweep_01"
     },
     {
       "id": "leftProbeArtifactDirectory",

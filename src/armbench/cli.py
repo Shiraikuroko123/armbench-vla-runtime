@@ -44,6 +44,7 @@ from armbench.vla.replay_probe import (
     execute_recorded_openpi_probe,
     validate_recorded_openpi_probe,
 )
+from armbench.vla.probe_sweep import execute_recorded_openpi_probe_sweep
 
 
 def _validate(config_path: Path) -> int:
@@ -468,6 +469,41 @@ def build_parser() -> argparse.ArgumentParser:
     vla_recorded_probe.add_argument(
         "--inference-timeout-s", type=float, default=1.0
     )
+    vla_recorded_probe_sweep = subparsers.add_parser(
+        "vla-recorded-probe-sweep",
+        help="collect multiple exact recorded requests from one OpenPI server",
+    )
+    vla_recorded_probe_sweep.add_argument(
+        "--config", type=Path, default=Path("configs/vla_guard_benchmark.json")
+    )
+    vla_recorded_probe_sweep.add_argument("artifact_directory", type=Path)
+    vla_recorded_probe_sweep.add_argument(
+        "--output-directory", type=Path, required=True
+    )
+    vla_recorded_probe_sweep.add_argument(
+        "--queries",
+        default="0",
+        help="query indices as 0:10, 0,2,4, or one integer",
+    )
+    vla_recorded_probe_sweep.add_argument("--host", default="localhost")
+    vla_recorded_probe_sweep.add_argument("--port", type=int, default=8000)
+    vla_recorded_probe_sweep.add_argument("--scenario")
+    vla_recorded_probe_sweep.add_argument("--payload", type=float)
+    vla_recorded_probe_sweep.add_argument(
+        "--horizon", type=int, choices=range(1, 16)
+    )
+    vla_recorded_probe_sweep.add_argument(
+        "--api-key-env", default="OPENPI_API_KEY"
+    )
+    vla_recorded_probe_sweep.add_argument(
+        "--connect-timeout-s", type=float, default=3.0
+    )
+    vla_recorded_probe_sweep.add_argument(
+        "--inference-timeout-s", type=float, default=1.0
+    )
+    vla_recorded_probe_sweep.add_argument(
+        "--policy-provenance", default="remote_server_unverified"
+    )
     vla_recorded_probe_validate = subparsers.add_parser(
         "vla-recorded-probe-validate",
         help="cross-check a fixed-request OpenPI probe artifact",
@@ -714,6 +750,28 @@ def main(arguments: list[str] | None = None) -> int:
         )
         print(f"results: {output.resolve()}")
         return 0
+    if args.command == "vla-recorded-probe-sweep":
+        output = execute_recorded_openpi_probe_sweep(
+            args.config,
+            args.artifact_directory,
+            args.output_directory,
+            host=args.host,
+            port=args.port,
+            query_indices=parse_seed_spec(args.queries),
+            scenario=args.scenario,
+            payload_mass=args.payload,
+            execution_horizon=args.horizon,
+            api_key=os.environ.get(args.api_key_env),
+            connect_timeout_s=args.connect_timeout_s,
+            inference_timeout_s=args.inference_timeout_s,
+            policy_provenance=args.policy_provenance,
+        )
+        manifest = json.loads(
+            (output / "manifest.json").read_text(encoding="utf-8")
+        )
+        print(json.dumps(manifest, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
+        return 0 if bool(manifest["sweep_complete"]) else 1
     if args.command == "vla-recorded-probe-validate":
         result = validate_recorded_openpi_probe(args.directory)
         print(json.dumps(result.metrics(), indent=2, ensure_ascii=False))

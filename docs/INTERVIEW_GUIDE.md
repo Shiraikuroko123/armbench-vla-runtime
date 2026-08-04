@@ -67,6 +67,9 @@ performance or certified safety.
   output without mislabeling offline inference as a physics rollout.
 - An independent recorded-probe validator that recomputes response bytes and
   cross-checks arrays, metadata, provenance, and non-physics claim boundaries.
+- A bounded recorded-request sweep that preflights exact inputs, isolates each
+  server call, continues after a failed response, and distinguishes a partial
+  cohort from complete evidence through structured rows and process exit code.
 - A same-request paired server comparator with per-step/per-dimension action
   deltas, guard effects, latency, provenance, and an explicit hash mismatch
   refusal path for future pi0 versus pi0.5 experiments; response snapshots and

@@ -309,6 +309,13 @@ request:
 & $ArmbenchPython -m armbench vla-recorded-probe-validate `
   'results\recorded_probe_debug_01'
 
+& $ArmbenchPython -m armbench vla-recorded-probe-sweep `
+  evidence\vla_openpi_request_replay_20260804 `
+  --queries 0:2 --host '<GPU_SERVER_IP>' --port 8000 `
+  --policy-provenance 'server launch log required' `
+  --connect-timeout-s 3 --inference-timeout-s 1 `
+  --output-directory 'results\recorded_probe_sweep_01'
+
 & $ArmbenchPython -m armbench vla-recorded-probe-compare `
   'results\recorded_probe_server_a' `
   'results\recorded_probe_server_b' `
@@ -340,6 +347,13 @@ saved arrays, requires finite `(15, 8)` raw and guarded actions and finite
 `(16, 7)` predicted positions, recomputes the raw-action SHA-256, and rejects
 inconsistent JSON, environment, summary, or claim-boundary fields. A validation
 failure means the directory must not be used for a checkpoint comparison.
+
+For sweep failures, inspect `per_query.csv` and `sweep.log`. Every query uses a
+fresh connection, so a malformed response or transport close is isolated and
+the next request can continue. `probe_elapsed_ms` includes connection, request,
+guard, validation, and artifact I/O; `client_inference_latency_ms` measures only
+the bounded inference call. A partial sweep deliberately returns a nonzero exit
+code even when later children succeed.
 
 For the paired comparator, first inspect
 `comparison.json.request_payload_sha256`; both input artifacts must contain that

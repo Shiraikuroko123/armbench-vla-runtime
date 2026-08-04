@@ -471,6 +471,12 @@ MuJoCo, probe one replayable request:
 & $ArmbenchPython -m armbench vla-recorded-probe-validate `
   'results\pi05_recorded_probe_001'
 
+& $ArmbenchPython -m armbench vla-recorded-probe-sweep `
+  evidence\vla_openpi_request_replay_20260804 `
+  --queries 0:2 --host '<GPU_SERVER_IP>' --port 8000 `
+  --policy-provenance 'server launch log required' `
+  --output-directory 'results\pi05_probe_cohort'
+
 & $ArmbenchPython -m armbench vla-recorded-probe-compare `
   'results\pi0_recorded_probe_001' `
   'results\pi05_recorded_probe_001' `
@@ -498,6 +504,15 @@ comparison; do not call the result a rollout or physical-safety experiment.
 The read-only validator recomputes the action hash from the NPZ and cross-checks
 the JSON, environment metadata, guard result, and human-readable claim
 boundaries before the artifact is used as evidence.
+
+`vla-recorded-probe-sweep` removes the manual per-query loop. It preflights the
+selected replay requests, runs each through an isolated OpenPI client session,
+validates each successful child, and records a bounded failure type/message for
+failed queries before continuing. `--queries` accepts `0:10`, `0,2,4`, or one
+index. The command returns nonzero when any planned query fails; inspect
+`manifest.json` and `per_query.csv` rather than treating a partial cohort as
+complete. The resulting sweep directory can be passed directly as one side of
+`vla-recorded-probe-batch-compare`.
 
 The paired comparator first validates both directories and requires the exact
 same serialized request SHA. It writes aggregate JSON, 15-row per-step CSV, an

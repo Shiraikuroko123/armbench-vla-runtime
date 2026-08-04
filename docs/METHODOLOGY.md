@@ -137,6 +137,14 @@ DROID payload fields; this lets the guard measure the replay call's actual age
 without changing request bytes. No physics is stepped, so the artifact reports
 no physical-safety outcome.
 
+`vla-recorded-probe-sweep` collects an explicitly bounded query-index cohort
+from one replayable source artifact. All requests are reconstructed and hash
+checked before creating the output directory. Each query then uses an isolated
+client connection so one malformed response, timeout, or disconnect is retained
+as a per-query failure without contaminating later samples. Successful children
+must pass the independent probe validator. A complete sweep requires every
+planned query to succeed; neither successful nor failed rows execute physics.
+
 `vla-recorded-probe-validate` independently reloads that probe artifact and
 cross-checks its four files. It recomputes the raw-response hash from the exact
 array bytes, verifies shape/dtype/range metadata, finite guarded trajectories,

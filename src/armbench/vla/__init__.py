@@ -55,6 +55,7 @@ from armbench.vla.replay_probe import (
     execute_recorded_openpi_probe,
     validate_recorded_openpi_probe,
 )
+from armbench.vla.probe_sweep import execute_recorded_openpi_probe_sweep
 from armbench.vla.types import ActionChunk, VLAObservation
 
 __all__ = [
@@ -94,6 +95,7 @@ __all__ = [
     "execute_recorded_probe_batch_comparison",
     "execute_recorded_probe_comparison",
     "execute_recorded_openpi_probe",
+    "execute_recorded_openpi_probe_sweep",
     "execute_loopback_fault_matrix",
     "run_online_episode",
     "load_recorded_openpi_request",

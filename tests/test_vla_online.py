@@ -46,6 +46,7 @@ from armbench.vla.replay_probe import (
     execute_recorded_openpi_probe,
     validate_recorded_openpi_probe,
 )
+from armbench.vla.probe_sweep import execute_recorded_openpi_probe_sweep
 from armbench.vla.types import ActionChunk, VLAObservation
 
 
@@ -1052,6 +1053,18 @@ def test_loopback_cli_backend_exercises_complete_remote_policy_path(
             inference_timeout_s=0.5,
             policy_provenance="scripted_non_learned_replay_probe",
         )
+        sweep_output = tmp_path / "recorded_probe_sweep"
+        execute_recorded_openpi_probe_sweep(
+            config_path,
+            output_directory,
+            sweep_output,
+            host="127.0.0.1",
+            port=replay_server.port,
+            query_indices=[0, 1],
+            connect_timeout_s=0.5,
+            inference_timeout_s=0.5,
+            policy_provenance="scripted_non_learned_replay_sweep",
+        )
         replay_requests = replay_server.request_audit
     response = json.loads(
         (replay_output / "response.json").read_text("utf-8")
@@ -1069,6 +1082,68 @@ def test_loopback_cli_backend_exercises_complete_remote_policy_path(
     )
     assert replay_requests[0]["request_payload_sha256"] == (
         recorded.packed_payload_sha256
+    )
+    assert len(replay_requests) == 3
+    sweep_manifest = json.loads(
+        (sweep_output / "manifest.json").read_text("utf-8")
+    )
+    assert sweep_manifest["planned_queries"] == 2
+    assert sweep_manifest["successful_queries"] == 2
+    assert sweep_manifest["failed_queries"] == 0
+    assert sweep_manifest["sweep_complete"] is True
+    assert sweep_manifest["checkpoint_identity_verified"] is False
+    assert sweep_manifest["physics_executed"] is False
+    with (sweep_output / "per_query.csv").open(
+        encoding="utf-8", newline=""
+    ) as handle:
+        sweep_rows = list(csv.DictReader(handle))
+    assert [row["status"] for row in sweep_rows] == ["success", "success"]
+    assert all(row["probe_validated"] == "True" for row in sweep_rows)
+    for row in sweep_rows:
+        child_validation = validate_recorded_openpi_probe(
+            sweep_output / row["artifact_directory"]
+        )
+        assert child_validation.action_sha256 == row["action_sha256"]
+
+    fault_sweep_output = tmp_path / "recorded_probe_fault_sweep"
+    with OpenPIProtocolLoopbackServer(
+        references,
+        action_dt_s=(
+            1.0 / float(config["openpi_contract"]["control_hz"])
+        ),
+        fault_mode="malformed_shape",
+        fault_request_index=0,
+    ) as fault_sweep_server:
+        assert fault_sweep_server.port is not None
+        execute_recorded_openpi_probe_sweep(
+            config_path,
+            output_directory,
+            fault_sweep_output,
+            host="127.0.0.1",
+            port=fault_sweep_server.port,
+            query_indices=[0, 1],
+            connect_timeout_s=0.5,
+            inference_timeout_s=0.5,
+            policy_provenance="scripted_non_learned_fault_sweep",
+        )
+    fault_manifest = json.loads(
+        (fault_sweep_output / "manifest.json").read_text("utf-8")
+    )
+    assert fault_manifest["successful_queries"] == 1
+    assert fault_manifest["failed_queries"] == 1
+    assert fault_manifest["sweep_complete"] is False
+    with (fault_sweep_output / "per_query.csv").open(
+        encoding="utf-8", newline=""
+    ) as handle:
+        fault_sweep_rows = list(csv.DictReader(handle))
+    assert [row["status"] for row in fault_sweep_rows] == [
+        "failure",
+        "success",
+    ]
+    assert fault_sweep_rows[0]["failure_type"] == "ValueError"
+    assert "action shape mismatch" in fault_sweep_rows[0]["failure_message"]
+    validate_recorded_openpi_probe(
+        fault_sweep_output / fault_sweep_rows[1]["artifact_directory"]
     )
     with np.load(replay_output / "response.npz") as replay_trace:
         assert replay_trace["raw_actions"].shape == (15, 8)
@@ -1106,6 +1181,22 @@ def test_loopback_cli_backend_exercises_complete_remote_policy_path(
         writer.writerows(chunks)
     with pytest.raises(ValueError, match="repacked OpenPI payload"):
         load_recorded_openpi_request(output_directory, query_index=0)
+
+
+def test_recorded_probe_sweep_rejects_empty_query_selection(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "sweep"
+    with pytest.raises(ValueError, match="unique and nonnegative"):
+        execute_recorded_openpi_probe_sweep(
+            tmp_path / "missing_config.json",
+            tmp_path / "missing_artifact",
+            output,
+            host="127.0.0.1",
+            port=8000,
+            query_indices=[],
+        )
+    assert not output.exists()
 
 
 @pytest.mark.parametrize(
