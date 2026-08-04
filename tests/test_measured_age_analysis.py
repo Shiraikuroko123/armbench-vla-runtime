@@ -6,6 +6,8 @@ import pathlib
 
 import pytest
 
+import integrations.openpi.measured_age_analysis as analysis_module
+import integrations.openpi.validate_measured_age_artifact as validator_module
 from integrations.openpi.measured_age_analysis import (
     ANALYSIS_SCHEMA_VERSION,
     AnalysisError,
@@ -293,6 +295,15 @@ def test_valid_paired_analysis_recomputes_effects_and_runtime_metrics(
     )
 
     assert analysis["schema_version"] == ANALYSIS_SCHEMA_VERSION
+    implementation = analysis["implementation"]
+    assert implementation["analyzer_sha256"] == hashlib.sha256(
+        pathlib.Path(analysis_module.__file__).read_bytes()
+    ).hexdigest()
+    assert implementation["validator_sha256"] == hashlib.sha256(
+        pathlib.Path(validator_module.__file__).read_bytes()
+    ).hexdigest()
+    assert implementation["numpy_version"]
+    assert implementation["python_version"]
     assert analysis["cohort"] == {
         "rollouts": 4,
         "pairs": 2,

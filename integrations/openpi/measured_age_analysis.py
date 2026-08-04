@@ -31,6 +31,8 @@ LATENCY_ALIGNED = "latency_aligned"
 MODES = (ASYNC_UNGUARDED, LATENCY_ALIGNED)
 DEFAULT_BOOTSTRAP_SEED = 20260805
 DEFAULT_BOOTSTRAP_RESAMPLES = 10_000
+ANALYZER_SOURCE = "integrations/openpi/measured_age_analysis.py"
+VALIDATOR_SOURCE = "integrations/openpi/validate_measured_age_artifact.py"
 _PAIR_FIELDS = (
     "pair_id", "task_suite", "task_id", "episode_index", "replan_steps",
     "seed", "initial_state_sha256",
@@ -65,6 +67,20 @@ def _sha256_file(path: pathlib.Path) -> str:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def _implementation_identity() -> Dict[str, str]:
+    source_root = pathlib.Path(__file__).resolve().parents[2]
+    analyzer = source_root / pathlib.PurePosixPath(ANALYZER_SOURCE)
+    validator = source_root / pathlib.PurePosixPath(VALIDATOR_SOURCE)
+    return {
+        "analyzer_source": ANALYZER_SOURCE,
+        "analyzer_sha256": _sha256_file(analyzer),
+        "validator_source": VALIDATOR_SOURCE,
+        "validator_sha256": _sha256_file(validator),
+        "python_version": ".".join(str(value) for value in sys.version_info[:3]),
+        "numpy_version": np.__version__,
+    }
 
 
 def _strict_json_bytes(value: bytes, label: str) -> Mapping[str, Any]:
@@ -371,6 +387,7 @@ def analyze_artifact(
     matrix = protocol.get("matrix")
     analysis = {
         "schema_version": ANALYSIS_SCHEMA_VERSION,
+        "implementation": _implementation_identity(),
         "source": {
             "artifact": str(root),
             "source_schema_version": SOURCE_SCHEMA_VERSION,
