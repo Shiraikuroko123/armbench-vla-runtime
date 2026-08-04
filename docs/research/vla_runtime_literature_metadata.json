@@ -1,0 +1,1357 @@
+{
+  "access_date": "2026-08-05",
+  "claim_boundary": "This is a targeted, reproducible metadata audit, not an exhaustive literature review. Publication status is frozen to the access date and must be refreshed before external use.",
+  "formal_publications": [
+    {
+      "canonical_title": "RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control",
+      "formal_publication": {
+        "citation": "Proceedings of The 7th Conference on Robot Learning, PMLR 229:2165-2183",
+        "doi": null,
+        "official_url": "https://proceedings.mlr.press/v229/zitkovich23a.html",
+        "publication_date": "2023-12-02",
+        "publication_year": 2023,
+        "venue": "Conference on Robot Learning (CoRL)",
+        "venue_year": 2023
+      },
+      "key": "rt2",
+      "method_class": "generalist_vla_pretraining",
+      "preprint_companion": {
+        "abstract_url": "https://arxiv.org/abs/2307.15818",
+        "arxiv_doi": "10.48550/arXiv.2307.15818",
+        "arxiv_id": "2307.15818",
+        "note": "An arXiv DOI identifies the preprint and is not treated as a formal venue DOI.",
+        "server": "arXiv"
+      },
+      "project_relation": "Closed-weight historical VLA reference; not a runnable ArmBench baseline.",
+      "status_as_of_access_date": "formally_published",
+      "training_regime": "vision-language-action co-fine-tuning",
+      "verification": {
+        "arxiv": {
+          "arxiv_id": "2307.15818",
+          "authors": [
+            "Anthony Brohan",
+            "Noah Brown",
+            "Justice Carbajal",
+            "Yevgen Chebotar",
+            "Xi Chen",
+            "Krzysztof Choromanski",
+            "Tianli Ding",
+            "Danny Driess",
+            "Avinava Dubey",
+            "Chelsea Finn",
+            "Pete Florence",
+            "Chuyuan Fu",
+            "Montse Gonzalez Arenas",
+            "Keerthana Gopalakrishnan",
+            "Kehang Han",
+            "Karol Hausman",
+            "Alexander Herzog",
+            "Jasmine Hsu",
+            "Brian Ichter",
+            "Alex Irpan",
+            "Nikhil Joshi",
+            "Ryan Julian",
+            "Dmitry Kalashnikov",
+            "Yuheng Kuang",
+            "Isabel Leal",
+            "Lisa Lee",
+            "Tsang-Wei Edward Lee",
+            "Sergey Levine",
+            "Yao Lu",
+            "Henryk Michalewski",
+            "Igor Mordatch",
+            "Karl Pertsch",
+            "Kanishka Rao",
+            "Krista Reymann",
+            "Michael Ryoo",
+            "Grecia Salazar",
+            "Pannag Sanketi",
+            "Pierre Sermanet",
+            "Jaspiar Singh",
+            "Anikait Singh",
+            "Radu Soricut",
+            "Huong Tran",
+            "Vincent Vanhoucke",
+            "Quan Vuong",
+            "Ayzaan Wahid",
+            "Stefan Welker",
+            "Paul Wohlhart",
+            "Jialin Wu",
+            "Fei Xia",
+            "Ted Xiao",
+            "Peng Xu",
+            "Sichun Xu",
+            "Tianhe Yu",
+            "Brianna Zitkovich"
+          ],
+          "comment": "Website: https://robotics-transformer.github.io/",
+          "journal_reference": null,
+          "primary_category": "cs.RO",
+          "submitted_date": "2023-07-28T21:18:02Z",
+          "title": "RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control",
+          "updated_date": "2023-07-28T21:18:02Z",
+          "versioned_url": "https://arxiv.org/abs/2307.15818v1"
+        },
+        "crossref": null,
+        "mode": "live_identifier_verification",
+        "official": {
+          "citation_authors": [
+            "Brianna Zitkovich",
+            "Tianhe Yu",
+            "Sichun Xu",
+            "Peng Xu",
+            "Ted Xiao",
+            "Fei Xia",
+            "Jialin Wu",
+            "Paul Wohlhart",
+            "Stefan Welker",
+            "Ayzaan Wahid",
+            "Quan Vuong",
+            "Vincent Vanhoucke",
+            "Huong Tran",
+            "Radu Soricut",
+            "Anikait Singh",
+            "Jaspiar Singh",
+            "Pierre Sermanet",
+            "Pannag R. Sanketi",
+            "Grecia Salazar",
+            "Michael S. Ryoo",
+            "Krista Reymann",
+            "Kanishka Rao",
+            "Karl Pertsch",
+            "Igor Mordatch",
+            "Henryk Michalewski",
+            "Yao Lu",
+            "Sergey Levine",
+            "Lisa Lee",
+            "Tsang-Wei Edward Lee",
+            "Isabel Leal",
+            "Yuheng Kuang",
+            "Dmitry Kalashnikov",
+            "Ryan Julian",
+            "Nikhil J. Joshi",
+            "Alex Irpan",
+            "Brian Ichter",
+            "Jasmine Hsu",
+            "Alexander Herzog",
+            "Karol Hausman",
+            "Keerthana Gopalakrishnan",
+            "Chuyuan Fu",
+            "Pete Florence",
+            "Chelsea Finn",
+            "Kumar Avinava Dubey",
+            "Danny Driess",
+            "Tianli Ding",
+            "Krzysztof Marcin Choromanski",
+            "Xi Chen",
+            "Yevgen Chebotar",
+            "Justice Carbajal",
+            "Noah Brown",
+            "Anthony Brohan",
+            "Montserrat Gonzalez Arenas",
+            "Kehang Han"
+          ],
+          "extracted_title": "RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control",
+          "requested_url": "https://proceedings.mlr.press/v229/zitkovich23a.html",
+          "title_match": true
+        },
+        "openalex": {
+          "doi": "https://doi.org/10.48550/arxiv.2307.15818",
+          "is_retracted": false,
+          "openalex_id": "https://openalex.org/W4385473486",
+          "publication_date": "2023-07-28",
+          "publication_year": 2023,
+          "source": "arXiv (Cornell University)",
+          "title": "RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control",
+          "type": "preprint"
+        },
+        "title_checks": {
+          "arxiv_title_match": true,
+          "crossref_title_match": null,
+          "official_title_match": true,
+          "openalex_title_match": true
+        }
+      }
+    },
+    {
+      "canonical_title": "OpenVLA: An Open-Source Vision-Language-Action Model",
+      "formal_publication": {
+        "citation": "Proceedings of The 8th Conference on Robot Learning, PMLR 270:2679-2713",
+        "doi": null,
+        "official_url": "https://proceedings.mlr.press/v270/kim25c.html",
+        "publication_date": "2025-01-12",
+        "publication_year": 2025,
+        "venue": "Conference on Robot Learning (CoRL 2024)",
+        "venue_year": 2024
+      },
+      "key": "openvla",
+      "method_class": "open_generalist_vla",
+      "preprint_companion": {
+        "abstract_url": "https://arxiv.org/abs/2406.09246",
+        "arxiv_doi": "10.48550/arXiv.2406.09246",
+        "arxiv_id": "2406.09246",
+        "note": "An arXiv DOI identifies the preprint and is not treated as a formal venue DOI.",
+        "server": "arXiv"
+      },
+      "project_relation": "Open checkpoint family suitable for a cross-model runtime baseline when compute permits.",
+      "status_as_of_access_date": "formally_published",
+      "training_regime": "supervised VLA pretraining and adaptation",
+      "verification": {
+        "arxiv": {
+          "arxiv_id": "2406.09246",
+          "authors": [
+            "Moo Jin Kim",
+            "Karl Pertsch",
+            "Siddharth Karamcheti",
+            "Ted Xiao",
+            "Ashwin Balakrishna",
+            "Suraj Nair",
+            "Rafael Rafailov",
+            "Ethan Foster",
+            "Grace Lam",
+            "Pannag Sanketi",
+            "Quan Vuong",
+            "Thomas Kollar",
+            "Benjamin Burchfiel",
+            "Russ Tedrake",
+            "Dorsa Sadigh",
+            "Sergey Levine",
+            "Percy Liang",
+            "Chelsea Finn"
+          ],
+          "comment": "Website: https://openvla.github.io/",
+          "journal_reference": null,
+          "primary_category": "cs.RO",
+          "submitted_date": "2024-06-13T15:46:55Z",
+          "title": "OpenVLA: An Open-Source Vision-Language-Action Model",
+          "updated_date": "2024-09-05T19:46:34Z",
+          "versioned_url": "https://arxiv.org/abs/2406.09246v3"
+        },
+        "crossref": null,
+        "mode": "live_identifier_verification",
+        "official": {
+          "citation_authors": [
+            "Moo Jin Kim",
+            "Karl Pertsch",
+            "Siddharth Karamcheti",
+            "Ted Xiao",
+            "Ashwin Balakrishna",
+            "Suraj Nair",
+            "Rafael Rafailov",
+            "Ethan P Foster",
+            "Pannag R Sanketi",
+            "Quan Vuong",
+            "Thomas Kollar",
+            "Benjamin Burchfiel",
+            "Russ Tedrake",
+            "Dorsa Sadigh",
+            "Sergey Levine",
+            "Percy Liang",
+            "Chelsea Finn"
+          ],
+          "extracted_title": "OpenVLA: An Open-Source Vision-Language-Action Model",
+          "requested_url": "https://proceedings.mlr.press/v270/kim25c.html",
+          "title_match": true
+        },
+        "openalex": {
+          "doi": "https://doi.org/10.48550/arxiv.2406.09246",
+          "is_retracted": false,
+          "openalex_id": "https://openalex.org/W4399695759",
+          "publication_date": "2024-06-13",
+          "publication_year": 2024,
+          "source": "arXiv (Cornell University)",
+          "title": "OpenVLA: An Open-Source Vision-Language-Action Model",
+          "type": "preprint"
+        },
+        "title_checks": {
+          "arxiv_title_match": true,
+          "crossref_title_match": null,
+          "official_title_match": true,
+          "openalex_title_match": true
+        }
+      }
+    },
+    {
+      "canonical_title": "Fine-Tuning Vision-Language-Action Models: Optimizing Speed and Success",
+      "formal_publication": {
+        "citation": "Robotics: Science and Systems XXI, paper 17",
+        "doi": "10.15607/RSS.2025.XXI.017",
+        "official_url": "https://www.roboticsproceedings.org/rss21/p017.html",
+        "publication_date": "2025-06-21",
+        "publication_year": 2025,
+        "venue": "Robotics: Science and Systems XXI (RSS 2025)",
+        "venue_year": 2025
+      },
+      "key": "openvla_oft",
+      "method_class": "vla_supervised_finetuning",
+      "preprint_companion": {
+        "abstract_url": "https://arxiv.org/abs/2502.19645",
+        "arxiv_doi": "10.48550/arXiv.2502.19645",
+        "arxiv_id": "2502.19645",
+        "note": "An arXiv DOI identifies the preprint and is not treated as a formal venue DOI.",
+        "server": "arXiv"
+      },
+      "project_relation": "Strong trained OpenVLA comparator; separates policy adaptation gains from runtime-only gains.",
+      "status_as_of_access_date": "formally_published",
+      "training_regime": "supervised optimized fine-tuning with action chunking",
+      "verification": {
+        "arxiv": {
+          "arxiv_id": "2502.19645",
+          "authors": [
+            "Moo Jin Kim",
+            "Chelsea Finn",
+            "Percy Liang"
+          ],
+          "comment": "Accepted to Robotics: Science and Systems (RSS) 2025. Project website: https://openvla-oft.github.io/",
+          "journal_reference": null,
+          "primary_category": "cs.RO",
+          "submitted_date": "2025-02-27T00:30:29Z",
+          "title": "Fine-Tuning Vision-Language-Action Models: Optimizing Speed and Success",
+          "updated_date": "2025-04-28T07:49:39Z",
+          "versioned_url": "https://arxiv.org/abs/2502.19645v2"
+        },
+        "crossref": {
+          "authors": [
+            "Moo Kim",
+            "Chelsea Finn",
+            "Percy Liang"
+          ],
+          "container_title": "Robotics: Science and Systems XXI",
+          "doi": "10.15607/rss.2025.xxi.017",
+          "publisher": "Robotics: Science and Systems Foundation",
+          "title": "Fine-Tuning Vision-Language-Action Models: Optimizing Speed and Success",
+          "type": "proceedings-article",
+          "url": "https://doi.org/10.15607/rss.2025.xxi.017"
+        },
+        "mode": "live_identifier_verification",
+        "official": {
+          "citation_authors": [
+            "Moo Jin Kim",
+            "Chelsea Finn",
+            "Percy Liang"
+          ],
+          "extracted_title": "Fine-Tuning Vision-Language-Action Models: Optimizing Speed and Success",
+          "requested_url": "https://www.roboticsproceedings.org/rss21/p017.html",
+          "title_match": true
+        },
+        "openalex": {
+          "doi": "https://doi.org/10.15607/rss.2025.xxi.017",
+          "is_retracted": false,
+          "openalex_id": "https://openalex.org/W4414050921",
+          "publication_date": "2025-06-21",
+          "publication_year": 2025,
+          "source": null,
+          "title": "Fine-Tuning Vision-Language-Action Models: Optimizing Speed and Success",
+          "type": "conference-paper"
+        },
+        "title_checks": {
+          "arxiv_title_match": true,
+          "crossref_title_match": true,
+          "official_title_match": true,
+          "openalex_title_match": true
+        }
+      }
+    },
+    {
+      "canonical_title": "FAST: Efficient Action Tokenization for Vision-Language-Action Models",
+      "formal_publication": {
+        "citation": "Robotics: Science and Systems XXI, paper 12",
+        "doi": "10.15607/RSS.2025.XXI.012",
+        "official_url": "https://www.roboticsproceedings.org/rss21/p012.html",
+        "publication_date": "2025-06-21",
+        "publication_year": 2025,
+        "venue": "Robotics: Science and Systems XXI (RSS 2025)",
+        "venue_year": 2025
+      },
+      "key": "fast",
+      "method_class": "action_tokenization",
+      "preprint_companion": {
+        "abstract_url": "https://arxiv.org/abs/2501.09747",
+        "arxiv_doi": "10.48550/arXiv.2501.09747",
+        "arxiv_id": "2501.09747",
+        "note": "An arXiv DOI identifies the preprint and is not treated as a formal venue DOI.",
+        "server": "arXiv"
+      },
+      "project_relation": "Training-side efficiency reference; it does not itself guarantee asynchronous runtime alignment.",
+      "status_as_of_access_date": "formally_published",
+      "training_regime": "learned action tokenizer plus VLA training",
+      "verification": {
+        "arxiv": {
+          "arxiv_id": "2501.09747",
+          "authors": [
+            "Karl Pertsch",
+            "Kyle Stachowicz",
+            "Brian Ichter",
+            "Danny Driess",
+            "Suraj Nair",
+            "Quan Vuong",
+            "Oier Mees",
+            "Chelsea Finn",
+            "Sergey Levine"
+          ],
+          "comment": "Website: https://www.pi.website/research/fast",
+          "journal_reference": null,
+          "primary_category": "cs.RO",
+          "submitted_date": "2025-01-16T18:57:04Z",
+          "title": "FAST: Efficient Action Tokenization for Vision-Language-Action Models",
+          "updated_date": "2025-01-16T18:57:04Z",
+          "versioned_url": "https://arxiv.org/abs/2501.09747v1"
+        },
+        "crossref": {
+          "authors": [
+            "Karl Pertsch",
+            "Kyle Stachowicz",
+            "Brian Ichter",
+            "Danny Driess",
+            "Suraj Nair",
+            "Quan Vuong",
+            "Oier Mees",
+            "Chelsea Finn",
+            "Sergey Levine"
+          ],
+          "container_title": "Robotics: Science and Systems XXI",
+          "doi": "10.15607/rss.2025.xxi.012",
+          "publisher": "Robotics: Science and Systems Foundation",
+          "title": "FAST: Efficient Action Tokenization for Vision-Language-Action Models",
+          "type": "proceedings-article",
+          "url": "https://doi.org/10.15607/rss.2025.xxi.012"
+        },
+        "mode": "live_identifier_verification",
+        "official": {
+          "citation_authors": [
+            "Karl Pertsch",
+            "Kyle Stachowicz",
+            "Brian Ichter",
+            "Danny Driess",
+            "Suraj Nair",
+            "Quan Vuong",
+            "Oier Mees",
+            "Chelsea Finn",
+            "Sergey Levine"
+          ],
+          "extracted_title": "FAST: Efficient Action Tokenization for Vision-Language-Action Models",
+          "requested_url": "https://www.roboticsproceedings.org/rss21/p012.html",
+          "title_match": true
+        },
+        "openalex": {
+          "doi": "https://doi.org/10.15607/rss.2025.xxi.012",
+          "is_retracted": false,
+          "openalex_id": "https://openalex.org/W4414051084",
+          "publication_date": "2025-06-21",
+          "publication_year": 2025,
+          "source": null,
+          "title": "FAST: Efficient Action Tokenization for Vision-Language-Action Models",
+          "type": "conference-paper"
+        },
+        "title_checks": {
+          "arxiv_title_match": true,
+          "crossref_title_match": true,
+          "official_title_match": true,
+          "openalex_title_match": true
+        }
+      }
+    },
+    {
+      "canonical_title": "ConRFT: A Reinforced Fine-tuning Method for VLA Models via Consistency Policy",
+      "formal_publication": {
+        "citation": "Robotics: Science and Systems XXI, paper 19",
+        "doi": "10.15607/RSS.2025.XXI.019",
+        "official_url": "https://www.roboticsproceedings.org/rss21/p019.html",
+        "publication_date": "2025-06-21",
+        "publication_year": 2025,
+        "venue": "Robotics: Science and Systems XXI (RSS 2025)",
+        "venue_year": 2025
+      },
+      "key": "conrft",
+      "method_class": "vla_reinforcement_finetuning",
+      "preprint_companion": {
+        "abstract_url": "https://arxiv.org/abs/2502.05450",
+        "arxiv_doi": "10.48550/arXiv.2502.05450",
+        "arxiv_id": "2502.05450",
+        "note": "An arXiv DOI identifies the preprint and is not treated as a formal venue DOI.",
+        "server": "arXiv"
+      },
+      "project_relation": "Direct answer to the RL comparison: higher training and real-robot cost than ArmBench's runtime-only intervention.",
+      "status_as_of_access_date": "formally_published",
+      "training_regime": "offline and online reinforced fine-tuning with interventions",
+      "verification": {
+        "arxiv": {
+          "arxiv_id": "2502.05450",
+          "authors": [
+            "Yuhui Chen",
+            "Shuai Tian",
+            "Shugao Liu",
+            "Yingting Zhou",
+            "Haoran Li",
+            "Dongbin Zhao"
+          ],
+          "comment": null,
+          "journal_reference": null,
+          "primary_category": "cs.RO",
+          "submitted_date": "2025-02-08T05:01:17Z",
+          "title": "ConRFT: A Reinforced Fine-tuning Method for VLA Models via Consistency Policy",
+          "updated_date": "2025-04-14T04:53:32Z",
+          "versioned_url": "https://arxiv.org/abs/2502.05450v2"
+        },
+        "crossref": {
+          "authors": [
+            "Yuhui Chen",
+            "Shuai Tian",
+            "Shugao Liu",
+            "Yingting Zhou",
+            "Haoran Li",
+            "Dongbin Zhao"
+          ],
+          "container_title": "Robotics: Science and Systems XXI",
+          "doi": "10.15607/rss.2025.xxi.019",
+          "publisher": "Robotics: Science and Systems Foundation",
+          "title": "ConRFT: A Reinforced Fine-tuning Method for VLA Models via Consistency Policy",
+          "type": "proceedings-article",
+          "url": "https://doi.org/10.15607/rss.2025.xxi.019"
+        },
+        "mode": "live_identifier_verification",
+        "official": {
+          "citation_authors": [
+            "Yuhui Chen",
+            "Shuai Tian",
+            "Shugao Liu",
+            "Yingting Zhou",
+            "Haoran Li",
+            "Dongbin Zhao"
+          ],
+          "extracted_title": "ConRFT: A Reinforced Fine-tuning Method for VLA Models via Consistency Policy",
+          "requested_url": "https://www.roboticsproceedings.org/rss21/p019.html",
+          "title_match": true
+        },
+        "openalex": {
+          "doi": "https://doi.org/10.15607/rss.2025.xxi.019",
+          "is_retracted": false,
+          "openalex_id": "https://openalex.org/W4414079285",
+          "publication_date": "2025-06-21",
+          "publication_year": 2025,
+          "source": null,
+          "title": "ConRFT: A Reinforced Fine-tuning Method for VLA Models via Consistency Policy",
+          "type": "conference-paper"
+        },
+        "title_checks": {
+          "arxiv_title_match": true,
+          "crossref_title_match": true,
+          "official_title_match": true,
+          "openalex_title_match": true
+        }
+      }
+    },
+    {
+      "canonical_title": "Diffusion Policy Policy Optimization",
+      "formal_publication": {
+        "citation": "ICLR 2025 poster; OpenReview forum mEpqHvbD2h",
+        "doi": null,
+        "official_url": "https://iclr.cc/virtual/2025/poster/28475",
+        "openreview_id": "mEpqHvbD2h",
+        "publication_date": null,
+        "publication_year": 2025,
+        "venue": "International Conference on Learning Representations (ICLR 2025)",
+        "venue_year": 2025
+      },
+      "key": "dppo",
+      "method_class": "diffusion_policy_reinforcement_learning",
+      "preprint_companion": {
+        "abstract_url": "https://arxiv.org/abs/2409.00588",
+        "arxiv_doi": "10.48550/arXiv.2409.00588",
+        "arxiv_id": "2409.00588",
+        "note": "An arXiv DOI identifies the preprint and is not treated as a formal venue DOI.",
+        "server": "arXiv"
+      },
+      "project_relation": "RL policy-optimization baseline, not a VLA runtime-assurance method.",
+      "status_as_of_access_date": "formally_published",
+      "training_regime": "policy-gradient fine-tuning of diffusion policies",
+      "verification": {
+        "arxiv": {
+          "arxiv_id": "2409.00588",
+          "authors": [
+            "Allen Z. Ren",
+            "Justin Lidard",
+            "Lars L. Ankile",
+            "Anthony Simeonov",
+            "Pulkit Agrawal",
+            "Anirudha Majumdar",
+            "Benjamin Burchfiel",
+            "Hongkai Dai",
+            "Max Simchowitz"
+          ],
+          "comment": "Website: diffusion-ppo.github.io",
+          "journal_reference": null,
+          "primary_category": "cs.RO",
+          "submitted_date": "2024-09-01T02:47:50Z",
+          "title": "Diffusion Policy Policy Optimization",
+          "updated_date": "2024-12-09T21:30:07Z",
+          "versioned_url": "https://arxiv.org/abs/2409.00588v3"
+        },
+        "crossref": null,
+        "mode": "live_identifier_verification",
+        "official": {
+          "citation_authors": [],
+          "extracted_title": "ICLR Poster Diffusion Policy Policy Optimization ICLR 2025",
+          "requested_url": "https://iclr.cc/virtual/2025/poster/28475",
+          "title_match": true
+        },
+        "openalex": {
+          "doi": "https://doi.org/10.48550/arxiv.2409.00588",
+          "is_retracted": false,
+          "openalex_id": "https://openalex.org/W4402953784",
+          "publication_date": "2024-09-01",
+          "publication_year": 2024,
+          "source": "arXiv (Cornell University)",
+          "title": "Diffusion Policy Policy Optimization",
+          "type": "preprint"
+        },
+        "title_checks": {
+          "arxiv_title_match": true,
+          "crossref_title_match": null,
+          "official_title_match": true,
+          "openalex_title_match": true
+        }
+      }
+    },
+    {
+      "canonical_title": "Precise and Dexterous Robotic Manipulation via Human-in-the-Loop Reinforcement Learning",
+      "formal_publication": {
+        "citation": "Science Robotics 10(105): eads5033",
+        "doi": "10.1126/scirobotics.ads5033",
+        "official_url": "https://doi.org/10.1126/scirobotics.ads5033",
+        "publication_date": "2025-08-20",
+        "publication_year": 2025,
+        "venue": "Science Robotics",
+        "venue_year": 2025
+      },
+      "key": "hil_serl",
+      "method_class": "human_in_the_loop_real_world_rl",
+      "preprint_companion": {
+        "abstract_url": "https://arxiv.org/abs/2410.21845",
+        "arxiv_doi": "10.48550/arXiv.2410.21845",
+        "arxiv_id": "2410.21845",
+        "note": "An arXiv DOI identifies the preprint and is not treated as a formal venue DOI.",
+        "server": "arXiv"
+      },
+      "project_relation": "Demonstrates high-value RL evidence but requires human supervision and substantial real-robot data.",
+      "status_as_of_access_date": "formally_published",
+      "training_regime": "online real-robot reinforcement learning with human interventions",
+      "verification": {
+        "arxiv": {
+          "arxiv_id": "2410.21845",
+          "authors": [
+            "Jianlan Luo",
+            "Charles Xu",
+            "Jeffrey Wu",
+            "Sergey Levine"
+          ],
+          "comment": null,
+          "journal_reference": null,
+          "primary_category": "cs.RO",
+          "submitted_date": "2024-10-29T08:12:20Z",
+          "title": "Precise and Dexterous Robotic Manipulation via Human-in-the-Loop Reinforcement Learning",
+          "updated_date": "2025-03-20T09:16:05Z",
+          "versioned_url": "https://arxiv.org/abs/2410.21845v3"
+        },
+        "crossref": {
+          "authors": [
+            "Jianlan Luo",
+            "Charles Xu",
+            "Jeffrey Wu",
+            "Sergey Levine"
+          ],
+          "container_title": "Science Robotics",
+          "doi": "10.1126/scirobotics.ads5033",
+          "publisher": "American Association for the Advancement of Science (AAAS)",
+          "title": "Precise and dexterous robotic manipulation via human-in-the-loop reinforcement learning",
+          "type": "journal-article",
+          "url": "https://doi.org/10.1126/scirobotics.ads5033"
+        },
+        "mode": "live_identifier_verification",
+        "official": {
+          "citation_authors": [],
+          "extracted_title": null,
+          "requested_url": "https://doi.org/10.1126/scirobotics.ads5033",
+          "title_match": true
+        },
+        "openalex": {
+          "doi": "https://doi.org/10.1126/scirobotics.ads5033",
+          "is_retracted": false,
+          "openalex_id": "https://openalex.org/W4413362511",
+          "publication_date": "2025-08-20",
+          "publication_year": 2025,
+          "source": "Science Robotics",
+          "title": "Precise and dexterous robotic manipulation via human-in-the-loop reinforcement learning",
+          "type": "article"
+        },
+        "title_checks": {
+          "arxiv_title_match": true,
+          "crossref_title_match": true,
+          "official_title_match": true,
+          "openalex_title_match": true
+        }
+      }
+    },
+    {
+      "canonical_title": "Real-Time Execution of Action Chunking Flow Policies",
+      "formal_publication": {
+        "citation": "NeurIPS 2025 poster; OpenReview forum UkR2zO5uww",
+        "doi": null,
+        "official_url": "https://neurips.cc/virtual/2025/poster/117747",
+        "openreview_id": "UkR2zO5uww",
+        "publication_date": null,
+        "publication_year": 2025,
+        "venue": "Conference on Neural Information Processing Systems (NeurIPS 2025)",
+        "venue_year": 2025
+      },
+      "key": "rtc",
+      "method_class": "training_free_asynchronous_runtime",
+      "preprint_companion": {
+        "abstract_url": "https://arxiv.org/abs/2506.07339",
+        "arxiv_doi": "10.48550/arXiv.2506.07339",
+        "arxiv_id": "2506.07339",
+        "note": "An arXiv DOI identifies the preprint and is not treated as a formal venue DOI.",
+        "server": "arXiv"
+      },
+      "project_relation": "Closest formal runtime comparator; ArmBench must distinguish prefix dropping from flow inpainting and reproduce latency protocols.",
+      "status_as_of_access_date": "formally_published",
+      "training_regime": "inference-time flow-policy inpainting without retraining",
+      "verification": {
+        "arxiv": {
+          "arxiv_id": "2506.07339",
+          "authors": [
+            "Kevin Black",
+            "Manuel Y. Galliker",
+            "Sergey Levine"
+          ],
+          "comment": "published in NeurIPS 2025",
+          "journal_reference": null,
+          "primary_category": "cs.RO",
+          "submitted_date": "2025-06-09T01:01:59Z",
+          "title": "Real-Time Execution of Action Chunking Flow Policies",
+          "updated_date": "2025-12-05T07:35:35Z",
+          "versioned_url": "https://arxiv.org/abs/2506.07339v2"
+        },
+        "crossref": null,
+        "mode": "live_identifier_verification",
+        "official": {
+          "citation_authors": [],
+          "extracted_title": "NeurIPS Poster Real-Time Execution of Action Chunking Flow Policies NeurIPS 2025",
+          "requested_url": "https://neurips.cc/virtual/2025/poster/117747",
+          "title_match": true
+        },
+        "openalex": {
+          "doi": "https://doi.org/10.48550/arxiv.2506.07339",
+          "is_retracted": false,
+          "openalex_id": "https://openalex.org/W4417097926",
+          "publication_date": "2025-06-09",
+          "publication_year": 2025,
+          "source": "arXiv (Cornell University)",
+          "title": "Real-Time Execution of Action Chunking Flow Policies",
+          "type": "preprint"
+        },
+        "title_checks": {
+          "arxiv_title_match": true,
+          "crossref_title_match": null,
+          "official_title_match": true,
+          "openalex_title_match": true
+        }
+      }
+    }
+  ],
+  "generated_at_utc": "2026-08-04T17:49:25+00:00",
+  "preprints_only": [
+    {
+      "canonical_title": "VLASH: Real-Time VLAs via Future-State-Aware Asynchronous Inference",
+      "formal_publication": null,
+      "key": "vlash",
+      "method_class": "future_state_asynchronous_vla",
+      "preprint_companion": {
+        "abstract_url": "https://arxiv.org/abs/2512.01031",
+        "arxiv_doi": "10.48550/arXiv.2512.01031",
+        "arxiv_id": "2512.01031",
+        "note": "An arXiv DOI identifies the preprint and is not treated as a formal venue DOI.",
+        "server": "arXiv"
+      },
+      "project_relation": "Direct recent comparator for stale-observation and prediction-execution misalignment.",
+      "status_as_of_access_date": "preprint_only_as_of_access_date",
+      "training_regime": "future-state-aware asynchronous inference",
+      "verification": {
+        "arxiv": {
+          "arxiv_id": "2512.01031",
+          "authors": [
+            "Jiaming Tang",
+            "Yufei Sun",
+            "Yilong Zhao",
+            "Shang Yang",
+            "Yujun Lin",
+            "Zhuoyang Zhang",
+            "James Hou",
+            "Yao Lu",
+            "Zhijian Liu",
+            "Song Han"
+          ],
+          "comment": null,
+          "journal_reference": null,
+          "primary_category": "cs.RO",
+          "submitted_date": "2025-11-30T18:59:24Z",
+          "title": "VLASH: Real-Time VLAs via Future-State-Aware Asynchronous Inference",
+          "updated_date": "2026-07-26T23:00:24Z",
+          "versioned_url": "https://arxiv.org/abs/2512.01031v2"
+        },
+        "crossref": null,
+        "mode": "live_identifier_verification",
+        "official": null,
+        "openalex": {
+          "doi": "https://doi.org/10.48550/arxiv.2512.01031",
+          "is_retracted": false,
+          "openalex_id": "https://openalex.org/W4416958104",
+          "publication_date": "2025-11-30",
+          "publication_year": 2025,
+          "source": "arXiv (Cornell University)",
+          "title": "VLASH: Real-Time VLAs via Future-State-Aware Asynchronous Inference",
+          "type": "preprint"
+        },
+        "title_checks": {
+          "arxiv_title_match": true,
+          "crossref_title_match": null,
+          "official_title_match": null,
+          "openalex_title_match": true
+        }
+      }
+    },
+    {
+      "canonical_title": "FutureRTC: Real-Time Robot Execution with Anticipatory-Conditioned Action Chunking",
+      "formal_publication": null,
+      "key": "future_rtc",
+      "method_class": "learned_execution_time_context_prediction",
+      "preprint_companion": {
+        "abstract_url": "https://arxiv.org/abs/2607.24008",
+        "arxiv_doi": "10.48550/arXiv.2607.24008",
+        "arxiv_id": "2607.24008",
+        "note": "An arXiv DOI identifies the preprint and is not treated as a formal venue DOI.",
+        "server": "arXiv"
+      },
+      "project_relation": "Very recent learned-adapter comparator; broader than ArmBench's current deterministic temporal alignment.",
+      "status_as_of_access_date": "preprint_only_as_of_access_date",
+      "training_regime": "plug-in state/visual prediction modules with policy-consistency adaptation",
+      "verification": {
+        "arxiv": {
+          "arxiv_id": "2607.24008",
+          "authors": [
+            "Hai Jiang",
+            "Yixian Zou",
+            "Binbin Liang",
+            "Boqian Liu",
+            "Fanman Meng",
+            "Shuaicheng Liu"
+          ],
+          "comment": "Project Website: https://jianghaiscu.github.io/FutureRTC_proj/",
+          "journal_reference": null,
+          "primary_category": "cs.RO",
+          "submitted_date": "2026-07-27T05:10:16Z",
+          "title": "FutureRTC: Real-Time Robot Execution with Anticipatory-Conditioned Action Chunking",
+          "updated_date": "2026-07-27T05:10:16Z",
+          "versioned_url": "https://arxiv.org/abs/2607.24008v1"
+        },
+        "crossref": null,
+        "mode": "live_identifier_verification",
+        "official": null,
+        "openalex": {
+          "doi": "https://doi.org/10.48550/arxiv.2607.24008",
+          "is_retracted": false,
+          "openalex_id": "https://openalex.org/W7171515502",
+          "publication_date": "2026-07-27",
+          "publication_year": 2026,
+          "source": "arXiv (Cornell University)",
+          "title": "FutureRTC: Real-Time Robot Execution with Anticipatory-Conditioned Action Chunking",
+          "type": "preprint"
+        },
+        "title_checks": {
+          "arxiv_title_match": true,
+          "crossref_title_match": null,
+          "official_title_match": null,
+          "openalex_title_match": true
+        }
+      }
+    },
+    {
+      "canonical_title": "Action ControlNet: A Lightweight Delay-Aware Adapter for Smooth Asynchronous Control in Vision-Language-Action Models",
+      "formal_publication": null,
+      "key": "action_controlnet",
+      "method_class": "delay_aware_action_adapter",
+      "preprint_companion": {
+        "abstract_url": "https://arxiv.org/abs/2606.25985",
+        "arxiv_doi": "10.48550/arXiv.2606.25985",
+        "arxiv_id": "2606.25985",
+        "note": "An arXiv DOI identifies the preprint and is not treated as a formal venue DOI.",
+        "server": "arXiv"
+      },
+      "project_relation": "Learned adapter comparator for action handoff smoothness; not training-free despite leaving the backbone frozen.",
+      "status_as_of_access_date": "preprint_only_as_of_access_date",
+      "training_regime": "parameter-efficient adapter training with a mostly frozen backbone",
+      "verification": {
+        "arxiv": {
+          "arxiv_id": "2606.25985",
+          "authors": [
+            "Tiecheng Guo",
+            "Meng Guo"
+          ],
+          "comment": null,
+          "journal_reference": null,
+          "primary_category": "cs.RO",
+          "submitted_date": "2026-06-24T15:53:43Z",
+          "title": "Action ControlNet: A Lightweight Delay-Aware Adapter for Smooth Asynchronous Control in Vision-Language-Action Models",
+          "updated_date": "2026-06-24T15:53:43Z",
+          "versioned_url": "https://arxiv.org/abs/2606.25985v1"
+        },
+        "crossref": null,
+        "mode": "live_identifier_verification",
+        "official": null,
+        "openalex": {
+          "doi": "https://doi.org/10.48550/arxiv.2606.25985",
+          "is_retracted": false,
+          "openalex_id": "https://openalex.org/W7165945222",
+          "publication_date": "2026-06-24",
+          "publication_year": 2026,
+          "source": "arXiv (Cornell University)",
+          "title": "Action ControlNet: A Lightweight Delay-Aware Adapter for Smooth Asynchronous Control in Vision-Language-Action Models",
+          "type": "preprint"
+        },
+        "title_checks": {
+          "arxiv_title_match": true,
+          "crossref_title_match": null,
+          "official_title_match": null,
+          "openalex_title_match": true
+        }
+      }
+    }
+  ],
+  "provenance": {
+    "api_failures": [
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 4847,
+        "endpoint": "https://api2.openreview.net/notes?id=mEpqHvbD2h",
+        "error_message": "expected JSON but endpoint returned HTML, likely an access challenge",
+        "error_type": "JSONDecodeError",
+        "final_url": "https://openreview.net/challenge?redirect=https%3A%2F%2Fapi2.openreview.net%2Fnotes%3Fid%3DmEpqHvbD2h",
+        "http_status": 200,
+        "outcome": "failure",
+        "purpose": "supplemental ICLR forum lookup response parsing",
+        "record_key": "dppo",
+        "source": "OpenReview"
+      }
+    ],
+    "endpoint_documentation": {
+      "arxiv": "https://export.arxiv.org/api/query",
+      "crossref": "https://api.crossref.org/works/{doi}",
+      "openalex": "https://api.openalex.org/works/{id}",
+      "openreview_supplemental": "https://api2.openreview.net/notes?id={forum_id}"
+    },
+    "environment_keys_used": {
+      "CROSSREF_MAILTO": false,
+      "OPENALEX_API_KEY": false
+    },
+    "generator": {
+      "path": "scripts/verify_vla_runtime_literature.py",
+      "sha256": "233ccb475adac32eead0d62de987e80853c19c158a682233fff38643c704bef4"
+    },
+    "preferred_source_order": [
+      "official venue or publisher",
+      "Crossref for formal DOI metadata",
+      "OpenAlex for identifier reconciliation",
+      "arXiv for preprint version metadata"
+    ],
+    "requests": [
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 33309,
+        "endpoint": "https://export.arxiv.org/api/query?id_list=2307.15818%2C2406.09246%2C2502.19645%2C2501.09747%2C2502.05450%2C2409.00588%2C2410.21845%2C2506.07339%2C2512.01031%2C2607.24008%2C2606.25985&start=0&max_results=11",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://export.arxiv.org/api/query?id_list=2307.15818%2C2406.09246%2C2502.19645%2C2501.09747%2C2502.05450%2C2409.00588%2C2410.21845%2C2506.07339%2C2512.01031%2C2607.24008%2C2606.25985&start=0&max_results=11",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "batch identifier lookup",
+        "record_key": null,
+        "source": "arXiv"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 24020,
+        "endpoint": "https://proceedings.mlr.press/v229/zitkovich23a.html",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://proceedings.mlr.press/v229/zitkovich23a.html",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "formal publication lookup",
+        "record_key": "rt2",
+        "source": "official_venue_or_publisher"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 1093,
+        "endpoint": "https://api.openalex.org/works/doi:10.48550/arXiv.2307.15818?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://api.openalex.org/works/doi:10.48550/arXiv.2307.15818?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "identifier lookup",
+        "record_key": "rt2",
+        "source": "OpenAlex"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 19480,
+        "endpoint": "https://proceedings.mlr.press/v270/kim25c.html",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://proceedings.mlr.press/v270/kim25c.html",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "formal publication lookup",
+        "record_key": "openvla",
+        "source": "official_venue_or_publisher"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 1106,
+        "endpoint": "https://api.openalex.org/works/doi:10.48550/arXiv.2406.09246?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://api.openalex.org/works/doi:10.48550/arXiv.2406.09246?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "identifier lookup",
+        "record_key": "openvla",
+        "source": "OpenAlex"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 8791,
+        "endpoint": "https://www.roboticsproceedings.org/rss21/p017.html",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://www.roboticsproceedings.org/rss21/p017.html",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "formal publication lookup",
+        "record_key": "openvla_oft",
+        "source": "official_venue_or_publisher"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 1715,
+        "endpoint": "https://api.crossref.org/works/10.15607%2FRSS.2025.XXI.017",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://api.crossref.org/works/10.15607%2FRSS.2025.XXI.017",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "formal DOI lookup",
+        "record_key": "openvla_oft",
+        "source": "Crossref"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 771,
+        "endpoint": "https://api.openalex.org/works/doi:10.15607/RSS.2025.XXI.017?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://api.openalex.org/works/doi:10.15607/RSS.2025.XXI.017?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "identifier lookup",
+        "record_key": "openvla_oft",
+        "source": "OpenAlex"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 8993,
+        "endpoint": "https://www.roboticsproceedings.org/rss21/p012.html",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://www.roboticsproceedings.org/rss21/p012.html",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "formal publication lookup",
+        "record_key": "fast",
+        "source": "official_venue_or_publisher"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 2485,
+        "endpoint": "https://api.crossref.org/works/10.15607%2FRSS.2025.XXI.012",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://api.crossref.org/works/10.15607%2FRSS.2025.XXI.012",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "formal DOI lookup",
+        "record_key": "fast",
+        "source": "Crossref"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 769,
+        "endpoint": "https://api.openalex.org/works/doi:10.15607/RSS.2025.XXI.012?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://api.openalex.org/works/doi:10.15607/RSS.2025.XXI.012?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "identifier lookup",
+        "record_key": "fast",
+        "source": "OpenAlex"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 8696,
+        "endpoint": "https://www.roboticsproceedings.org/rss21/p019.html",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://www.roboticsproceedings.org/rss21/p019.html",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "formal publication lookup",
+        "record_key": "conrft",
+        "source": "official_venue_or_publisher"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 2104,
+        "endpoint": "https://api.crossref.org/works/10.15607%2FRSS.2025.XXI.019",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://api.crossref.org/works/10.15607%2FRSS.2025.XXI.019",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "formal DOI lookup",
+        "record_key": "conrft",
+        "source": "Crossref"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 777,
+        "endpoint": "https://api.openalex.org/works/doi:10.15607/RSS.2025.XXI.019?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://api.openalex.org/works/doi:10.15607/RSS.2025.XXI.019?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "identifier lookup",
+        "record_key": "conrft",
+        "source": "OpenAlex"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 83777,
+        "endpoint": "https://iclr.cc/virtual/2025/poster/28475",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://iclr.cc/virtual/2025/poster/28475",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "formal publication lookup",
+        "record_key": "dppo",
+        "source": "official_venue_or_publisher"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 1092,
+        "endpoint": "https://api.openalex.org/works/doi:10.48550/arXiv.2409.00588?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://api.openalex.org/works/doi:10.48550/arXiv.2409.00588?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "identifier lookup",
+        "record_key": "dppo",
+        "source": "OpenAlex"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 34812,
+        "endpoint": "https://doi.org/10.1126/scirobotics.ads5033",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://api.crossref.org/v1/works/10.1126%2Fscirobotics.ads5033/transform",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "formal publication lookup",
+        "record_key": "hil_serl",
+        "source": "official_venue_or_publisher"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 34946,
+        "endpoint": "https://api.crossref.org/works/10.1126%2Fscirobotics.ads5033",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://api.crossref.org/works/10.1126%2Fscirobotics.ads5033",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "formal DOI lookup",
+        "record_key": "hil_serl",
+        "source": "Crossref"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 1244,
+        "endpoint": "https://api.openalex.org/works/doi:10.1126/scirobotics.ads5033?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://api.openalex.org/works/doi:10.1126/scirobotics.ads5033?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "identifier lookup",
+        "record_key": "hil_serl",
+        "source": "OpenAlex"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 91136,
+        "endpoint": "https://neurips.cc/virtual/2025/poster/117747",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://neurips.cc/virtual/2025/loc/san-diego/poster/117747",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "formal publication lookup",
+        "record_key": "rtc",
+        "source": "official_venue_or_publisher"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 1072,
+        "endpoint": "https://api.openalex.org/works/doi:10.48550/arXiv.2506.07339?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://api.openalex.org/works/doi:10.48550/arXiv.2506.07339?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "identifier lookup",
+        "record_key": "rtc",
+        "source": "OpenAlex"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 1088,
+        "endpoint": "https://api.openalex.org/works/doi:10.48550/arXiv.2512.01031?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://api.openalex.org/works/doi:10.48550/arXiv.2512.01031?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "identifier lookup",
+        "record_key": "vlash",
+        "source": "OpenAlex"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 1073,
+        "endpoint": "https://api.openalex.org/works/doi:10.48550/arXiv.2607.24008?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://api.openalex.org/works/doi:10.48550/arXiv.2607.24008?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "identifier lookup",
+        "record_key": "future_rtc",
+        "source": "OpenAlex"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 1108,
+        "endpoint": "https://api.openalex.org/works/doi:10.48550/arXiv.2606.25985?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "error_message": null,
+        "error_type": null,
+        "final_url": "https://api.openalex.org/works/doi:10.48550/arXiv.2606.25985?select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Cprimary_location%2Cids%2Cis_retracted",
+        "http_status": 200,
+        "outcome": "success",
+        "purpose": "identifier lookup",
+        "record_key": "action_controlnet",
+        "source": "OpenAlex"
+      },
+      {
+        "accessed_on": "2026-08-05",
+        "attempts": 1,
+        "bytes_received": 4847,
+        "endpoint": "https://api2.openreview.net/notes?id=mEpqHvbD2h",
+        "error_message": "expected JSON but endpoint returned HTML, likely an access challenge",
+        "error_type": "JSONDecodeError",
+        "final_url": "https://openreview.net/challenge?redirect=https%3A%2F%2Fapi2.openreview.net%2Fnotes%3Fid%3DmEpqHvbD2h",
+        "http_status": 200,
+        "outcome": "failure",
+        "purpose": "supplemental ICLR forum lookup response parsing",
+        "record_key": "dppo",
+        "source": "OpenReview"
+      }
+    ],
+    "supplemental_openreview_probe": null,
+    "validation_warnings": []
+  },
+  "retrieval_contract": {
+    "classification_rule": "A work is formally published only when a seeded official venue/publisher record exists. arXiv-only works stay separate even when Crossref or OpenAlex exposes the arXiv DOI.",
+    "formal_publication_count": 8,
+    "missing_required_keys": [],
+    "network_mode": "live",
+    "observed_keys": [
+      "action_controlnet",
+      "conrft",
+      "dppo",
+      "fast",
+      "future_rtc",
+      "hil_serl",
+      "openvla",
+      "openvla_oft",
+      "rt2",
+      "rtc",
+      "vlash"
+    ],
+    "preprint_only_count": 3,
+    "required_keys": [
+      "action_controlnet",
+      "conrft",
+      "dppo",
+      "fast",
+      "future_rtc",
+      "hil_serl",
+      "openvla",
+      "openvla_oft",
+      "rt2",
+      "rtc",
+      "vlash"
+    ],
+    "scope": "bounded identifier-first audit of VLA training, RL fine-tuning, and asynchronous runtime comparators"
+  },
+  "schema_version": "armbench.vla_runtime_literature_metadata.v1"
+}
