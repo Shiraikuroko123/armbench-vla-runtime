@@ -1,2 +1,2 @@
-# Cloud-run manifests attest exact file bytes. Never rewrite their line endings.
-evidence/pi05_libero_*/run/** -text
+# Cloud evidence manifests attest exact file bytes. Never rewrite line endings.
+evidence/pi05_libero_*/** -text
