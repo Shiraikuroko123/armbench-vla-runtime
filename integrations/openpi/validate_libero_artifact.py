@@ -24,6 +24,7 @@ import numpy as np
 from integrations.openpi.libero_runtime import (
     ASYNC_UNGUARDED,
     FIXED_REFRESH,
+    LATENCY_ALIGNED,
     STATE_GUARD,
     VALID_MODES,
 )
@@ -939,6 +940,10 @@ def _validate_raw_consistency(
                         mismatch_reasons.append("gripper_mismatch")
                     if episode_mode == ASYNC_UNGUARDED:
                         expected_decision = "accepted_unguarded"
+                        expected_accepted = True
+                        expected_reasons = "|".join(mismatch_reasons)
+                    elif episode_mode == LATENCY_ALIGNED:
+                        expected_decision = "accepted_latency_aligned"
                         expected_accepted = True
                         expected_reasons = "|".join(mismatch_reasons)
                     elif episode_mode == STATE_GUARD:

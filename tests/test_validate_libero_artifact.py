@@ -10,6 +10,7 @@ import pytest
 from integrations.openpi.libero_runtime import (
     ASYNC_UNGUARDED,
     FIXED_REFRESH,
+    LATENCY_ALIGNED,
     STATE_GUARD,
     EpisodeResult,
     QueryRecord,
@@ -44,9 +45,13 @@ def _result(mode: str, latency_steps: int, success: bool) -> EpisodeResult:
             "accepted_unguarded"
             if mode == ASYNC_UNGUARDED
             else (
-                "accepted_state_guard"
-                if mode == STATE_GUARD
-                else "accepted_fixed_refresh"
+                "accepted_latency_aligned"
+                if mode == LATENCY_ALIGNED
+                else (
+                    "accepted_state_guard"
+                    if mode == STATE_GUARD
+                    else "accepted_fixed_refresh"
+                )
             )
         ),
         rejection_reasons=(),
@@ -72,12 +77,15 @@ def _result(mode: str, latency_steps: int, success: bool) -> EpisodeResult:
     )
 
 
-def _make_artifact(root: pathlib.Path) -> pathlib.Path:
+def _make_artifact(
+    root: pathlib.Path, modes: list[str] | None = None
+) -> pathlib.Path:
+    selected_modes = modes or [ASYNC_UNGUARDED, STATE_GUARD, FIXED_REFRESH]
     cells = build_matrix(
         "libero_spatial",
         task_ids=[0],
         episode_indices=[0],
-        modes=[ASYNC_UNGUARDED, STATE_GUARD, FIXED_REFRESH],
+        modes=selected_modes,
         replan_steps=[5],
         latency_steps=[0, 2],
     )
@@ -105,7 +113,9 @@ def _make_artifact(root: pathlib.Path) -> pathlib.Path:
         "server_launch_args": "--env LIBERO",
         "checkpoint_provenance": "server_attestation_with_checkpoint_content_sha256",
         "official_protocol": {"control_period_ms": 50.0},
-        "experimental_mechanism": {"fixed_refresh_interval": 2},
+        "experimental_mechanism": {
+            "fixed_refresh_interval": 2 if FIXED_REFRESH in selected_modes else None
+        },
         "thresholds": {
             "position_m": 0.01,
             "orientation_rad": 0.10,
@@ -165,6 +175,17 @@ def _make_artifact(root: pathlib.Path) -> pathlib.Path:
         expected_cells=cells,
     )
     return root
+
+
+def test_latency_aligned_artifact_is_validated_explicitly(tmp_path) -> None:
+    artifact = _make_artifact(
+        tmp_path / "aligned",
+        modes=[ASYNC_UNGUARDED, LATENCY_ALIGNED],
+    )
+
+    report = validate_artifact(artifact)
+
+    assert report.valid, report.errors
 
 
 @pytest.fixture
