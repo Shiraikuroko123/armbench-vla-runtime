@@ -19,6 +19,7 @@ from integrations.openpi.libero_runtime_eval import (
     LIBERO_CONTROL_PERIOD_MS,
     LIBERO_ENV_RESOLUTION,
     _validate_server_launch_args,
+    _validate_server_attestation,
     aggregate_episodes,
     artifact_integrity_errors,
     build_matrix,
@@ -125,6 +126,46 @@ def test_server_launch_provenance_requires_matching_libero_checkpoint() -> None:
         _validate_server_launch_args(None, DEFAULT_CHECKPOINT)
     with np.testing.assert_raises_regex(ValueError, "different path"):
         _validate_server_launch_args("--env LIBERO", "custom_checkpoint")
+
+
+def test_server_attestation_is_strictly_bound_to_run_arguments() -> None:
+    class Args:
+        allow_unattested_server = False
+        checkpoint = DEFAULT_CHECKPOINT
+        expected_openpi_commit = "15a9616a00943ada6c20a0f158e3adb39df2ccac"
+
+    attestation = {
+        "schema_version": "armbench.openpi_server_attestation.v1",
+        "policy_loaded": True,
+        "policy_config": "pi05_libero",
+        "checkpoint_uri": DEFAULT_CHECKPOINT,
+        "openpi_commit": Args.expected_openpi_commit,
+        "openpi_tracked_clean": True,
+        "openpi_tracked_status": "",
+        "openpi_submodules_clean": True,
+        "action_horizon": 10,
+        "checkpoint_content_sha256": "a" * 64,
+        "server_source_sha256": "b" * 64,
+        "checkpoint_file_count": 4,
+        "checkpoint_total_bytes": 100,
+    }
+
+    assert (
+        _validate_server_attestation(
+            {"armbench_server_attestation": attestation}, Args(), "b" * 64
+        )
+        == attestation
+    )
+    bad = dict(attestation, policy_config="wrong")
+    with np.testing.assert_raises_regex(ValueError, "policy_config"):
+        _validate_server_attestation(
+            {"armbench_server_attestation": bad}, Args(), "b" * 64
+        )
+
+    with np.testing.assert_raises_regex(ValueError, "server_source_sha256"):
+        _validate_server_attestation(
+            {"armbench_server_attestation": attestation}, Args(), "c" * 64
+        )
 
 
 def test_bounded_openpi_client_records_metadata_and_applies_recv_timeout() -> None:

@@ -33,6 +33,7 @@ from integrations.openpi.libero_runtime import (
 
 
 SCHEMA_VERSION = "armbench.pi05_libero_async.v1"
+SERVER_ATTESTATION_SCHEMA_VERSION = "armbench.openpi_server_attestation.v1"
 OPENPI_COMMIT = "15a9616a00943ada6c20a0f158e3adb39df2ccac"
 DEFAULT_POLICY_CONFIG = "pi05_libero"
 DEFAULT_CHECKPOINT = "gs://openpi-assets/checkpoints/pi05_libero"
@@ -65,6 +66,7 @@ RUNTIME_SOURCE_FILES = (
     "integrations/openpi/libero_runtime_eval.py",
     "integrations/openpi/preflight.py",
     "integrations/openpi/compose.libero-runtime.yml",
+    "integrations/openpi/serve_policy_attested.py",
 )
 
 EPISODE_FIELDS = (
@@ -387,6 +389,48 @@ def _validate_server_launch_args(
             "server launch args must declare either '--env LIBERO' or both "
             "pi05_libero and the declared checkpoint path"
         )
+
+
+def _validate_server_attestation(
+    metadata: Mapping[str, Any],
+    args: argparse.Namespace,
+    expected_server_source_sha256: str,
+) -> Optional[Mapping[str, Any]]:
+    attestation = metadata.get("armbench_server_attestation")
+    if args.allow_unattested_server:
+        return attestation if isinstance(attestation, Mapping) else None
+    if not isinstance(attestation, Mapping):
+        raise ValueError(
+            "OpenPI server did not provide ArmBench checkpoint attestation; "
+            "use the attested server entrypoint"
+        )
+    required_equal = {
+        "schema_version": SERVER_ATTESTATION_SCHEMA_VERSION,
+        "policy_loaded": True,
+        "policy_config": DEFAULT_POLICY_CONFIG,
+        "checkpoint_uri": args.checkpoint,
+        "openpi_commit": args.expected_openpi_commit,
+        "openpi_tracked_clean": True,
+        "openpi_tracked_status": "",
+        "openpi_submodules_clean": True,
+        "action_horizon": PI05_LIBERO_ACTION_HORIZON,
+        "server_source_sha256": expected_server_source_sha256,
+    }
+    mismatches = [
+        "%s=%r (expected %r)" % (key, attestation.get(key), expected)
+        for key, expected in required_equal.items()
+        if attestation.get(key) != expected
+    ]
+    for key in ("checkpoint_content_sha256", "server_source_sha256"):
+        if not re.fullmatch(r"[0-9a-f]{64}", str(attestation.get(key, ""))):
+            mismatches.append("%s is not a SHA-256 digest" % key)
+    for key in ("checkpoint_file_count", "checkpoint_total_bytes"):
+        value = attestation.get(key)
+        if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+            mismatches.append("%s must be a positive integer" % key)
+    if mismatches:
+        raise ValueError("server attestation mismatch: %s" % "; ".join(mismatches))
+    return attestation
 
 
 def build_matrix(
@@ -1639,7 +1683,11 @@ def _resolved_protocol(
         "policy_config": DEFAULT_POLICY_CONFIG,
         "declared_checkpoint": args.checkpoint,
         "server_launch_args": args.server_launch_args,
-        "checkpoint_provenance": "launcher_declaration_not_server_attestation",
+        "checkpoint_provenance": (
+            "launcher_declaration_only"
+            if args.allow_unattested_server
+            else "server_attestation_with_checkpoint_content_sha256"
+        ),
         "official_protocol": {
             "environment_render_resolution": [
                 LIBERO_ENV_RESOLUTION,
@@ -1696,7 +1744,7 @@ def _resolved_protocol(
             "This runtime check is not a formal safety certificate.",
             "Injected latency steps model asynchronous execution independently of measured wall latency.",
             "Identical LIBERO initial states do not reset hidden policy-server sampling state.",
-            "The official server metadata does not attest checkpoint identity; launcher arguments are retained as provenance.",
+            "Checkpoint attestation proves the loaded cache content and launcher identity, not the upstream publisher's intent.",
             "Object contacts are not labeled as safety violations.",
         ],
     }
@@ -1741,6 +1789,23 @@ def _execute_connected_benchmark(
     from libero.libero import benchmark
 
     server_metadata = client.get_server_metadata()
+    attested_server_source = (
+        armbench_root / "integrations" / "openpi" / "serve_policy_attested.py"
+    )
+    if not attested_server_source.is_file() and not args.allow_unattested_server:
+        raise FileNotFoundError(
+            "attested server source is missing: %s" % attested_server_source
+        )
+    expected_server_source_sha256 = (
+        hashlib.sha256(attested_server_source.read_bytes()).hexdigest()
+        if attested_server_source.is_file()
+        else ""
+    )
+    _validate_server_attestation(
+        server_metadata,
+        args,
+        expected_server_source_sha256,
+    )
     environment_record = capture_environment(
         openpi_root, armbench_root, server_metadata, args
     )
@@ -2056,6 +2121,11 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Exact OpenPI server launch arguments retained as checkpoint provenance",
     )
     run_parser.add_argument("--allow-commit-mismatch", action="store_true")
+    run_parser.add_argument(
+        "--allow-unattested-server",
+        action="store_true",
+        help="Diagnostic only: accept official server metadata without checkpoint attestation",
+    )
     run_parser.add_argument("--resize-size", type=int, default=224)
     run_parser.add_argument("--num-steps-wait", type=int, default=10)
     run_parser.add_argument("--max-task-steps", type=int)
