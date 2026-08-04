@@ -36,13 +36,16 @@ for command_name in "$PYTHON_BIN" git tar sha256sum tee; do
 done
 
 : "${OPENPI_ROOT:?set OPENPI_ROOT to the pinned OpenPI checkout}"
+: "${OPENPI_DATA_HOME:?set OPENPI_DATA_HOME to the populated OpenPI asset cache}"
 : "${ARMBENCH_ROOT:?set ARMBENCH_ROOT to the ArmBench checkout}"
 : "${ARMBENCH_RESULTS_ROOT:?set ARMBENCH_RESULTS_ROOT to the results directory}"
 : "${ARMBENCH_ARCHIVE_ROOT:?set ARMBENCH_ARCHIVE_ROOT to the archive directory}"
 : "${ARMBENCH_EXPECTED_COMMIT:?set ARMBENCH_EXPECTED_COMMIT to the frozen clean commit}"
 
 require_directory OPENPI_ROOT "$OPENPI_ROOT"
+require_directory OPENPI_DATA_HOME "$OPENPI_DATA_HOME"
 require_directory ARMBENCH_ROOT "$ARMBENCH_ROOT"
+export OPENPI_DATA_HOME
 mkdir -p "$ARMBENCH_RESULTS_ROOT" "$ARMBENCH_ARCHIVE_ROOT"
 
 readonly ACTUAL_COMMIT="$(git -C "$ARMBENCH_ROOT" rev-parse HEAD)"

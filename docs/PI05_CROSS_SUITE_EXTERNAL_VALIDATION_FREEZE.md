@@ -80,6 +80,9 @@ source commits, source hashes, resolved Compose configuration, image identity,
 and checkpoint attestation. This operational amendment was made after a failed
 episode-45 smoke launch and before any registered external-validation rollout;
 it changes no suite, task, initial state, mode, seed, checkpoint, or metric.
+The runner also requires an explicit `OPENPI_DATA_HOME` pointing at the
+populated checkpoint cache, so a missing shell variable cannot silently start
+a duplicate multi-gigabyte checkpoint download.
 
 Each suite uses the same command template, changing only `SUITE` and `RUN_ID`:
 
