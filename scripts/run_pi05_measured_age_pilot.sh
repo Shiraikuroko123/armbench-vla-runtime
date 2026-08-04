@@ -82,15 +82,16 @@ if pair_count != 20:
     raise SystemExit("expected exactly 20 matched pairs, got %r" % pair_count)
 PY
 
-printf -v EVALUATOR_ARGS '%q ' "${PROTOCOL_ARGS[@]}" "${RUN_ONLY_ARGS[@]}"
-# The root runner rejects shell metacharacters, so the frozen values above must
-# remain simple option/value tokens. Convert Bash's escaped representation back
-# to the exact space-delimited form accepted by the runner.
-EVALUATOR_ARGS="${EVALUATOR_ARGS% }"
-if [[ "$EVALUATOR_ARGS" == *\\* ]]; then
-  echo "Frozen evaluator arguments unexpectedly require shell escaping" >&2
-  exit 64
-fi
+# The Python runner performs a second metacharacter check. Keep this shell-side
+# check explicit because Bash's printf %q escapes legitimate commas and would
+# corrupt registered values such as the mode and jitter lists.
+for token in "${PROTOCOL_ARGS[@]}" "${RUN_ONLY_ARGS[@]}"; do
+  if [[ ! "$token" =~ ^[A-Za-z0-9_./,:+-]+$ ]]; then
+    echo "Frozen evaluator argument contains unsupported characters: $token" >&2
+    exit 64
+  fi
+done
+readonly EVALUATOR_ARGS="${PROTOCOL_ARGS[*]} ${RUN_ONLY_ARGS[*]}"
 
 set +e
 "$PYTHON_BIN" -m integrations.openpi.measured_age_compose_run run \
