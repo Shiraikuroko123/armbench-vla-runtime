@@ -181,6 +181,15 @@ class QueryRecord:
     horizon_overrun: bool = False
     age_refresh_index: int = 0
     fallback_hold_steps: int = 0
+    observation_captured_monotonic_ns: Optional[int] = None
+    policy_call_started_monotonic_ns: Optional[int] = None
+    policy_call_finished_monotonic_ns: Optional[int] = None
+    response_ready_monotonic_ns: Optional[int] = None
+    response_delivery_elapsed_ms: Optional[float] = None
+    simulated_catchup_steps: Optional[int] = None
+    selected_stop_step: Optional[int] = None
+    alignment_disposition: Optional[str] = None
+    alignment_reason: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -210,6 +219,15 @@ class QueryRecord:
             "horizon_overrun": self.horizon_overrun,
             "age_refresh_index": self.age_refresh_index,
             "fallback_hold_steps": self.fallback_hold_steps,
+            "observation_captured_monotonic_ns": self.observation_captured_monotonic_ns,
+            "policy_call_started_monotonic_ns": self.policy_call_started_monotonic_ns,
+            "policy_call_finished_monotonic_ns": self.policy_call_finished_monotonic_ns,
+            "response_ready_monotonic_ns": self.response_ready_monotonic_ns,
+            "response_delivery_elapsed_ms": self.response_delivery_elapsed_ms,
+            "simulated_catchup_steps": self.simulated_catchup_steps,
+            "selected_stop_step": self.selected_stop_step,
+            "alignment_disposition": self.alignment_disposition,
+            "alignment_reason": self.alignment_reason,
         }
 
 
@@ -288,6 +306,12 @@ def _elapsed_ms(start_s: float, end_s: float, label: str) -> float:
     if not math.isfinite(elapsed) or elapsed < 0.0:
         raise ValueError("monotonic clock moved backwards during %s" % label)
     return elapsed
+
+
+def _monotonic_ns(value_s: Optional[float]) -> Optional[int]:
+    if value_s is None:
+        return None
+    return int(round(value_s * 1_000_000_000.0))
 
 
 def quat_to_axis_angle(quaternion: Sequence[float]) -> np.ndarray:
@@ -561,9 +585,13 @@ def run_episode(
                 query_index = len(query_records)
                 observation_step = environment_steps
                 failure_stage = "latency_measurement"
+                observation_captured_at: Optional[float] = None
                 inference_start: Optional[float] = None
+                inference_finished: Optional[float] = None
+                response_ready_at: Optional[float] = None
                 inference_latency_ms = 0.0
                 observed_age_ms: Optional[float] = None
+                response_delivery_elapsed_ms: Optional[float] = None
                 jitter_ms = 0.0
                 measured_stale_steps: Optional[int] = None
                 environment_delay_steps = config.latency_steps
@@ -594,6 +622,11 @@ def run_episode(
                         if jitter_ms > 0.0:
                             sleeper(jitter_ms / 1000.0)
                     response_ready_at = _clock_value(clock)
+                    response_delivery_elapsed_ms = _elapsed_ms(
+                        inference_finished,
+                        response_ready_at,
+                        "response delivery",
+                    )
                     observed_age_ms = _elapsed_ms(
                         observation_captured_at,
                         response_ready_at,
@@ -676,6 +709,21 @@ def run_episode(
                             latency_source=config.latency_source,
                             observation_age_ms=observed_age_ms,
                             response_jitter_ms=jitter_ms,
+                            observation_captured_monotonic_ns=_monotonic_ns(
+                                observation_captured_at
+                            ),
+                            policy_call_started_monotonic_ns=_monotonic_ns(
+                                inference_start
+                            ),
+                            policy_call_finished_monotonic_ns=_monotonic_ns(
+                                inference_finished
+                            ),
+                            response_ready_monotonic_ns=_monotonic_ns(
+                                response_ready_at
+                            ),
+                            response_delivery_elapsed_ms=(
+                                response_delivery_elapsed_ms
+                            ),
                         )
                     )
                     return finish(
@@ -706,11 +754,32 @@ def run_episode(
                     if config.latency_source == FIXED_STEP_LATENCY
                     else 0
                 )
+                raw_timing_fields = {
+                    "observation_captured_monotonic_ns": _monotonic_ns(
+                        observation_captured_at
+                    ),
+                    "policy_call_started_monotonic_ns": _monotonic_ns(
+                        inference_start
+                    ),
+                    "policy_call_finished_monotonic_ns": _monotonic_ns(
+                        inference_finished
+                    ),
+                    "response_ready_monotonic_ns": _monotonic_ns(
+                        response_ready_at
+                    ),
+                    "response_delivery_elapsed_ms": response_delivery_elapsed_ms,
+                    "simulated_catchup_steps": (
+                        delay_steps_executed
+                        if config.latency_source == MEASURED_WALL_LATENCY
+                        else None
+                    ),
+                }
                 if alignment_decision is None:
                     timing_fields = {
                         "latency_source": config.latency_source,
                         "observation_age_ms": observed_age_ms,
                         "response_jitter_ms": jitter_ms,
+                        **raw_timing_fields,
                     }
                 else:
                     aligned_mode = config.mode == LATENCY_ALIGNED
@@ -730,6 +799,10 @@ def run_episode(
                         "deadline_exceeded": alignment_decision.deadline_exceeded,
                         "horizon_overrun": alignment_decision.horizon_overrun,
                         "age_refresh_index": consecutive_age_refreshes,
+                        "selected_stop_step": alignment_decision.selected_stop_step,
+                        "alignment_disposition": alignment_decision.disposition,
+                        "alignment_reason": alignment_decision.reason,
+                        **raw_timing_fields,
                     }
 
                 mismatch = state_mismatch(

@@ -379,8 +379,17 @@ def test_measured_wall_alignment_uses_observed_age_not_fixed_delay() -> None:
     first = result.query_records[0]
     assert first.decision == "accepted_measured_latency_aligned"
     assert first.observation_age_ms == pytest.approx(120.0)
+    assert first.observation_captured_monotonic_ns == 0
+    assert first.policy_call_started_monotonic_ns == 0
+    assert first.policy_call_finished_monotonic_ns == 120_000_000
+    assert first.response_ready_monotonic_ns == 120_000_000
+    assert first.response_delivery_elapsed_ms == pytest.approx(0.0)
+    assert first.simulated_catchup_steps == 2
     assert first.measured_stale_steps == 3
     assert first.action_offset_steps == 3
+    assert first.selected_stop_step == 5
+    assert first.alignment_disposition == "execute"
+    assert first.alignment_reason == "fresh_suffix_available"
     assert first.injected_latency_steps_executed == 0
     assert result.latency_action_steps == 2
     np.testing.assert_allclose(
@@ -411,6 +420,8 @@ def test_measured_wall_age_includes_seedable_delivery_jitter() -> None:
     first = result.query_records[0]
     assert first.inference_latency_ms == pytest.approx(40.0)
     assert first.response_jitter_ms == pytest.approx(80.0)
+    assert first.response_delivery_elapsed_ms == pytest.approx(80.0)
+    assert first.response_ready_monotonic_ns == 120_000_000
     assert first.observation_age_ms == pytest.approx(120.0)
     assert first.measured_stale_steps == 3
 
