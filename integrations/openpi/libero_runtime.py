@@ -113,6 +113,9 @@ class QueryRecord:
     decision: str
     rejection_reasons: Tuple[str, ...]
     mismatch: Optional[StateMismatch]
+    policy_inference_latency_ms: Optional[float] = None
+    server_inference_latency_ms: Optional[float] = None
+    error_stage: Optional[str] = None
     error_type: Optional[str] = None
     error_message: Optional[str] = None
 
@@ -129,6 +132,9 @@ class QueryRecord:
             "decision": self.decision,
             "rejection_reasons": list(self.rejection_reasons),
             "mismatch": None if self.mismatch is None else self.mismatch.to_dict(),
+            "policy_inference_latency_ms": self.policy_inference_latency_ms,
+            "server_inference_latency_ms": self.server_inference_latency_ms,
+            "error_stage": self.error_stage,
             "error_type": self.error_type,
             "error_message": self.error_message,
         }
@@ -146,9 +152,11 @@ class EpisodeResult:
     accepted_chunks: int
     rejected_chunks: int
     stale_chunks_executed: int
+    stale_action_steps: int
     interventions: int
     query_records: List[QueryRecord]
     replay_frames: List[np.ndarray]
+    failure_category: Optional[str] = None
     failure_type: Optional[str] = None
     failure_message: Optional[str] = None
 
@@ -164,7 +172,9 @@ class EpisodeResult:
             "accepted_chunks": self.accepted_chunks,
             "rejected_chunks": self.rejected_chunks,
             "stale_chunks_executed": self.stale_chunks_executed,
+            "stale_action_steps": self.stale_action_steps,
             "interventions": self.interventions,
+            "failure_category": self.failure_category,
             "failure_type": self.failure_type,
             "failure_message": self.failure_message,
         }
@@ -303,6 +313,19 @@ def validate_action_chunk(response: Mapping[str, Any], replan_steps: int) -> np.
     return actions
 
 
+def response_timing_ms(
+    response: Mapping[str, Any], section: str
+) -> Optional[float]:
+    timing = response.get(section)
+    if not isinstance(timing, Mapping):
+        return None
+    try:
+        value = float(timing["infer_ms"])
+    except (KeyError, TypeError, ValueError):
+        return None
+    return value if math.isfinite(value) and value >= 0.0 else None
+
+
 def hold_action(previous_action: Sequence[float]) -> np.ndarray:
     """Stop Cartesian motion while preserving the last gripper command."""
 
@@ -365,6 +388,7 @@ def run_episode(
     query_records: List[QueryRecord] = []
     replay_frames: List[np.ndarray] = []
     action_plan: Deque[np.ndarray] = collections.deque()
+    action_plan_stale: Deque[bool] = collections.deque()
     last_action = LIBERO_DUMMY_ACTION.copy()
     environment_steps = 0
     task_action_steps = 0
@@ -372,12 +396,14 @@ def run_episode(
     accepted_chunks = 0
     rejected_chunks = 0
     stale_chunks_executed = 0
+    stale_action_steps = 0
     consecutive_rejections = 0
     done = False
 
     def finish(
         success: bool,
         reason: str,
+        failure_category: Optional[str] = None,
         failure_type: Optional[str] = None,
         failure_message: Optional[str] = None,
     ) -> EpisodeResult:
@@ -392,9 +418,11 @@ def run_episode(
             accepted_chunks=accepted_chunks,
             rejected_chunks=rejected_chunks,
             stale_chunks_executed=stale_chunks_executed,
+            stale_action_steps=stale_action_steps,
             interventions=rejected_chunks,
             query_records=query_records,
             replay_frames=replay_frames,
+            failure_category=failure_category,
             failure_type=failure_type,
             failure_message=failure_message,
         )
@@ -410,8 +438,6 @@ def run_episode(
                 break
             observation, _, done, _ = _environment_step(environment, LIBERO_DUMMY_ACTION)
             environment_steps += 1
-            if done:
-                return finish(True, "success_during_stabilization")
 
         while environment_steps < config.environment_step_limit:
             if config.record_video:
@@ -421,38 +447,69 @@ def run_episode(
                 query_index = len(query_records)
                 observation_step = environment_steps
                 query_state = snapshot_robot_state(observation)
+                failure_stage = "observation_build"
+                inference_start: Optional[float] = None
                 try:
                     request = request_builder(
                         observation, task_description, config.resize_size
                     )
+                    failure_stage = "policy_inference"
                     inference_start = clock()
                     response = policy.infer(request)
                     inference_latency_ms = max(0.0, (clock() - inference_start) * 1000.0)
+                    failure_stage = "policy_response_validation"
                     actions = validate_action_chunk(response, config.replan_steps)
+                    policy_inference_latency_ms = response_timing_ms(
+                        response, "policy_timing"
+                    )
+                    server_inference_latency_ms = response_timing_ms(
+                        response, "server_timing"
+                    )
                 except Exception as exc:
+                    failed_latency_ms = 0.0
+                    if inference_start is not None:
+                        failed_latency_ms = max(
+                            0.0, (clock() - inference_start) * 1000.0
+                        )
+                    if failure_stage == "observation_build":
+                        failure_category = "observation_contract"
+                        termination_reason = "invalid_observation"
+                    elif failure_stage == "policy_response_validation":
+                        failure_category = "policy_contract"
+                        termination_reason = "invalid_policy_response"
+                    elif isinstance(exc, TimeoutError):
+                        failure_category = "policy_timeout"
+                        termination_reason = "policy_timeout"
+                    else:
+                        failure_category = "policy_transport_or_server"
+                        termination_reason = "policy_inference_failure"
                     query_records.append(
                         QueryRecord(
                             query_index=query_index,
                             observation_step=observation_step,
                             response_step=environment_steps,
-                            inference_latency_ms=0.0,
+                            inference_latency_ms=failed_latency_ms,
                             injected_latency_steps_requested=config.latency_steps,
                             injected_latency_steps_executed=0,
                             action_chunk_steps=0,
                             accepted=False,
-                            decision="policy_or_observation_error",
+                            decision="%s_error" % failure_stage,
                             rejection_reasons=(),
                             mismatch=None,
+                            policy_inference_latency_ms=None,
+                            server_inference_latency_ms=None,
+                            error_stage=failure_stage,
                             error_type=type(exc).__name__,
                             error_message=str(exc),
                         )
                     )
-                    reason = (
-                        "invalid_policy_response"
-                        if isinstance(exc, PolicyResponseError)
-                        else "infrastructure_failure"
+                    return finish(
+                        False,
+                        termination_reason,
+                        failure_category,
+                        type(exc).__name__,
+                        str(exc),
                     )
-                    return finish(False, reason, type(exc).__name__, str(exc))
 
                 delay_steps_executed = 0
                 for _ in range(config.latency_steps):
@@ -486,6 +543,8 @@ def run_episode(
                             decision="success_during_inference_delay",
                             rejection_reasons=(),
                             mismatch=mismatch,
+                            policy_inference_latency_ms=policy_inference_latency_ms,
+                            server_inference_latency_ms=server_inference_latency_ms,
                         )
                     )
                     return finish(True, "success_during_inference_delay")
@@ -504,6 +563,8 @@ def run_episode(
                             decision="step_budget_exhausted_during_delay",
                             rejection_reasons=(),
                             mismatch=mismatch,
+                            policy_inference_latency_ms=policy_inference_latency_ms,
+                            server_inference_latency_ms=server_inference_latency_ms,
                         )
                     )
                     return finish(False, "step_limit")
@@ -525,6 +586,8 @@ def run_episode(
                             decision="rejected_state_mismatch",
                             rejection_reasons=tuple(rejection_reasons),
                             mismatch=mismatch,
+                            policy_inference_latency_ms=policy_inference_latency_ms,
+                            server_inference_latency_ms=server_inference_latency_ms,
                         )
                     )
                     last_action = hold_action(last_action)
@@ -537,6 +600,10 @@ def run_episode(
                 action_plan.extend(
                     np.asarray(action, dtype=np.float64).copy()
                     for action in actions[: config.replan_steps]
+                )
+                chunk_is_stale = delay_steps_executed > 0
+                action_plan_stale.extend(
+                    chunk_is_stale for _ in range(config.replan_steps)
                 )
                 query_records.append(
                     QueryRecord(
@@ -555,19 +622,30 @@ def run_episode(
                         ),
                         rejection_reasons=tuple(rejection_reasons),
                         mismatch=mismatch,
+                        policy_inference_latency_ms=policy_inference_latency_ms,
+                        server_inference_latency_ms=server_inference_latency_ms,
                     )
                 )
-                if delay_steps_executed > 0:
+                if chunk_is_stale:
                     stale_chunks_executed += 1
 
             action = action_plan.popleft()
+            action_is_stale = action_plan_stale.popleft()
             observation, _, done, _ = _environment_step(environment, action)
             last_action = action.copy()
             environment_steps += 1
             task_action_steps += 1
+            if action_is_stale:
+                stale_action_steps += 1
             if done:
                 return finish(True, "task_success")
 
         return finish(False, "step_limit")
     except Exception as exc:
-        return finish(False, "infrastructure_failure", type(exc).__name__, str(exc))
+        return finish(
+            False,
+            "environment_runtime_failure",
+            "environment_runtime",
+            type(exc).__name__,
+            str(exc),
+        )

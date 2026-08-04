@@ -64,7 +64,11 @@ class ConstantPolicy:
 
     def infer(self, request):
         self.requests.append(request)
-        return {"actions": self.actions.copy()}
+        return {
+            "actions": self.actions.copy(),
+            "policy_timing": {"infer_ms": 12.5},
+            "server_timing": {"infer_ms": 14.0},
+        }
 
 
 def _config(mode: str, **overrides) -> RuntimeConfig:
@@ -138,10 +142,13 @@ def test_unguarded_mode_executes_stale_chunk_after_latency_steps() -> None:
 
     assert result.latency_action_steps > 0
     assert result.stale_chunks_executed > 0
+    assert result.stale_action_steps > 0
     second_query = result.query_records[1]
     assert second_query.accepted
     assert second_query.decision == "accepted_unguarded"
     assert second_query.mismatch.position_m == pytest.approx(0.02)
+    assert second_query.policy_inference_latency_ms == pytest.approx(12.5)
+    assert second_query.server_inference_latency_ms == pytest.approx(14.0)
 
 
 def test_state_guard_rejects_mismatch_then_requeries_from_hold() -> None:
@@ -206,7 +213,9 @@ def test_invalid_policy_chunks_fail_closed_and_remain_recorded(
     assert not result.success
     assert result.termination_reason == "invalid_policy_response"
     assert result.policy_queries == 1
-    assert result.query_records[0].decision == "policy_or_observation_error"
+    assert result.query_records[0].decision == "policy_response_validation_error"
+    assert result.failure_category == "policy_contract"
+    assert result.query_records[0].error_stage == "policy_response_validation"
     assert result.query_records[0].error_type == PolicyResponseError.__name__
     assert expected_message in result.query_records[0].error_message
 
