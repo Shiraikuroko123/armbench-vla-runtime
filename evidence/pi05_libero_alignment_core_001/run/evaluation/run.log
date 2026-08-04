@@ -1,0 +1,604 @@
+2026-08-04 11:39:58,089 WARNING No private macro file found!
+2026-08-04 11:39:58,090 WARNING It is recommended to use a private macro file
+2026-08-04 11:39:58,090 WARNING To setup, run: python /.venv/lib/python3.8/site-packages/robosuite/scripts/setup_macros.py
+2026-08-04 11:39:58,191 INFO No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+2026-08-04 11:40:02,924 INFO Starting libero_spatial__task_000__episode_000__h_05__l_000__async_unguarded
+2026-08-04 11:40:32,263 INFO Finished libero_spatial__task_000__episode_000__h_05__l_000__async_unguarded success=True reason=task_success queries=21 rejections=0
+2026-08-04 11:40:32,263 INFO Starting libero_spatial__task_000__episode_000__h_05__l_000__latency_aligned
+2026-08-04 11:40:36,919 INFO Finished libero_spatial__task_000__episode_000__h_05__l_000__latency_aligned success=True reason=task_success queries=16 rejections=0
+2026-08-04 11:40:36,920 INFO Starting libero_spatial__task_000__episode_000__h_05__l_002__latency_aligned
+2026-08-04 11:40:41,221 INFO Finished libero_spatial__task_000__episode_000__h_05__l_002__latency_aligned success=True reason=task_success queries=11 rejections=0
+2026-08-04 11:40:41,222 INFO Starting libero_spatial__task_000__episode_000__h_05__l_002__async_unguarded
+2026-08-04 11:40:51,272 INFO Finished libero_spatial__task_000__episode_000__h_05__l_002__async_unguarded success=False reason=step_limit queries=32 rejections=0
+2026-08-04 11:40:51,273 INFO Starting libero_spatial__task_000__episode_000__h_05__l_004__async_unguarded
+2026-08-04 11:40:59,200 INFO Finished libero_spatial__task_000__episode_000__h_05__l_004__async_unguarded success=True reason=task_success queries=20 rejections=0
+2026-08-04 11:40:59,201 INFO Starting libero_spatial__task_000__episode_000__h_05__l_004__latency_aligned
+2026-08-04 11:41:04,671 INFO Finished libero_spatial__task_000__episode_000__h_05__l_004__latency_aligned success=True reason=task_success queries=13 rejections=0
+2026-08-04 11:41:04,672 INFO Starting libero_spatial__task_000__episode_001__h_05__l_000__latency_aligned
+2026-08-04 11:41:10,730 INFO Finished libero_spatial__task_000__episode_001__h_05__l_000__latency_aligned success=True reason=task_success queries=22 rejections=0
+2026-08-04 11:41:10,730 INFO Starting libero_spatial__task_000__episode_001__h_05__l_000__async_unguarded
+2026-08-04 11:41:16,932 INFO Finished libero_spatial__task_000__episode_001__h_05__l_000__async_unguarded success=True reason=task_success queries=23 rejections=0
+2026-08-04 11:41:16,933 INFO Starting libero_spatial__task_000__episode_001__h_05__l_002__async_unguarded
+2026-08-04 11:41:23,898 INFO Finished libero_spatial__task_000__episode_001__h_05__l_002__async_unguarded success=True reason=task_success queries=20 rejections=0
+2026-08-04 11:41:23,899 INFO Starting libero_spatial__task_000__episode_001__h_05__l_002__latency_aligned
+2026-08-04 11:41:29,411 INFO Finished libero_spatial__task_000__episode_001__h_05__l_002__latency_aligned success=True reason=task_success queries=16 rejections=0
+2026-08-04 11:41:29,411 INFO Starting libero_spatial__task_000__episode_001__h_05__l_004__latency_aligned
+2026-08-04 11:41:33,964 INFO Finished libero_spatial__task_000__episode_001__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=10 rejections=0
+2026-08-04 11:41:33,964 INFO Starting libero_spatial__task_000__episode_001__h_05__l_004__async_unguarded
+2026-08-04 11:41:43,469 INFO Finished libero_spatial__task_000__episode_001__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:41:43,470 INFO Starting libero_spatial__task_000__episode_002__h_05__l_000__async_unguarded
+2026-08-04 11:41:48,293 INFO Finished libero_spatial__task_000__episode_002__h_05__l_000__async_unguarded success=True reason=task_success queries=16 rejections=0
+2026-08-04 11:41:48,293 INFO Starting libero_spatial__task_000__episode_002__h_05__l_000__latency_aligned
+2026-08-04 11:41:54,361 INFO Finished libero_spatial__task_000__episode_002__h_05__l_000__latency_aligned success=True reason=task_success queries=23 rejections=0
+2026-08-04 11:41:54,362 INFO Starting libero_spatial__task_000__episode_002__h_05__l_002__latency_aligned
+2026-08-04 11:41:58,527 INFO Finished libero_spatial__task_000__episode_002__h_05__l_002__latency_aligned success=True reason=task_success queries=11 rejections=0
+2026-08-04 11:41:58,527 INFO Starting libero_spatial__task_000__episode_002__h_05__l_002__async_unguarded
+2026-08-04 11:42:06,033 INFO Finished libero_spatial__task_000__episode_002__h_05__l_002__async_unguarded success=True reason=task_success queries=22 rejections=0
+2026-08-04 11:42:06,034 INFO Starting libero_spatial__task_000__episode_002__h_05__l_004__async_unguarded
+2026-08-04 11:42:15,023 INFO Finished libero_spatial__task_000__episode_002__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:42:15,024 INFO Starting libero_spatial__task_000__episode_002__h_05__l_004__latency_aligned
+2026-08-04 11:42:19,527 INFO Finished libero_spatial__task_000__episode_002__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=10 rejections=0
+2026-08-04 11:42:19,528 INFO Starting libero_spatial__task_000__episode_003__h_05__l_000__latency_aligned
+2026-08-04 11:42:24,207 INFO Finished libero_spatial__task_000__episode_003__h_05__l_000__latency_aligned success=True reason=task_success queries=16 rejections=0
+2026-08-04 11:42:24,208 INFO Starting libero_spatial__task_000__episode_003__h_05__l_000__async_unguarded
+2026-08-04 11:42:28,613 INFO Finished libero_spatial__task_000__episode_003__h_05__l_000__async_unguarded success=True reason=task_success queries=15 rejections=0
+2026-08-04 11:42:28,613 INFO Starting libero_spatial__task_000__episode_003__h_05__l_002__async_unguarded
+2026-08-04 11:42:38,680 INFO Finished libero_spatial__task_000__episode_003__h_05__l_002__async_unguarded success=True reason=success_during_inference_delay queries=32 rejections=0
+2026-08-04 11:42:38,681 INFO Starting libero_spatial__task_000__episode_003__h_05__l_002__latency_aligned
+2026-08-04 11:42:43,085 INFO Finished libero_spatial__task_000__episode_003__h_05__l_002__latency_aligned success=True reason=success_during_inference_delay queries=12 rejections=0
+2026-08-04 11:42:43,085 INFO Starting libero_spatial__task_000__episode_003__h_05__l_004__latency_aligned
+2026-08-04 11:42:47,396 INFO Finished libero_spatial__task_000__episode_003__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=10 rejections=0
+2026-08-04 11:42:47,396 INFO Starting libero_spatial__task_000__episode_003__h_05__l_004__async_unguarded
+2026-08-04 11:42:56,552 INFO Finished libero_spatial__task_000__episode_003__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:42:56,553 INFO Starting libero_spatial__task_000__episode_004__h_05__l_000__async_unguarded
+2026-08-04 11:43:01,110 INFO Finished libero_spatial__task_000__episode_004__h_05__l_000__async_unguarded success=True reason=task_success queries=15 rejections=0
+2026-08-04 11:43:01,110 INFO Starting libero_spatial__task_000__episode_004__h_05__l_000__latency_aligned
+2026-08-04 11:43:05,681 INFO Finished libero_spatial__task_000__episode_004__h_05__l_000__latency_aligned success=True reason=task_success queries=15 rejections=0
+2026-08-04 11:43:05,682 INFO Starting libero_spatial__task_000__episode_004__h_05__l_002__latency_aligned
+2026-08-04 11:43:10,062 INFO Finished libero_spatial__task_000__episode_004__h_05__l_002__latency_aligned success=True reason=success_during_inference_delay queries=12 rejections=0
+2026-08-04 11:43:10,062 INFO Starting libero_spatial__task_000__episode_004__h_05__l_002__async_unguarded
+2026-08-04 11:43:14,902 INFO Finished libero_spatial__task_000__episode_004__h_05__l_002__async_unguarded success=True reason=task_success queries=13 rejections=0
+2026-08-04 11:43:14,902 INFO Starting libero_spatial__task_000__episode_004__h_05__l_004__async_unguarded
+2026-08-04 11:43:24,059 INFO Finished libero_spatial__task_000__episode_004__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:43:24,059 INFO Starting libero_spatial__task_000__episode_004__h_05__l_004__latency_aligned
+2026-08-04 11:43:28,479 INFO Finished libero_spatial__task_000__episode_004__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=10 rejections=0
+2026-08-04 11:43:29,458 INFO Starting libero_spatial__task_001__episode_000__h_05__l_000__latency_aligned
+2026-08-04 11:43:35,536 INFO Finished libero_spatial__task_001__episode_000__h_05__l_000__latency_aligned success=True reason=task_success queries=23 rejections=0
+2026-08-04 11:43:35,537 INFO Starting libero_spatial__task_001__episode_000__h_05__l_000__async_unguarded
+2026-08-04 11:43:41,646 INFO Finished libero_spatial__task_001__episode_000__h_05__l_000__async_unguarded success=True reason=task_success queries=22 rejections=0
+2026-08-04 11:43:41,646 INFO Starting libero_spatial__task_001__episode_000__h_05__l_002__async_unguarded
+2026-08-04 11:43:51,573 INFO Finished libero_spatial__task_001__episode_000__h_05__l_002__async_unguarded success=False reason=step_limit queries=32 rejections=0
+2026-08-04 11:43:51,573 INFO Starting libero_spatial__task_001__episode_000__h_05__l_002__latency_aligned
+2026-08-04 11:43:57,400 INFO Finished libero_spatial__task_001__episode_000__h_05__l_002__latency_aligned success=True reason=task_success queries=17 rejections=0
+2026-08-04 11:43:57,400 INFO Starting libero_spatial__task_001__episode_000__h_05__l_004__latency_aligned
+2026-08-04 11:44:02,998 INFO Finished libero_spatial__task_001__episode_000__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=14 rejections=0
+2026-08-04 11:44:02,999 INFO Starting libero_spatial__task_001__episode_000__h_05__l_004__async_unguarded
+2026-08-04 11:44:12,596 INFO Finished libero_spatial__task_001__episode_000__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:44:12,596 INFO Starting libero_spatial__task_001__episode_001__h_05__l_000__async_unguarded
+2026-08-04 11:44:18,210 INFO Finished libero_spatial__task_001__episode_001__h_05__l_000__async_unguarded success=True reason=task_success queries=20 rejections=0
+2026-08-04 11:44:18,210 INFO Starting libero_spatial__task_001__episode_001__h_05__l_000__latency_aligned
+2026-08-04 11:44:23,571 INFO Finished libero_spatial__task_001__episode_001__h_05__l_000__latency_aligned success=True reason=task_success queries=19 rejections=0
+2026-08-04 11:44:23,572 INFO Starting libero_spatial__task_001__episode_001__h_05__l_002__latency_aligned
+2026-08-04 11:44:28,755 INFO Finished libero_spatial__task_001__episode_001__h_05__l_002__latency_aligned success=True reason=task_success queries=15 rejections=0
+2026-08-04 11:44:28,756 INFO Starting libero_spatial__task_001__episode_001__h_05__l_002__async_unguarded
+2026-08-04 11:44:38,752 INFO Finished libero_spatial__task_001__episode_001__h_05__l_002__async_unguarded success=False reason=step_limit queries=32 rejections=0
+2026-08-04 11:44:38,752 INFO Starting libero_spatial__task_001__episode_001__h_05__l_004__async_unguarded
+2026-08-04 11:44:48,348 INFO Finished libero_spatial__task_001__episode_001__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:44:48,348 INFO Starting libero_spatial__task_001__episode_001__h_05__l_004__latency_aligned
+2026-08-04 11:44:53,837 INFO Finished libero_spatial__task_001__episode_001__h_05__l_004__latency_aligned success=True reason=task_success queries=13 rejections=0
+2026-08-04 11:44:53,837 INFO Starting libero_spatial__task_001__episode_002__h_05__l_000__latency_aligned
+2026-08-04 11:44:59,658 INFO Finished libero_spatial__task_001__episode_002__h_05__l_000__latency_aligned success=True reason=task_success queries=21 rejections=0
+2026-08-04 11:44:59,658 INFO Starting libero_spatial__task_001__episode_002__h_05__l_000__async_unguarded
+2026-08-04 11:45:05,586 INFO Finished libero_spatial__task_001__episode_002__h_05__l_000__async_unguarded success=True reason=task_success queries=21 rejections=0
+2026-08-04 11:45:05,587 INFO Starting libero_spatial__task_001__episode_002__h_05__l_002__async_unguarded
+2026-08-04 11:45:11,728 INFO Finished libero_spatial__task_001__episode_002__h_05__l_002__async_unguarded success=True reason=task_success queries=18 rejections=0
+2026-08-04 11:45:11,728 INFO Starting libero_spatial__task_001__episode_002__h_05__l_002__latency_aligned
+2026-08-04 11:45:17,283 INFO Finished libero_spatial__task_001__episode_002__h_05__l_002__latency_aligned success=True reason=task_success queries=15 rejections=0
+2026-08-04 11:45:17,283 INFO Starting libero_spatial__task_001__episode_002__h_05__l_004__latency_aligned
+2026-08-04 11:45:23,126 INFO Finished libero_spatial__task_001__episode_002__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=14 rejections=0
+2026-08-04 11:45:23,126 INFO Starting libero_spatial__task_001__episode_002__h_05__l_004__async_unguarded
+2026-08-04 11:45:32,800 INFO Finished libero_spatial__task_001__episode_002__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:45:32,801 INFO Starting libero_spatial__task_001__episode_003__h_05__l_000__async_unguarded
+2026-08-04 11:45:38,939 INFO Finished libero_spatial__task_001__episode_003__h_05__l_000__async_unguarded success=True reason=task_success queries=21 rejections=0
+2026-08-04 11:45:38,939 INFO Starting libero_spatial__task_001__episode_003__h_05__l_000__latency_aligned
+2026-08-04 11:45:45,053 INFO Finished libero_spatial__task_001__episode_003__h_05__l_000__latency_aligned success=True reason=task_success queries=22 rejections=0
+2026-08-04 11:45:45,053 INFO Starting libero_spatial__task_001__episode_003__h_05__l_002__latency_aligned
+2026-08-04 11:45:50,645 INFO Finished libero_spatial__task_001__episode_003__h_05__l_002__latency_aligned success=True reason=task_success queries=16 rejections=0
+2026-08-04 11:45:50,645 INFO Starting libero_spatial__task_001__episode_003__h_05__l_002__async_unguarded
+2026-08-04 11:45:57,989 INFO Finished libero_spatial__task_001__episode_003__h_05__l_002__async_unguarded success=True reason=task_success queries=21 rejections=0
+2026-08-04 11:45:57,989 INFO Starting libero_spatial__task_001__episode_003__h_05__l_004__async_unguarded
+2026-08-04 11:46:07,492 INFO Finished libero_spatial__task_001__episode_003__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:46:07,492 INFO Starting libero_spatial__task_001__episode_003__h_05__l_004__latency_aligned
+2026-08-04 11:46:13,295 INFO Finished libero_spatial__task_001__episode_003__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=14 rejections=0
+2026-08-04 11:46:13,295 INFO Starting libero_spatial__task_001__episode_004__h_05__l_000__latency_aligned
+2026-08-04 11:46:19,485 INFO Finished libero_spatial__task_001__episode_004__h_05__l_000__latency_aligned success=True reason=task_success queries=23 rejections=0
+2026-08-04 11:46:19,485 INFO Starting libero_spatial__task_001__episode_004__h_05__l_000__async_unguarded
+2026-08-04 11:46:25,480 INFO Finished libero_spatial__task_001__episode_004__h_05__l_000__async_unguarded success=True reason=task_success queries=22 rejections=0
+2026-08-04 11:46:25,480 INFO Starting libero_spatial__task_001__episode_004__h_05__l_002__async_unguarded
+2026-08-04 11:46:32,853 INFO Finished libero_spatial__task_001__episode_004__h_05__l_002__async_unguarded success=True reason=task_success queries=22 rejections=0
+2026-08-04 11:46:32,853 INFO Starting libero_spatial__task_001__episode_004__h_05__l_002__latency_aligned
+2026-08-04 11:46:38,836 INFO Finished libero_spatial__task_001__episode_004__h_05__l_002__latency_aligned success=True reason=task_success queries=17 rejections=0
+2026-08-04 11:46:38,836 INFO Starting libero_spatial__task_001__episode_004__h_05__l_004__latency_aligned
+2026-08-04 11:46:44,351 INFO Finished libero_spatial__task_001__episode_004__h_05__l_004__latency_aligned success=True reason=task_success queries=13 rejections=0
+2026-08-04 11:46:44,351 INFO Starting libero_spatial__task_001__episode_004__h_05__l_004__async_unguarded
+2026-08-04 11:46:52,057 INFO Finished libero_spatial__task_001__episode_004__h_05__l_004__async_unguarded success=True reason=task_success queries=19 rejections=0
+2026-08-04 11:46:53,044 INFO Starting libero_spatial__task_002__episode_000__h_05__l_000__async_unguarded
+2026-08-04 11:46:59,803 INFO Finished libero_spatial__task_002__episode_000__h_05__l_000__async_unguarded success=True reason=task_success queries=26 rejections=0
+2026-08-04 11:46:59,804 INFO Starting libero_spatial__task_002__episode_000__h_05__l_000__latency_aligned
+2026-08-04 11:47:06,397 INFO Finished libero_spatial__task_002__episode_000__h_05__l_000__latency_aligned success=True reason=task_success queries=25 rejections=0
+2026-08-04 11:47:06,397 INFO Starting libero_spatial__task_002__episode_000__h_05__l_002__latency_aligned
+2026-08-04 11:47:11,687 INFO Finished libero_spatial__task_002__episode_000__h_05__l_002__latency_aligned success=True reason=task_success queries=15 rejections=0
+2026-08-04 11:47:11,687 INFO Starting libero_spatial__task_002__episode_000__h_05__l_002__async_unguarded
+2026-08-04 11:47:17,709 INFO Finished libero_spatial__task_002__episode_000__h_05__l_002__async_unguarded success=True reason=success_during_inference_delay queries=18 rejections=0
+2026-08-04 11:47:17,710 INFO Starting libero_spatial__task_002__episode_000__h_05__l_004__async_unguarded
+2026-08-04 11:47:26,880 INFO Finished libero_spatial__task_002__episode_000__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:47:26,880 INFO Starting libero_spatial__task_002__episode_000__h_05__l_004__latency_aligned
+2026-08-04 11:47:31,919 INFO Finished libero_spatial__task_002__episode_000__h_05__l_004__latency_aligned success=True reason=task_success queries=12 rejections=0
+2026-08-04 11:47:31,919 INFO Starting libero_spatial__task_002__episode_001__h_05__l_000__latency_aligned
+2026-08-04 11:47:37,607 INFO Finished libero_spatial__task_002__episode_001__h_05__l_000__latency_aligned success=True reason=task_success queries=21 rejections=0
+2026-08-04 11:47:37,607 INFO Starting libero_spatial__task_002__episode_001__h_05__l_000__async_unguarded
+2026-08-04 11:47:43,630 INFO Finished libero_spatial__task_002__episode_001__h_05__l_000__async_unguarded success=True reason=task_success queries=22 rejections=0
+2026-08-04 11:47:43,630 INFO Starting libero_spatial__task_002__episode_001__h_05__l_002__async_unguarded
+2026-08-04 11:47:50,722 INFO Finished libero_spatial__task_002__episode_001__h_05__l_002__async_unguarded success=True reason=success_during_inference_delay queries=21 rejections=0
+2026-08-04 11:47:50,723 INFO Starting libero_spatial__task_002__episode_001__h_05__l_002__latency_aligned
+2026-08-04 11:47:56,124 INFO Finished libero_spatial__task_002__episode_001__h_05__l_002__latency_aligned success=True reason=task_success queries=16 rejections=0
+2026-08-04 11:47:56,124 INFO Starting libero_spatial__task_002__episode_001__h_05__l_004__latency_aligned
+2026-08-04 11:48:01,495 INFO Finished libero_spatial__task_002__episode_001__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=13 rejections=0
+2026-08-04 11:48:01,496 INFO Starting libero_spatial__task_002__episode_001__h_05__l_004__async_unguarded
+2026-08-04 11:48:08,661 INFO Finished libero_spatial__task_002__episode_001__h_05__l_004__async_unguarded success=True reason=task_success queries=18 rejections=0
+2026-08-04 11:48:08,661 INFO Starting libero_spatial__task_002__episode_002__h_05__l_000__async_unguarded
+2026-08-04 11:48:14,072 INFO Finished libero_spatial__task_002__episode_002__h_05__l_000__async_unguarded success=True reason=task_success queries=19 rejections=0
+2026-08-04 11:48:14,073 INFO Starting libero_spatial__task_002__episode_002__h_05__l_000__latency_aligned
+2026-08-04 11:48:19,540 INFO Finished libero_spatial__task_002__episode_002__h_05__l_000__latency_aligned success=True reason=task_success queries=19 rejections=0
+2026-08-04 11:48:19,541 INFO Starting libero_spatial__task_002__episode_002__h_05__l_002__latency_aligned
+2026-08-04 11:48:24,923 INFO Finished libero_spatial__task_002__episode_002__h_05__l_002__latency_aligned success=True reason=success_during_inference_delay queries=15 rejections=0
+2026-08-04 11:48:24,923 INFO Starting libero_spatial__task_002__episode_002__h_05__l_002__async_unguarded
+2026-08-04 11:48:31,047 INFO Finished libero_spatial__task_002__episode_002__h_05__l_002__async_unguarded success=True reason=task_success queries=17 rejections=0
+2026-08-04 11:48:31,048 INFO Starting libero_spatial__task_002__episode_002__h_05__l_004__async_unguarded
+2026-08-04 11:48:40,500 INFO Finished libero_spatial__task_002__episode_002__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:48:40,500 INFO Starting libero_spatial__task_002__episode_002__h_05__l_004__latency_aligned
+2026-08-04 11:48:45,396 INFO Finished libero_spatial__task_002__episode_002__h_05__l_004__latency_aligned success=True reason=task_success queries=11 rejections=0
+2026-08-04 11:48:45,396 INFO Starting libero_spatial__task_002__episode_003__h_05__l_000__latency_aligned
+2026-08-04 11:48:50,878 INFO Finished libero_spatial__task_002__episode_003__h_05__l_000__latency_aligned success=True reason=task_success queries=19 rejections=0
+2026-08-04 11:48:50,878 INFO Starting libero_spatial__task_002__episode_003__h_05__l_000__async_unguarded
+2026-08-04 11:48:56,203 INFO Finished libero_spatial__task_002__episode_003__h_05__l_000__async_unguarded success=True reason=task_success queries=19 rejections=0
+2026-08-04 11:48:56,204 INFO Starting libero_spatial__task_002__episode_003__h_05__l_002__async_unguarded
+2026-08-04 11:49:02,203 INFO Finished libero_spatial__task_002__episode_003__h_05__l_002__async_unguarded success=True reason=success_during_inference_delay queries=17 rejections=0
+2026-08-04 11:49:02,203 INFO Starting libero_spatial__task_002__episode_003__h_05__l_002__latency_aligned
+2026-08-04 11:49:07,140 INFO Finished libero_spatial__task_002__episode_003__h_05__l_002__latency_aligned success=True reason=success_during_inference_delay queries=14 rejections=0
+2026-08-04 11:49:07,141 INFO Starting libero_spatial__task_002__episode_003__h_05__l_004__latency_aligned
+2026-08-04 11:49:12,269 INFO Finished libero_spatial__task_002__episode_003__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=12 rejections=0
+2026-08-04 11:49:12,269 INFO Starting libero_spatial__task_002__episode_003__h_05__l_004__async_unguarded
+2026-08-04 11:49:21,877 INFO Finished libero_spatial__task_002__episode_003__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:49:21,878 INFO Starting libero_spatial__task_002__episode_004__h_05__l_000__async_unguarded
+2026-08-04 11:49:27,522 INFO Finished libero_spatial__task_002__episode_004__h_05__l_000__async_unguarded success=True reason=task_success queries=20 rejections=0
+2026-08-04 11:49:27,522 INFO Starting libero_spatial__task_002__episode_004__h_05__l_000__latency_aligned
+2026-08-04 11:49:33,516 INFO Finished libero_spatial__task_002__episode_004__h_05__l_000__latency_aligned success=True reason=task_success queries=21 rejections=0
+2026-08-04 11:49:33,516 INFO Starting libero_spatial__task_002__episode_004__h_05__l_002__latency_aligned
+2026-08-04 11:49:39,028 INFO Finished libero_spatial__task_002__episode_004__h_05__l_002__latency_aligned success=True reason=success_during_inference_delay queries=15 rejections=0
+2026-08-04 11:49:39,028 INFO Starting libero_spatial__task_002__episode_004__h_05__l_002__async_unguarded
+2026-08-04 11:49:44,777 INFO Finished libero_spatial__task_002__episode_004__h_05__l_002__async_unguarded success=True reason=task_success queries=16 rejections=0
+2026-08-04 11:49:44,777 INFO Starting libero_spatial__task_002__episode_004__h_05__l_004__async_unguarded
+2026-08-04 11:49:50,794 INFO Finished libero_spatial__task_002__episode_004__h_05__l_004__async_unguarded success=True reason=success_during_inference_delay queries=15 rejections=0
+2026-08-04 11:49:50,794 INFO Starting libero_spatial__task_002__episode_004__h_05__l_004__latency_aligned
+2026-08-04 11:49:56,395 INFO Finished libero_spatial__task_002__episode_004__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=13 rejections=0
+2026-08-04 11:49:57,419 INFO Starting libero_spatial__task_003__episode_000__h_05__l_000__latency_aligned
+2026-08-04 11:50:02,364 INFO Finished libero_spatial__task_003__episode_000__h_05__l_000__latency_aligned success=True reason=task_success queries=17 rejections=0
+2026-08-04 11:50:02,364 INFO Starting libero_spatial__task_003__episode_000__h_05__l_000__async_unguarded
+2026-08-04 11:50:07,514 INFO Finished libero_spatial__task_003__episode_000__h_05__l_000__async_unguarded success=True reason=task_success queries=18 rejections=0
+2026-08-04 11:50:07,514 INFO Starting libero_spatial__task_003__episode_000__h_05__l_002__async_unguarded
+2026-08-04 11:50:17,703 INFO Finished libero_spatial__task_003__episode_000__h_05__l_002__async_unguarded success=False reason=step_limit queries=32 rejections=0
+2026-08-04 11:50:17,704 INFO Starting libero_spatial__task_003__episode_000__h_05__l_002__latency_aligned
+2026-08-04 11:50:22,755 INFO Finished libero_spatial__task_003__episode_000__h_05__l_002__latency_aligned success=True reason=success_during_inference_delay queries=14 rejections=0
+2026-08-04 11:50:22,755 INFO Starting libero_spatial__task_003__episode_000__h_05__l_004__latency_aligned
+2026-08-04 11:50:27,838 INFO Finished libero_spatial__task_003__episode_000__h_05__l_004__latency_aligned success=True reason=task_success queries=11 rejections=0
+2026-08-04 11:50:27,838 INFO Starting libero_spatial__task_003__episode_000__h_05__l_004__async_unguarded
+2026-08-04 11:50:36,287 INFO Finished libero_spatial__task_003__episode_000__h_05__l_004__async_unguarded success=True reason=success_during_inference_delay queries=21 rejections=0
+2026-08-04 11:50:36,288 INFO Starting libero_spatial__task_003__episode_001__h_05__l_000__async_unguarded
+2026-08-04 11:50:41,438 INFO Finished libero_spatial__task_003__episode_001__h_05__l_000__async_unguarded success=True reason=task_success queries=17 rejections=0
+2026-08-04 11:50:41,439 INFO Starting libero_spatial__task_003__episode_001__h_05__l_000__latency_aligned
+2026-08-04 11:50:46,511 INFO Finished libero_spatial__task_003__episode_001__h_05__l_000__latency_aligned success=True reason=task_success queries=17 rejections=0
+2026-08-04 11:50:46,511 INFO Starting libero_spatial__task_003__episode_001__h_05__l_002__latency_aligned
+2026-08-04 11:50:51,279 INFO Finished libero_spatial__task_003__episode_001__h_05__l_002__latency_aligned success=True reason=task_success queries=12 rejections=0
+2026-08-04 11:50:51,279 INFO Starting libero_spatial__task_003__episode_001__h_05__l_002__async_unguarded
+2026-08-04 11:50:56,883 INFO Finished libero_spatial__task_003__episode_001__h_05__l_002__async_unguarded success=True reason=task_success queries=15 rejections=0
+2026-08-04 11:50:56,883 INFO Starting libero_spatial__task_003__episode_001__h_05__l_004__async_unguarded
+2026-08-04 11:51:06,468 INFO Finished libero_spatial__task_003__episode_001__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:51:06,468 INFO Starting libero_spatial__task_003__episode_001__h_05__l_004__latency_aligned
+2026-08-04 11:51:11,186 INFO Finished libero_spatial__task_003__episode_001__h_05__l_004__latency_aligned success=True reason=task_success queries=10 rejections=0
+2026-08-04 11:51:11,186 INFO Starting libero_spatial__task_003__episode_002__h_05__l_000__latency_aligned
+2026-08-04 11:51:15,919 INFO Finished libero_spatial__task_003__episode_002__h_05__l_000__latency_aligned success=True reason=task_success queries=16 rejections=0
+2026-08-04 11:51:15,920 INFO Starting libero_spatial__task_003__episode_002__h_05__l_000__async_unguarded
+2026-08-04 11:51:20,723 INFO Finished libero_spatial__task_003__episode_002__h_05__l_000__async_unguarded success=True reason=task_success queries=16 rejections=0
+2026-08-04 11:51:20,724 INFO Starting libero_spatial__task_003__episode_002__h_05__l_002__async_unguarded
+2026-08-04 11:51:27,273 INFO Finished libero_spatial__task_003__episode_002__h_05__l_002__async_unguarded success=True reason=task_success queries=18 rejections=0
+2026-08-04 11:51:27,273 INFO Starting libero_spatial__task_003__episode_002__h_05__l_002__latency_aligned
+2026-08-04 11:51:37,466 INFO Finished libero_spatial__task_003__episode_002__h_05__l_002__latency_aligned success=False reason=step_limit queries=32 rejections=0
+2026-08-04 11:51:37,467 INFO Starting libero_spatial__task_003__episode_002__h_05__l_004__latency_aligned
+2026-08-04 11:51:42,068 INFO Finished libero_spatial__task_003__episode_002__h_05__l_004__latency_aligned success=True reason=task_success queries=10 rejections=0
+2026-08-04 11:51:42,069 INFO Starting libero_spatial__task_003__episode_002__h_05__l_004__async_unguarded
+2026-08-04 11:51:51,759 INFO Finished libero_spatial__task_003__episode_002__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:51:51,759 INFO Starting libero_spatial__task_003__episode_003__h_05__l_000__async_unguarded
+2026-08-04 11:51:57,067 INFO Finished libero_spatial__task_003__episode_003__h_05__l_000__async_unguarded success=True reason=task_success queries=18 rejections=0
+2026-08-04 11:51:57,067 INFO Starting libero_spatial__task_003__episode_003__h_05__l_000__latency_aligned
+2026-08-04 11:52:02,542 INFO Finished libero_spatial__task_003__episode_003__h_05__l_000__latency_aligned success=True reason=task_success queries=19 rejections=0
+2026-08-04 11:52:02,543 INFO Starting libero_spatial__task_003__episode_003__h_05__l_002__latency_aligned
+2026-08-04 11:52:07,278 INFO Finished libero_spatial__task_003__episode_003__h_05__l_002__latency_aligned success=True reason=task_success queries=13 rejections=0
+2026-08-04 11:52:07,278 INFO Starting libero_spatial__task_003__episode_003__h_05__l_002__async_unguarded
+2026-08-04 11:52:14,870 INFO Finished libero_spatial__task_003__episode_003__h_05__l_002__async_unguarded success=True reason=task_success queries=23 rejections=0
+2026-08-04 11:52:14,870 INFO Starting libero_spatial__task_003__episode_003__h_05__l_004__async_unguarded
+2026-08-04 11:52:22,808 INFO Finished libero_spatial__task_003__episode_003__h_05__l_004__async_unguarded success=True reason=task_success queries=19 rejections=0
+2026-08-04 11:52:22,808 INFO Starting libero_spatial__task_003__episode_003__h_05__l_004__latency_aligned
+2026-08-04 11:52:27,623 INFO Finished libero_spatial__task_003__episode_003__h_05__l_004__latency_aligned success=True reason=task_success queries=10 rejections=0
+2026-08-04 11:52:27,624 INFO Starting libero_spatial__task_003__episode_004__h_05__l_000__latency_aligned
+2026-08-04 11:52:33,018 INFO Finished libero_spatial__task_003__episode_004__h_05__l_000__latency_aligned success=True reason=task_success queries=18 rejections=0
+2026-08-04 11:52:33,019 INFO Starting libero_spatial__task_003__episode_004__h_05__l_000__async_unguarded
+2026-08-04 11:52:38,478 INFO Finished libero_spatial__task_003__episode_004__h_05__l_000__async_unguarded success=True reason=task_success queries=18 rejections=0
+2026-08-04 11:52:38,479 INFO Starting libero_spatial__task_003__episode_004__h_05__l_002__async_unguarded
+2026-08-04 11:52:48,726 INFO Finished libero_spatial__task_003__episode_004__h_05__l_002__async_unguarded success=False reason=step_limit queries=32 rejections=0
+2026-08-04 11:52:48,726 INFO Starting libero_spatial__task_003__episode_004__h_05__l_002__latency_aligned
+2026-08-04 11:52:53,468 INFO Finished libero_spatial__task_003__episode_004__h_05__l_002__latency_aligned success=True reason=task_success queries=13 rejections=0
+2026-08-04 11:52:53,469 INFO Starting libero_spatial__task_003__episode_004__h_05__l_004__latency_aligned
+2026-08-04 11:52:58,423 INFO Finished libero_spatial__task_003__episode_004__h_05__l_004__latency_aligned success=True reason=task_success queries=11 rejections=0
+2026-08-04 11:52:58,424 INFO Starting libero_spatial__task_003__episode_004__h_05__l_004__async_unguarded
+2026-08-04 11:53:07,971 INFO Finished libero_spatial__task_003__episode_004__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:53:08,977 INFO Starting libero_spatial__task_004__episode_000__h_05__l_000__async_unguarded
+2026-08-04 11:53:18,198 INFO Finished libero_spatial__task_004__episode_000__h_05__l_000__async_unguarded success=True reason=task_success queries=36 rejections=0
+2026-08-04 11:53:18,198 INFO Starting libero_spatial__task_004__episode_000__h_05__l_000__latency_aligned
+2026-08-04 11:53:24,849 INFO Finished libero_spatial__task_004__episode_000__h_05__l_000__latency_aligned success=True reason=task_success queries=24 rejections=0
+2026-08-04 11:53:24,850 INFO Starting libero_spatial__task_004__episode_000__h_05__l_002__latency_aligned
+2026-08-04 11:53:31,120 INFO Finished libero_spatial__task_004__episode_000__h_05__l_002__latency_aligned success=True reason=success_during_inference_delay queries=18 rejections=0
+2026-08-04 11:53:31,120 INFO Starting libero_spatial__task_004__episode_000__h_05__l_002__async_unguarded
+2026-08-04 11:53:38,561 INFO Finished libero_spatial__task_004__episode_000__h_05__l_002__async_unguarded success=True reason=task_success queries=21 rejections=0
+2026-08-04 11:53:38,562 INFO Starting libero_spatial__task_004__episode_000__h_05__l_004__async_unguarded
+2026-08-04 11:53:48,481 INFO Finished libero_spatial__task_004__episode_000__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:53:48,482 INFO Starting libero_spatial__task_004__episode_000__h_05__l_004__latency_aligned
+2026-08-04 11:53:54,906 INFO Finished libero_spatial__task_004__episode_000__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=15 rejections=0
+2026-08-04 11:53:54,907 INFO Starting libero_spatial__task_004__episode_001__h_05__l_000__latency_aligned
+2026-08-04 11:54:02,486 INFO Finished libero_spatial__task_004__episode_001__h_05__l_000__latency_aligned success=True reason=task_success queries=27 rejections=0
+2026-08-04 11:54:02,487 INFO Starting libero_spatial__task_004__episode_001__h_05__l_000__async_unguarded
+2026-08-04 11:54:10,044 INFO Finished libero_spatial__task_004__episode_001__h_05__l_000__async_unguarded success=True reason=task_success queries=27 rejections=0
+2026-08-04 11:54:10,044 INFO Starting libero_spatial__task_004__episode_001__h_05__l_002__async_unguarded
+2026-08-04 11:54:17,451 INFO Finished libero_spatial__task_004__episode_001__h_05__l_002__async_unguarded success=True reason=task_success queries=22 rejections=0
+2026-08-04 11:54:17,452 INFO Starting libero_spatial__task_004__episode_001__h_05__l_002__latency_aligned
+2026-08-04 11:54:24,620 INFO Finished libero_spatial__task_004__episode_001__h_05__l_002__latency_aligned success=True reason=task_success queries=21 rejections=0
+2026-08-04 11:54:24,620 INFO Starting libero_spatial__task_004__episode_001__h_05__l_004__latency_aligned
+2026-08-04 11:54:30,987 INFO Finished libero_spatial__task_004__episode_001__h_05__l_004__latency_aligned success=True reason=task_success queries=15 rejections=0
+2026-08-04 11:54:30,987 INFO Starting libero_spatial__task_004__episode_001__h_05__l_004__async_unguarded
+2026-08-04 11:54:40,721 INFO Finished libero_spatial__task_004__episode_001__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:54:40,721 INFO Starting libero_spatial__task_004__episode_002__h_05__l_000__async_unguarded
+2026-08-04 11:54:47,875 INFO Finished libero_spatial__task_004__episode_002__h_05__l_000__async_unguarded success=True reason=task_success queries=25 rejections=0
+2026-08-04 11:54:47,876 INFO Starting libero_spatial__task_004__episode_002__h_05__l_000__latency_aligned
+2026-08-04 11:54:55,003 INFO Finished libero_spatial__task_004__episode_002__h_05__l_000__latency_aligned success=True reason=task_success queries=25 rejections=0
+2026-08-04 11:54:55,003 INFO Starting libero_spatial__task_004__episode_002__h_05__l_002__latency_aligned
+2026-08-04 11:55:01,513 INFO Finished libero_spatial__task_004__episode_002__h_05__l_002__latency_aligned success=True reason=task_success queries=18 rejections=0
+2026-08-04 11:55:01,513 INFO Starting libero_spatial__task_004__episode_002__h_05__l_002__async_unguarded
+2026-08-04 11:55:08,754 INFO Finished libero_spatial__task_004__episode_002__h_05__l_002__async_unguarded success=True reason=task_success queries=21 rejections=0
+2026-08-04 11:55:08,754 INFO Starting libero_spatial__task_004__episode_002__h_05__l_004__async_unguarded
+2026-08-04 11:55:16,448 INFO Finished libero_spatial__task_004__episode_002__h_05__l_004__async_unguarded success=True reason=task_success queries=18 rejections=0
+2026-08-04 11:55:16,448 INFO Starting libero_spatial__task_004__episode_002__h_05__l_004__latency_aligned
+2026-08-04 11:55:22,340 INFO Finished libero_spatial__task_004__episode_002__h_05__l_004__latency_aligned success=True reason=task_success queries=13 rejections=0
+2026-08-04 11:55:22,341 INFO Starting libero_spatial__task_004__episode_003__h_05__l_000__latency_aligned
+2026-08-04 11:55:29,964 INFO Finished libero_spatial__task_004__episode_003__h_05__l_000__latency_aligned success=True reason=task_success queries=27 rejections=0
+2026-08-04 11:55:29,964 INFO Starting libero_spatial__task_004__episode_003__h_05__l_000__async_unguarded
+2026-08-04 11:55:37,590 INFO Finished libero_spatial__task_004__episode_003__h_05__l_000__async_unguarded success=True reason=task_success queries=27 rejections=0
+2026-08-04 11:55:37,591 INFO Starting libero_spatial__task_004__episode_003__h_05__l_002__async_unguarded
+2026-08-04 11:55:48,027 INFO Finished libero_spatial__task_004__episode_003__h_05__l_002__async_unguarded success=False reason=step_limit queries=32 rejections=0
+2026-08-04 11:55:48,027 INFO Starting libero_spatial__task_004__episode_003__h_05__l_002__latency_aligned
+2026-08-04 11:55:55,077 INFO Finished libero_spatial__task_004__episode_003__h_05__l_002__latency_aligned success=True reason=task_success queries=20 rejections=0
+2026-08-04 11:55:55,077 INFO Starting libero_spatial__task_004__episode_003__h_05__l_004__latency_aligned
+2026-08-04 11:56:01,973 INFO Finished libero_spatial__task_004__episode_003__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=16 rejections=0
+2026-08-04 11:56:01,974 INFO Starting libero_spatial__task_004__episode_003__h_05__l_004__async_unguarded
+2026-08-04 11:56:12,563 INFO Finished libero_spatial__task_004__episode_003__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:56:12,563 INFO Starting libero_spatial__task_004__episode_004__h_05__l_000__async_unguarded
+2026-08-04 11:56:20,015 INFO Finished libero_spatial__task_004__episode_004__h_05__l_000__async_unguarded success=True reason=task_success queries=27 rejections=0
+2026-08-04 11:56:20,016 INFO Starting libero_spatial__task_004__episode_004__h_05__l_000__latency_aligned
+2026-08-04 11:56:27,530 INFO Finished libero_spatial__task_004__episode_004__h_05__l_000__latency_aligned success=True reason=task_success queries=27 rejections=0
+2026-08-04 11:56:27,531 INFO Starting libero_spatial__task_004__episode_004__h_05__l_002__latency_aligned
+2026-08-04 11:56:34,671 INFO Finished libero_spatial__task_004__episode_004__h_05__l_002__latency_aligned success=True reason=task_success queries=20 rejections=0
+2026-08-04 11:56:34,671 INFO Starting libero_spatial__task_004__episode_004__h_05__l_002__async_unguarded
+2026-08-04 11:56:42,295 INFO Finished libero_spatial__task_004__episode_004__h_05__l_002__async_unguarded success=True reason=success_during_inference_delay queries=22 rejections=0
+2026-08-04 11:56:42,295 INFO Starting libero_spatial__task_004__episode_004__h_05__l_004__async_unguarded
+2026-08-04 11:56:52,332 INFO Finished libero_spatial__task_004__episode_004__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:56:52,332 INFO Starting libero_spatial__task_004__episode_004__h_05__l_004__latency_aligned
+2026-08-04 11:56:59,063 INFO Finished libero_spatial__task_004__episode_004__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=16 rejections=0
+2026-08-04 11:57:00,260 INFO Starting libero_spatial__task_005__episode_000__h_05__l_000__latency_aligned
+2026-08-04 11:57:05,966 INFO Finished libero_spatial__task_005__episode_000__h_05__l_000__latency_aligned success=True reason=task_success queries=19 rejections=0
+2026-08-04 11:57:05,967 INFO Starting libero_spatial__task_005__episode_000__h_05__l_000__async_unguarded
+2026-08-04 11:57:11,885 INFO Finished libero_spatial__task_005__episode_000__h_05__l_000__async_unguarded success=True reason=task_success queries=20 rejections=0
+2026-08-04 11:57:11,885 INFO Starting libero_spatial__task_005__episode_000__h_05__l_002__async_unguarded
+2026-08-04 11:57:18,658 INFO Finished libero_spatial__task_005__episode_000__h_05__l_002__async_unguarded success=True reason=task_success queries=19 rejections=0
+2026-08-04 11:57:18,659 INFO Starting libero_spatial__task_005__episode_000__h_05__l_002__latency_aligned
+2026-08-04 11:57:23,960 INFO Finished libero_spatial__task_005__episode_000__h_05__l_002__latency_aligned success=True reason=success_during_inference_delay queries=14 rejections=0
+2026-08-04 11:57:23,960 INFO Starting libero_spatial__task_005__episode_000__h_05__l_004__latency_aligned
+2026-08-04 11:57:29,267 INFO Finished libero_spatial__task_005__episode_000__h_05__l_004__latency_aligned success=True reason=task_success queries=11 rejections=0
+2026-08-04 11:57:29,268 INFO Starting libero_spatial__task_005__episode_000__h_05__l_004__async_unguarded
+2026-08-04 11:57:39,545 INFO Finished libero_spatial__task_005__episode_000__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:57:39,546 INFO Starting libero_spatial__task_005__episode_001__h_05__l_000__async_unguarded
+2026-08-04 11:57:45,568 INFO Finished libero_spatial__task_005__episode_001__h_05__l_000__async_unguarded success=True reason=task_success queries=20 rejections=0
+2026-08-04 11:57:45,569 INFO Starting libero_spatial__task_005__episode_001__h_05__l_000__latency_aligned
+2026-08-04 11:57:51,368 INFO Finished libero_spatial__task_005__episode_001__h_05__l_000__latency_aligned success=True reason=task_success queries=20 rejections=0
+2026-08-04 11:57:51,368 INFO Starting libero_spatial__task_005__episode_001__h_05__l_002__latency_aligned
+2026-08-04 11:57:56,917 INFO Finished libero_spatial__task_005__episode_001__h_05__l_002__latency_aligned success=True reason=success_during_inference_delay queries=15 rejections=0
+2026-08-04 11:57:56,918 INFO Starting libero_spatial__task_005__episode_001__h_05__l_002__async_unguarded
+2026-08-04 11:58:03,021 INFO Finished libero_spatial__task_005__episode_001__h_05__l_002__async_unguarded success=True reason=task_success queries=16 rejections=0
+2026-08-04 11:58:03,021 INFO Starting libero_spatial__task_005__episode_001__h_05__l_004__async_unguarded
+2026-08-04 11:58:13,355 INFO Finished libero_spatial__task_005__episode_001__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:58:13,355 INFO Starting libero_spatial__task_005__episode_001__h_05__l_004__latency_aligned
+2026-08-04 11:58:18,698 INFO Finished libero_spatial__task_005__episode_001__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=12 rejections=0
+2026-08-04 11:58:18,698 INFO Starting libero_spatial__task_005__episode_002__h_05__l_000__latency_aligned
+2026-08-04 11:58:24,273 INFO Finished libero_spatial__task_005__episode_002__h_05__l_000__latency_aligned success=True reason=task_success queries=18 rejections=0
+2026-08-04 11:58:24,273 INFO Starting libero_spatial__task_005__episode_002__h_05__l_000__async_unguarded
+2026-08-04 11:58:30,259 INFO Finished libero_spatial__task_005__episode_002__h_05__l_000__async_unguarded success=True reason=task_success queries=20 rejections=0
+2026-08-04 11:58:30,259 INFO Starting libero_spatial__task_005__episode_002__h_05__l_002__async_unguarded
+2026-08-04 11:58:40,456 INFO Finished libero_spatial__task_005__episode_002__h_05__l_002__async_unguarded success=False reason=step_limit queries=32 rejections=0
+2026-08-04 11:58:40,456 INFO Starting libero_spatial__task_005__episode_002__h_05__l_002__latency_aligned
+2026-08-04 11:58:45,692 INFO Finished libero_spatial__task_005__episode_002__h_05__l_002__latency_aligned success=True reason=task_success queries=14 rejections=0
+2026-08-04 11:58:45,692 INFO Starting libero_spatial__task_005__episode_002__h_05__l_004__latency_aligned
+2026-08-04 11:58:50,851 INFO Finished libero_spatial__task_005__episode_002__h_05__l_004__latency_aligned success=True reason=task_success queries=11 rejections=0
+2026-08-04 11:58:50,852 INFO Starting libero_spatial__task_005__episode_002__h_05__l_004__async_unguarded
+2026-08-04 11:59:01,139 INFO Finished libero_spatial__task_005__episode_002__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:59:01,139 INFO Starting libero_spatial__task_005__episode_003__h_05__l_000__async_unguarded
+2026-08-04 11:59:06,699 INFO Finished libero_spatial__task_005__episode_003__h_05__l_000__async_unguarded success=True reason=task_success queries=18 rejections=0
+2026-08-04 11:59:06,700 INFO Starting libero_spatial__task_005__episode_003__h_05__l_000__latency_aligned
+2026-08-04 11:59:12,061 INFO Finished libero_spatial__task_005__episode_003__h_05__l_000__latency_aligned success=True reason=task_success queries=18 rejections=0
+2026-08-04 11:59:12,062 INFO Starting libero_spatial__task_005__episode_003__h_05__l_002__latency_aligned
+2026-08-04 11:59:17,403 INFO Finished libero_spatial__task_005__episode_003__h_05__l_002__latency_aligned success=True reason=task_success queries=14 rejections=0
+2026-08-04 11:59:17,404 INFO Starting libero_spatial__task_005__episode_003__h_05__l_002__async_unguarded
+2026-08-04 11:59:23,322 INFO Finished libero_spatial__task_005__episode_003__h_05__l_002__async_unguarded success=True reason=task_success queries=16 rejections=0
+2026-08-04 11:59:23,322 INFO Starting libero_spatial__task_005__episode_003__h_05__l_004__async_unguarded
+2026-08-04 11:59:32,947 INFO Finished libero_spatial__task_005__episode_003__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 11:59:32,948 INFO Starting libero_spatial__task_005__episode_003__h_05__l_004__latency_aligned
+2026-08-04 11:59:38,075 INFO Finished libero_spatial__task_005__episode_003__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=11 rejections=0
+2026-08-04 11:59:38,075 INFO Starting libero_spatial__task_005__episode_004__h_05__l_000__latency_aligned
+2026-08-04 11:59:43,869 INFO Finished libero_spatial__task_005__episode_004__h_05__l_000__latency_aligned success=True reason=task_success queries=21 rejections=0
+2026-08-04 11:59:43,870 INFO Starting libero_spatial__task_005__episode_004__h_05__l_000__async_unguarded
+2026-08-04 11:59:49,939 INFO Finished libero_spatial__task_005__episode_004__h_05__l_000__async_unguarded success=True reason=task_success queries=20 rejections=0
+2026-08-04 11:59:49,940 INFO Starting libero_spatial__task_005__episode_004__h_05__l_002__async_unguarded
+2026-08-04 11:59:58,646 INFO Finished libero_spatial__task_005__episode_004__h_05__l_002__async_unguarded success=True reason=task_success queries=26 rejections=0
+2026-08-04 11:59:58,647 INFO Starting libero_spatial__task_005__episode_004__h_05__l_002__latency_aligned
+2026-08-04 12:00:03,772 INFO Finished libero_spatial__task_005__episode_004__h_05__l_002__latency_aligned success=True reason=success_during_inference_delay queries=14 rejections=0
+2026-08-04 12:00:03,772 INFO Starting libero_spatial__task_005__episode_004__h_05__l_004__latency_aligned
+2026-08-04 12:00:08,866 INFO Finished libero_spatial__task_005__episode_004__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=12 rejections=0
+2026-08-04 12:00:08,866 INFO Starting libero_spatial__task_005__episode_004__h_05__l_004__async_unguarded
+2026-08-04 12:00:18,954 INFO Finished libero_spatial__task_005__episode_004__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 12:00:19,954 INFO Starting libero_spatial__task_006__episode_000__h_05__l_000__async_unguarded
+2026-08-04 12:00:25,860 INFO Finished libero_spatial__task_006__episode_000__h_05__l_000__async_unguarded success=True reason=task_success queries=22 rejections=0
+2026-08-04 12:00:25,861 INFO Starting libero_spatial__task_006__episode_000__h_05__l_000__latency_aligned
+2026-08-04 12:00:31,798 INFO Finished libero_spatial__task_006__episode_000__h_05__l_000__latency_aligned success=True reason=task_success queries=22 rejections=0
+2026-08-04 12:00:31,798 INFO Starting libero_spatial__task_006__episode_000__h_05__l_002__latency_aligned
+2026-08-04 12:00:37,574 INFO Finished libero_spatial__task_006__episode_000__h_05__l_002__latency_aligned success=True reason=task_success queries=16 rejections=0
+2026-08-04 12:00:37,574 INFO Starting libero_spatial__task_006__episode_000__h_05__l_002__async_unguarded
+2026-08-04 12:00:43,652 INFO Finished libero_spatial__task_006__episode_000__h_05__l_002__async_unguarded success=True reason=task_success queries=17 rejections=0
+2026-08-04 12:00:43,653 INFO Starting libero_spatial__task_006__episode_000__h_05__l_004__async_unguarded
+2026-08-04 12:00:50,786 INFO Finished libero_spatial__task_006__episode_000__h_05__l_004__async_unguarded success=True reason=task_success queries=17 rejections=0
+2026-08-04 12:00:50,786 INFO Starting libero_spatial__task_006__episode_000__h_05__l_004__latency_aligned
+2026-08-04 12:00:56,424 INFO Finished libero_spatial__task_006__episode_000__h_05__l_004__latency_aligned success=True reason=task_success queries=13 rejections=0
+2026-08-04 12:00:56,424 INFO Starting libero_spatial__task_006__episode_001__h_05__l_000__latency_aligned
+2026-08-04 12:01:02,709 INFO Finished libero_spatial__task_006__episode_001__h_05__l_000__latency_aligned success=True reason=task_success queries=22 rejections=0
+2026-08-04 12:01:02,709 INFO Starting libero_spatial__task_006__episode_001__h_05__l_000__async_unguarded
+2026-08-04 12:01:08,479 INFO Finished libero_spatial__task_006__episode_001__h_05__l_000__async_unguarded success=True reason=task_success queries=21 rejections=0
+2026-08-04 12:01:08,479 INFO Starting libero_spatial__task_006__episode_001__h_05__l_002__async_unguarded
+2026-08-04 12:01:15,178 INFO Finished libero_spatial__task_006__episode_001__h_05__l_002__async_unguarded success=True reason=success_during_inference_delay queries=19 rejections=0
+2026-08-04 12:01:15,179 INFO Starting libero_spatial__task_006__episode_001__h_05__l_002__latency_aligned
+2026-08-04 12:01:20,899 INFO Finished libero_spatial__task_006__episode_001__h_05__l_002__latency_aligned success=True reason=task_success queries=16 rejections=0
+2026-08-04 12:01:20,900 INFO Starting libero_spatial__task_006__episode_001__h_05__l_004__latency_aligned
+2026-08-04 12:01:26,451 INFO Finished libero_spatial__task_006__episode_001__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=13 rejections=0
+2026-08-04 12:01:26,452 INFO Starting libero_spatial__task_006__episode_001__h_05__l_004__async_unguarded
+2026-08-04 12:01:33,442 INFO Finished libero_spatial__task_006__episode_001__h_05__l_004__async_unguarded success=True reason=success_during_inference_delay queries=17 rejections=0
+2026-08-04 12:01:33,442 INFO Starting libero_spatial__task_006__episode_002__h_05__l_000__async_unguarded
+2026-08-04 12:01:39,103 INFO Finished libero_spatial__task_006__episode_002__h_05__l_000__async_unguarded success=True reason=task_success queries=19 rejections=0
+2026-08-04 12:01:39,103 INFO Starting libero_spatial__task_006__episode_002__h_05__l_000__latency_aligned
+2026-08-04 12:01:44,796 INFO Finished libero_spatial__task_006__episode_002__h_05__l_000__latency_aligned success=True reason=task_success queries=19 rejections=0
+2026-08-04 12:01:44,796 INFO Starting libero_spatial__task_006__episode_002__h_05__l_002__latency_aligned
+2026-08-04 12:01:50,159 INFO Finished libero_spatial__task_006__episode_002__h_05__l_002__latency_aligned success=True reason=success_during_inference_delay queries=15 rejections=0
+2026-08-04 12:01:50,159 INFO Starting libero_spatial__task_006__episode_002__h_05__l_002__async_unguarded
+2026-08-04 12:01:56,306 INFO Finished libero_spatial__task_006__episode_002__h_05__l_002__async_unguarded success=True reason=success_during_inference_delay queries=17 rejections=0
+2026-08-04 12:01:56,306 INFO Starting libero_spatial__task_006__episode_002__h_05__l_004__async_unguarded
+2026-08-04 12:02:03,135 INFO Finished libero_spatial__task_006__episode_002__h_05__l_004__async_unguarded success=True reason=success_during_inference_delay queries=16 rejections=0
+2026-08-04 12:02:03,136 INFO Starting libero_spatial__task_006__episode_002__h_05__l_004__latency_aligned
+2026-08-04 12:02:08,693 INFO Finished libero_spatial__task_006__episode_002__h_05__l_004__latency_aligned success=True reason=task_success queries=12 rejections=0
+2026-08-04 12:02:08,693 INFO Starting libero_spatial__task_006__episode_003__h_05__l_000__latency_aligned
+2026-08-04 12:02:14,412 INFO Finished libero_spatial__task_006__episode_003__h_05__l_000__latency_aligned success=True reason=task_success queries=20 rejections=0
+2026-08-04 12:02:14,412 INFO Starting libero_spatial__task_006__episode_003__h_05__l_000__async_unguarded
+2026-08-04 12:02:21,654 INFO Finished libero_spatial__task_006__episode_003__h_05__l_000__async_unguarded success=True reason=task_success queries=27 rejections=0
+2026-08-04 12:02:21,654 INFO Starting libero_spatial__task_006__episode_003__h_05__l_002__async_unguarded
+2026-08-04 12:02:28,091 INFO Finished libero_spatial__task_006__episode_003__h_05__l_002__async_unguarded success=True reason=success_during_inference_delay queries=18 rejections=0
+2026-08-04 12:02:28,091 INFO Starting libero_spatial__task_006__episode_003__h_05__l_002__latency_aligned
+2026-08-04 12:02:33,442 INFO Finished libero_spatial__task_006__episode_003__h_05__l_002__latency_aligned success=True reason=task_success queries=14 rejections=0
+2026-08-04 12:02:33,443 INFO Starting libero_spatial__task_006__episode_003__h_05__l_004__latency_aligned
+2026-08-04 12:02:39,864 INFO Finished libero_spatial__task_006__episode_003__h_05__l_004__latency_aligned success=True reason=task_success queries=15 rejections=0
+2026-08-04 12:02:39,864 INFO Starting libero_spatial__task_006__episode_003__h_05__l_004__async_unguarded
+2026-08-04 12:02:49,223 INFO Finished libero_spatial__task_006__episode_003__h_05__l_004__async_unguarded success=True reason=task_success queries=24 rejections=0
+2026-08-04 12:02:49,223 INFO Starting libero_spatial__task_006__episode_004__h_05__l_000__async_unguarded
+2026-08-04 12:02:55,218 INFO Finished libero_spatial__task_006__episode_004__h_05__l_000__async_unguarded success=True reason=task_success queries=21 rejections=0
+2026-08-04 12:02:55,218 INFO Starting libero_spatial__task_006__episode_004__h_05__l_000__latency_aligned
+2026-08-04 12:03:01,290 INFO Finished libero_spatial__task_006__episode_004__h_05__l_000__latency_aligned success=True reason=task_success queries=21 rejections=0
+2026-08-04 12:03:01,290 INFO Starting libero_spatial__task_006__episode_004__h_05__l_002__latency_aligned
+2026-08-04 12:03:06,792 INFO Finished libero_spatial__task_006__episode_004__h_05__l_002__latency_aligned success=True reason=task_success queries=15 rejections=0
+2026-08-04 12:03:06,792 INFO Starting libero_spatial__task_006__episode_004__h_05__l_002__async_unguarded
+2026-08-04 12:03:13,279 INFO Finished libero_spatial__task_006__episode_004__h_05__l_002__async_unguarded success=True reason=task_success queries=18 rejections=0
+2026-08-04 12:03:13,279 INFO Starting libero_spatial__task_006__episode_004__h_05__l_004__async_unguarded
+2026-08-04 12:03:20,513 INFO Finished libero_spatial__task_006__episode_004__h_05__l_004__async_unguarded success=True reason=success_during_inference_delay queries=17 rejections=0
+2026-08-04 12:03:20,513 INFO Starting libero_spatial__task_006__episode_004__h_05__l_004__latency_aligned
+2026-08-04 12:03:25,750 INFO Finished libero_spatial__task_006__episode_004__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=12 rejections=0
+2026-08-04 12:03:26,956 INFO Starting libero_spatial__task_007__episode_000__h_05__l_000__latency_aligned
+2026-08-04 12:03:34,005 INFO Finished libero_spatial__task_007__episode_000__h_05__l_000__latency_aligned success=True reason=task_success queries=25 rejections=0
+2026-08-04 12:03:34,005 INFO Starting libero_spatial__task_007__episode_000__h_05__l_000__async_unguarded
+2026-08-04 12:03:41,138 INFO Finished libero_spatial__task_007__episode_000__h_05__l_000__async_unguarded success=True reason=task_success queries=24 rejections=0
+2026-08-04 12:03:41,139 INFO Starting libero_spatial__task_007__episode_000__h_05__l_002__async_unguarded
+2026-08-04 12:03:52,476 INFO Finished libero_spatial__task_007__episode_000__h_05__l_002__async_unguarded success=False reason=step_limit queries=32 rejections=0
+2026-08-04 12:03:52,476 INFO Starting libero_spatial__task_007__episode_000__h_05__l_002__latency_aligned
+2026-08-04 12:03:59,072 INFO Finished libero_spatial__task_007__episode_000__h_05__l_002__latency_aligned success=True reason=success_during_inference_delay queries=18 rejections=0
+2026-08-04 12:03:59,072 INFO Starting libero_spatial__task_007__episode_000__h_05__l_004__latency_aligned
+2026-08-04 12:04:05,920 INFO Finished libero_spatial__task_007__episode_000__h_05__l_004__latency_aligned success=True reason=task_success queries=15 rejections=0
+2026-08-04 12:04:05,920 INFO Starting libero_spatial__task_007__episode_000__h_05__l_004__async_unguarded
+2026-08-04 12:04:16,139 INFO Finished libero_spatial__task_007__episode_000__h_05__l_004__async_unguarded success=True reason=success_during_inference_delay queries=23 rejections=0
+2026-08-04 12:04:16,140 INFO Starting libero_spatial__task_007__episode_001__h_05__l_000__async_unguarded
+2026-08-04 12:04:23,049 INFO Finished libero_spatial__task_007__episode_001__h_05__l_000__async_unguarded success=True reason=task_success queries=24 rejections=0
+2026-08-04 12:04:23,049 INFO Starting libero_spatial__task_007__episode_001__h_05__l_000__latency_aligned
+2026-08-04 12:04:30,108 INFO Finished libero_spatial__task_007__episode_001__h_05__l_000__latency_aligned success=True reason=task_success queries=24 rejections=0
+2026-08-04 12:04:30,108 INFO Starting libero_spatial__task_007__episode_001__h_05__l_002__latency_aligned
+2026-08-04 12:04:36,479 INFO Finished libero_spatial__task_007__episode_001__h_05__l_002__latency_aligned success=True reason=task_success queries=17 rejections=0
+2026-08-04 12:04:36,480 INFO Starting libero_spatial__task_007__episode_001__h_05__l_002__async_unguarded
+2026-08-04 12:04:42,742 INFO Finished libero_spatial__task_007__episode_001__h_05__l_002__async_unguarded success=True reason=task_success queries=17 rejections=0
+2026-08-04 12:04:42,742 INFO Starting libero_spatial__task_007__episode_001__h_05__l_004__async_unguarded
+2026-08-04 12:04:50,673 INFO Finished libero_spatial__task_007__episode_001__h_05__l_004__async_unguarded success=True reason=task_success queries=18 rejections=0
+2026-08-04 12:04:50,674 INFO Starting libero_spatial__task_007__episode_001__h_05__l_004__latency_aligned
+2026-08-04 12:04:57,570 INFO Finished libero_spatial__task_007__episode_001__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=15 rejections=0
+2026-08-04 12:04:57,570 INFO Starting libero_spatial__task_007__episode_002__h_05__l_000__latency_aligned
+2026-08-04 12:05:04,421 INFO Finished libero_spatial__task_007__episode_002__h_05__l_000__latency_aligned success=True reason=task_success queries=23 rejections=0
+2026-08-04 12:05:04,421 INFO Starting libero_spatial__task_007__episode_002__h_05__l_000__async_unguarded
+2026-08-04 12:05:11,251 INFO Finished libero_spatial__task_007__episode_002__h_05__l_000__async_unguarded success=True reason=task_success queries=24 rejections=0
+2026-08-04 12:05:11,251 INFO Starting libero_spatial__task_007__episode_002__h_05__l_002__async_unguarded
+2026-08-04 12:05:18,571 INFO Finished libero_spatial__task_007__episode_002__h_05__l_002__async_unguarded success=True reason=success_during_inference_delay queries=20 rejections=0
+2026-08-04 12:05:18,571 INFO Starting libero_spatial__task_007__episode_002__h_05__l_002__latency_aligned
+2026-08-04 12:05:25,550 INFO Finished libero_spatial__task_007__episode_002__h_05__l_002__latency_aligned success=True reason=task_success queries=18 rejections=0
+2026-08-04 12:05:25,550 INFO Starting libero_spatial__task_007__episode_002__h_05__l_004__latency_aligned
+2026-08-04 12:05:31,951 INFO Finished libero_spatial__task_007__episode_002__h_05__l_004__latency_aligned success=True reason=task_success queries=15 rejections=0
+2026-08-04 12:05:31,951 INFO Starting libero_spatial__task_007__episode_002__h_05__l_004__async_unguarded
+2026-08-04 12:05:41,296 INFO Finished libero_spatial__task_007__episode_002__h_05__l_004__async_unguarded success=True reason=success_during_inference_delay queries=22 rejections=0
+2026-08-04 12:05:41,297 INFO Starting libero_spatial__task_007__episode_003__h_05__l_000__async_unguarded
+2026-08-04 12:05:48,167 INFO Finished libero_spatial__task_007__episode_003__h_05__l_000__async_unguarded success=True reason=task_success queries=24 rejections=0
+2026-08-04 12:05:48,167 INFO Starting libero_spatial__task_007__episode_003__h_05__l_000__latency_aligned
+2026-08-04 12:05:55,049 INFO Finished libero_spatial__task_007__episode_003__h_05__l_000__latency_aligned success=True reason=task_success queries=24 rejections=0
+2026-08-04 12:05:55,050 INFO Starting libero_spatial__task_007__episode_003__h_05__l_002__latency_aligned
+2026-08-04 12:06:01,585 INFO Finished libero_spatial__task_007__episode_003__h_05__l_002__latency_aligned success=True reason=success_during_inference_delay queries=18 rejections=0
+2026-08-04 12:06:01,586 INFO Starting libero_spatial__task_007__episode_003__h_05__l_002__async_unguarded
+2026-08-04 12:06:08,531 INFO Finished libero_spatial__task_007__episode_003__h_05__l_002__async_unguarded success=True reason=success_during_inference_delay queries=20 rejections=0
+2026-08-04 12:06:08,532 INFO Starting libero_spatial__task_007__episode_003__h_05__l_004__async_unguarded
+2026-08-04 12:06:16,542 INFO Finished libero_spatial__task_007__episode_003__h_05__l_004__async_unguarded success=True reason=success_during_inference_delay queries=19 rejections=0
+2026-08-04 12:06:16,542 INFO Starting libero_spatial__task_007__episode_003__h_05__l_004__latency_aligned
+2026-08-04 12:06:22,852 INFO Finished libero_spatial__task_007__episode_003__h_05__l_004__latency_aligned success=True reason=task_success queries=14 rejections=0
+2026-08-04 12:06:22,853 INFO Starting libero_spatial__task_007__episode_004__h_05__l_000__latency_aligned
+2026-08-04 12:06:29,723 INFO Finished libero_spatial__task_007__episode_004__h_05__l_000__latency_aligned success=True reason=task_success queries=25 rejections=0
+2026-08-04 12:06:29,723 INFO Starting libero_spatial__task_007__episode_004__h_05__l_000__async_unguarded
+2026-08-04 12:06:36,199 INFO Finished libero_spatial__task_007__episode_004__h_05__l_000__async_unguarded success=True reason=task_success queries=23 rejections=0
+2026-08-04 12:06:36,200 INFO Starting libero_spatial__task_007__episode_004__h_05__l_002__async_unguarded
+2026-08-04 12:06:43,322 INFO Finished libero_spatial__task_007__episode_004__h_05__l_002__async_unguarded success=True reason=task_success queries=20 rejections=0
+2026-08-04 12:06:43,322 INFO Starting libero_spatial__task_007__episode_004__h_05__l_002__latency_aligned
+2026-08-04 12:06:49,621 INFO Finished libero_spatial__task_007__episode_004__h_05__l_002__latency_aligned success=True reason=task_success queries=18 rejections=0
+2026-08-04 12:06:49,621 INFO Starting libero_spatial__task_007__episode_004__h_05__l_004__latency_aligned
+2026-08-04 12:06:56,687 INFO Finished libero_spatial__task_007__episode_004__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=17 rejections=0
+2026-08-04 12:06:56,687 INFO Starting libero_spatial__task_007__episode_004__h_05__l_004__async_unguarded
+2026-08-04 12:07:06,390 INFO Finished libero_spatial__task_007__episode_004__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 12:07:07,397 INFO Starting libero_spatial__task_008__episode_000__h_05__l_000__async_unguarded
+2026-08-04 12:07:13,147 INFO Finished libero_spatial__task_008__episode_000__h_05__l_000__async_unguarded success=True reason=task_success queries=21 rejections=0
+2026-08-04 12:07:13,147 INFO Starting libero_spatial__task_008__episode_000__h_05__l_000__latency_aligned
+2026-08-04 12:07:20,897 INFO Finished libero_spatial__task_008__episode_000__h_05__l_000__latency_aligned success=True reason=task_success queries=30 rejections=0
+2026-08-04 12:07:20,897 INFO Starting libero_spatial__task_008__episode_000__h_05__l_002__latency_aligned
+2026-08-04 12:07:26,120 INFO Finished libero_spatial__task_008__episode_000__h_05__l_002__latency_aligned success=True reason=task_success queries=15 rejections=0
+2026-08-04 12:07:26,121 INFO Starting libero_spatial__task_008__episode_000__h_05__l_002__async_unguarded
+2026-08-04 12:07:32,449 INFO Finished libero_spatial__task_008__episode_000__h_05__l_002__async_unguarded success=True reason=success_during_inference_delay queries=19 rejections=0
+2026-08-04 12:07:32,449 INFO Starting libero_spatial__task_008__episode_000__h_05__l_004__async_unguarded
+2026-08-04 12:07:41,876 INFO Finished libero_spatial__task_008__episode_000__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 12:07:41,876 INFO Starting libero_spatial__task_008__episode_000__h_05__l_004__latency_aligned
+2026-08-04 12:07:47,154 INFO Finished libero_spatial__task_008__episode_000__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=13 rejections=0
+2026-08-04 12:07:47,155 INFO Starting libero_spatial__task_008__episode_001__h_05__l_000__latency_aligned
+2026-08-04 12:07:53,529 INFO Finished libero_spatial__task_008__episode_001__h_05__l_000__latency_aligned success=True reason=task_success queries=23 rejections=0
+2026-08-04 12:07:53,530 INFO Starting libero_spatial__task_008__episode_001__h_05__l_000__async_unguarded
+2026-08-04 12:07:59,209 INFO Finished libero_spatial__task_008__episode_001__h_05__l_000__async_unguarded success=True reason=task_success queries=20 rejections=0
+2026-08-04 12:07:59,210 INFO Starting libero_spatial__task_008__episode_001__h_05__l_002__async_unguarded
+2026-08-04 12:08:05,345 INFO Finished libero_spatial__task_008__episode_001__h_05__l_002__async_unguarded success=True reason=task_success queries=17 rejections=0
+2026-08-04 12:08:05,345 INFO Starting libero_spatial__task_008__episode_001__h_05__l_002__latency_aligned
+2026-08-04 12:08:10,600 INFO Finished libero_spatial__task_008__episode_001__h_05__l_002__latency_aligned success=True reason=success_during_inference_delay queries=15 rejections=0
+2026-08-04 12:08:10,600 INFO Starting libero_spatial__task_008__episode_001__h_05__l_004__latency_aligned
+2026-08-04 12:08:16,142 INFO Finished libero_spatial__task_008__episode_001__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=13 rejections=0
+2026-08-04 12:08:16,142 INFO Starting libero_spatial__task_008__episode_001__h_05__l_004__async_unguarded
+2026-08-04 12:08:26,008 INFO Finished libero_spatial__task_008__episode_001__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 12:08:26,008 INFO Starting libero_spatial__task_008__episode_002__h_05__l_000__async_unguarded
+2026-08-04 12:08:31,462 INFO Finished libero_spatial__task_008__episode_002__h_05__l_000__async_unguarded success=True reason=task_success queries=19 rejections=0
+2026-08-04 12:08:31,463 INFO Starting libero_spatial__task_008__episode_002__h_05__l_000__latency_aligned
+2026-08-04 12:08:37,014 INFO Finished libero_spatial__task_008__episode_002__h_05__l_000__latency_aligned success=True reason=task_success queries=19 rejections=0
+2026-08-04 12:08:37,014 INFO Starting libero_spatial__task_008__episode_002__h_05__l_002__latency_aligned
+2026-08-04 12:08:42,429 INFO Finished libero_spatial__task_008__episode_002__h_05__l_002__latency_aligned success=True reason=task_success queries=14 rejections=0
+2026-08-04 12:08:42,429 INFO Starting libero_spatial__task_008__episode_002__h_05__l_002__async_unguarded
+2026-08-04 12:08:48,600 INFO Finished libero_spatial__task_008__episode_002__h_05__l_002__async_unguarded success=True reason=task_success queries=17 rejections=0
+2026-08-04 12:08:48,600 INFO Starting libero_spatial__task_008__episode_002__h_05__l_004__async_unguarded
+2026-08-04 12:08:58,052 INFO Finished libero_spatial__task_008__episode_002__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 12:08:58,053 INFO Starting libero_spatial__task_008__episode_002__h_05__l_004__latency_aligned
+2026-08-04 12:09:02,954 INFO Finished libero_spatial__task_008__episode_002__h_05__l_004__latency_aligned success=True reason=task_success queries=11 rejections=0
+2026-08-04 12:09:02,954 INFO Starting libero_spatial__task_008__episode_003__h_05__l_000__latency_aligned
+2026-08-04 12:09:08,597 INFO Finished libero_spatial__task_008__episode_003__h_05__l_000__latency_aligned success=True reason=task_success queries=20 rejections=0
+2026-08-04 12:09:08,597 INFO Starting libero_spatial__task_008__episode_003__h_05__l_000__async_unguarded
+2026-08-04 12:09:14,688 INFO Finished libero_spatial__task_008__episode_003__h_05__l_000__async_unguarded success=True reason=task_success queries=21 rejections=0
+2026-08-04 12:09:14,688 INFO Starting libero_spatial__task_008__episode_003__h_05__l_002__async_unguarded
+2026-08-04 12:09:20,849 INFO Finished libero_spatial__task_008__episode_003__h_05__l_002__async_unguarded success=True reason=task_success queries=17 rejections=0
+2026-08-04 12:09:20,850 INFO Starting libero_spatial__task_008__episode_003__h_05__l_002__latency_aligned
+2026-08-04 12:09:26,110 INFO Finished libero_spatial__task_008__episode_003__h_05__l_002__latency_aligned success=True reason=success_during_inference_delay queries=15 rejections=0
+2026-08-04 12:09:26,110 INFO Starting libero_spatial__task_008__episode_003__h_05__l_004__latency_aligned
+2026-08-04 12:09:31,286 INFO Finished libero_spatial__task_008__episode_003__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=12 rejections=0
+2026-08-04 12:09:31,287 INFO Starting libero_spatial__task_008__episode_003__h_05__l_004__async_unguarded
+2026-08-04 12:09:41,216 INFO Finished libero_spatial__task_008__episode_003__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 12:09:41,216 INFO Starting libero_spatial__task_008__episode_004__h_05__l_000__async_unguarded
+2026-08-04 12:09:46,650 INFO Finished libero_spatial__task_008__episode_004__h_05__l_000__async_unguarded success=True reason=task_success queries=20 rejections=0
+2026-08-04 12:09:46,650 INFO Starting libero_spatial__task_008__episode_004__h_05__l_000__latency_aligned
+2026-08-04 12:09:52,281 INFO Finished libero_spatial__task_008__episode_004__h_05__l_000__latency_aligned success=True reason=task_success queries=20 rejections=0
+2026-08-04 12:09:52,282 INFO Starting libero_spatial__task_008__episode_004__h_05__l_002__latency_aligned
+2026-08-04 12:09:57,382 INFO Finished libero_spatial__task_008__episode_004__h_05__l_002__latency_aligned success=True reason=task_success queries=14 rejections=0
+2026-08-04 12:09:57,382 INFO Starting libero_spatial__task_008__episode_004__h_05__l_002__async_unguarded
+2026-08-04 12:10:05,624 INFO Finished libero_spatial__task_008__episode_004__h_05__l_002__async_unguarded success=True reason=task_success queries=25 rejections=0
+2026-08-04 12:10:05,624 INFO Starting libero_spatial__task_008__episode_004__h_05__l_004__async_unguarded
+2026-08-04 12:10:15,435 INFO Finished libero_spatial__task_008__episode_004__h_05__l_004__async_unguarded success=True reason=success_during_inference_delay queries=25 rejections=0
+2026-08-04 12:10:15,435 INFO Starting libero_spatial__task_008__episode_004__h_05__l_004__latency_aligned
+2026-08-04 12:10:20,234 INFO Finished libero_spatial__task_008__episode_004__h_05__l_004__latency_aligned success=True reason=task_success queries=11 rejections=0
+2026-08-04 12:10:21,241 INFO Starting libero_spatial__task_009__episode_000__h_05__l_000__latency_aligned
+2026-08-04 12:10:28,065 INFO Finished libero_spatial__task_009__episode_000__h_05__l_000__latency_aligned success=True reason=task_success queries=26 rejections=0
+2026-08-04 12:10:28,066 INFO Starting libero_spatial__task_009__episode_000__h_05__l_000__async_unguarded
+2026-08-04 12:10:34,558 INFO Finished libero_spatial__task_009__episode_000__h_05__l_000__async_unguarded success=True reason=task_success queries=24 rejections=0
+2026-08-04 12:10:34,558 INFO Starting libero_spatial__task_009__episode_000__h_05__l_002__async_unguarded
+2026-08-04 12:10:44,485 INFO Finished libero_spatial__task_009__episode_000__h_05__l_002__async_unguarded success=False reason=step_limit queries=32 rejections=0
+2026-08-04 12:10:44,485 INFO Starting libero_spatial__task_009__episode_000__h_05__l_002__latency_aligned
+2026-08-04 12:10:50,382 INFO Finished libero_spatial__task_009__episode_000__h_05__l_002__latency_aligned success=True reason=task_success queries=17 rejections=0
+2026-08-04 12:10:50,382 INFO Starting libero_spatial__task_009__episode_000__h_05__l_004__latency_aligned
+2026-08-04 12:10:56,674 INFO Finished libero_spatial__task_009__episode_000__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=16 rejections=0
+2026-08-04 12:10:56,675 INFO Starting libero_spatial__task_009__episode_000__h_05__l_004__async_unguarded
+2026-08-04 12:11:06,406 INFO Finished libero_spatial__task_009__episode_000__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 12:11:06,406 INFO Starting libero_spatial__task_009__episode_001__h_05__l_000__async_unguarded
+2026-08-04 12:11:13,143 INFO Finished libero_spatial__task_009__episode_001__h_05__l_000__async_unguarded success=True reason=task_success queries=25 rejections=0
+2026-08-04 12:11:13,144 INFO Starting libero_spatial__task_009__episode_001__h_05__l_000__latency_aligned
+2026-08-04 12:11:19,725 INFO Finished libero_spatial__task_009__episode_001__h_05__l_000__latency_aligned success=True reason=task_success queries=24 rejections=0
+2026-08-04 12:11:19,726 INFO Starting libero_spatial__task_009__episode_001__h_05__l_002__latency_aligned
+2026-08-04 12:11:29,979 INFO Finished libero_spatial__task_009__episode_001__h_05__l_002__latency_aligned success=False reason=step_limit queries=32 rejections=0
+2026-08-04 12:11:29,979 INFO Starting libero_spatial__task_009__episode_001__h_05__l_002__async_unguarded
+2026-08-04 12:11:36,864 INFO Finished libero_spatial__task_009__episode_001__h_05__l_002__async_unguarded success=True reason=success_during_inference_delay queries=20 rejections=0
+2026-08-04 12:11:36,865 INFO Starting libero_spatial__task_009__episode_001__h_05__l_004__async_unguarded
+2026-08-04 12:11:46,080 INFO Finished libero_spatial__task_009__episode_001__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 12:11:46,080 INFO Starting libero_spatial__task_009__episode_001__h_05__l_004__latency_aligned
+2026-08-04 12:11:52,251 INFO Finished libero_spatial__task_009__episode_001__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=15 rejections=0
+2026-08-04 12:11:52,251 INFO Starting libero_spatial__task_009__episode_002__h_05__l_000__latency_aligned
+2026-08-04 12:11:58,497 INFO Finished libero_spatial__task_009__episode_002__h_05__l_000__latency_aligned success=True reason=task_success queries=23 rejections=0
+2026-08-04 12:11:58,497 INFO Starting libero_spatial__task_009__episode_002__h_05__l_000__async_unguarded
+2026-08-04 12:12:06,542 INFO Finished libero_spatial__task_009__episode_002__h_05__l_000__async_unguarded success=True reason=task_success queries=31 rejections=0
+2026-08-04 12:12:06,542 INFO Starting libero_spatial__task_009__episode_002__h_05__l_002__async_unguarded
+2026-08-04 12:12:13,283 INFO Finished libero_spatial__task_009__episode_002__h_05__l_002__async_unguarded success=True reason=success_during_inference_delay queries=20 rejections=0
+2026-08-04 12:12:13,283 INFO Starting libero_spatial__task_009__episode_002__h_05__l_002__latency_aligned
+2026-08-04 12:12:19,666 INFO Finished libero_spatial__task_009__episode_002__h_05__l_002__latency_aligned success=True reason=task_success queries=18 rejections=0
+2026-08-04 12:12:19,666 INFO Starting libero_spatial__task_009__episode_002__h_05__l_004__latency_aligned
+2026-08-04 12:12:25,448 INFO Finished libero_spatial__task_009__episode_002__h_05__l_004__latency_aligned success=True reason=success_during_inference_delay queries=14 rejections=0
+2026-08-04 12:12:25,448 INFO Starting libero_spatial__task_009__episode_002__h_05__l_004__async_unguarded
+2026-08-04 12:12:33,514 INFO Finished libero_spatial__task_009__episode_002__h_05__l_004__async_unguarded success=True reason=task_success queries=20 rejections=0
+2026-08-04 12:12:33,514 INFO Starting libero_spatial__task_009__episode_003__h_05__l_000__async_unguarded
+2026-08-04 12:12:40,086 INFO Finished libero_spatial__task_009__episode_003__h_05__l_000__async_unguarded success=True reason=task_success queries=24 rejections=0
+2026-08-04 12:12:40,086 INFO Starting libero_spatial__task_009__episode_003__h_05__l_000__latency_aligned
+2026-08-04 12:12:46,792 INFO Finished libero_spatial__task_009__episode_003__h_05__l_000__latency_aligned success=True reason=task_success queries=24 rejections=0
+2026-08-04 12:12:46,792 INFO Starting libero_spatial__task_009__episode_003__h_05__l_002__latency_aligned
+2026-08-04 12:12:52,716 INFO Finished libero_spatial__task_009__episode_003__h_05__l_002__latency_aligned success=True reason=task_success queries=17 rejections=0
+2026-08-04 12:12:52,716 INFO Starting libero_spatial__task_009__episode_003__h_05__l_002__async_unguarded
+2026-08-04 12:12:59,236 INFO Finished libero_spatial__task_009__episode_003__h_05__l_002__async_unguarded success=True reason=task_success queries=19 rejections=0
+2026-08-04 12:12:59,237 INFO Starting libero_spatial__task_009__episode_003__h_05__l_004__async_unguarded
+2026-08-04 12:13:08,633 INFO Finished libero_spatial__task_009__episode_003__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+2026-08-04 12:13:08,633 INFO Starting libero_spatial__task_009__episode_003__h_05__l_004__latency_aligned
+2026-08-04 12:13:14,477 INFO Finished libero_spatial__task_009__episode_003__h_05__l_004__latency_aligned success=True reason=task_success queries=14 rejections=0
+2026-08-04 12:13:14,478 INFO Starting libero_spatial__task_009__episode_004__h_05__l_000__latency_aligned
+2026-08-04 12:13:20,826 INFO Finished libero_spatial__task_009__episode_004__h_05__l_000__latency_aligned success=True reason=task_success queries=23 rejections=0
+2026-08-04 12:13:20,826 INFO Starting libero_spatial__task_009__episode_004__h_05__l_000__async_unguarded
+2026-08-04 12:13:31,871 INFO Finished libero_spatial__task_009__episode_004__h_05__l_000__async_unguarded success=False reason=step_limit queries=44 rejections=0
+2026-08-04 12:13:31,872 INFO Starting libero_spatial__task_009__episode_004__h_05__l_002__async_unguarded
+2026-08-04 12:13:40,297 INFO Finished libero_spatial__task_009__episode_004__h_05__l_002__async_unguarded success=True reason=task_success queries=26 rejections=0
+2026-08-04 12:13:40,297 INFO Starting libero_spatial__task_009__episode_004__h_05__l_002__latency_aligned
+2026-08-04 12:13:46,573 INFO Finished libero_spatial__task_009__episode_004__h_05__l_002__latency_aligned success=True reason=task_success queries=18 rejections=0
+2026-08-04 12:13:46,573 INFO Starting libero_spatial__task_009__episode_004__h_05__l_004__latency_aligned
+2026-08-04 12:13:52,768 INFO Finished libero_spatial__task_009__episode_004__h_05__l_004__latency_aligned success=True reason=task_success queries=15 rejections=0
+2026-08-04 12:13:52,768 INFO Starting libero_spatial__task_009__episode_004__h_05__l_004__async_unguarded
+2026-08-04 12:14:02,194 INFO Finished libero_spatial__task_009__episode_004__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0

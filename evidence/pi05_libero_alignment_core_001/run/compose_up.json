@@ -1,0 +1,25 @@
+{
+  "argv": [
+    "docker",
+    "compose",
+    "--project-name",
+    "armbench-pi05_libero_alignment_core_001",
+    "--project-directory",
+    "/workspace/openpi",
+    "-f",
+    "/workspace/openpi/examples/libero/compose.yml",
+    "-f",
+    "/workspace/armbench/project/integrations/openpi/compose.libero-runtime.yml",
+    "up",
+    "--abort-on-container-exit",
+    "--exit-code-from",
+    "runtime"
+  ],
+  "attempted": true,
+  "duration_s": 2087.395,
+  "returncode": 0,
+  "schema_version": "armbench.compose_process.v1",
+  "started_at_utc": "2026-08-04T11:39:16.146343+00:00",
+  "stderr": "",
+  "stdout": ""
+}

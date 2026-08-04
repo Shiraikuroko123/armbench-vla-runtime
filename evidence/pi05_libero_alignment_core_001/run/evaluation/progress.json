@@ -1,0 +1,7 @@
+{
+  "complete": true,
+  "completed_rollouts": 300,
+  "planned_rollouts": 300,
+  "schema_version": "armbench.pi05_libero_async.v1",
+  "updated_at_utc": "2026-08-04T12:14:02.466036+00:00"
+}

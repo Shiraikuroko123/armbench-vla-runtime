@@ -1,0 +1,16 @@
+{
+  "artifact": "/workspace/armbench-results/pi05_libero_alignment_core_001/evaluation",
+  "checks": [
+    "manifest coverage, sizes, hashes, and path safety",
+    "strict raw episode and query parsing",
+    "registered matrix reconstruction",
+    "checkpoint, server, commit, and source attestation",
+    "matrix, pair, query, percentile, and video consistency",
+    "aggregate, paired, intervention-control, and registered contrast recomputation",
+    "integrity, progress, and deterministic summary"
+  ],
+  "errors": [],
+  "schema_version": "armbench.libero_artifact_validation.v1",
+  "valid": true,
+  "warnings": []
+}

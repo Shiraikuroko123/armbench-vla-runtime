@@ -1,0 +1,26 @@
+{
+  "files": {
+    "analysis.json": {
+      "bytes": 7567,
+      "sha256": "8f93f081996bce3bd1255f21d5e7457affca56cf76a5ccdc08727f7aa50ca8e0"
+    },
+    "latency_strata.csv": {
+      "bytes": 1624,
+      "sha256": "df3e73325cff217e5eb22105fc8193894b5966aebc12b9a6456ee16114a3fe5b"
+    },
+    "per_pair.csv": {
+      "bytes": 26762,
+      "sha256": "9d4e5e16188526643734450f965c9d6487e6809d0e09776e300fc521a2f32175"
+    },
+    "summary.md": {
+      "bytes": 1641,
+      "sha256": "222819d2936b21095d93758dfef79a53a1494a8f374839f99f8af744c51fe4ec"
+    },
+    "task_latency_descriptives.csv": {
+      "bytes": 5337,
+      "sha256": "691b823ea5a5c57c91aa0003830ceb34e4b1df69c9326cbbc82093dbb244bffc"
+    }
+  },
+  "schema_version": "armbench.pi05_libero_latency_aligned_analysis.v1",
+  "source_per_episode_csv_sha256": "d9c14a651dcfdeb90eb50b5997793808d67aa23f7d8672a5a4fe6155559ead23"
+}
