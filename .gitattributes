@@ -1,2 +1,3 @@
 # Cloud evidence manifests attest exact file bytes. Never rewrite line endings.
 evidence/pi05_libero_*/** -text
+*.sh text eol=lf
