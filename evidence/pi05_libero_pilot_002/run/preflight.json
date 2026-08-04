@@ -1,0 +1,217 @@
+{
+  "checks": [
+    {
+      "evidence": {
+        "release": "5.15.0-113-generic",
+        "system": "Linux"
+      },
+      "name": "host_linux",
+      "passed": true,
+      "remediation": "",
+      "required": true,
+      "summary": "Host operating system is Linux"
+    },
+    {
+      "evidence": {
+        "missing_paths": [],
+        "root": "/workspace/openpi"
+      },
+      "name": "openpi_layout",
+      "passed": true,
+      "remediation": "",
+      "required": true,
+      "summary": "Official OpenPI/LIBERO files are present"
+    },
+    {
+      "evidence": {
+        "actual_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+        "diagnostic": "",
+        "expected_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac"
+      },
+      "name": "openpi_pinned_commit",
+      "passed": true,
+      "remediation": "",
+      "required": true,
+      "summary": "OpenPI HEAD is 15a9616a00943ada6c20a0f158e3adb39df2ccac"
+    },
+    {
+      "evidence": {
+        "worktree_status": ""
+      },
+      "name": "openpi_worktree_clean",
+      "passed": true,
+      "remediation": "",
+      "required": true,
+      "summary": "OpenPI worktree has no tracked or untracked changes"
+    },
+    {
+      "evidence": {
+        "entries": [
+          {
+            "commit": "d1dc83afd89ded4379851257fe5d85632d31d5ec",
+            "path": "third_party/aloha",
+            "status": " "
+          },
+          {
+            "commit": "f78abd68ee283de9f9be3c8f7e2a9ad60246e95c",
+            "path": "third_party/libero",
+            "status": " "
+          }
+        ]
+      },
+      "name": "openpi_submodules_clean",
+      "passed": true,
+      "remediation": "",
+      "required": true,
+      "summary": "All recursive submodules are initialized at recorded commits"
+    },
+    {
+      "evidence": {
+        "entries": [
+          {
+            "commit": "f78abd68ee283de9f9be3c8f7e2a9ad60246e95c",
+            "path": "third_party/libero",
+            "status": " "
+          }
+        ]
+      },
+      "name": "libero_submodule_pinned",
+      "passed": true,
+      "remediation": "",
+      "required": true,
+      "summary": "LIBERO submodule is initialized at the pinned revision"
+    },
+    {
+      "evidence": {
+        "error": "",
+        "root": "/workspace/armbench-results"
+      },
+      "name": "results_directory_writable",
+      "passed": true,
+      "remediation": "",
+      "required": true,
+      "summary": "Results directory is writable"
+    },
+    {
+      "evidence": {
+        "devices": [
+          {
+            "driver_version": "570.133.07",
+            "memory_total_mb": 49140.0,
+            "name": "NVIDIA GeForce RTX 4090",
+            "uuid": "GPU-530a01e6-add8-2f0f-1c1a-bf44398f079e"
+          }
+        ],
+        "diagnostic": ""
+      },
+      "name": "host_nvidia_gpu",
+      "passed": true,
+      "remediation": "",
+      "required": true,
+      "summary": "Detected 1 NVIDIA GPU(s)"
+    },
+    {
+      "evidence": {
+        "client_version": "29.7.1",
+        "diagnostic": "",
+        "server_version": "29.7.1"
+      },
+      "name": "docker_engine",
+      "passed": true,
+      "remediation": "",
+      "required": true,
+      "summary": "Docker client and daemon are reachable"
+    },
+    {
+      "evidence": {
+        "architecture": "x86_64",
+        "default_runtime": "runc",
+        "operating_system": "Ubuntu 22.04.4 LTS",
+        "os_type": "linux",
+        "runtime_names": [
+          "io.containerd.runc.v2",
+          "nvidia",
+          "runc"
+        ],
+        "storage_driver": "overlayfs"
+      },
+      "name": "docker_linux_engine",
+      "passed": true,
+      "remediation": "",
+      "required": true,
+      "summary": "Docker daemon uses Linux containers"
+    },
+    {
+      "evidence": {
+        "diagnostic": "",
+        "version": "5.4.0"
+      },
+      "name": "docker_compose_v2",
+      "passed": true,
+      "remediation": "",
+      "required": true,
+      "summary": "Docker Compose version is 5.4.0"
+    },
+    {
+      "evidence": {
+        "attempted": true,
+        "devices": [
+          {
+            "driver_version": "570.133.07",
+            "memory_total_mb": 49140.0,
+            "name": "NVIDIA GeForce RTX 4090",
+            "uuid": "GPU-530a01e6-add8-2f0f-1c1a-bf44398f079e"
+          }
+        ],
+        "diagnostic": "",
+        "image": "nvidia/cuda:12.2.2-cudnn8-runtime-ubuntu22.04@sha256:2d913b09e6be8387e1a10976933642c73c840c0b735f0bf3c28d97fc9bc422e0",
+        "skipped_reason": ""
+      },
+      "name": "container_nvidia_gpu",
+      "passed": true,
+      "remediation": "",
+      "required": true,
+      "summary": "CUDA container can access 1 NVIDIA GPU(s)"
+    }
+  ],
+  "environment": {
+    "container_probe_image": "nvidia/cuda:12.2.2-cudnn8-runtime-ubuntu22.04@sha256:2d913b09e6be8387e1a10976933642c73c840c0b735f0bf3c28d97fc9bc422e0",
+    "docker": {
+      "architecture": "x86_64",
+      "client_version": "29.7.1",
+      "compose_version": "5.4.0",
+      "cpu_count": 16,
+      "default_runtime": "runc",
+      "memory_bytes": 101242490880,
+      "operating_system": "Ubuntu 22.04.4 LTS",
+      "os_type": "linux",
+      "runtime_names": [
+        "io.containerd.runc.v2",
+        "nvidia",
+        "runc"
+      ],
+      "server_version": "29.7.1",
+      "storage_driver": "overlayfs"
+    },
+    "gpu_devices": [
+      {
+        "driver_version": "570.133.07",
+        "memory_total_mb": 49140.0,
+        "name": "NVIDIA GeForce RTX 4090",
+        "uuid": "GPU-530a01e6-add8-2f0f-1c1a-bf44398f079e"
+      }
+    ],
+    "openpi_root": "/workspace/openpi",
+    "platform": {
+      "machine": "x86_64",
+      "python": "3.10.12",
+      "release": "5.15.0-113-generic",
+      "system": "Linux"
+    },
+    "results_root": "/workspace/armbench-results"
+  },
+  "expected_openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+  "generated_at_utc": "2026-08-04T10:30:42.127387+00:00",
+  "ready": true,
+  "schema_version": "armbench.openpi_libero_preflight.v1"
+}

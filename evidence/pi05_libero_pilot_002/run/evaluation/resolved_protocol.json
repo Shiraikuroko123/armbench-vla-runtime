@@ -1,0 +1,103 @@
+{
+  "bootstrap_resamples": 10000,
+  "checkpoint_provenance": "server_attestation_with_checkpoint_content_sha256",
+  "declared_checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+  "episode_budget": {
+    "official_suite_task_steps": {
+      "libero_10": 520,
+      "libero_90": 400,
+      "libero_goal": 300,
+      "libero_object": 280,
+      "libero_spatial": 220
+    },
+    "stabilization_steps": 10,
+    "task_steps_override": null
+  },
+  "experimental_mechanism": {
+    "async_delay": "Advance the environment for latency_steps with the last commanded action after the query observation is captured and before its chunk is consumed.",
+    "fixed_refresh_control": "Reject every Nth candidate chunk independently of measured state mismatch, using the same hold and bounded requery path as state_guard.",
+    "fixed_refresh_interval": null,
+    "inference_latency": "measured websocket infer wall time; not converted into injected steps",
+    "mode_order": "adjacent matched conditions with alternating order",
+    "state_guard": "Compare current and query-time end-effector position, quaternion angular distance, and gripper position; reject and requery from a Cartesian hold.",
+    "step_budget": "Injected delay steps consume the same environment-step budget as task actions."
+  },
+  "limitations": [
+    "This runtime check is not a formal safety certificate.",
+    "Injected latency steps model asynchronous execution independently of measured wall latency.",
+    "Identical LIBERO initial states do not reset hidden policy-server sampling state.",
+    "fixed_refresh_interval must be calibrated on disjoint pilot episodes and frozen before confirmatory runs.",
+    "Checkpoint attestation proves the loaded cache content and launcher identity, not the upstream publisher's intent.",
+    "Object contacts are not labeled as safety violations."
+  ],
+  "matrix": {
+    "episode_indices": [
+      45,
+      46
+    ],
+    "latency_steps": [
+      4
+    ],
+    "matched_condition_groups": 20,
+    "modes": [
+      "async_unguarded",
+      "state_guard"
+    ],
+    "paired_conditions": 20,
+    "replan_steps": [
+      5
+    ],
+    "rollouts": 40,
+    "schema_version": "armbench.pi05_libero_async.v1",
+    "task_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "task_suites": [
+      "libero_spatial"
+    ],
+    "warning": "This count is environment rollouts, not policy queries. Query cost grows as replan_steps decreases and guard or refresh rejections increase."
+  },
+  "official_protocol": {
+    "action_dimension": 7,
+    "camera_rotation_degrees": 180,
+    "control_frequency_hz": 20,
+    "control_period_ms": 50.0,
+    "environment_render_resolution": [
+      256,
+      256
+    ],
+    "resize": [
+      224,
+      224
+    ],
+    "state_dimension": 8,
+    "task_success_source": "LIBERO environment done",
+    "video_playback_fps": 10
+  },
+  "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+  "policy_config": "pi05_libero",
+  "research_question": "How do asynchronous inference delay and action execution horizon affect pi0.5-LIBERO task success and query cost, and does state-mismatch rejection outperform a preregistered fixed-refresh intervention control?",
+  "runtime_failure_policy": "abort_formal_run",
+  "schema_version": "armbench.pi05_libero_async.v1",
+  "seed": 7,
+  "server_launch_args": "--policy-config pi05_libero --checkpoint gs://openpi-assets/checkpoints/pi05_libero --openpi-root /app --attestation-output /armbench_results/pi05_libero_pilot_002/checkpoint_attestation.json --host 0.0.0.0 --port 8000",
+  "thresholds": {
+    "gripper_linf": 0.05,
+    "max_requeries": 2,
+    "orientation_rad": 0.1,
+    "position_m": 0.01
+  },
+  "timeouts": {
+    "policy_inference_s": 600.0,
+    "server_startup_s": 1200.0
+  }
+}

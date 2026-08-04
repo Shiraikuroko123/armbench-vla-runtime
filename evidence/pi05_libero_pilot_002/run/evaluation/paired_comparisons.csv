@@ -1,0 +1,12 @@
+schema_version,scope,task_suite,task_id,selected_task_count,suite_task_count,suite_coverage_complete,replan_steps,latency_steps,injected_latency_ms,candidate_pairs,paired_episodes,per_protocol_pairs,excluded_infrastructure_pairs,excluded_pairing_mismatch_pairs,unguarded_success_rate,state_guard_success_rate,success_rate_difference,per_protocol_success_rate_difference,success_difference_bootstrap95_low,success_difference_bootstrap95_high,guard_wins,unguarded_wins,ties,mcnemar_exact_p,mcnemar_holm_p,mean_unguarded_policy_queries,mean_state_guard_policy_queries,relative_policy_query_overhead,mean_state_guard_rejections
+armbench.pi05_libero_async.v1,selected_tasks,libero_spatial,,10,10,True,5,4,200.0,20,20,20,0,0,0.35,0.3,-0.05,-0.05,-0.3,0.2,3,4,13,1.0,1.0,23.0,24.1,0.0478260869565218,14.1
+armbench.pi05_libero_async.v1,task,libero_spatial,0,10,10,True,5,4,200.0,2,2,2,0,0,0.5,0.5,0.0,0.0,0.0,0.0,0,0,2,1.0,,24.0,23.0,-0.041666666666666664,13.5
+armbench.pi05_libero_async.v1,task,libero_spatial,1,10,10,True,5,4,200.0,2,2,2,0,0,0.5,0.0,-0.5,-0.5,-1.0,0.0,0,1,1,1.0,,24.5,25.0,0.02040816326530612,14.5
+armbench.pi05_libero_async.v1,task,libero_spatial,2,10,10,True,5,4,200.0,2,2,2,0,0,1.0,0.5,-0.5,-0.5,-1.0,0.0,0,1,1,1.0,,16.5,27.0,0.6363636363636364,15.0
+armbench.pi05_libero_async.v1,task,libero_spatial,3,10,10,True,5,4,200.0,2,2,2,0,0,0.0,0.0,0.0,0.0,0.0,0.0,0,0,2,1.0,,25.0,11.0,-0.56,7.5
+armbench.pi05_libero_async.v1,task,libero_spatial,4,10,10,True,5,4,200.0,2,2,2,0,0,0.0,1.0,1.0,1.0,1.0,1.0,2,0,0,0.5,,25.0,34.5,0.38,20.0
+armbench.pi05_libero_async.v1,task,libero_spatial,5,10,10,True,5,4,200.0,2,2,2,0,0,0.0,0.0,0.0,0.0,0.0,0.0,0,0,2,1.0,,25.0,32.5,0.3,18.5
+armbench.pi05_libero_async.v1,task,libero_spatial,6,10,10,True,5,4,200.0,2,2,2,0,0,1.0,0.0,-1.0,-1.0,-1.0,-1.0,0,2,0,0.5,,16.5,10.0,-0.3939393939393939,7.0
+armbench.pi05_libero_async.v1,task,libero_spatial,7,10,10,True,5,4,200.0,2,2,2,0,0,0.0,0.5,0.5,0.5,0.0,1.0,1,0,1,1.0,,25.0,34.0,0.36,17.5
+armbench.pi05_libero_async.v1,task,libero_spatial,8,10,10,True,5,4,200.0,2,2,2,0,0,0.5,0.5,0.0,0.0,0.0,0.0,0,0,2,1.0,,23.5,22.0,-0.06382978723404255,13.0
+armbench.pi05_libero_async.v1,task,libero_spatial,9,10,10,True,5,4,200.0,2,2,2,0,0,0.0,0.0,0.0,0.0,0.0,0.0,0,0,2,1.0,,25.0,22.0,-0.12,14.5

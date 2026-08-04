@@ -1,0 +1,159 @@
+time="2026-08-04T18:30:42+08:00" level=warning msg="The \"DISPLAY\" variable is not set. Defaulting to a blank string."
+ Container armbench-pi05_libero_pilot_002-openpi_server-1 Creating 
+ Container armbench-pi05_libero_pilot_002-openpi_server-1 Created 
+ Container armbench-pi05_libero_pilot_002-runtime-1 Creating 
+ Container armbench-pi05_libero_pilot_002-runtime-1 Created 
+Attaching to openpi_server-1, runtime-1
+ Container armbench-pi05_libero_pilot_002-openpi_server-1 Starting 
+ Container armbench-pi05_libero_pilot_002-openpi_server-1 Started 
+ Container armbench-pi05_libero_pilot_002-runtime-1 Starting 
+openpi_server-1  | 
+openpi_server-1  | ==========
+openpi_server-1  | == CUDA ==
+openpi_server-1  | ==========
+openpi_server-1  | 
+openpi_server-1  | CUDA Version 12.2.2
+openpi_server-1  | 
+openpi_server-1  | Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+openpi_server-1  | 
+openpi_server-1  | This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+openpi_server-1  | By pulling and using the container, you accept the terms and conditions of this license:
+openpi_server-1  | https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+openpi_server-1  | 
+openpi_server-1  | A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+openpi_server-1  | 
+runtime-1        | 
+runtime-1        | ==========
+runtime-1        | == CUDA ==
+runtime-1        | ==========
+ Container armbench-pi05_libero_pilot_002-runtime-1 Started 
+runtime-1        | 
+runtime-1        | CUDA Version 12.2.2
+runtime-1        | 
+runtime-1        | Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+runtime-1        | 
+runtime-1        | This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+runtime-1        | By pulling and using the container, you accept the terms and conditions of this license:
+runtime-1        | https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+runtime-1        | 
+runtime-1        | A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+runtime-1        | 
+runtime-1        | [info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [1m[33m[robosuite WARNING] [0mNo private macro file found! (macros.py:53)
+runtime-1        | 2026-08-04 10:31:29,154 WARNING No private macro file found!
+runtime-1        | [1m[33m[robosuite WARNING] [0mIt is recommended to use a private macro file (macros.py:54)
+runtime-1        | 2026-08-04 10:31:29,155 WARNING It is recommended to use a private macro file
+runtime-1        | [1m[33m[robosuite WARNING] [0mTo setup, run: python /.venv/lib/python3.8/site-packages/robosuite/scripts/setup_macros.py (macros.py:55)
+runtime-1        | 2026-08-04 10:31:29,155 WARNING To setup, run: python /.venv/lib/python3.8/site-packages/robosuite/scripts/setup_macros.py
+runtime-1        | 2026-08-04 10:31:29,266 INFO No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | /.venv/lib/python3.8/site-packages/numba/np/arraymath.py:3845: DeprecationWarning: `np.MachAr` is deprecated (NumPy 1.22).
+runtime-1        |   @overload(np.MachAr)
+runtime-1        | 2026-08-04 10:31:34,202 INFO Starting libero_spatial__task_000__episode_045__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:32:07,859 INFO Finished libero_spatial__task_000__episode_045__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+runtime-1        | 2026-08-04 10:32:07,859 INFO Starting libero_spatial__task_000__episode_045__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:32:14,995 INFO Finished libero_spatial__task_000__episode_045__h_05__l_004__state_guard success=False reason=max_requeries_exceeded queries=24 rejections=15
+runtime-1        | 2026-08-04 10:32:14,995 INFO Starting libero_spatial__task_000__episode_046__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:32:21,835 INFO Finished libero_spatial__task_000__episode_046__h_05__l_004__state_guard success=True reason=success_during_inference_delay queries=22 rejections=12
+runtime-1        | 2026-08-04 10:32:21,835 INFO Starting libero_spatial__task_000__episode_046__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:32:31,182 INFO Finished libero_spatial__task_000__episode_046__h_05__l_004__async_unguarded success=True reason=task_success queries=23 rejections=0
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | 2026-08-04 10:32:32,155 INFO Starting libero_spatial__task_001__episode_045__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:32:41,144 INFO Finished libero_spatial__task_001__episode_045__h_05__l_004__async_unguarded success=True reason=success_during_inference_delay queries=24 rejections=0
+runtime-1        | 2026-08-04 10:32:41,145 INFO Starting libero_spatial__task_001__episode_045__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:32:46,054 INFO Finished libero_spatial__task_001__episode_045__h_05__l_004__state_guard success=False reason=max_requeries_exceeded queries=15 rejections=10
+runtime-1        | 2026-08-04 10:32:46,054 INFO Starting libero_spatial__task_001__episode_046__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:32:56,080 INFO Finished libero_spatial__task_001__episode_046__h_05__l_004__state_guard success=False reason=step_limit queries=35 rejections=19
+runtime-1        | 2026-08-04 10:32:56,080 INFO Starting libero_spatial__task_001__episode_046__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:33:05,943 INFO Finished libero_spatial__task_001__episode_046__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | 2026-08-04 10:33:07,070 INFO Starting libero_spatial__task_002__episode_045__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:33:14,033 INFO Finished libero_spatial__task_002__episode_045__h_05__l_004__async_unguarded success=True reason=task_success queries=16 rejections=0
+runtime-1        | 2026-08-04 10:33:14,033 INFO Starting libero_spatial__task_002__episode_045__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:33:21,813 INFO Finished libero_spatial__task_002__episode_045__h_05__l_004__state_guard success=False reason=max_requeries_exceeded queries=27 rejections=16
+runtime-1        | 2026-08-04 10:33:21,814 INFO Starting libero_spatial__task_002__episode_046__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:33:30,034 INFO Finished libero_spatial__task_002__episode_046__h_05__l_004__state_guard success=True reason=task_success queries=27 rejections=14
+runtime-1        | 2026-08-04 10:33:30,035 INFO Starting libero_spatial__task_002__episode_046__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:33:36,951 INFO Finished libero_spatial__task_002__episode_046__h_05__l_004__async_unguarded success=True reason=success_during_inference_delay queries=17 rejections=0
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | 2026-08-04 10:33:37,904 INFO Starting libero_spatial__task_003__episode_045__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:33:47,306 INFO Finished libero_spatial__task_003__episode_045__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+runtime-1        | 2026-08-04 10:33:47,307 INFO Starting libero_spatial__task_003__episode_045__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:33:50,135 INFO Finished libero_spatial__task_003__episode_045__h_05__l_004__state_guard success=False reason=max_requeries_exceeded queries=7 rejections=5
+runtime-1        | 2026-08-04 10:33:50,135 INFO Starting libero_spatial__task_003__episode_046__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:33:54,812 INFO Finished libero_spatial__task_003__episode_046__h_05__l_004__state_guard success=False reason=max_requeries_exceeded queries=15 rejections=10
+runtime-1        | 2026-08-04 10:33:54,812 INFO Starting libero_spatial__task_003__episode_046__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:34:04,417 INFO Finished libero_spatial__task_003__episode_046__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | 2026-08-04 10:34:05,357 INFO Starting libero_spatial__task_004__episode_045__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:34:15,071 INFO Finished libero_spatial__task_004__episode_045__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+runtime-1        | 2026-08-04 10:34:15,071 INFO Starting libero_spatial__task_004__episode_045__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:34:24,546 INFO Finished libero_spatial__task_004__episode_045__h_05__l_004__state_guard success=True reason=success_during_inference_delay queries=34 rejections=20
+runtime-1        | 2026-08-04 10:34:24,547 INFO Starting libero_spatial__task_004__episode_046__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:34:34,708 INFO Finished libero_spatial__task_004__episode_046__h_05__l_004__state_guard success=True reason=task_success queries=35 rejections=20
+runtime-1        | 2026-08-04 10:34:34,708 INFO Starting libero_spatial__task_004__episode_046__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:34:44,268 INFO Finished libero_spatial__task_004__episode_046__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | 2026-08-04 10:34:45,257 INFO Starting libero_spatial__task_005__episode_045__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:34:55,059 INFO Finished libero_spatial__task_005__episode_045__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+runtime-1        | 2026-08-04 10:34:55,059 INFO Starting libero_spatial__task_005__episode_045__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:35:03,602 INFO Finished libero_spatial__task_005__episode_045__h_05__l_004__state_guard success=False reason=max_requeries_exceeded queries=30 rejections=19
+runtime-1        | 2026-08-04 10:35:03,603 INFO Starting libero_spatial__task_005__episode_046__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:35:14,431 INFO Finished libero_spatial__task_005__episode_046__h_05__l_004__state_guard success=False reason=step_limit queries=35 rejections=18
+runtime-1        | 2026-08-04 10:35:14,431 INFO Starting libero_spatial__task_005__episode_046__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:35:24,335 INFO Finished libero_spatial__task_005__episode_046__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | 2026-08-04 10:35:25,325 INFO Starting libero_spatial__task_006__episode_045__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:35:32,136 INFO Finished libero_spatial__task_006__episode_045__h_05__l_004__async_unguarded success=True reason=success_during_inference_delay queries=17 rejections=0
+runtime-1        | 2026-08-04 10:35:32,137 INFO Starting libero_spatial__task_006__episode_045__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:35:35,637 INFO Finished libero_spatial__task_006__episode_045__h_05__l_004__state_guard success=False reason=max_requeries_exceeded queries=10 rejections=7
+runtime-1        | 2026-08-04 10:35:35,637 INFO Starting libero_spatial__task_006__episode_046__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:35:39,152 INFO Finished libero_spatial__task_006__episode_046__h_05__l_004__state_guard success=False reason=max_requeries_exceeded queries=10 rejections=7
+runtime-1        | 2026-08-04 10:35:39,153 INFO Starting libero_spatial__task_006__episode_046__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:35:45,875 INFO Finished libero_spatial__task_006__episode_046__h_05__l_004__async_unguarded success=True reason=task_success queries=16 rejections=0
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | 2026-08-04 10:35:46,901 INFO Starting libero_spatial__task_007__episode_045__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:35:56,935 INFO Finished libero_spatial__task_007__episode_045__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+runtime-1        | 2026-08-04 10:35:56,936 INFO Starting libero_spatial__task_007__episode_045__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:36:07,530 INFO Finished libero_spatial__task_007__episode_045__h_05__l_004__state_guard success=False reason=step_limit queries=35 rejections=18
+runtime-1        | 2026-08-04 10:36:07,530 INFO Starting libero_spatial__task_007__episode_046__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:36:17,530 INFO Finished libero_spatial__task_007__episode_046__h_05__l_004__state_guard success=True reason=success_during_inference_delay queries=33 rejections=17
+runtime-1        | 2026-08-04 10:36:17,531 INFO Starting libero_spatial__task_007__episode_046__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:36:27,445 INFO Finished libero_spatial__task_007__episode_046__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | 2026-08-04 10:36:28,458 INFO Starting libero_spatial__task_008__episode_045__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:36:37,859 INFO Finished libero_spatial__task_008__episode_045__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+runtime-1        | 2026-08-04 10:36:37,859 INFO Starting libero_spatial__task_008__episode_045__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:36:43,164 INFO Finished libero_spatial__task_008__episode_045__h_05__l_004__state_guard success=False reason=max_requeries_exceeded queries=18 rejections=12
+runtime-1        | 2026-08-04 10:36:43,164 INFO Starting libero_spatial__task_008__episode_046__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:36:50,985 INFO Finished libero_spatial__task_008__episode_046__h_05__l_004__state_guard success=True reason=task_success queries=26 rejections=14
+runtime-1        | 2026-08-04 10:36:50,985 INFO Starting libero_spatial__task_008__episode_046__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:36:59,547 INFO Finished libero_spatial__task_008__episode_046__h_05__l_004__async_unguarded success=True reason=task_success queries=22 rejections=0
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | 2026-08-04 10:37:00,552 INFO Starting libero_spatial__task_009__episode_045__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:37:09,807 INFO Finished libero_spatial__task_009__episode_045__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+runtime-1        | 2026-08-04 10:37:09,808 INFO Starting libero_spatial__task_009__episode_045__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:37:13,355 INFO Finished libero_spatial__task_009__episode_045__h_05__l_004__state_guard success=False reason=max_requeries_exceeded queries=10 rejections=7
+runtime-1        | 2026-08-04 10:37:13,355 INFO Starting libero_spatial__task_009__episode_046__h_05__l_004__state_guard
+runtime-1        | 2026-08-04 10:37:22,733 INFO Finished libero_spatial__task_009__episode_046__h_05__l_004__state_guard success=False reason=max_requeries_exceeded queries=34 rejections=22
+runtime-1        | 2026-08-04 10:37:22,733 INFO Starting libero_spatial__task_009__episode_046__h_05__l_004__async_unguarded
+runtime-1        | 2026-08-04 10:37:32,004 INFO Finished libero_spatial__task_009__episode_046__h_05__l_004__async_unguarded success=False reason=step_limit queries=25 rejections=0
+
+[Kruntime-1 exited with code 0
+ Compose Stopping Aborting on container exit...
+ Container armbench-pi05_libero_pilot_002-runtime-1 Stopping 
+ Container armbench-pi05_libero_pilot_002-runtime-1 Stopped 
+ Container armbench-pi05_libero_pilot_002-openpi_server-1 Stopping 
+ Container armbench-pi05_libero_pilot_002-openpi_server-1 Stopped 
+
+[Kopenpi_server-1 exited with code 143
