@@ -477,6 +477,9 @@ MuJoCo, probe one replayable request:
   --policy-provenance 'server launch log required' `
   --output-directory 'results\pi05_probe_cohort'
 
+& $ArmbenchPython -m armbench vla-recorded-probe-sweep-validate `
+  'results\pi05_probe_cohort'
+
 & $ArmbenchPython -m armbench vla-recorded-probe-compare `
   'results\pi0_recorded_probe_001' `
   'results\pi05_recorded_probe_001' `
@@ -513,6 +516,12 @@ index. The command returns nonzero when any planned query fails; inspect
 `manifest.json` and `per_query.csv` rather than treating a partial cohort as
 complete. The resulting sweep directory can be passed directly as one side of
 `vla-recorded-probe-batch-compare`.
+
+The sweep validator reconciles selection, rows, counts, successful child
+artifacts, failed-query root causes, environment hashes, log coverage, and claim
+boundaries. A partial sweep can be internally valid while `sweep_complete=false`;
+the validator prints that distinction and returns nonzero so it cannot silently
+enter the complete-cohort workflow.
 
 The paired comparator first validates both directories and requires the exact
 same serialized request SHA. It writes aggregate JSON, 15-row per-step CSV, an

@@ -46,7 +46,11 @@ from armbench.vla.replay_probe import (
     execute_recorded_openpi_probe,
     validate_recorded_openpi_probe,
 )
-from armbench.vla.probe_sweep import execute_recorded_openpi_probe_sweep
+from armbench.vla.probe_sweep import (
+    RecordedProbeSweepValidationError,
+    execute_recorded_openpi_probe_sweep,
+    validate_recorded_openpi_probe_sweep,
+)
 from armbench.vla.types import ActionChunk, VLAObservation
 
 
@@ -1104,6 +1108,10 @@ def test_loopback_cli_backend_exercises_complete_remote_policy_path(
             sweep_output / row["artifact_directory"]
         )
         assert child_validation.action_sha256 == row["action_sha256"]
+    sweep_validation = validate_recorded_openpi_probe_sweep(sweep_output)
+    assert sweep_validation.sweep_complete is True
+    assert sweep_validation.successful_queries == 2
+    assert sweep_validation.failed_queries == 0
 
     fault_sweep_output = tmp_path / "recorded_probe_fault_sweep"
     with OpenPIProtocolLoopbackServer(
@@ -1145,6 +1153,25 @@ def test_loopback_cli_backend_exercises_complete_remote_policy_path(
     validate_recorded_openpi_probe(
         fault_sweep_output / fault_sweep_rows[1]["artifact_directory"]
     )
+    fault_sweep_validation = validate_recorded_openpi_probe_sweep(
+        fault_sweep_output
+    )
+    assert fault_sweep_validation.sweep_complete is False
+    assert fault_sweep_validation.successful_queries == 1
+    assert fault_sweep_validation.failed_queries == 1
+
+    sweep_rows[0]["action_sha256"] = "0" * 64
+    with (sweep_output / "per_query.csv").open(
+        "w", encoding="utf-8", newline=""
+    ) as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(sweep_rows[0]))
+        writer.writeheader()
+        writer.writerows(sweep_rows)
+    with pytest.raises(
+        RecordedProbeSweepValidationError,
+        match="child action hash mismatch at row 0",
+    ):
+        validate_recorded_openpi_probe_sweep(sweep_output)
     with np.load(replay_output / "response.npz") as replay_trace:
         assert replay_trace["raw_actions"].shape == (15, 8)
         assert replay_trace["guarded_actions"].shape == (15, 8)

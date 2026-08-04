@@ -188,6 +188,20 @@
       "justMyCode": true
     },
     {
+      "name": "ArmBench: validate recorded OpenPI sweep",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "armbench",
+      "args": [
+        "vla-recorded-probe-sweep-validate",
+        "${input:recordedProbeSweepArtifactDirectory}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "ArmBench: compare recorded OpenPI probes",
       "type": "debugpy",
       "request": "launch",
@@ -410,6 +424,12 @@
       "type": "promptString",
       "description": "New recorded probe sweep directory name",
       "default": "recorded_probe_sweep_01"
+    },
+    {
+      "id": "recordedProbeSweepArtifactDirectory",
+      "type": "promptString",
+      "description": "Recorded probe sweep artifact directory",
+      "default": "results/recorded_probe_sweep_01"
     },
     {
       "id": "leftProbeArtifactDirectory",

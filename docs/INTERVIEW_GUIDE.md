@@ -70,6 +70,8 @@ performance or certified safety.
 - A bounded recorded-request sweep that preflights exact inputs, isolates each
   server call, continues after a failed response, and distinguishes a partial
   cohort from complete evidence through structured rows and process exit code.
+- A sweep validator that preserves valid failure evidence while preventing an
+  incomplete collection from being reported as a complete model cohort.
 - A same-request paired server comparator with per-step/per-dimension action
   deltas, guard effects, latency, provenance, and an explicit hash mismatch
   refusal path for future pi0 versus pi0.5 experiments; response snapshots and

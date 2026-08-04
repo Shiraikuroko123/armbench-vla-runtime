@@ -316,6 +316,9 @@ request:
   --connect-timeout-s 3 --inference-timeout-s 1 `
   --output-directory 'results\recorded_probe_sweep_01'
 
+& $ArmbenchPython -m armbench vla-recorded-probe-sweep-validate `
+  'results\recorded_probe_sweep_01'
+
 & $ArmbenchPython -m armbench vla-recorded-probe-compare `
   'results\recorded_probe_server_a' `
   'results\recorded_probe_server_b' `
@@ -354,6 +357,11 @@ the next request can continue. `probe_elapsed_ms` includes connection, request,
 guard, validation, and artifact I/O; `client_inference_latency_ms` measures only
 the bounded inference call. A partial sweep deliberately returns a nonzero exit
 code even when later children succeed.
+
+The sweep validator reports `valid=true` when success and failure evidence is
+internally consistent. It still exits nonzero when `sweep_complete=false`.
+Check the first failed CSV row, then its corresponding `sweep.log` line; do not
+delete failed rows to make two cohort roots appear matched.
 
 For the paired comparator, first inspect
 `comparison.json.request_payload_sha256`; both input artifacts must contain that

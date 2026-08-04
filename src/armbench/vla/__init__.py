@@ -55,7 +55,12 @@ from armbench.vla.replay_probe import (
     execute_recorded_openpi_probe,
     validate_recorded_openpi_probe,
 )
-from armbench.vla.probe_sweep import execute_recorded_openpi_probe_sweep
+from armbench.vla.probe_sweep import (
+    RecordedProbeSweepValidationError,
+    RecordedProbeSweepValidationResult,
+    execute_recorded_openpi_probe_sweep,
+    validate_recorded_openpi_probe_sweep,
+)
 from armbench.vla.types import ActionChunk, VLAObservation
 
 __all__ = [
@@ -85,6 +90,8 @@ __all__ = [
     "RecordedOpenPIRequest",
     "RecordedProbeValidationError",
     "RecordedProbeValidationResult",
+    "RecordedProbeSweepValidationError",
+    "RecordedProbeSweepValidationResult",
     "RuntimeDecision",
     "RuntimeFailure",
     "ScriptedActionChunkPolicy",
@@ -102,5 +109,6 @@ __all__ = [
     "validate_online_artifact",
     "validate_recorded_probe_batch_comparison",
     "validate_recorded_probe_comparison",
+    "validate_recorded_openpi_probe_sweep",
     "validate_recorded_openpi_probe",
 ]

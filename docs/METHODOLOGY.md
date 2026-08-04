@@ -145,6 +145,13 @@ as a per-query failure without contaminating later samples. Successful children
 must pass the independent probe validator. A complete sweep requires every
 planned query to succeed; neither successful nor failed rows execute physics.
 
+Its independent validator requires one ordered CSV row per selected request,
+revalidates every successful child, and requires failed rows to retain bounded
+exception type/message fields without response claims. It reconciles all counts
+and file hashes. Internal validity and completion are separate: a correctly
+recorded partial failure is valid evidence of an incomplete sweep, and the CLI
+still returns nonzero.
+
 `vla-recorded-probe-validate` independently reloads that probe artifact and
 cross-checks its four files. It recomputes the raw-response hash from the exact
 array bytes, verifies shape/dtype/range metadata, finite guarded trajectories,

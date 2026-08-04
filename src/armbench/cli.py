@@ -44,7 +44,10 @@ from armbench.vla.replay_probe import (
     execute_recorded_openpi_probe,
     validate_recorded_openpi_probe,
 )
-from armbench.vla.probe_sweep import execute_recorded_openpi_probe_sweep
+from armbench.vla.probe_sweep import (
+    execute_recorded_openpi_probe_sweep,
+    validate_recorded_openpi_probe_sweep,
+)
 
 
 def _validate(config_path: Path) -> int:
@@ -504,6 +507,11 @@ def build_parser() -> argparse.ArgumentParser:
     vla_recorded_probe_sweep.add_argument(
         "--policy-provenance", default="remote_server_unverified"
     )
+    vla_recorded_probe_sweep_validate = subparsers.add_parser(
+        "vla-recorded-probe-sweep-validate",
+        help="cross-check a recorded OpenPI probe sweep artifact",
+    )
+    vla_recorded_probe_sweep_validate.add_argument("directory", type=Path)
     vla_recorded_probe_validate = subparsers.add_parser(
         "vla-recorded-probe-validate",
         help="cross-check a fixed-request OpenPI probe artifact",
@@ -772,6 +780,10 @@ def main(arguments: list[str] | None = None) -> int:
         print(json.dumps(manifest, indent=2, ensure_ascii=False))
         print(f"results: {output.resolve()}")
         return 0 if bool(manifest["sweep_complete"]) else 1
+    if args.command == "vla-recorded-probe-sweep-validate":
+        result = validate_recorded_openpi_probe_sweep(args.directory)
+        print(json.dumps(result.metrics(), indent=2, ensure_ascii=False))
+        return 0 if result.sweep_complete else 1
     if args.command == "vla-recorded-probe-validate":
         result = validate_recorded_openpi_probe(args.directory)
         print(json.dumps(result.metrics(), indent=2, ensure_ascii=False))
