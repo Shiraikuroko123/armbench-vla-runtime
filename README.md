@@ -13,6 +13,48 @@ checkpoint on LIBERO. The local MuJoCo path implements an OpenPI-compatible
 torque-controlled Franka Panda execution. Results and action semantics are
 never mixed across the two paths.
 
+## Cross-suite external validation
+
+After the LIBERO Spatial result below, a second protocol was frozen before any
+registered rollout on LIBERO Object, Goal, or LIBERO-10. It fixes the official
+`pi05_libero` checkpoint, 200 ms delay, five-action replanning horizon, all ten
+tasks and five initial states per suite: 300 additional checkpoint rollouts in
+150 matched pairs.
+
+| Suite | Async success | Aligned success | Paired difference (bootstrap 95%) | Wins / losses / ties | Exact McNemar raw / Holm |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| LIBERO Object | 25/50 | 49/50 | +48 points [+34, +62] | 25 / 1 / 24 | 8.05e-7 / 2.41e-6 |
+| LIBERO Goal | 35/50 | 47/50 | +24 points [+10, +38] | 14 / 2 / 34 | 0.00418 / 0.00418 |
+| LIBERO-10 | 23/50 | 45/50 | +44 points [+26, +60] | 25 / 3 / 22 | 2.74e-5 / 5.49e-5 |
+
+All three prespecified suite-level tests reject their null hypotheses after
+Holm correction. Across suites, the descriptive success count is 83/150 versus
+141/150, a +38.7-point paired difference with bootstrap 95% interval
+[+29.3,+47.3]; mean policy queries fall from 34.11 to 22.10. No pooled p value
+or task-level significance claim is made.
+
+The family completed 300/300 rollouts with zero runtime/infrastructure failures
+and 300 manifest-verified videos. The strict analyzer independently validates
+131 protected source files per suite, frozen identity and matrix fields, all
+video hashes, pairing, ITT counts, and the six derived outputs. Open the
+[cross-suite acceptance dashboard](reports/pi05_cross_suite_external_001/index.html)
+to filter all 150 pairs and play baseline/aligned videos side by side. Rebuild
+it from the downloaded evidence with:
+
+```powershell
+& '..\.venv\Scripts\python.exe' -m integrations.openpi.cross_suite_external_analysis `
+  '..\evidence\cloud\external\pi05_libero_object_alignment_external_001' `
+  '..\evidence\cloud\external\pi05_libero_goal_alignment_external_001' `
+  '..\evidence\cloud\external\pi05_libero_10_alignment_external_001' `
+  --output-directory '..\evidence\cloud\external\pi05_cross_suite_external_analysis_001'
+
+& '..\.venv\Scripts\python.exe' -m integrations.openpi.cross_suite_dashboard --open
+```
+
+The complete archives and SHA-256 records are published in the
+[validated external-evidence release](https://github.com/Shiraikuroko123/armbench-vla-runtime/releases/tag/evidence-pi05-cross-suite-external-001).
+The claim remains limited to deterministic injected 200 ms delay in simulation.
+
 ## Confirmatory pi0.5 result
 
 The frozen study covers all 10 LIBERO Spatial tasks, five initial states per
@@ -267,7 +309,7 @@ but incomplete episode is not counted as task success.
 
 | Component | Role | Present here? |
 |---|---|---|
-| pi0 / pi0.5 | Learned VLA policy: images + language + state -> action chunk | Attested pi0.5-LIBERO checkpoint, 300 formal rollouts; DROID remote client remains separate |
+| pi0 / pi0.5 | Learned VLA policy: images + language + state -> action chunk | Attested pi0.5-LIBERO checkpoint, 600 formal rollouts across confirmatory and external studies; DROID remote client remains separate |
 | OpenPI | Official model code, checkpoints, transforms, and remote protocol | Official lightweight client pinned and tested |
 | LIBERO | Standard manipulation benchmark used by the official pi0.5 policy | All 10 Spatial tasks in the confirmatory run |
 | Isaac Gym | Legacy NVIDIA GPU simulator / RL environment stack | No |
@@ -755,12 +797,13 @@ for a VLA systems / embodied deployment role is:
 
 > Built an OpenPI-compatible VLA action runtime for a MuJoCo Franka Panda and
 > an attested pi0.5-LIBERO evaluator. Implemented training-free temporal
-> action-chunk alignment for delayed observations; on a frozen 300-rollout,
-> 10-task paired study, improved 200 ms success from 18/50 to 50/50 (+64 points,
-> 95% bootstrap CI [+50,+76], Holm-exact McNemar p=1.40e-9) while reducing mean
-> policy queries from 22.96 to 12.82. Preserved all failures/videos and built
-> full source/checkpoint attestation, transactional execution, nested manifests,
-> and independent artifact/statistical validation.
+> action-chunk alignment for delayed observations; in a frozen 300-rollout
+> external validation across 30 LIBERO tasks, improved 200 ms success from
+> 83/150 to 141/150 (+38.7 points, paired bootstrap 95% CI [+29.3,+47.3]), with
+> all three suite-level exact McNemar tests significant after Holm correction,
+> while reducing mean policy queries from 34.11 to 22.10. Preserved every
+> rollout/video and built source/checkpoint attestation, transactional execution,
+> nested manifests, and independent artifact/statistical validation.
 
 Use "evaluated the attested official pi0.5-LIBERO checkpoint," not "trained
 pi0.5" or "deployed on a real robot." This is a VLA runtime/evaluation project,

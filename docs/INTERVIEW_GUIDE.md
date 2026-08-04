@@ -18,17 +18,17 @@ not model-learning research.
 
 ArmBench studies stale action chunks in asynchronous VLA deployment. I added a
 training-free dispatcher that, after `d` delay steps, skips the first `d`
-actions returned by pi0.5 and executes the following suffix. I froze a paired
-study before running the confirmatory states: all 10 LIBERO Spatial tasks, five
-states, and 0/100/200 ms delay, for 300 official checkpoint rollouts. At the
-200 ms primary condition, success improved from 18/50 to 50/50, a +64-point
-paired difference with Holm-exact McNemar p=1.40e-9, while mean policy queries
-fell from 22.96 to 12.82. All rollouts, failures, videos, source/checkpoint
-attestation, and nested manifests are preserved and independently validated.
-Separately, the MuJoCo/DROID path implements fail-closed action validation,
-collision lookahead, camera/request audit, and torque-controlled Panda
-execution. The result is simulation-only and does not claim pi0.5 training,
-hard real-time guarantees, or certified safety.
+actions returned by pi0.5 and executes the following suffix. The initial frozen
+LIBERO Spatial study covered 300 official checkpoint rollouts at 0/100/200 ms;
+at the 200 ms primary condition, success improved from 18/50 to 50/50. I then
+froze an external validation before running Object, Goal, or LIBERO-10: another
+300 rollouts at 200 ms. Success improved from 25/50 to 49/50, 35/50 to 47/50,
+and 23/50 to 45/50; every suite-level exact McNemar test remained significant
+after Holm correction. Across the external suites, the descriptive count was
+83/150 versus 141/150 and mean policy queries fell from 34.11 to 22.10. All 600
+formal rollouts, failures, videos, source/checkpoint identity, and manifests are
+preserved and independently validated. The result is simulation-only and does
+not claim pi0.5 training, hard real-time guarantees, or certified safety.
 
 ## What you actually built
 
@@ -38,6 +38,8 @@ hard real-time guarantees, or certified safety.
   checkpoint/source attestation, full video retention, and nested validation.
 - A read-only paired ITT analyzer with Wilson intervals, deterministic paired
   bootstrap, exact McNemar/Holm tests, and descriptive task-level tables.
+- A fail-closed cross-suite analyzer and offline dashboard binding three source
+  manifests, 150 matched pairs, 30 task rows, and 300 playable videos.
 - The Panda camera/proprioception adapter and visible task target.
 - A pre-inference observation guard for blank images, nonmonotonic capture
   sequence/time, and exact camera replay during measured robot motion.
@@ -320,11 +322,12 @@ auditability.
 
 > Built an OpenPI-compatible VLA runtime and attested pi0.5-LIBERO evaluator.
 > Implemented training-free temporal action-chunk alignment; on a frozen
-> 300-rollout, 10-task paired study, improved 200 ms success from 18/50 to 50/50
-> (+64 points, 95% bootstrap CI [+50,+76], Holm-exact McNemar p=1.40e-9) while
-> reducing mean policy queries from 22.96 to 12.82. Preserved every rollout and
-> video with source/checkpoint attestation, transactional execution, nested
-> manifests, and independent artifact/statistical validation.
+> 300-rollout external validation across 30 LIBERO tasks, improved 200 ms
+> success from 83/150 to 141/150 (+38.7 points, paired bootstrap 95% CI
+> [+29.3,+47.3]), with all three suite-level exact tests significant after Holm
+> correction, while reducing mean policy queries from 34.11 to 22.10. Preserved
+> every rollout/video with source/checkpoint attestation, transactional
+> execution, nested manifests, and independent artifact/statistical validation.
 
 Use "evaluated the attested official pi0.5-LIBERO checkpoint," not "trained
 pi0.5" or "deployed on a real robot."

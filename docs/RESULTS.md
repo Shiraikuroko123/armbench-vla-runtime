@@ -1,5 +1,48 @@
 # Verified result snapshots
 
+## pi0.5-LIBERO cross-suite external validation
+
+### Provenance and protocol
+
+- Run IDs: `pi05_libero_{object,goal,10}_alignment_external_001`
+- ArmBench run commit: `92ff977fb830505118f7a522ed4a8d91b3a02965`
+- Temporal-alignment implementation commit:
+  `cccbe351a1a4523c65d01eff2997580f7ca83649`
+- OpenPI commit: `15a9616a00943ada6c20a0f158e3adb39df2ccac`
+- Policy/checkpoint: official `pi05_libero`
+- Checkpoint content SHA-256:
+  `9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5`
+- Matrix: 3 suites x 10 tasks x 5 initial states x 2 modes at 200 ms
+- Evidence: 300/300 rollouts, 300 videos, zero runtime/infrastructure failures
+- Validation: each source `valid=true`, 131 protected files; derived analysis
+  `valid=true`, six protected outputs
+
+The external protocol was frozen after the Spatial confirmatory result and
+before any registered Object, Goal, or LIBERO-10 rollout. It keeps the
+checkpoint, prompt path, five-action horizon, four-step delay, seed, thresholds,
+task budget, and analysis family fixed.
+
+### Outcomes
+
+| Suite | Async success | Aligned success | Difference (bootstrap 95%) | Wins / losses / ties | McNemar raw / Holm | Mean queries async / aligned |
+|---|---:|---:|---:|---:|---:|---:|
+| LIBERO Object | 25/50 | 49/50 | +48 points [+34, +62] | 25 / 1 / 24 | 8.05e-7 / 2.41e-6 | 28.96 / 17.40 |
+| LIBERO Goal | 35/50 | 47/50 | +24 points [+10, +38] | 14 / 2 / 34 | 0.00418 / 0.00418 | 23.96 / 14.46 |
+| LIBERO-10 | 23/50 | 45/50 | +44 points [+26, +60] | 25 / 3 / 22 | 2.74e-5 / 5.49e-5 | 49.40 / 34.44 |
+
+All three suite-level exact tests reject after Holm correction. The pooled
+150-pair row is descriptive only: success is 83/150 versus 141/150, difference
++38.7 points with bootstrap 95% interval [+29.3,+47.3], and mean queries are
+34.11 versus 22.10. No pooled p value is computed. Task-level rows are also
+descriptive only.
+
+This supports generalization of the training-free dispatcher across three
+additional LIBERO task distributions under deterministic 200 ms injected
+delay. It is not evidence for measured network jitter, other checkpoints,
+real-time guarantees, collision safety, dynamics shift, or a real robot. The
+offline dashboard is
+[`reports/pi05_cross_suite_external_001/index.html`](../reports/pi05_cross_suite_external_001/index.html).
+
 ## Primary pi0.5-LIBERO confirmatory result
 
 ### Provenance and protocol
