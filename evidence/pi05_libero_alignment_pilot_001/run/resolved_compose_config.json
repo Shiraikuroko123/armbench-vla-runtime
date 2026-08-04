@@ -1,0 +1,163 @@
+{
+  "name": "armbench-pi05_libero_alignment_pilot_001",
+  "services": {
+    "openpi_server": {
+      "build": {
+        "context": "/",
+        "dockerfile": "scripts/docker/serve_policy.Dockerfile"
+      },
+      "command": [
+        "/bin/bash",
+        "-lc",
+        "set -euo pipefail\nif [[ ! \"$${ARMBENCH_RUN_ID}\" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$$ ]]; then\n  echo \"Invalid ARMBENCH_RUN_ID\" >&2\n  exit 64\nfi\nrun_directory=\"/armbench_results/$${ARMBENCH_RUN_ID}\"\nmkdir -p \"$${run_directory}\"\nexec uv run --frozen python /armbench/integrations/openpi/serve_policy_attested.py \\\n  --policy-config pi05_libero \\\n  --checkpoint gs://openpi-assets/checkpoints/pi05_libero \\\n  --openpi-root /app \\\n  --attestation-output \"$${run_directory}/checkpoint_attestation.json\" \\\n  --host 0.0.0.0 \\\n  --port \"$${ARMBENCH_POLICY_PORT}\" \\\n  >>\"$${run_directory}/openpi_server.log\" 2>&1\n"
+      ],
+      "deploy": {
+        "placement": {},
+        "resources": {
+          "reservations": {
+            "devices": [
+              {
+                "capabilities": [
+                  "gpu"
+                ],
+                "count": 1,
+                "driver": "nvidia"
+              }
+            ]
+          }
+        }
+      },
+      "entrypoint": null,
+      "environment": {
+        "ARMBENCH_POLICY_PORT": "8000",
+        "ARMBENCH_RUN_ID": "pi05_libero_alignment_pilot_001",
+        "GIT_CONFIG_COUNT": "1",
+        "GIT_CONFIG_KEY_0": "safe.directory",
+        "GIT_CONFIG_VALUE_0": "/app",
+        "IS_DOCKER": "true",
+        "NVIDIA_DRIVER_CAPABILITIES": "compute,utility",
+        "OPENPI_DATA_HOME": "/openpi_assets",
+        "SERVER_ARGS": null
+      },
+      "image": "openpi_server",
+      "init": true,
+      "network_mode": "host",
+      "tty": true,
+      "volumes": [
+        {
+          "bind": {},
+          "source": "/workspace/openpi",
+          "target": "/app",
+          "type": "bind"
+        },
+        {
+          "bind": {},
+          "source": "/workspace/openpi-cache",
+          "target": "/openpi_assets",
+          "type": "bind"
+        },
+        {
+          "read_only": true,
+          "source": "/workspace/armbench/project",
+          "target": "/armbench",
+          "type": "bind"
+        },
+        {
+          "source": "/workspace/armbench-results",
+          "target": "/armbench_results",
+          "type": "bind"
+        }
+      ]
+    },
+    "runtime": {
+      "build": {
+        "context": "/",
+        "dockerfile": "examples/libero/Dockerfile"
+      },
+      "command": [
+        "/bin/bash",
+        "-lc",
+        "set -euo pipefail\nsource /.venv/bin/activate\nif [[ ! \"$${ARMBENCH_RUN_ID}\" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$$ ]]; then\n  echo \"Invalid ARMBENCH_RUN_ID\" >&2\n  exit 64\nfi\nfor attempt in $$(seq 1 \"$${ARMBENCH_SERVER_WAIT_ATTEMPTS}\"); do\n  if (: >\"/dev/tcp/127.0.0.1/$${ARMBENCH_POLICY_PORT}\") 2>/dev/null; then\n    break\n  fi\n  if [ \"$${attempt}\" -eq \"$${ARMBENCH_SERVER_WAIT_ATTEMPTS}\" ]; then\n    echo \"OpenPI server did not become ready before the bounded wait expired\" >&2\n    exit 70\n  fi\n  sleep 5\ndone\nexec python -m integrations.openpi.libero_runtime_eval run \\\n  --output-dir \"/armbench_results/$${ARMBENCH_RUN_ID}/evaluation\" \\\n  --host 127.0.0.1 \\\n  --port \"$${ARMBENCH_POLICY_PORT}\" \\\n  --openpi-root /app \\\n  --resize-size 224 \\\n  --task-suite libero_spatial \\\n  --task-ids 0 \\\n  --episode-indices 0 \\\n  --modes async_unguarded,state_guard \\\n  --replan-steps 5 \\\n  --latency-steps 0,2 \\\n  $${ARMBENCH_LIBERO_ARGS}\n"
+      ],
+      "depends_on": {
+        "openpi_server": {
+          "condition": "service_started",
+          "required": true
+        }
+      },
+      "deploy": {
+        "placement": {},
+        "resources": {
+          "reservations": {
+            "devices": [
+              {
+                "capabilities": [
+                  "gpu"
+                ],
+                "count": 1,
+                "driver": "nvidia"
+              }
+            ]
+          }
+        }
+      },
+      "entrypoint": null,
+      "environment": {
+        "ARMBENCH_LIBERO_ARGS": "--task-suite libero_spatial --task-ids all --episode-indices 47:49 --modes async_unguarded,latency_aligned --replan-steps 5 --latency-steps 4 --seed 7 --bootstrap-resamples 10000 --video-mode all",
+        "ARMBENCH_POLICY_PORT": "8000",
+        "ARMBENCH_RUN_ID": "pi05_libero_alignment_pilot_001",
+        "ARMBENCH_SERVER_ARGS": "--policy-config pi05_libero --checkpoint gs://openpi-assets/checkpoints/pi05_libero --openpi-root /app --attestation-output /armbench_results/pi05_libero_alignment_pilot_001/checkpoint_attestation.json --host 0.0.0.0 --port 8000",
+        "ARMBENCH_SERVER_WAIT_ATTEMPTS": "360",
+        "CLIENT_ARGS": null,
+        "DISPLAY": "",
+        "GIT_CONFIG_COUNT": "2",
+        "GIT_CONFIG_KEY_0": "safe.directory",
+        "GIT_CONFIG_KEY_1": "safe.directory",
+        "GIT_CONFIG_VALUE_0": "/app",
+        "GIT_CONFIG_VALUE_1": "/armbench",
+        "MUJOCO_EGL_DEVICE_ID": "0",
+        "MUJOCO_GL": "egl",
+        "NVIDIA_DRIVER_CAPABILITIES": "all",
+        "PYOPENGL_PLATFORM": "egl",
+        "PYTHONPATH": "/armbench:/app:/app/packages/openpi-client/src:/app/third_party/libero"
+      },
+      "image": "libero",
+      "init": true,
+      "network_mode": "host",
+      "privileged": true,
+      "tty": true,
+      "volumes": [
+        {
+          "bind": {},
+          "source": "/workspace/openpi",
+          "target": "/app",
+          "type": "bind"
+        },
+        {
+          "bind": {},
+          "source": "/data",
+          "target": "/data",
+          "type": "bind"
+        },
+        {
+          "bind": {},
+          "read_only": true,
+          "source": "/tmp/.X11-unix",
+          "target": "/tmp/.X11-unix",
+          "type": "bind"
+        },
+        {
+          "read_only": true,
+          "source": "/workspace/armbench/project",
+          "target": "/armbench",
+          "type": "bind"
+        },
+        {
+          "source": "/workspace/armbench-results",
+          "target": "/armbench_results",
+          "type": "bind"
+        }
+      ]
+    }
+  }
+}
