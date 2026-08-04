@@ -30,6 +30,7 @@ from integrations.openpi.libero_runtime_eval import (
     build_matrix,
     episode_rows,
     execute_benchmark,
+    intervention_control_comparisons,
     main,
     matrix_plan,
     matched_condition_contrasts,
@@ -323,6 +324,46 @@ def test_aggregate_and_paired_effect_use_episode_as_statistical_unit() -> None:
     assert comparison["mcnemar_holm_p"] == 1.0
 
 
+def test_intervention_control_reports_effect_and_cost_matching() -> None:
+    fixed_row, _ = episode_rows(
+        _cell(FIXED_REFRESH, 0),
+        _result(False, FIXED_REFRESH),
+        "test task",
+        7,
+        1.0,
+        None,
+        fixed_refresh_interval=4,
+    )
+    guard_row, _ = episode_rows(
+        _cell(STATE_GUARD, 1),
+        _result(True, STATE_GUARD),
+        "test task",
+        7,
+        1.0,
+        None,
+        fixed_refresh_interval=4,
+    )
+    fixed_row["policy_queries"] = 2
+    assert fixed_row["fixed_refresh_interval"] == 4
+    assert guard_row["fixed_refresh_interval"] is None
+
+    selected = [
+        row
+        for row in intervention_control_comparisons(
+            [fixed_row, guard_row], bootstrap_resamples=100
+        )
+        if row["scope"] == "selected_tasks"
+    ][0]
+
+    assert selected["reference_mode"] == FIXED_REFRESH
+    assert selected["candidate_mode"] == STATE_GUARD
+    assert selected["fixed_refresh_interval"] == 4
+    assert selected["success_rate_difference"] == 1.0
+    assert selected["mean_policy_query_difference"] == -1.0
+    assert selected["policy_query_count_matched_pairs"] == 0
+    assert selected["intervention_count_matched_pairs"] == 1
+
+
 def test_condition_contrasts_compare_delay_against_zero() -> None:
     reference_row, _ = episode_rows(
         _cell(ASYNC_UNGUARDED, 0, latency_steps=0),
@@ -386,6 +427,8 @@ def test_artifact_writer_retains_failures_and_hashes_every_file(tmp_path) -> Non
         "aggregate.csv",
         "paired_comparisons.json",
         "paired_comparisons.csv",
+        "intervention_control_comparisons.json",
+        "intervention_control_comparisons.csv",
         "environment.json",
         "progress.json",
         "summary.md",

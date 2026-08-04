@@ -176,6 +176,47 @@ CONTRAST_FIELDS = (
     "mean_stale_action_step_difference",
 )
 
+CONTROL_COMPARISON_FIELDS = (
+    "schema_version",
+    "scope",
+    "multiplicity_family",
+    "task_suite",
+    "task_id",
+    "selected_task_count",
+    "suite_task_count",
+    "suite_coverage_complete",
+    "replan_steps",
+    "latency_steps",
+    "injected_latency_ms",
+    "fixed_refresh_interval",
+    "reference_mode",
+    "candidate_mode",
+    "candidate_pairs",
+    "paired_episodes",
+    "per_protocol_pairs",
+    "excluded_infrastructure_pairs",
+    "excluded_pairing_mismatch_pairs",
+    "reference_success_rate",
+    "candidate_success_rate",
+    "success_rate_difference",
+    "per_protocol_success_rate_difference",
+    "success_difference_bootstrap95_low",
+    "success_difference_bootstrap95_high",
+    "candidate_wins",
+    "reference_wins",
+    "ties",
+    "mcnemar_exact_p",
+    "mcnemar_holm_p",
+    "mean_reference_policy_queries",
+    "mean_candidate_policy_queries",
+    "mean_policy_query_difference",
+    "mean_reference_interventions",
+    "mean_candidate_interventions",
+    "mean_intervention_difference",
+    "policy_query_count_matched_pairs",
+    "intervention_count_matched_pairs",
+)
+
 
 @dataclasses.dataclass(frozen=True)
 class ExperimentCell:
@@ -525,6 +566,9 @@ def episode_rows(
     video_error_message: Optional[str] = None,
     fixed_refresh_interval: Optional[int] = None,
 ) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
+    applied_refresh_interval = (
+        fixed_refresh_interval if cell.mode == FIXED_REFRESH else None
+    )
     latencies = [record.inference_latency_ms for record in result.query_records]
     p50, p95 = _percentiles(latencies)
     policy_p50, policy_p95 = _percentiles(
@@ -554,7 +598,7 @@ def episode_rows(
         "replan_steps": cell.replan_steps,
         "latency_steps": cell.latency_steps,
         "injected_latency_ms": cell.latency_steps * LIBERO_CONTROL_PERIOD_MS,
-        "fixed_refresh_interval": fixed_refresh_interval,
+        "fixed_refresh_interval": applied_refresh_interval,
         "seed": seed,
         "success": result.success,
         "termination_reason": result.termination_reason,
@@ -597,7 +641,7 @@ def episode_rows(
                 "mode": cell.mode,
                 "replan_steps": cell.replan_steps,
                 "latency_steps": cell.latency_steps,
-                "fixed_refresh_interval": fixed_refresh_interval,
+                "fixed_refresh_interval": applied_refresh_interval,
                 "query_index": record.query_index,
                 "observation_step": record.observation_step,
                 "response_step": record.response_step,
@@ -722,6 +766,7 @@ def aggregate_episodes(
                 if query["server_inference_latency_ms"] is not None
             ]
         )
+        refresh_intervals = {row.get("fixed_refresh_interval") for row in rows}
         aggregate.append(
             {
                 "schema_version": SCHEMA_VERSION,
@@ -738,6 +783,11 @@ def aggregate_episodes(
                 "replan_steps": horizon,
                 "latency_steps": delay,
                 "injected_latency_ms": delay * LIBERO_CONTROL_PERIOD_MS,
+                "fixed_refresh_interval": (
+                    next(iter(refresh_intervals))
+                    if len(refresh_intervals) == 1
+                    else None
+                ),
                 "rollouts": len(rows),
                 "eligible_rollouts": len(eligible_rows),
                 "successes": successes,
@@ -1046,6 +1096,212 @@ def paired_comparisons(
     return comparisons
 
 
+def intervention_control_comparisons(
+    episodes: Sequence[Mapping[str, Any]], bootstrap_resamples: int
+) -> List[Dict[str, Any]]:
+    """Compare state-triggered rejection against the fixed-refresh control."""
+
+    selected_tasks_by_suite = {
+        str(suite): {
+            int(row["task_id"])
+            for row in episodes
+            if str(row["task_suite"]) == str(suite)
+        }
+        for suite in {row["task_suite"] for row in episodes}
+    }
+    by_pair: Dict[str, Dict[str, Mapping[str, Any]]] = {}
+    for episode in episodes:
+        by_pair.setdefault(str(episode["pair_id"]), {})[
+            str(episode["mode"])
+        ] = episode
+    candidate_pairs = [
+        modes
+        for modes in by_pair.values()
+        if FIXED_REFRESH in modes and STATE_GUARD in modes
+    ]
+    groups: Dict[Tuple[Any, ...], List[Dict[str, Mapping[str, Any]]]] = {}
+    for modes in candidate_pairs:
+        reference = modes[FIXED_REFRESH]
+        base = (
+            reference["task_suite"],
+            int(reference["replan_steps"]),
+            int(reference["latency_steps"]),
+        )
+        groups.setdefault(("selected_tasks",) + base, []).append(modes)
+        groups.setdefault(
+            ("task", int(reference["task_id"])) + base, []
+        ).append(modes)
+
+    comparisons = []
+    pairing_fields = (
+        "task_suite",
+        "task_id",
+        "episode_index",
+        "replan_steps",
+        "latency_steps",
+        "seed",
+        "initial_state_sha256",
+    )
+    for key, rows in sorted(groups.items(), key=lambda item: repr(item[0])):
+        if key[0] == "selected_tasks":
+            _, suite, horizon, delay = key
+            scope = "selected_tasks"
+            task_id = None
+        else:
+            _, task_id, suite, horizon, delay = key
+            scope = "task"
+        valid_rows = []
+        pairing_mismatch_exclusions = 0
+        for pair in rows:
+            reference = pair[FIXED_REFRESH]
+            candidate = pair[STATE_GUARD]
+            if any(
+                reference.get(field) != candidate.get(field)
+                for field in pairing_fields
+            ):
+                pairing_mismatch_exclusions += 1
+                continue
+            valid_rows.append(pair)
+        per_protocol_rows = [
+            pair
+            for pair in valid_rows
+            if _per_protocol_eligible(pair[FIXED_REFRESH])
+            and _per_protocol_eligible(pair[STATE_GUARD])
+        ]
+        differences = [
+            float(pair[STATE_GUARD]["success"])
+            - float(pair[FIXED_REFRESH]["success"])
+            for pair in valid_rows
+        ]
+        per_protocol_differences = [
+            float(pair[STATE_GUARD]["success"])
+            - float(pair[FIXED_REFRESH]["success"])
+            for pair in per_protocol_rows
+        ]
+        lower, upper = _bootstrap_mean_interval(
+            differences,
+            bootstrap_resamples,
+            "state_guard_vs_fixed_refresh/%r" % (key,),
+        )
+        candidate_wins = sum(value > 0.0 for value in differences)
+        reference_wins = sum(value < 0.0 for value in differences)
+
+        def mean_for(mode: str, field: str) -> Optional[float]:
+            return (
+                float(np.mean([float(pair[mode][field]) for pair in valid_rows]))
+                if valid_rows
+                else None
+            )
+
+        reference_queries = mean_for(FIXED_REFRESH, "policy_queries")
+        candidate_queries = mean_for(STATE_GUARD, "policy_queries")
+        reference_interventions = mean_for(FIXED_REFRESH, "interventions")
+        candidate_interventions = mean_for(STATE_GUARD, "interventions")
+        interval_values = {
+            pair[FIXED_REFRESH].get("fixed_refresh_interval")
+            for pair in valid_rows
+        }
+        comparisons.append(
+            {
+                "schema_version": SCHEMA_VERSION,
+                "scope": scope,
+                "multiplicity_family": "state_guard_vs_fixed_refresh",
+                "task_suite": suite,
+                "task_id": task_id,
+                "selected_task_count": len(selected_tasks_by_suite[str(suite)]),
+                "suite_task_count": SUITE_TASK_COUNTS[str(suite)],
+                "suite_coverage_complete": len(
+                    selected_tasks_by_suite[str(suite)]
+                )
+                == SUITE_TASK_COUNTS[str(suite)],
+                "replan_steps": horizon,
+                "latency_steps": delay,
+                "injected_latency_ms": delay * LIBERO_CONTROL_PERIOD_MS,
+                "fixed_refresh_interval": (
+                    next(iter(interval_values)) if len(interval_values) == 1 else None
+                ),
+                "reference_mode": FIXED_REFRESH,
+                "candidate_mode": STATE_GUARD,
+                "candidate_pairs": len(rows),
+                "paired_episodes": len(valid_rows),
+                "per_protocol_pairs": len(per_protocol_rows),
+                "excluded_infrastructure_pairs": len(valid_rows)
+                - len(per_protocol_rows),
+                "excluded_pairing_mismatch_pairs": pairing_mismatch_exclusions,
+                "reference_success_rate": (
+                    float(
+                        np.mean(
+                            [
+                                float(pair[FIXED_REFRESH]["success"])
+                                for pair in valid_rows
+                            ]
+                        )
+                    )
+                    if valid_rows
+                    else None
+                ),
+                "candidate_success_rate": (
+                    float(
+                        np.mean(
+                            [
+                                float(pair[STATE_GUARD]["success"])
+                                for pair in valid_rows
+                            ]
+                        )
+                    )
+                    if valid_rows
+                    else None
+                ),
+                "success_rate_difference": (
+                    float(np.mean(differences)) if differences else None
+                ),
+                "per_protocol_success_rate_difference": (
+                    float(np.mean(per_protocol_differences))
+                    if per_protocol_differences
+                    else None
+                ),
+                "success_difference_bootstrap95_low": lower,
+                "success_difference_bootstrap95_high": upper,
+                "candidate_wins": candidate_wins,
+                "reference_wins": reference_wins,
+                "ties": sum(value == 0.0 for value in differences),
+                "mcnemar_exact_p": (
+                    _mcnemar_exact_p(candidate_wins, reference_wins)
+                    if valid_rows
+                    else None
+                ),
+                "mcnemar_holm_p": None,
+                "mean_reference_policy_queries": reference_queries,
+                "mean_candidate_policy_queries": candidate_queries,
+                "mean_policy_query_difference": (
+                    candidate_queries - reference_queries
+                    if candidate_queries is not None and reference_queries is not None
+                    else None
+                ),
+                "mean_reference_interventions": reference_interventions,
+                "mean_candidate_interventions": candidate_interventions,
+                "mean_intervention_difference": (
+                    candidate_interventions - reference_interventions
+                    if candidate_interventions is not None
+                    and reference_interventions is not None
+                    else None
+                ),
+                "policy_query_count_matched_pairs": sum(
+                    int(pair[STATE_GUARD]["policy_queries"])
+                    == int(pair[FIXED_REFRESH]["policy_queries"])
+                    for pair in valid_rows
+                ),
+                "intervention_count_matched_pairs": sum(
+                    int(pair[STATE_GUARD]["interventions"])
+                    == int(pair[FIXED_REFRESH]["interventions"])
+                    for pair in valid_rows
+                ),
+            }
+        )
+    _apply_primary_holm_correction(comparisons)
+    return comparisons
+
+
 def matched_condition_contrasts(
     episodes: Sequence[Mapping[str, Any]], bootstrap_resamples: int
 ) -> List[Dict[str, Any]]:
@@ -1332,6 +1588,7 @@ def _summary_markdown(
     episodes: Sequence[Mapping[str, Any]],
     aggregate: Sequence[Mapping[str, Any]],
     comparisons: Sequence[Mapping[str, Any]],
+    control_comparisons: Sequence[Mapping[str, Any]],
     planned_rollouts: int,
 ) -> str:
     completed = len(episodes)
@@ -1355,19 +1612,20 @@ def _summary_markdown(
         "",
         "## Aggregate conditions",
         "",
-        "| Scope | Task | Mode | Horizon | Delay steps | PP/ITT N | ITT success | ITT 95% Wilson CI | PP success | Queries | Rejections |",
-        "| --- | ---: | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: |",
+        "| Scope | Task | Mode | Horizon | Delay steps | Refresh N | PP/ITT N | ITT success | ITT 95% Wilson CI | PP success | Queries | Rejections |",
+        "| --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: |",
     ]
     for row in aggregate:
         if row["scope"] != "selected_tasks":
             continue
         lines.append(
-            "| %s | all | %s | %d | %d | %d/%d | %s | [%s, %s] | %s | %s | %s |"
+            "| %s | all | %s | %d | %d | %s | %d/%d | %s | [%s, %s] | %s | %s | %s |"
             % (
                 row["task_suite"],
                 row["mode"],
                 row["replan_steps"],
                 row["latency_steps"],
+                decimal(row["fixed_refresh_interval"], digits=0),
                 row["eligible_rollouts"],
                 row["rollouts"],
                 decimal(row["success_rate"]),
@@ -1378,6 +1636,37 @@ def _summary_markdown(
                 decimal(row["mean_rejections"], digits=2),
             )
         )
+    if control_comparisons:
+        lines.extend(
+            [
+                "",
+                "## Intervention control comparisons",
+                "",
+                "| Scope | Horizon | Delay steps | Refresh N | Pairs | Guard - fixed refresh | Bootstrap 95% CI | Holm p | Query delta | Intervention delta | Count-matched pairs |",
+                "| --- | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: |",
+            ]
+        )
+        for row in control_comparisons:
+            if row["scope"] != "selected_tasks":
+                continue
+            lines.append(
+                "| %s | %d | %d | %s | %d | %s | [%s, %s] | %s | %s | %s | %d/%d |"
+                % (
+                    row["task_suite"],
+                    row["replan_steps"],
+                    row["latency_steps"],
+                    decimal(row["fixed_refresh_interval"], digits=0),
+                    row["paired_episodes"],
+                    decimal(row["success_rate_difference"]),
+                    decimal(row["success_difference_bootstrap95_low"]),
+                    decimal(row["success_difference_bootstrap95_high"]),
+                    decimal(row["mcnemar_holm_p"], digits=4),
+                    decimal(row["mean_policy_query_difference"], digits=2),
+                    decimal(row["mean_intervention_difference"], digits=2),
+                    row["policy_query_count_matched_pairs"],
+                    row["intervention_count_matched_pairs"],
+                )
+            )
     lines.extend(
         [
             "",
@@ -1522,6 +1811,9 @@ def write_run_artifacts(
         return {"valid": False, "errors": ["run is not finalized"]}
     aggregate = aggregate_episodes(episodes, queries)
     comparisons = paired_comparisons(episodes, bootstrap_resamples)
+    control_comparisons = intervention_control_comparisons(
+        episodes, bootstrap_resamples
+    )
     contrasts = matched_condition_contrasts(episodes, bootstrap_resamples)
     _write_csv(output_directory / "per_episode.csv", episodes, EPISODE_FIELDS)
     _write_csv(output_directory / "per_query.csv", queries, QUERY_FIELDS)
@@ -1529,6 +1821,15 @@ def write_run_artifacts(
     _write_csv(output_directory / "aggregate.csv", aggregate)
     _write_json(output_directory / "paired_comparisons.json", comparisons)
     _write_csv(output_directory / "paired_comparisons.csv", comparisons)
+    _write_json(
+        output_directory / "intervention_control_comparisons.json",
+        control_comparisons,
+    )
+    _write_csv(
+        output_directory / "intervention_control_comparisons.csv",
+        control_comparisons,
+        CONTROL_COMPARISON_FIELDS,
+    )
     _write_json(output_directory / "condition_contrasts.json", contrasts)
     _write_csv(
         output_directory / "condition_contrasts.csv",
@@ -1553,7 +1854,13 @@ def write_run_artifacts(
         len(episodes),
         len(episodes) == planned_rollouts and not integrity_errors,
     )
-    summary = _summary_markdown(episodes, aggregate, comparisons, planned_rollouts)
+    summary = _summary_markdown(
+        episodes,
+        aggregate,
+        comparisons,
+        control_comparisons,
+        planned_rollouts,
+    )
     summary += "\n## Artifact integrity\n\n"
     summary += "- Valid: %s\n" % ("yes" if not integrity_errors else "no")
     for error in integrity_errors:
@@ -1736,7 +2043,8 @@ def _resolved_protocol(
         "schema_version": SCHEMA_VERSION,
         "research_question": (
             "How do asynchronous inference delay and action execution horizon affect "
-            "pi0.5-LIBERO task success and query cost, with and without state-mismatch rejection?"
+            "pi0.5-LIBERO task success and query cost, and does state-mismatch "
+            "rejection outperform a preregistered fixed-refresh intervention control?"
         ),
         "openpi_commit": args.expected_openpi_commit,
         "policy_config": DEFAULT_POLICY_CONFIG,
