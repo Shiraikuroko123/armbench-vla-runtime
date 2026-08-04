@@ -9,3 +9,11 @@ dist/
 results/*
 !results/.gitkeep
 
+# Cloud evidence transport and model caches stay outside Git. Publish validated
+# archives as GitHub Release assets; track their small SHA-256 records instead.
+/archives/
+/downloads/
+/openpi-cache/
+/checkpoints/
+*.tar.gz
+*.tar.zst
