@@ -24,6 +24,7 @@ import numpy as np
 
 from integrations.openpi.libero_runtime import (
     ASYNC_UNGUARDED,
+    FIXED_REFRESH,
     STATE_GUARD,
     EpisodeResult,
     RuntimeConfig,
@@ -82,6 +83,7 @@ EPISODE_FIELDS = (
     "replan_steps",
     "latency_steps",
     "injected_latency_ms",
+    "fixed_refresh_interval",
     "seed",
     "success",
     "termination_reason",
@@ -121,6 +123,7 @@ QUERY_FIELDS = (
     "mode",
     "replan_steps",
     "latency_steps",
+    "fixed_refresh_interval",
     "query_index",
     "observation_step",
     "response_step",
@@ -441,7 +444,7 @@ def build_matrix(
     replan_steps: Sequence[int],
     latency_steps: Sequence[int],
 ) -> List[ExperimentCell]:
-    """Build adjacent paired conditions with alternating mode order."""
+    """Build adjacent matched conditions with alternating mode order."""
 
     if task_suite not in SUITE_TASK_COUNTS:
         raise ValueError("unknown task suite: %s" % task_suite)
@@ -490,6 +493,7 @@ def matrix_plan(cells: Sequence[ExperimentCell]) -> Dict[str, Any]:
         "schema_version": SCHEMA_VERSION,
         "rollouts": len(cells),
         "paired_conditions": len(pairs),
+        "matched_condition_groups": len(pairs),
         "task_suites": sorted({cell.task_suite for cell in cells}),
         "task_ids": sorted({cell.task_id for cell in cells}),
         "episode_indices": sorted({cell.episode_index for cell in cells}),
@@ -498,7 +502,7 @@ def matrix_plan(cells: Sequence[ExperimentCell]) -> Dict[str, Any]:
         "latency_steps": sorted({cell.latency_steps for cell in cells}),
         "warning": (
             "This count is environment rollouts, not policy queries. Query cost grows "
-            "as replan_steps decreases and state-guard rejections increase."
+            "as replan_steps decreases and guard or refresh rejections increase."
         ),
     }
 
@@ -519,6 +523,7 @@ def episode_rows(
     video_required: bool = False,
     video_error_type: Optional[str] = None,
     video_error_message: Optional[str] = None,
+    fixed_refresh_interval: Optional[int] = None,
 ) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
     latencies = [record.inference_latency_ms for record in result.query_records]
     p50, p95 = _percentiles(latencies)
@@ -549,6 +554,7 @@ def episode_rows(
         "replan_steps": cell.replan_steps,
         "latency_steps": cell.latency_steps,
         "injected_latency_ms": cell.latency_steps * LIBERO_CONTROL_PERIOD_MS,
+        "fixed_refresh_interval": fixed_refresh_interval,
         "seed": seed,
         "success": result.success,
         "termination_reason": result.termination_reason,
@@ -591,6 +597,7 @@ def episode_rows(
                 "mode": cell.mode,
                 "replan_steps": cell.replan_steps,
                 "latency_steps": cell.latency_steps,
+                "fixed_refresh_interval": fixed_refresh_interval,
                 "query_index": record.query_index,
                 "observation_step": record.observation_step,
                 "response_step": record.response_step,
@@ -889,6 +896,7 @@ def paired_comparisons(
                 "episode_index",
                 "replan_steps",
                 "latency_steps",
+                "fixed_refresh_interval",
                 "seed",
                 "initial_state_sha256",
             )
@@ -1449,16 +1457,15 @@ def artifact_integrity_errors(
         for cell in expected_cells:
             expected_by_pair.setdefault(cell.pair_id, []).append(cell)
         for pair_id, cells in expected_by_pair.items():
-            expected_modes = {cell.mode for cell in cells}
-            if expected_modes != {ASYNC_UNGUARDED, STATE_GUARD}:
+            if len(cells) < 2:
                 continue
             rows = [
                 by_episode_id[cell.episode_id]
                 for cell in cells
                 if cell.episode_id in by_episode_id
             ]
-            if len(rows) != 2:
-                errors.append("incomplete paired condition: %s" % pair_id)
+            if len(rows) != len(cells):
+                errors.append("incomplete matched condition group: %s" % pair_id)
                 continue
             pairing_fields = (
                 "task_suite",
@@ -1469,8 +1476,12 @@ def artifact_integrity_errors(
                 "seed",
                 "initial_state_sha256",
             )
-            if any(rows[0][field] != rows[1][field] for field in pairing_fields):
-                errors.append("paired condition mismatch: %s" % pair_id)
+            if any(
+                rows[0][field] != row[field]
+                for row in rows[1:]
+                for field in pairing_fields
+            ):
+                errors.append("matched condition mismatch: %s" % pair_id)
 
     for row in episodes:
         if not bool(row.get("video_required")):
@@ -1759,7 +1770,12 @@ def _resolved_protocol(
                 "Compare current and query-time end-effector position, quaternion angular "
                 "distance, and gripper position; reject and requery from a Cartesian hold."
             ),
-            "mode_order": "adjacent pairs with alternating order",
+            "fixed_refresh_control": (
+                "Reject every Nth candidate chunk independently of measured state mismatch, "
+                "using the same hold and bounded requery path as state_guard."
+            ),
+            "fixed_refresh_interval": args.fixed_refresh_interval,
+            "mode_order": "adjacent matched conditions with alternating order",
             "inference_latency": "measured websocket infer wall time; not converted into injected steps",
             "step_budget": (
                 "Injected delay steps consume the same environment-step budget as task actions."
@@ -1792,6 +1808,7 @@ def _resolved_protocol(
             "This runtime check is not a formal safety certificate.",
             "Injected latency steps model asynchronous execution independently of measured wall latency.",
             "Identical LIBERO initial states do not reset hidden policy-server sampling state.",
+            "fixed_refresh_interval must be calibrated on disjoint pilot episodes and frozen before confirmatory runs.",
             "Checkpoint attestation proves the loaded cache content and launcher identity, not the upstream publisher's intent.",
             "Object contacts are not labeled as safety violations.",
         ],
@@ -1915,6 +1932,7 @@ def _execute_connected_benchmark(
                         orientation_threshold_rad=args.orientation_threshold_rad,
                         gripper_threshold=args.gripper_threshold,
                         max_requeries=args.max_requeries,
+                        fixed_refresh_interval=args.fixed_refresh_interval,
                         record_video=args.video_mode != "none",
                     )
                     logging.info("Starting %s", cell.episode_id)
@@ -1965,6 +1983,7 @@ def _execute_connected_benchmark(
                         video_required=should_write_video,
                         video_error_type=video_error_type,
                         video_error_message=video_error_message,
+                        fixed_refresh_interval=args.fixed_refresh_interval,
                     )
                     episodes.append(episode)
                     queries.extend(episode_queries)
@@ -2147,6 +2166,11 @@ def _add_matrix_arguments(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument("--replan-steps", default="5", help="Comma-separated positive horizons")
     parser.add_argument("--latency-steps", default="0", help="Comma-separated injected delays")
+    parser.add_argument(
+        "--fixed-refresh-interval",
+        type=int,
+        help="Required for fixed_refresh: reject every Nth candidate action chunk",
+    )
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -2204,11 +2228,18 @@ def _resolve_matrix(args: argparse.Namespace) -> List[ExperimentCell]:
     episode_indices = _parse_int_selection(
         args.episode_indices, 50, "episode_indices"
     )
+    modes = _parse_modes(args.modes)
+    if args.fixed_refresh_interval is not None and args.fixed_refresh_interval <= 0:
+        raise ValueError("fixed_refresh_interval must be positive when provided")
+    if FIXED_REFRESH in modes and args.fixed_refresh_interval is None:
+        raise ValueError(
+            "--fixed-refresh-interval is required when fixed_refresh mode is selected"
+        )
     return build_matrix(
         args.task_suite,
         task_ids,
         episode_indices,
-        _parse_modes(args.modes),
+        modes,
         _parse_positive_csv(args.replan_steps, "replan_steps"),
         _parse_nonnegative_csv(args.latency_steps, "latency_steps"),
     )
@@ -2254,6 +2285,7 @@ def _validate_run_arguments(
             orientation_threshold_rad=args.orientation_threshold_rad,
             gripper_threshold=args.gripper_threshold,
             max_requeries=args.max_requeries,
+            fixed_refresh_interval=args.fixed_refresh_interval,
         )
 
 
@@ -2263,7 +2295,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     try:
         cells = _resolve_matrix(args)
         if args.command == "plan":
-            print(json.dumps(matrix_plan(cells), indent=2, sort_keys=True))
+            plan = matrix_plan(cells)
+            plan["fixed_refresh_interval"] = args.fixed_refresh_interval
+            print(json.dumps(plan, indent=2, sort_keys=True))
             return 0
         _validate_run_arguments(args, cells)
         logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")

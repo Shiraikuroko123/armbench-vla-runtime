@@ -5,6 +5,7 @@ import pytest
 
 from integrations.openpi.libero_runtime import (
     ASYNC_UNGUARDED,
+    FIXED_REFRESH,
     STATE_GUARD,
     PolicyResponseError,
     RuntimeConfig,
@@ -187,6 +188,36 @@ def test_guard_has_bounded_requery_failure() -> None:
     assert result.rejected_chunks == 2
 
 
+def test_fixed_refresh_reuses_hold_and_requery_path_without_state_trigger() -> None:
+    result = run_episode(
+        FakeEnvironment(),
+        ConstantPolicy(action_x=0.01),
+        np.asarray([0.0]),
+        "test task",
+        _config(
+            FIXED_REFRESH,
+            fixed_refresh_interval=2,
+            position_threshold_m=999.0,
+            max_task_steps=12,
+        ),
+    )
+
+    rejected = [
+        record
+        for record in result.query_records
+        if record.decision == "rejected_fixed_refresh"
+    ]
+    assert rejected
+    assert rejected[0].rejection_reasons == ("scheduled_refresh",)
+    assert rejected[0].mismatch.position_m < 999.0
+    accepted_after_rejection = result.query_records[
+        result.query_records.index(rejected[0]) + 1
+    ]
+    assert accepted_after_rejection.decision == "accepted_fixed_refresh"
+    assert accepted_after_rejection.mismatch.position_m == pytest.approx(0.0)
+    assert result.interventions == result.rejected_chunks
+
+
 @pytest.mark.parametrize(
     "response, expected_message",
     [
@@ -232,3 +263,7 @@ def test_runtime_config_rejects_invalid_experiment_conditions() -> None:
         _config(ASYNC_UNGUARDED, latency_steps=-1)
     with pytest.raises(ValueError, match="position_threshold_m"):
         _config(STATE_GUARD, position_threshold_m=float("nan"))
+    with pytest.raises(ValueError, match="fixed_refresh_interval"):
+        _config(FIXED_REFRESH)
+    with pytest.raises(ValueError, match="max_requeries"):
+        _config(FIXED_REFRESH, fixed_refresh_interval=2, max_requeries=0)

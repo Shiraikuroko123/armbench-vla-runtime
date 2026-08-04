@@ -20,7 +20,8 @@ import numpy as np
 
 ASYNC_UNGUARDED = "async_unguarded"
 STATE_GUARD = "state_guard"
-VALID_MODES = (ASYNC_UNGUARDED, STATE_GUARD)
+FIXED_REFRESH = "fixed_refresh"
+VALID_MODES = (ASYNC_UNGUARDED, STATE_GUARD, FIXED_REFRESH)
 
 LIBERO_ACTION_DIM = 7
 LIBERO_STATE_DIM = 8
@@ -45,6 +46,7 @@ class RuntimeConfig:
     orientation_threshold_rad: float = 0.10
     gripper_threshold: float = 0.05
     max_requeries: int = 2
+    fixed_refresh_interval: Optional[int] = None
     record_video: bool = False
 
     def __post_init__(self) -> None:
@@ -56,6 +58,17 @@ class RuntimeConfig:
         _require_nonnegative_int("num_steps_wait", self.num_steps_wait)
         _require_positive_int("resize_size", self.resize_size)
         _require_nonnegative_int("max_requeries", self.max_requeries)
+        if self.fixed_refresh_interval is not None:
+            _require_positive_int(
+                "fixed_refresh_interval", self.fixed_refresh_interval
+            )
+        if self.mode == FIXED_REFRESH:
+            if self.fixed_refresh_interval is None:
+                raise ValueError(
+                    "fixed_refresh_interval is required for fixed_refresh mode"
+                )
+            if self.max_requeries < 1:
+                raise ValueError("fixed_refresh mode requires max_requeries >= 1")
         for name, value in (
             ("position_threshold_m", self.position_threshold_m),
             ("orientation_threshold_rad", self.orientation_threshold_rad),
@@ -569,8 +582,21 @@ def run_episode(
                     )
                     return finish(False, "step_limit")
 
-                rejection_reasons = mismatch.rejection_reasons(config)
-                if config.mode == STATE_GUARD and rejection_reasons:
+                mismatch_reasons = mismatch.rejection_reasons(config)
+                scheduled_refresh = (
+                    config.mode == FIXED_REFRESH
+                    and consecutive_rejections == 0
+                    and (accepted_chunks + 1) % int(config.fixed_refresh_interval) == 0
+                )
+                should_reject = (
+                    config.mode == STATE_GUARD and bool(mismatch_reasons)
+                ) or scheduled_refresh
+                rejection_reasons = (
+                    ("scheduled_refresh",)
+                    if scheduled_refresh
+                    else tuple(mismatch_reasons)
+                )
+                if should_reject:
                     rejected_chunks += 1
                     consecutive_rejections += 1
                     query_records.append(
@@ -583,8 +609,12 @@ def run_episode(
                             injected_latency_steps_executed=delay_steps_executed,
                             action_chunk_steps=int(actions.shape[0]),
                             accepted=False,
-                            decision="rejected_state_mismatch",
-                            rejection_reasons=tuple(rejection_reasons),
+                            decision=(
+                                "rejected_fixed_refresh"
+                                if scheduled_refresh
+                                else "rejected_state_mismatch"
+                            ),
+                            rejection_reasons=rejection_reasons,
                             mismatch=mismatch,
                             policy_inference_latency_ms=policy_inference_latency_ms,
                             server_inference_latency_ms=server_inference_latency_ms,
@@ -618,9 +648,13 @@ def run_episode(
                         decision=(
                             "accepted_unguarded"
                             if config.mode == ASYNC_UNGUARDED
-                            else "accepted_state_guard"
+                            else (
+                                "accepted_state_guard"
+                                if config.mode == STATE_GUARD
+                                else "accepted_fixed_refresh"
+                            )
                         ),
-                        rejection_reasons=tuple(rejection_reasons),
+                        rejection_reasons=tuple(mismatch_reasons),
                         mismatch=mismatch,
                         policy_inference_latency_ms=policy_inference_latency_ms,
                         server_inference_latency_ms=server_inference_latency_ms,

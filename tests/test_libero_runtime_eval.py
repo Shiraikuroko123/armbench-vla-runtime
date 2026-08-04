@@ -5,11 +5,13 @@ import json
 import logging
 
 import numpy as np
+import pytest
 
 import integrations.openpi.libero_runtime_eval as runtime_eval
 
 from integrations.openpi.libero_runtime import (
     ASYNC_UNGUARDED,
+    FIXED_REFRESH,
     STATE_GUARD,
     EpisodeResult,
     QueryRecord,
@@ -28,6 +30,7 @@ from integrations.openpi.libero_runtime_eval import (
     build_matrix,
     episode_rows,
     execute_benchmark,
+    main,
     matrix_plan,
     matched_condition_contrasts,
     paired_comparisons,
@@ -116,6 +119,29 @@ def test_matrix_keeps_pairs_adjacent_and_alternates_mode_order() -> None:
     ]
     assert LIBERO_ENV_RESOLUTION == 256
     assert LIBERO_CONTROL_PERIOD_MS == 50.0
+
+
+def test_fixed_refresh_plan_requires_explicit_interval(capsys) -> None:
+    with pytest.raises(SystemExit) as error:
+        main(["plan", "--modes", FIXED_REFRESH])
+    assert error.value.code == 2
+
+    assert (
+        main(
+            [
+                "plan",
+                "--modes",
+                "%s,%s,%s" % (ASYNC_UNGUARDED, STATE_GUARD, FIXED_REFRESH),
+                "--fixed-refresh-interval",
+                "4",
+            ]
+        )
+        == 0
+    )
+    plan = json.loads(capsys.readouterr().out)
+    assert plan["rollouts"] == 3
+    assert plan["matched_condition_groups"] == 1
+    assert plan["fixed_refresh_interval"] == 4
 
 
 def test_server_launch_provenance_requires_matching_libero_checkpoint() -> None:
@@ -418,7 +444,7 @@ def test_integrity_rejects_mismatched_pair_and_missing_required_video(tmp_path) 
         [_cell(ASYNC_UNGUARDED, 0), _cell(STATE_GUARD, 1)],
     )
 
-    assert any("paired condition mismatch" in error for error in errors)
+    assert any("matched condition mismatch" in error for error in errors)
     assert any("required video missing" in error for error in errors)
 
 
