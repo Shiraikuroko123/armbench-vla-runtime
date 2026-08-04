@@ -68,6 +68,10 @@ was rejected, executed one fallback hold, and refreshed successfully.
   `2a966c28f2fe1fcf0e6a78c76b516fce146a9c97468228a9297a37a54c38aa74`.
 - Full cloud archive SHA-256:
   `77636e8c46282bd9fa75b2636b8a5ce649c0f3a4cf235c86b4f240e080b9aa33`.
+- GitHub Release:
+  [`evidence-pi05-libero-measured-age-pilot-001`](https://github.com/Shiraikuroko123/armbench-vla-runtime/releases/tag/evidence-pi05-libero-measured-age-pilot-001).
+- Offline paired-video acceptance dashboard:
+  [`reports/pi05_libero_measured_age_pilot_001/index.html`](../../reports/pi05_libero_measured_age_pilot_001/index.html).
 - Root validation: `valid=true`, `complete=true`, 70 files checked.
 - Nested evaluation validation: `valid=true`, no warnings or errors.
 

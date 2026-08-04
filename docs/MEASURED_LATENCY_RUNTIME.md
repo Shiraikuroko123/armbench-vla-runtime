@@ -2,10 +2,12 @@
 
 ## Status
 
-This module is an implemented and unit-tested research extension. It does not
-yet have a closed-loop official pi0.5 artifact and is not part of the frozen
-200 ms result. The legacy `fixed_steps` path remains the default, so all
-frozen deterministic-delay evidence keeps its original meaning.
+This module is an implemented, unit-tested, and closed-loop evaluated research
+extension. A separately registered 40-rollout/20-pair pilot using the official
+`pi05_libero` checkpoint is preserved in
+`evidence/pi05_libero_measured_age_pilot_001`. It is exploratory and is not part
+of the frozen 200 ms confirmatory result. The legacy `fixed_steps` path remains
+the default, so all deterministic-delay evidence keeps its original meaning.
 
 The implementation consists of:
 
@@ -166,6 +168,12 @@ Warm-up must use the same checkpoint and tensor shapes, validate the returned
 action contract, and remain outside task success and policy-query outcomes. Its
 latency and response validation still belong in provenance.
 
+The registered pilot confirmed the order effect directly. Its three unscored
+warm-up ages were 18,424.229 ms, 84.145 ms, and 79.465 ms. The subsequent 810
+scored queries had per-mode inference-latency P95 values of 82.920 ms and
+82.390 ms. Keeping the first compilation query out of the randomized modes was
+therefore necessary, not cosmetic.
+
 ## Limitations
 
 - `policy.infer` remains a blocking call. LIBERO catch-up occurs after response
@@ -177,8 +185,9 @@ latency and response validation still belong in provenance.
 - Time-only suffix selection assumes temporal consistency inside the returned
   chunk. RTC-style flow inpainting requires access inside policy sampling and
   cannot be implemented faithfully from completed actions alone.
-- No official pi0.5 measured-age rollout, independent artifact validator, or
-  confirmatory statistics exist yet.
+- The official measured-age evidence is a 20-pair pilot. It provides an
+  independent artifact validator and paired analysis, but not a separately
+  powered confirmatory matrix or a second VLA family.
 - This layer checks temporal availability, not joint, acceleration, collision,
   or dynamics feasibility in the formal LIBERO path.
 

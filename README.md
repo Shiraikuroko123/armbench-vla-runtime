@@ -66,8 +66,15 @@ A new [measured-age temporal alignment core](docs/MEASURED_LATENCY_RUNTIME.md)
 removes the dispatcher's dependence on a hidden injected-delay label. It uses
 end-to-end observation age, a frozen floor/ceil discretization, mode-independent
 keyed jitter, and bounded hold-refresh when a deadline or action horizon is
-exceeded. This extension currently has deterministic unit/runtime tests only;
-it does not change or broaden the frozen 200 ms pi0.5 claim.
+exceeded. A separately registered
+[40-rollout official pi0.5 pilot](evidence/pi05_libero_measured_age_pilot_001/README.md)
+completed all 20 pairs: success was 14/20 for `async_unguarded` and 19/20 for
+`latency_aligned`, a +25-point paired difference (bootstrap 95% [+10,+45])
+with 5/0/15 wins/losses/ties and exact McNemar `p=0.0625`. Mean policy queries
+fell from 24.6 to 15.9. This is an encouraging exploratory result, not a
+confirmatory significance claim, and it does not broaden the frozen 200 ms
+result. The complete archive and derived outputs are attached to the
+[measured-age evidence release](https://github.com/Shiraikuroko123/armbench-vla-runtime/releases/tag/evidence-pi05-libero-measured-age-pilot-001).
 
 ## Confirmatory pi0.5 result
 
@@ -93,6 +100,22 @@ contains the complete cloud archive, its SHA-256 record, and both validator
 reports.
 
 ### Offline visual acceptance
+
+The measured-age pilot has a separate fail-closed
+[paired video dashboard](reports/pi05_libero_measured_age_pilot_001/index.html).
+It recomputes the pilot statistics from the protected source artifact, verifies
+the source, analysis, implementation, and video bindings, and exposes all 20
+matched pairs without broadening the exploratory claim.
+
+On Windows, the shortest interview handoff is one command from any directory:
+
+```powershell
+D:\arm-planning-control-project\project\scripts\interview_acceptance.cmd
+```
+
+It revalidates 331 protected files and all 300 formal videos before opening the
+dashboard. See the [five-minute acceptance guide](docs/INTERVIEW_ACCEPTANCE.md)
+for the exact presentation order and claim boundary.
 
 Open the [generated acceptance dashboard](reports/pi05_libero_alignment_core_001/index.html)
 from a local clone to inspect all three latency strata, filter the 150 matched
