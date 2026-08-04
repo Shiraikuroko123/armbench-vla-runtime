@@ -1,3 +1,5 @@
 # Cloud evidence manifests attest exact file bytes. Never rewrite line endings.
 evidence/pi05_libero_*/** -text
 *.sh text eol=lf
+# Matplotlib emits significant-looking continuation spaces in generated paths.
+docs/research/figures/*.svg whitespace=-blank-at-eol

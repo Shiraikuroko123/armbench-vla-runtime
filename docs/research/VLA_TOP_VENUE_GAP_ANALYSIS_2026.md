@@ -22,9 +22,11 @@ delay.
 The scientific gap is not simply "no RL." The closest formal comparator is RTC
 (NeurIPS 2025), which changes flow-policy inference itself by freezing already
 committed actions and inpainting a continuation. ArmBench currently sees only a
-completed action chunk and drops a fixed, oracle-known prefix. It therefore
-cannot yet claim non-oracle latency handling, policy-internal replanning,
-multi-model generality, or real-robot validity.
+completed action chunk. It now has an exploratory measured-age suffix-selection
+pilot and a frozen held-out successor protocol. The pilot did not pair OpenPI's
+mutable policy-sampling RNG, so its efficacy result remains a mechanism signal,
+not confirmatory evidence. ArmBench cannot yet claim policy-internal
+replanning, multi-model generality, or real-robot validity.
 
 The next defensible project thesis is:
 
@@ -52,6 +54,28 @@ OpenAlex for identifier reconciliation, and Crossref for registered DOI metadata
 An arXiv DOI never promotes a work to "formal." API failures are retained in
 the metadata artifact rather than interpreted as absence.
 
+### Status and code snapshot
+
+The table below freezes both publication status and public-code state to the
+2026-08-05 access date. A repository HEAD is provenance for this audit, not a
+claim that the authors designated that commit as a paper release.
+
+| Work | Status on access date | Official code snapshot | What is actually runnable |
+| --- | --- | --- | --- |
+| RTC | NeurIPS 2025 formal paper ([venue](https://neurips.cc/virtual/2025/poster/117747)) | [Kinetix repository at `9296f31`](https://github.com/Physical-Intelligence/real-time-chunking-kinetix/commit/9296f31d62d5bfeb5779dcb2f9bcf71ca37f448b) | Public code reproduces the Kinetix route and supplies roughly 60 GiB of expert assets; it does not expose the paper's real-robot pi0.5 stack as a drop-in ArmBench server |
+| OpenVLA-OFT | RSS 2025 formal paper ([proceedings](https://www.roboticsproceedings.org/rss21/p017.html)) | [official repository at `e4287e9`](https://github.com/moojink/openvla-oft/commit/e4287e94541f459edc4feabc4e181f537cd569a8) | Pretrained checkpoints and native LIBERO evaluation are public; inference needs about 16 GB VRAM, while the documented training recipes need about 25-62 GB per GPU and the paper recipe used up to 8 A100s |
+| DPPO | ICLR 2025 formal paper ([venue](https://iclr.cc/virtual/2025/poster/28475)) | [official repository at `cc7234a`](https://github.com/irom-princeton/dppo/commit/cc7234ad7ff39a8f32de3af903606723a16f0648) | Pretrained policies and RL fine-tuning configs are public for Gym, Robomimic, D3IL, and Furniture-Bench; it expects Linux/NVIDIA and uses 40-50 parallel CPU environments or Isaac Gym for Furniture-Bench |
+| HIL-SERL | Science Robotics 2025 formal paper ([DOI](https://doi.org/10.1126/scirobotics.ads5033)) | [official repository at `c32939b`](https://github.com/rail-berkeley/hil-serl/commit/c32939bccb65f3b8c43a9f9add3d322d4ab0264a) | The actor/learner, reward-classifier, demonstration, and human-correction stack is public, but the intended evidence path requires a Franka setup, operator time, and real online training |
+| VLASH | arXiv-only preprint, `2512.01031`, on the access date ([preprint](https://arxiv.org/abs/2512.01031)) | [official repository at `22cbabf`](https://github.com/mit-han-lab/vlash/commit/22cbabfee0f57874987c75a35a7dac129e695db0) | pi0/pi0.5 asynchronous training and inference examples are public and LoRA is advertised below 12 GB; the repository snapshot has no released LIBERO config or tagged checkpoint, so a matched ArmBench reproduction still needs integration and training work |
+
+RTC is not a same-command baseline for this repository. Its public evaluator
+loads RTC's own Kinetix flow checkpoints; ArmBench calls a completed-chunk
+OpenPI websocket boundary. A faithful same-checkpoint comparison therefore
+requires exposing committed actions and timing inside OpenPI's flow sampler.
+OpenVLA-OFT is the more practical second model family because its four LIBERO
+checkpoints and evaluator are public, but it tests cross-model portability, not
+policy-internal RTC inpainting.
+
 ## What the strongest systems actually add
 
 | Route | Main intervention | Training / equipment burden | What ArmBench should learn from it |
@@ -64,7 +88,7 @@ the metadata artifact rather than interpreted as absence.
 | DPPO, ICLR 2025 | Policy-gradient fine-tuning for diffusion policies | RL fine-tuning on simulated continuous-control and robot-learning tasks; the paper also reports zero-shot hardware deployment | Useful only if the research question becomes reward-driven policy improvement |
 | HIL-SERL, Science Robotics 2025 | Real-world online RL supported by demonstrations and human corrections | Real robot, human supervision, and online RL | Shows why real-world RL evidence is expensive and why a toy simulation run is not equivalent |
 | RTC, NeurIPS 2025 | Freezes committed flow-policy actions and inpaints a consistent continuation at inference time | Requires access inside the flow-policy sampling process; includes real-robot evidence | Closest direct comparator and the present method-quality target |
-| VLASH, arXiv 2025 | Future-state-aware asynchronous inference | Architectural and training burden not established by the frozen metadata audit | Directly targets the stale-observation weakness; formal status not established in this review |
+| VLASH, arXiv 2025 | Rolls the robot state forward with the previous action chunk, then fine-tunes with state/action offsets for asynchronous execution | Public pi0/pi0.5 training code advertises LoRA below 12 GB, but matched LIBERO artifacts are not released | Directly targets stale state, but is an arXiv-only learned comparison rather than a training-free drop-in |
 | FutureRTC, arXiv 2026 | Anticipatory conditioning and learned execution-time context | Learned prediction/adaptation modules | Raises the bar beyond time-only prefix selection; preprint evidence must be treated cautiously |
 | Action ControlNet, arXiv 2026 | Lightweight delay-aware adapter for smooth asynchronous handoff | Parameter-efficient adapter training | A useful learned-adapter control, but not training-free; preprint only as of the access date |
 
@@ -91,6 +115,25 @@ interviewer can run the validator, inspect a matched video pair, recompute the
 statistics, and trace the action-selection code. It is not enough for a top
 paper because the current causal intervention is still narrow.
 
+The portfolio evidence itself is traceable to repository history:
+
+- frozen confirmatory evidence: `632c043f6d8b44450f15d50571f4e686ad20d08a`,
+  followed by validated release documentation at `b0c6b39b21cc59dec843117a06db86ea0260d365`;
+- cross-suite external validation: `a5232d54e46d96a27911892d9360f5a93693e612`,
+  covering the separately frozen Object, Goal, and LIBERO-10 study;
+- measured-age runtime core: `39faa089329c8e8466437b6c98c763d86cd52df7`,
+  and auditable pilot driver: `d098dd285e3dc4b434d42888f91049f6da7cd385`,
+  followed by the scored pilot at run commit
+  `b1835dabf2b76714bda01eeae43516f99ddc0505`.
+
+Those commits are present on the configured `origin/main`, but the repository
+returned HTTP 404 to an unauthenticated link check on the access date. An
+interviewer cannot audit them until the repository or a release is made public,
+or access is granted. Local hashes alone are not public provenance.
+
+ArmBench has no formal paper or arXiv preprint. These are released engineering
+and experimental artifacts, not a publication record.
+
 ## Exact gap to a top-venue method paper
 
 ### 1. Oracle timing versus measured timing
@@ -100,12 +143,15 @@ number directly to the dispatcher. That isolates a causal mechanism cleanly,
 but it is an oracle protocol. A deployed runtime observes timestamps and
 response arrival; it does not receive the experimenter's hidden delay label.
 
-The new measured-age core added after the frozen study closes only the software
-part of this gap. It measures end-to-end observation age, applies a
-pre-registered floor or conservative-ceil conversion, and checks whether the
-requested suffix remains inside the action horizon. It has unit evidence, not
-closed-loop pi0.5 evidence yet, and must not be used to relabel the old 200 ms
-result.
+The measured-age core added after the frozen study closes the software part of
+this gap. It measures end-to-end observation age, applies a pre-registered
+floor or conservative-ceil conversion, and checks whether the requested suffix
+remains inside the action horizon. Its separately registered 40-rollout pi0.5
+pilot completed with valid artifacts. That legacy artifact proves the runtime
+and timing path, but its two modes consumed different draws from the server's
+mutable policy RNG. The held-out successor supplies mode-independent explicit
+pi0.5 sampling noise and independently validates every request binding. Neither
+study may be used to relabel the old 200 ms result.
 
 ### 2. Fixed suffix skipping versus policy-consistent continuation
 
@@ -146,7 +192,10 @@ substantive training and task evaluation; HIL-SERL additionally provides
 real-hardware evidence. Running PPO for a few hours on a toy reward would add a
 framework name while weakening the central story: it would not explain stale
 action chunks, would not be comparable to the frozen pi0.5 result, and would
-introduce reward and training confounds.
+introduce reward-design, environment-step, initialization, and training-seed
+confounds. It would also turn the clean question "does dispatch alignment fix
+an old action?" into the different question "did policy optimization learn a
+better policy?"
 
 RL becomes justified only after choosing a different research question, such
 as learning recovery after a fail-closed intervention or adapting a compact
@@ -156,21 +205,77 @@ curves, matched environment steps, and a no-adaptation runtime control.
 
 ## Staged route toward the literature
 
-### Stage A: non-oracle measured-age pilot
+### Stage A: non-oracle measured-age pilot (completed)
 
-Freeze a new schema and run a small, explicitly exploratory pi0.5-LIBERO pilot
-with `async_unguarded`, legacy oracle alignment, and measured-age alignment.
-Use a mode-independent SHA-256 keyed jitter schedule, conservative-ceil
-rounding at 20 Hz, bounded hold-refresh, and a pre-registered deadline. Report
-success, policy queries, observation-age P50/P95/max, estimator offset,
-deadline misses, horizon overruns, refreshes, and intervention rate.
+Freeze a new schema and run one minimal, explicitly exploratory pi0.5-LIBERO
+pilot. The smallest useful design is 10 Spatial tasks x 2 fixed initial states
+x 2 modes (`async_unguarded` and measured-age `latency_aligned`), for 20 paired
+groups and 40 scored rollouts. Before randomizing a scored condition, run three
+attested, unscored warm-up queries with the same checkpoint and tensor shapes.
+Use a mode-independent SHA-256 keyed jitter schedule over 0/40/80/160 ms,
+conservative-ceil rounding at 20 Hz, a fixed deadline, and bounded hold-refresh.
+Counterbalance mode order within each pair.
+
+The registered run completed all 40 attempts in 413.917 seconds of Compose
+execution on the working RTX 4090/OpenPI setup; it did not train the policy.
+The artifact preserves the frozen protocol, warm-up log, server
+launch/commit/checkpoint attestation, 40 episode rows, 810 scored query rows,
+40 videos, paired summary, failure taxonomy, manifests, and separate read-only
+validation and analysis reports.
+
+The exploratory result was 14/20 versus 19/20 successes, a +25-point paired
+difference with bootstrap 95% interval [+10,+45], 5/0/15 aligned wins/losses/
+ties, and exact two-sided McNemar `p=0.0625`. Mean policy queries fell from
+24.6 to 15.9. Both modes recorded one approximately 251 ms deadline/horizon
+event; the aligned mode executed its registered hold-refresh path once. This is
+a credible mechanism signal and systems artifact, not a confirmatory efficacy
+claim. In particular, keyed jitter was paired but the legacy server's mutable
+policy-sampling RNG was not. The artifact remains valid for what it recorded;
+the unpaired latent policy noise is a design limitation, not a corrupt-file
+error.
+
+The operational acceptance bar must be fixed before launch:
+
+- all 40 assigned attempts remain in intention-to-test accounting, including
+  runtime failures;
+- all query ages, ceil offsets, deadline decisions, and selected suffixes are
+  recomputable from raw timestamps;
+- baseline and candidate use the same keyed jitter value for every common
+  pair/query index, independent of execution order;
+- future efficacy runs also use the same explicit pi0.5 sampling noise for
+  every common pair/query index and persist the request and realized-noise
+  hashes;
+- every artifact and video referenced by the manifest exists, hashes correctly,
+  and the independent validator returns `valid=true`;
+- no efficacy claim is made from this pilot alone. Its success-rate difference,
+  intervention rate, deadline misses, horizon overruns, refreshes, policy-query
+  count, and age P50/P95/max determine whether a larger confirmatory matrix is
+  scientifically justified.
 
 Historical external artifacts contain 8,431 recorded policy queries. Their
-ordinary P95 client time is about 82-83 ms, but each suite also has an
-approximately 18.5 s first-query outlier consistent with compilation/warm-up.
+suite P95 client times are about 82-83 ms, but each suite also has an
+approximately 18.5 s first-query outlier consistent with compilation or
+warm-up.
 This is calibration evidence, not a registered outcome. A measured-latency
 study must run an attested, unscored warm-up before condition randomization or
 the first assigned mode will absorb a severe order effect.
+
+### Stage A2: held-out measured-age confirmation (frozen)
+
+The successor protocol is frozen at commit `12070625cd6f46186282317262065d015c8fbe27`
+before inspecting any scored episode in its held-out split. It uses all ten
+Spatial tasks, episode indices `5:17`, two adjacent counterbalanced modes, 120
+matched pairs, and 240 rollouts. Every shared pair/query index receives the same
+mode-independent jitter and explicit `10 x 32` pi0.5 flow-sampling noise.
+
+The sole primary test is a two-sided exact McNemar test at `.05`; a positive
+claim additionally requires more aligned-only than baseline-only successes.
+The protocol pre-specifies 10,000 whole-task bootstrap resamples, exhaustive
+`2^10` task sign flips, leave-one-task-out effects, condition-first strata, and
+a no-interim-inspection rule. Exact power is 0.824 under the lower registered
+`.18/.05` discordance alternative and 0.904 under the primary `.20/.05`
+alternative. Until all 240 rollouts and both validators finish, its efficacy
+status is deliberately unresolved.
 
 ### Stage B: direct asynchronous-method baseline
 

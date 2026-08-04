@@ -28,12 +28,17 @@ boundaries:
   pi0.5 result", and "Claim boundaries";
 - `docs/RESULTS.md`, verified pi0.5-LIBERO result snapshots;
 - `docs/PI05_ALIGNMENT_CONFIRMATORY_FREEZE.md`;
-- `docs/PI05_CROSS_SUITE_EXTERNAL_VALIDATION_FREEZE.md`.
+- `docs/PI05_CROSS_SUITE_EXTERNAL_VALIDATION_FREEZE.md`;
+- `docs/PI05_MEASURED_AGE_CONFIRMATORY_FREEZE.md` and the separately labeled
+  exploratory measured-age pilot evidence.
 
 The row combines the 300-rollout Spatial study and the separately frozen
 300-rollout Object/Goal/LIBERO-10 external-validation family. The figure does
-not call ArmBench a paper, preprint, real-robot deployment, RL method, or VLA
-training method.
+not promote the measured-age pilot to confirmatory evidence: that legacy pilot
+paired injected jitter but not the policy's mutable internal RNG. The frozen
+successor protocol pairs both jitter and explicit pi0.5 sampling noise. The
+figure does not call ArmBench a paper, preprint, real-robot deployment, RL
+method, or VLA training method.
 
 ## Comparison works
 

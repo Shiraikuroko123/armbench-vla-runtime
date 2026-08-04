@@ -34,7 +34,7 @@ METHODS = (
         "color": ARMBENCH,
         "adaptation": "Runtime dispatcher\nFrozen official pi0.5",
         "signal": "No training",
-        "latency": "Skip delay-matched prefix;\nexecute the following suffix",
+        "latency": "Measure response age;\nselect suffix or fail closed",
         "evidence": "LIBERO simulation\n4 suites / 40 tasks\npaired + manifest-bound",
         "formal": False,
     },
@@ -284,7 +284,7 @@ def _draw_gap_panel(ax) -> None:
         x + 0.020,
         0.449,
         (
-            "Measured jitter and wall-clock deadlines",
+            "Independent inference / control clocks",
             "Same-checkpoint head-to-head with RTC",
             "More than one VLA checkpoint",
             "Real-robot closed-loop validation",
