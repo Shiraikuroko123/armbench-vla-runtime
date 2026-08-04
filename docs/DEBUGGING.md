@@ -308,6 +308,12 @@ request:
 
 & $ArmbenchPython -m armbench vla-recorded-probe-validate `
   'results\recorded_probe_debug_01'
+
+& $ArmbenchPython -m armbench vla-recorded-probe-compare `
+  'results\recorded_probe_server_a' `
+  'results\recorded_probe_server_b' `
+  --left-label 'server A' --right-label 'server B' `
+  --output-directory 'results\recorded_probe_comparison_01'
 ```
 
 Set breakpoints in `vla/request_replay.py`, `vla/policy.py`, and
@@ -322,6 +328,13 @@ saved arrays, requires finite `(15, 8)` raw and guarded actions and finite
 `(16, 7)` predicted positions, recomputes the raw-action SHA-256, and rejects
 inconsistent JSON, environment, summary, or claim-boundary fields. A validation
 failure means the directory must not be used for a checkpoint comparison.
+
+For the paired comparator, first inspect
+`comparison.json.request_payload_sha256`; both input artifacts must contain that
+same hash. Then inspect `per_step.csv` for the raw velocity, gripper, and guarded
+action differences. `comparison.png` summarizes differences by chunk step and
+action dimension. Latency values remain host/network observations and labels do
+not attest server checkpoint identity.
 
 ## 6. Debug the runtime guard
 

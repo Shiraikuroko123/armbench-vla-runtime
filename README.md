@@ -470,6 +470,12 @@ MuJoCo, probe one replayable request:
 
 & $ArmbenchPython -m armbench vla-recorded-probe-validate `
   'results\pi05_recorded_probe_001'
+
+& $ArmbenchPython -m armbench vla-recorded-probe-compare `
+  'results\pi0_recorded_probe_001' `
+  'results\pi05_recorded_probe_001' `
+  --left-label 'pi0 server' --right-label 'pi0.5 server' `
+  --output-directory 'results\pi0_vs_pi05_query_1'
 ```
 
 The output stores the fixed input payload SHA, validated raw 15x8 action SHA,
@@ -481,6 +487,13 @@ comparison; do not call the result a rollout or physical-safety experiment.
 The read-only validator recomputes the action hash from the NPZ and cross-checks
 the JSON, environment metadata, guard result, and human-readable claim
 boundaries before the artifact is used as evidence.
+
+The paired comparator first validates both directories and requires the exact
+same serialized request SHA. It writes aggregate JSON, 15-row per-step CSV, an
+action-difference plot, environment provenance, and a bounded summary. Its
+labels are user-supplied: preserve each server launch log to support a pi0 or
+pi0.5 identity claim. A single paired query measures output difference, not
+task success or statistical model quality.
 
 `probe.json` is written only after a remote response passes shape validation and
 the guard runs. It records `remote_policy_response_validated: true`, server

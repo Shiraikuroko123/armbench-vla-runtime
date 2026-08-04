@@ -166,6 +166,27 @@
       "justMyCode": true
     },
     {
+      "name": "ArmBench: compare recorded OpenPI probes",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "armbench",
+      "args": [
+        "vla-recorded-probe-compare",
+        "${input:leftProbeArtifactDirectory}",
+        "${input:rightProbeArtifactDirectory}",
+        "--left-label",
+        "server A",
+        "--right-label",
+        "server B",
+        "--output-directory",
+        "results/${input:probeComparisonRunId}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "ArmBench: OpenPI loopback timeout fault",
       "type": "debugpy",
       "request": "launch",
@@ -306,6 +327,24 @@
       "type": "promptString",
       "description": "Recorded OpenPI probe artifact directory",
       "default": "results/recorded_openpi_probe_01"
+    },
+    {
+      "id": "leftProbeArtifactDirectory",
+      "type": "promptString",
+      "description": "Left recorded probe artifact directory",
+      "default": "results/recorded_openpi_probe_a"
+    },
+    {
+      "id": "rightProbeArtifactDirectory",
+      "type": "promptString",
+      "description": "Right recorded probe artifact directory",
+      "default": "results/recorded_openpi_probe_b"
+    },
+    {
+      "id": "probeComparisonRunId",
+      "type": "promptString",
+      "description": "New paired probe comparison directory name",
+      "default": "recorded_probe_comparison_01"
     },
     {
       "id": "openpiOnlineRunId",

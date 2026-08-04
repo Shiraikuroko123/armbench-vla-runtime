@@ -32,6 +32,7 @@ from armbench.vla.policy import (
     OpenPIPolicyClient,
     ScriptedActionChunkPolicy,
 )
+from armbench.vla.probe_comparison import execute_recorded_probe_comparison
 from armbench.vla.runtime import RuntimeDecision, RuntimeFailure, VLARuntimeSupervisor
 from armbench.vla.request_replay import (
     RecordedOpenPIRequest,
@@ -75,6 +76,7 @@ __all__ = [
     "VLAObservationGuard",
     "VLAObservation",
     "execute_openpi_loopback_run",
+    "execute_recorded_probe_comparison",
     "execute_recorded_openpi_probe",
     "execute_loopback_fault_matrix",
     "run_online_episode",

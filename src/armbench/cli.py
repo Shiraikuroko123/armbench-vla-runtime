@@ -31,6 +31,7 @@ from armbench.vla.loopback import (
     LOOPBACK_FAULT_MODES,
     execute_openpi_loopback_run,
 )
+from armbench.vla.probe_comparison import execute_recorded_probe_comparison
 from armbench.vla.request_replay import load_recorded_openpi_request
 from armbench.vla.replay_probe import (
     execute_recorded_openpi_probe,
@@ -465,6 +466,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="cross-check a fixed-request OpenPI probe artifact",
     )
     vla_recorded_probe_validate.add_argument("directory", type=Path)
+    vla_recorded_probe_compare = subparsers.add_parser(
+        "vla-recorded-probe-compare",
+        help="compare two validated responses to the same recorded request",
+    )
+    vla_recorded_probe_compare.add_argument("left_directory", type=Path)
+    vla_recorded_probe_compare.add_argument("right_directory", type=Path)
+    vla_recorded_probe_compare.add_argument(
+        "--output-directory", type=Path, required=True
+    )
+    vla_recorded_probe_compare.add_argument("--left-label", default="left")
+    vla_recorded_probe_compare.add_argument("--right-label", default="right")
     return parser
 
 
@@ -671,6 +683,20 @@ def main(arguments: list[str] | None = None) -> int:
     if args.command == "vla-recorded-probe-validate":
         result = validate_recorded_openpi_probe(args.directory)
         print(json.dumps(result.metrics(), indent=2, ensure_ascii=False))
+        return 0
+    if args.command == "vla-recorded-probe-compare":
+        output = execute_recorded_probe_comparison(
+            args.left_directory,
+            args.right_directory,
+            args.output_directory,
+            left_label=args.left_label,
+            right_label=args.right_label,
+        )
+        comparison = json.loads(
+            (output / "comparison.json").read_text(encoding="utf-8")
+        )
+        print(json.dumps(comparison, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
         return 0
     planning_seeds = parse_seed_spec(args.seeds) if args.seeds else None
     control_seeds = (

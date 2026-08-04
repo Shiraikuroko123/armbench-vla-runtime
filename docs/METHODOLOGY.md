@@ -145,6 +145,15 @@ checkpoint-attestation claims. This detects post-run corruption and coordinated
 metadata inconsistencies; it does not establish that the remote server loaded a
 particular learned checkpoint.
 
+`vla-recorded-probe-compare` performs a paired descriptive comparison only after
+both inputs pass that validator and their serialized request hashes match. It
+reports raw and guarded action RMSE/max differences, predicted joint-position
+differences, per-step velocity/gripper norms, guard interventions, and observed
+client latency. Reusing one exact request removes input variation for that pair,
+but one request is not a benchmark distribution and latency is not controlled
+across independently provisioned servers. User labels are retained as labels,
+not promoted to checkpoint attestation.
+
 `vla-openpi-run` replaces the reference policy with the bounded transport built
 on official OpenPI serialization while retaining the same live physics loop. It
 records server metadata and separates attempted remote calls from validated
