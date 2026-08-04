@@ -26,6 +26,9 @@ ATTESTATION_SCHEMA_VERSION = "armbench.openpi_server_attestation.v1"
 PREFLIGHT_SCHEMA_VERSION = "armbench.openpi_libero_preflight.v1"
 EVALUATION_SCHEMA_VERSION = "armbench.pi05_libero_measured_age.v2"
 DEFAULT_CHECKPOINT = "gs://openpi-assets/checkpoints/pi05_libero"
+CHECKPOINT_CACHE_RELATIVE_PATH = pathlib.Path(
+    "openpi-assets/checkpoints/pi05_libero"
+)
 RUN_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}\Z")
 
 ROOT_REQUIRED_FILES = (
@@ -549,6 +552,28 @@ def _validated_run_directory(results_root: pathlib.Path, run_id: str) -> pathlib
     return run_directory
 
 
+def _validated_openpi_data_home(value: Optional[pathlib.Path]) -> pathlib.Path:
+    if value is None:
+        raise ValueError(
+            "openpi-data-home is required; point it at the populated persistent "
+            "OpenPI asset cache"
+        )
+    data_home = value.expanduser().resolve()
+    checkpoint = data_home / CHECKPOINT_CACHE_RELATIVE_PATH
+    required = (
+        checkpoint / "params" / "_METADATA",
+        checkpoint / "params" / "manifest.ocdbt",
+        checkpoint / "assets",
+    )
+    missing = [str(path) for path in required if not path.exists()]
+    if missing:
+        raise ValueError(
+            "openpi-data-home does not contain a complete pi05_libero cache; "
+            "missing: %s" % ", ".join(missing)
+        )
+    return data_home
+
+
 def _compose_prefix(
     openpi_root: pathlib.Path, armbench_root: pathlib.Path, project_name: str
 ) -> List[str]:
@@ -598,12 +623,14 @@ def execute_run(args: argparse.Namespace) -> int:
     openpi_root = args.openpi_root.resolve()
     armbench_root = args.armbench_root.resolve()
     results_root = args.results_root.resolve()
+    openpi_data_home = _validated_openpi_data_home(args.openpi_data_home)
     evaluator_args = _normalize_evaluator_args(args.evaluator_args.strip())
     run_directory = _validated_run_directory(results_root, args.run_id)
     environment = dict(os.environ)
     environment.update(
         {
             "PWD": str(openpi_root),
+            "OPENPI_DATA_HOME": str(openpi_data_home),
             "ARMBENCH_ROOT": str(armbench_root),
             "ARMBENCH_RESULTS_ROOT": str(results_root),
             "ARMBENCH_RUN_ID": args.run_id,
@@ -712,6 +739,16 @@ def _build_parser() -> argparse.ArgumentParser:
         default=pathlib.Path(__file__).resolve().parents[2],
     )
     run_parser.add_argument("--results-root", type=pathlib.Path, required=True)
+    run_parser.add_argument(
+        "--openpi-data-home",
+        type=pathlib.Path,
+        default=(
+            pathlib.Path(os.environ["OPENPI_DATA_HOME"])
+            if os.environ.get("OPENPI_DATA_HOME")
+            else None
+        ),
+        help="Populated persistent OpenPI asset cache (or OPENPI_DATA_HOME)",
+    )
     run_parser.add_argument("--run-id", required=True)
     run_parser.add_argument("--project-name")
     run_parser.add_argument("--policy-port", type=int, default=8000)

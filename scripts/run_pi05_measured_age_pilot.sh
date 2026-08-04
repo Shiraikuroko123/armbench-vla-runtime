@@ -4,6 +4,7 @@ set -Eeuo pipefail
 readonly ARMBENCH_ROOT="${ARMBENCH_ROOT:?set ARMBENCH_ROOT to the ArmBench checkout}"
 readonly OPENPI_ROOT="${OPENPI_ROOT:?set OPENPI_ROOT to the pinned OpenPI checkout}"
 readonly RESULTS_ROOT="${RESULTS_ROOT:?set RESULTS_ROOT to a persistent results directory}"
+readonly OPENPI_DATA_HOME="${OPENPI_DATA_HOME:?set OPENPI_DATA_HOME to the populated persistent OpenPI asset cache}"
 readonly PYTHON_BIN="${PYTHON_BIN:-python3}"
 readonly RUN_ID="${RUN_ID:-pi05_libero_measured_age_pilot_001}"
 readonly RUN_DIRECTORY="${RESULTS_ROOT}/${RUN_ID}"
@@ -23,6 +24,13 @@ if [[ ! -d "$OPENPI_ROOT/.git" ]]; then
   echo "OPENPI_ROOT is not a Git checkout: $OPENPI_ROOT" >&2
   exit 66
 fi
+if [[ ! -f "$OPENPI_DATA_HOME/openpi-assets/checkpoints/pi05_libero/params/_METADATA" ]] || \
+   [[ ! -f "$OPENPI_DATA_HOME/openpi-assets/checkpoints/pi05_libero/params/manifest.ocdbt" ]] || \
+   [[ ! -d "$OPENPI_DATA_HOME/openpi-assets/checkpoints/pi05_libero/assets" ]]; then
+  echo "OPENPI_DATA_HOME does not contain a complete pi05_libero cache: $OPENPI_DATA_HOME" >&2
+  exit 66
+fi
+export OPENPI_DATA_HOME
 mkdir -p "$RESULTS_ROOT"
 if [[ -e "$RUN_DIRECTORY" ]] && [[ -n "$(find "$RUN_DIRECTORY" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]]; then
   echo "Run directory must be absent or empty: $RUN_DIRECTORY" >&2
@@ -89,6 +97,7 @@ set +e
   --openpi-root "$OPENPI_ROOT" \
   --armbench-root "$ARMBENCH_ROOT" \
   --results-root "$RESULTS_ROOT" \
+  --openpi-data-home "$OPENPI_DATA_HOME" \
   --run-id "$RUN_ID" \
   --no-build \
   --evaluator-args "$EVALUATOR_ARGS"

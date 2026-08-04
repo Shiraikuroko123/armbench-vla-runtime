@@ -17,6 +17,7 @@ from integrations.openpi.measured_age_compose_run import (
     _compose_prefix,
     _normalize_evaluator_args,
     _resolved_project_name,
+    _validated_openpi_data_home,
     _validated_run_directory,
     build_manifest_files,
     finalize_run,
@@ -210,12 +211,35 @@ def test_run_directory_project_name_and_argument_guards(tmp_path):
         _normalize_evaluator_args("--task-ids 0; touch /tmp/forged")
 
 
+def test_openpi_data_home_requires_populated_pi05_cache(tmp_path):
+    with pytest.raises(ValueError, match="required"):
+        _validated_openpi_data_home(None)
+    with pytest.raises(ValueError, match="complete pi05_libero cache"):
+        _validated_openpi_data_home(tmp_path)
+
+    checkpoint = (
+        tmp_path
+        / "openpi-assets"
+        / "checkpoints"
+        / "pi05_libero"
+    )
+    (checkpoint / "params").mkdir(parents=True)
+    (checkpoint / "params" / "_METADATA").write_text("metadata", encoding="ascii")
+    (checkpoint / "params" / "manifest.ocdbt").write_text(
+        "manifest", encoding="ascii"
+    )
+    (checkpoint / "assets").mkdir()
+
+    assert _validated_openpi_data_home(tmp_path) == tmp_path.resolve()
+
+
 def test_execute_run_stops_compose_before_finalizing(tmp_path, monkeypatch):
     events = []
     args = SimpleNamespace(
         openpi_root=tmp_path / "openpi",
         armbench_root=tmp_path / "armbench",
         results_root=tmp_path / "results",
+        openpi_data_home=tmp_path / "openpi-data",
         run_id="measured-run",
         policy_port=8000,
         server_wait_attempts=3,
@@ -227,6 +251,18 @@ def test_execute_run_stops_compose_before_finalizing(tmp_path, monkeypatch):
     )
     args.openpi_root.mkdir()
     args.armbench_root.mkdir()
+    checkpoint = (
+        args.openpi_data_home
+        / "openpi-assets"
+        / "checkpoints"
+        / "pi05_libero"
+    )
+    (checkpoint / "params").mkdir(parents=True)
+    (checkpoint / "params" / "_METADATA").write_text("metadata", encoding="ascii")
+    (checkpoint / "params" / "manifest.ocdbt").write_text(
+        "manifest", encoding="ascii"
+    )
+    (checkpoint / "assets").mkdir()
     monkeypatch.setattr(compose_run, "collect_facts", lambda *args, **kwargs: {})
     monkeypatch.setattr(compose_run, "evaluate_preflight", lambda facts: {"ready": True})
 
@@ -234,6 +270,9 @@ def test_execute_run_stops_compose_before_finalizing(tmp_path, monkeypatch):
         if argv[-3:] == ["config", "--format", "json"]:
             events.append("config")
             assert environment["ARMBENCH_MEASURED_AGE_ARGS"] == "--warmup-queries 3"
+            assert environment["OPENPI_DATA_HOME"] == str(
+                args.openpi_data_home.resolve()
+            )
             record = _process_record()
             record["stdout"] = json.dumps({"services": {}})
             return record
@@ -264,6 +303,7 @@ def test_execute_run_finalizes_after_stream_failure(tmp_path, monkeypatch):
         openpi_root=tmp_path / "openpi",
         armbench_root=tmp_path / "armbench",
         results_root=tmp_path / "results",
+        openpi_data_home=tmp_path / "openpi-data",
         run_id="stream-failure",
         policy_port=8000,
         server_wait_attempts=3,
@@ -275,6 +315,18 @@ def test_execute_run_finalizes_after_stream_failure(tmp_path, monkeypatch):
     )
     args.openpi_root.mkdir()
     args.armbench_root.mkdir()
+    checkpoint = (
+        args.openpi_data_home
+        / "openpi-assets"
+        / "checkpoints"
+        / "pi05_libero"
+    )
+    (checkpoint / "params").mkdir(parents=True)
+    (checkpoint / "params" / "_METADATA").write_text("metadata", encoding="ascii")
+    (checkpoint / "params" / "manifest.ocdbt").write_text(
+        "manifest", encoding="ascii"
+    )
+    (checkpoint / "assets").mkdir()
     monkeypatch.setattr(compose_run, "collect_facts", lambda *args, **kwargs: {})
     monkeypatch.setattr(compose_run, "evaluate_preflight", lambda facts: {"ready": True})
 
