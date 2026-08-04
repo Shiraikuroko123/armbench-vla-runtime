@@ -20,6 +20,11 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 import numpy as np
 
+from integrations.openpi.action_chunk_transition import (
+    ARCHIVE_SCHEMA_VERSION,
+    ActionChunkTransition,
+    write_transition_archive,
+)
 from integrations.openpi.libero_runtime_eval import (
     BoundedOpenPIClient,
     SUITE_MAX_STEPS,
@@ -46,6 +51,9 @@ from integrations.openpi.serve_policy_attested import (
     policy_conditioning_contract,
     policy_sampling_contract,
 )
+from integrations.openpi.validate_projected_overlap_artifact import (
+    validate_artifact as validate_transition_artifact,
+)
 
 
 SCHEMA_VERSION = "armbench.pi05_projected_overlap_pilot.v1"
@@ -53,11 +61,14 @@ DEFAULT_CHECKPOINT_CONTENT_SHA256 = (
     "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5"
 )
 SOURCE_FILES = (
+    "integrations/openpi/action_chunk_transition.py",
+    "integrations/openpi/libero_runtime.py",
     "integrations/openpi/projected_overlap_runtime.py",
     "integrations/openpi/projected_overlap_pilot.py",
     "integrations/openpi/realtime_chunking.py",
     "integrations/openpi/serve_policy_attested.py",
     "integrations/openpi/patches/projected_conditioning_v1.json",
+    "integrations/openpi/validate_projected_overlap_artifact.py",
 )
 
 
@@ -465,6 +476,8 @@ def execute(args: argparse.Namespace, cells: Sequence[PilotCell]) -> int:
     )
     episodes: List[Dict[str, Any]] = []
     queries: List[Dict[str, Any]] = []
+    transitions: List[ActionChunkTransition] = []
+    transition_rows: List[Dict[str, Any]] = []
     try:
         metadata = client.get_server_metadata()
         attestation = _validate_server_metadata(metadata, armbench_root)
@@ -575,12 +588,25 @@ def execute(args: argparse.Namespace, cells: Sequence[PilotCell]) -> int:
                         "video_path": video_path,
                     }
                     episodes.append(episode)
-                    for record in result.query_records:
+                    if len(result.query_records) != len(result.transition_records):
+                        raise RuntimeError("query and transition record counts diverged")
+                    for record, transition in zip(
+                        result.query_records, result.transition_records
+                    ):
                         queries.append(
                             {
                                 "schema_version": SCHEMA_VERSION,
                                 **cell.to_dict(),
                                 **record.to_dict(),
+                            }
+                        )
+                        transitions.append(transition)
+                        transition_rows.append(
+                            {
+                                "episode_id": cell.episode_id,
+                                "pair_id": cell.pair_id,
+                                "method": cell.method,
+                                "query_index": record.query_index,
                             }
                         )
                     _write_json(output / "episodes.json", episodes)
@@ -603,6 +629,40 @@ def execute(args: argparse.Namespace, cells: Sequence[PilotCell]) -> int:
     finally:
         client.close()
 
+    archive_path = output / "transitions.npz"
+    write_transition_archive(archive_path, transitions)
+    adapter_source = "integrations/openpi/libero_runtime.py"
+    _write_json(
+        output / "transition_descriptor.json",
+        {
+            "schema_version": ARCHIVE_SCHEMA_VERSION,
+            "policy": {
+                "family": "pi0.5",
+                "config": "pi05_libero",
+                "checkpoint": DEFAULT_CHECKPOINT,
+                "checkpoint_content_sha256": DEFAULT_CHECKPOINT_CONTENT_SHA256,
+            },
+            "action_adapter": {
+                "name": "openpi.pi05_libero.raw_action_v1",
+                "version": 1,
+                "action_space_id": "libero.ee_delta_pose_gripper.v1",
+                "source": adapter_source,
+                "source_sha256": source_hashes[adapter_source],
+            },
+            "scheduler": {
+                "action_horizon": 10,
+                "action_dim": 7,
+                "execute_horizon": args.execute_horizon,
+                "inference_delay": args.inference_delay_steps,
+            },
+            "archive": {
+                "path": "transitions.npz",
+                "bytes": archive_path.stat().st_size,
+                "sha256": _sha256_file(archive_path),
+            },
+            "rows": transition_rows,
+        },
+    )
     summary = summarize(episodes, queries)
     _write_json(output / "summary.json", summary)
     (output / "summary.md").write_text(
@@ -708,6 +768,7 @@ def validate_artifact(output: pathlib.Path) -> Dict[str, Any]:
     recomputed = summarize(episodes, queries)
     if summary != recomputed:
         raise PilotValidationError("pilot summary is not reproducible")
+    validate_transition_artifact(output)
     return summary
 
 

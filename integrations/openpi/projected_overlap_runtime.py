@@ -3,13 +3,17 @@
 from __future__ import annotations
 
 import dataclasses
-import hashlib
 import math
 import time
 from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
 import numpy as np
 
+from integrations.openpi.action_chunk_transition import (
+    ActionChunkTransition,
+    build_action_chunk_transition,
+    canonical_action_sha256,
+)
 from integrations.openpi.libero_runtime import (
     LIBERO_ACTION_DIM,
     LIBERO_DUMMY_ACTION,
@@ -122,6 +126,7 @@ class OverlapEpisodeResult:
     bootstrap_queries: int
     conditioned_queries: int
     query_records: List[OverlapQueryRecord]
+    transition_records: List[ActionChunkTransition]
     replay_frames: List[np.ndarray]
     failure_stage: Optional[str] = None
     failure_type: Optional[str] = None
@@ -130,12 +135,8 @@ class OverlapEpisodeResult:
     def to_dict(self) -> Dict[str, Any]:
         value = dataclasses.asdict(self)
         value.pop("replay_frames")
+        value.pop("transition_records")
         return value
-
-
-def _actions_sha256(actions: np.ndarray) -> str:
-    canonical = np.asarray(actions, dtype="<f4", order="C")
-    return hashlib.sha256(canonical.tobytes(order="C")).hexdigest()
 
 
 def _environment_step(
@@ -249,6 +250,7 @@ def run_overlap_episode(
     clock: Callable[[], float] = time.perf_counter,
 ) -> OverlapEpisodeResult:
     query_records: List[OverlapQueryRecord] = []
+    transition_records: List[ActionChunkTransition] = []
     replay_frames: List[np.ndarray] = []
     reference: Optional[np.ndarray] = None
     environment_steps = 0
@@ -273,6 +275,7 @@ def run_overlap_episode(
             bootstrap_queries=sum(record.bootstrap for record in query_records),
             conditioned_queries=conditioned_queries,
             query_records=query_records,
+            transition_records=transition_records,
             replay_frames=replay_frames,
             failure_stage=failure_stage,
             failure_type=None if failure is None else type(failure).__name__,
@@ -420,6 +423,17 @@ def run_overlap_episode(
                 failure=exc,
             )
 
+        transition_records.append(
+            build_action_chunk_transition(
+                reference,
+                response_actions,
+                next_reference,
+                inference_delay=config.inference_delay_steps,
+                execute_horizon=config.execute_horizon,
+                executed_old=executed_old,
+                executed_new=executed_new,
+            )
+        )
         query_records.append(
             OverlapQueryRecord(
                 query_index=query_index,
@@ -430,8 +444,8 @@ def run_overlap_episode(
                 inference_latency_ms=inference_latency_ms,
                 policy_inference_latency_ms=policy_ms,
                 server_inference_latency_ms=server_ms,
-                response_action_sha256=_actions_sha256(response_actions),
-                next_reference_sha256=_actions_sha256(next_reference),
+                response_action_sha256=canonical_action_sha256(response_actions),
+                next_reference_sha256=canonical_action_sha256(next_reference),
                 sampling_key_sha256=sampling_key,
                 sampling_noise_sha256=sampling_noise,
                 condition_raw_actions_sha256=condition_raw_hash,
