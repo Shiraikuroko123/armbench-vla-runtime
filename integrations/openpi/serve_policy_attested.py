@@ -141,7 +141,7 @@ def _write_json(path: pathlib.Path, value: Mapping[str, Any]) -> None:
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
     parser.add_argument("--policy-config", default=DEFAULT_POLICY_CONFIG)
     parser.add_argument("--checkpoint", default=DEFAULT_CHECKPOINT)
     parser.add_argument("--openpi-root", default="/app")

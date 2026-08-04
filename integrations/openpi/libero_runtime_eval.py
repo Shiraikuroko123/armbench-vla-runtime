@@ -2482,12 +2482,18 @@ def _add_matrix_arguments(parser: argparse.ArgumentParser) -> None:
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
     subparsers = parser.add_subparsers(dest="command", required=True)
-    plan_parser = subparsers.add_parser("plan", help="Resolve matrix size without loading LIBERO")
+    plan_parser = subparsers.add_parser(
+        "plan",
+        help="Resolve matrix size without loading LIBERO",
+        allow_abbrev=False,
+    )
     _add_matrix_arguments(plan_parser)
 
-    run_parser = subparsers.add_parser("run", help="Execute the resolved matrix")
+    run_parser = subparsers.add_parser(
+        "run", help="Execute the resolved matrix", allow_abbrev=False
+    )
     _add_matrix_arguments(run_parser)
     run_parser.add_argument("--output-dir", required=True)
     run_parser.add_argument("--host", default="0.0.0.0")
