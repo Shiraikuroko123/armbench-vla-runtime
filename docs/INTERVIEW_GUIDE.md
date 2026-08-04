@@ -109,9 +109,35 @@ action chunk. ArmBench is the runtime around that policy: it creates the request
 transports it, validates the reply, handles deadlines, checks execution
 constraints, applies or rejects actions, and measures the physical result.
 
-The project has one-shot and closed-loop OpenPI client paths, but the tracked
-experiments use non-learned sources. Therefore "OpenPI-compatible" is correct;
-"deployed pi0.5" is not yet correct.
+The formal LIBERO path loads the attested official `pi05_libero` checkpoint and
+runs it in a closed-loop simulator, so "deployed and evaluated the frozen pi0.5
+checkpoint in LIBERO" is correct. The separate local Panda/DROID path still
+uses scripted non-learned action sources in its tracked physics experiments.
+Neither path trained or fine-tuned pi0.5, and neither is a real-robot
+deployment.
+
+### Why did you not use reinforcement learning?
+
+The research question is a runtime synchronization failure, not policy
+learning: after inference consumes four control periods, the first four actions
+in the returned chunk refer to states the environment has already passed. A
+deterministic suffix alignment is therefore the direct baseline and does not
+need to modify pi0.5. Adding PPO by itself would not make the causal claim
+stronger; it would introduce training variance and a second source of behavior.
+
+This means the project is strongest for VLA deployment, runtime, evaluation,
+and embodied-systems roles. It is not a substitute for a model-training project
+when applying specifically to VLA pretraining, fine-tuning, or RL research.
+
+A defensible learned extension is a frozen-VLA query-level scheduler. At each
+pi0.5 response it would choose to execute an aligned prefix of 1, 3, or 5
+actions, or hold and refresh, with a success-versus-query-cost objective. That
+is a sequential decision problem suitable for PPO because the choice changes
+later observations and query count. It requires new online rollouts, held-out
+tasks/suites, multiple training seeds, and fixed non-learned scheduler
+baselines. The existing query logs do not contain full action chunks,
+restorable simulator states, or counterfactual outcomes, so they must not be
+described as an offline-RL dataset.
 
 ### Why use the `pi05_droid` contract?
 
