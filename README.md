@@ -436,7 +436,48 @@ requires aligned image/state/gripper/prompt fields. Any missing, malformed, or
 inconsistent field exits with an error. This detects accidental corruption and
 incomplete evidence, not intentional tampering or physical safety.
 
-## Real OpenPI probe and closed loop
+## Formal pi0.5-LIBERO study
+
+The official `pi05_libero` checkpoint study is a separate Linux/NVIDIA
+container workflow from the MuJoCo DROID loop above. Its preregistered matrix,
+budget gates, claim boundaries, and acceptance criteria are defined in
+[`docs/PI05_LIBERO_STUDY.md`](docs/PI05_LIBERO_STUDY.md). No attested
+real-checkpoint rollout is tracked yet.
+
+Run the two-rollout paid smoke test from a pinned OpenPI checkout:
+
+```bash
+export OPENPI_ROOT=/workspace/openpi
+export ARMBENCH_ROOT=/workspace/armbench/project
+export ARMBENCH_RESULTS_ROOT=/workspace/armbench-results
+export OPENPI_DATA_HOME=/workspace/openpi-cache
+
+mkdir -p "$ARMBENCH_RESULTS_ROOT" "$OPENPI_DATA_HOME"
+cd "$ARMBENCH_ROOT"
+
+python3 -m integrations.openpi.libero_compose_run run \
+  --openpi-root "$OPENPI_ROOT" \
+  --armbench-root "$ARMBENCH_ROOT" \
+  --results-root "$ARMBENCH_RESULTS_ROOT" \
+  --run-id pi05_libero_smoke_001 \
+  --libero-args "--task-suite libero_spatial --task-ids 0 --episode-indices 0:2 --modes async_unguarded --replan-steps 5 --latency-steps 0 --seed 7 --video-mode all"
+```
+
+`run` performs preflight, launches the attested server and evaluator through
+the pinned Compose configuration, stops Compose, independently validates the
+evaluation artifact, and finalizes the root manifest.
+
+```bash
+RUN_DIRECTORY="$ARMBENCH_RESULTS_ROOT/pi05_libero_smoke_001"
+
+python3 -m integrations.openpi.libero_compose_run validate "$RUN_DIRECTORY"
+
+# Optional inner-artifact diagnostic; root validation already runs this check.
+python3 -m integrations.openpi.validate_libero_artifact \
+  "$RUN_DIRECTORY/evaluation" --json
+```
+
+## Low-level OpenPI DROID probe and MuJoCo closed loop
 
 Run the official server on an Ubuntu/NVIDIA machine using the pinned OpenPI
 checkout and its documented `uv` environment:
