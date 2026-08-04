@@ -1417,6 +1417,20 @@ def artifact_integrity_errors(
     expected_cells: Optional[Sequence[ExperimentCell]] = None,
 ) -> List[str]:
     errors = []
+    run_error_path = output_directory / "run_error.json"
+    if run_error_path.is_file():
+        try:
+            run_error = json.loads(run_error_path.read_text(encoding="utf-8"))
+            recorded_errors = run_error.get("errors") if isinstance(run_error, Mapping) else None
+            if not isinstance(recorded_errors, list) or not recorded_errors:
+                errors.append("run_error.json does not contain a non-empty errors list")
+            else:
+                errors.append(
+                    "runtime/teardown errors recorded in run_error.json: %d"
+                    % len(recorded_errors)
+                )
+        except (OSError, ValueError):
+            errors.append("run_error.json is not valid readable JSON")
     episode_ids = [str(row["episode_id"]) for row in episodes]
     if len(episode_ids) != len(set(episode_ids)):
         errors.append("episode_id values are not unique")
@@ -1554,6 +1568,40 @@ def _write_manifest(output_directory: pathlib.Path) -> None:
             "schema_version": SCHEMA_VERSION,
             "created_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
             "files": files,
+        },
+    )
+
+
+def _append_run_error(
+    output_directory: pathlib.Path,
+    *,
+    stage: str,
+    error: BaseException,
+) -> None:
+    path = output_directory / "run_error.json"
+    errors: List[Dict[str, Any]] = []
+    if path.is_file():
+        try:
+            existing = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(existing, Mapping) and isinstance(existing.get("errors"), list):
+                errors.extend(
+                    item for item in existing["errors"] if isinstance(item, Mapping)
+                )
+        except (OSError, ValueError):
+            errors = []
+    errors.append(
+        {
+            "stage": stage,
+            "type": type(error).__name__,
+            "message": str(error),
+        }
+    )
+    _write_json(
+        path,
+        {
+            "schema_version": SCHEMA_VERSION,
+            "errors": errors,
+            "recorded_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
         },
     )
 
@@ -2037,41 +2085,29 @@ def execute_benchmark(args: argparse.Namespace, cells: Sequence[ExperimentCell])
         )
 
     _prepare_output_directory(output_directory)
-    snapshot_runtime_sources(armbench_root, output_directory)
-    log_path = output_directory / "run.log"
-    file_handler = logging.FileHandler(str(log_path), encoding="utf-8")
-    file_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
-    logging.getLogger().addHandler(file_handler)
-    np.random.seed(args.seed)
-
+    file_handler: Optional[logging.FileHandler] = None
+    client: Optional[BoundedOpenPIClient] = None
+    exit_code = 2
+    stage = "runtime_setup"
     try:
+        snapshot_runtime_sources(armbench_root, output_directory)
+        log_path = output_directory / "run.log"
+        file_handler = logging.FileHandler(str(log_path), encoding="utf-8")
+        file_handler.setFormatter(
+            logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+        )
+        logging.getLogger().addHandler(file_handler)
+        np.random.seed(args.seed)
+
+        stage = "policy_client_startup"
         client = BoundedOpenPIClient(
             args.host,
             args.port,
             startup_timeout_s=args.server_startup_timeout_s,
             inference_timeout_s=args.inference_timeout_s,
         )
-    except Exception as exc:
-        logging.exception("OpenPI client startup failed")
-        _write_json(
-            output_directory / "run_error.json",
-            {
-                "schema_version": SCHEMA_VERSION,
-                "errors": [
-                    {
-                        "stage": "policy_client_startup",
-                        "type": type(exc).__name__,
-                        "message": str(exc),
-                    }
-                ],
-                "recorded_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
-            },
-        )
-        _write_manifest(output_directory)
-        return 2
-
-    try:
-        return _execute_connected_benchmark(
+        stage = "connected_benchmark"
+        exit_code = _execute_connected_benchmark(
             args,
             cells,
             output_directory,
@@ -2079,11 +2115,27 @@ def execute_benchmark(args: argparse.Namespace, cells: Sequence[ExperimentCell])
             armbench_root,
             client,
         )
+    except Exception as exc:
+        logging.exception("LIBERO evaluation failed during %s", stage)
+        _append_run_error(output_directory, stage=stage, error=exc)
+        exit_code = 2
     finally:
-        try:
-            client.close()
-        except Exception:
-            logging.exception("OpenPI client close failed")
+        if client is not None:
+            try:
+                client.close()
+            except Exception as exc:
+                logging.exception("OpenPI client close failed")
+                _append_run_error(
+                    output_directory,
+                    stage="policy_client_close",
+                    error=exc,
+                )
+                exit_code = 2
+        if file_handler is not None:
+            logging.getLogger().removeHandler(file_handler)
+            file_handler.close()
+        _write_manifest(output_directory)
+    return exit_code
 
 
 def _add_matrix_arguments(parser: argparse.ArgumentParser) -> None:

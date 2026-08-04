@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 
 import numpy as np
+
+import integrations.openpi.libero_runtime_eval as runtime_eval
 
 from integrations.openpi.libero_runtime import (
     ASYNC_UNGUARDED,
@@ -24,6 +27,7 @@ from integrations.openpi.libero_runtime_eval import (
     artifact_integrity_errors,
     build_matrix,
     episode_rows,
+    execute_benchmark,
     matrix_plan,
     matched_condition_contrasts,
     paired_comparisons,
@@ -418,6 +422,17 @@ def test_integrity_rejects_mismatched_pair_and_missing_required_video(tmp_path) 
     assert any("required video missing" in error for error in errors)
 
 
+def test_integrity_rejects_recorded_runtime_error(tmp_path) -> None:
+    (tmp_path / "run_error.json").write_text(
+        json.dumps({"errors": [{"stage": "environment_close"}]}),
+        encoding="utf-8",
+    )
+
+    errors = artifact_integrity_errors(tmp_path, [])
+
+    assert any("runtime/teardown errors recorded" in error for error in errors)
+
+
 def test_infrastructure_failure_is_excluded_from_efficacy_pair() -> None:
     baseline_row, baseline_queries = episode_rows(
         _cell(ASYNC_UNGUARDED, 0),
@@ -460,3 +475,58 @@ def test_infrastructure_failure_is_excluded_from_efficacy_pair() -> None:
     assert comparison["excluded_infrastructure_pairs"] == 1
     assert comparison["success_rate_difference"] == 1.0
     assert comparison["per_protocol_success_rate_difference"] is None
+
+
+def test_execute_benchmark_finalizes_unhandled_failure_artifacts(
+    tmp_path, monkeypatch
+) -> None:
+    class Args:
+        output_dir = str(tmp_path / "run")
+        openpi_root = str(tmp_path / "openpi")
+        armbench_root = str(tmp_path / "armbench")
+        expected_openpi_commit = "a" * 40
+        allow_commit_mismatch = False
+        host = "localhost"
+        port = 8000
+        server_startup_timeout_s = 1.0
+        inference_timeout_s = 1.0
+        seed = 7
+
+    class Client:
+        instances = []
+
+        def __init__(self, *args, **kwargs):
+            self.closed = False
+            self.instances.append(self)
+
+        def close(self):
+            self.closed = True
+
+    monkeypatch.setattr(runtime_eval, "_command_output", lambda *args, **kwargs: "a" * 40)
+    monkeypatch.setattr(runtime_eval, "snapshot_runtime_sources", lambda *args: None)
+    monkeypatch.setattr(runtime_eval, "BoundedOpenPIClient", Client)
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("bad attestation")
+
+    monkeypatch.setattr(runtime_eval, "_execute_connected_benchmark", fail)
+
+    assert execute_benchmark(Args(), []) == 2
+    assert Client.instances[0].closed
+    output = tmp_path / "run"
+    run_error = json.loads((output / "run_error.json").read_text(encoding="utf-8"))
+    assert run_error["errors"] == [
+        {
+            "stage": "connected_benchmark",
+            "type": "RuntimeError",
+            "message": "bad attestation",
+        }
+    ]
+    manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+    assert {"run.log", "run_error.json"} <= set(manifest["files"])
+    for relative, record in manifest["files"].items():
+        assert hashlib.sha256((output / relative).read_bytes()).hexdigest() == record["sha256"]
+
+    log_before = (output / "run.log").read_bytes()
+    logging.getLogger().warning("must not mutate finalized run log")
+    assert (output / "run.log").read_bytes() == log_before
