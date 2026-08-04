@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+from types import SimpleNamespace
+
+import integrations.openpi.serve_policy_attested as attested
 
 from integrations.openpi.serve_policy_attested import (
+    _command_output,
     _submodules_are_clean,
     checkpoint_content_manifest,
     public_attestation,
@@ -53,3 +57,20 @@ def test_submodule_status_rejects_uninitialized_or_modified_entries() -> None:
     assert _submodules_are_clean(" abc123 submodule (heads/main)")
     assert not _submodules_are_clean("-abc123 submodule")
     assert not _submodules_are_clean("+abc123 submodule (heads/main-1-gabc123)")
+
+
+def test_command_output_preserves_git_submodule_status_prefix(
+    tmp_path, monkeypatch
+) -> None:
+    monkeypatch.setattr(
+        attested.subprocess,
+        "run",
+        lambda *args, **kwargs: SimpleNamespace(
+            stdout=" abc123 first\n def456 second\n"
+        ),
+    )
+
+    status = _command_output(("git", "submodule", "status"), tmp_path)
+
+    assert status == " abc123 first\n def456 second"
+    assert _submodules_are_clean(status)

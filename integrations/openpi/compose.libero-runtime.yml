@@ -23,9 +23,11 @@ services:
         --host 0.0.0.0
         --port ${ARMBENCH_POLICY_PORT:-8000}
       ARMBENCH_SERVER_WAIT_ATTEMPTS: "${ARMBENCH_SERVER_WAIT_ATTEMPTS:-360}"
-      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_COUNT: "2"
       GIT_CONFIG_KEY_0: "safe.directory"
       GIT_CONFIG_VALUE_0: "/app"
+      GIT_CONFIG_KEY_1: "safe.directory"
+      GIT_CONFIG_VALUE_1: "/armbench"
       PYTHONPATH: /armbench:/app:/app/packages/openpi-client/src:/app/third_party/libero
     command:
       - /bin/bash

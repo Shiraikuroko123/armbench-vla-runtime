@@ -29,7 +29,7 @@ def _command_output(command: Sequence[str], cwd: pathlib.Path) -> str:
         text=True,
         timeout=30,
     )
-    return completed.stdout.strip()
+    return completed.stdout.rstrip("\r\n")
 
 
 def _submodules_are_clean(status: str) -> bool:
