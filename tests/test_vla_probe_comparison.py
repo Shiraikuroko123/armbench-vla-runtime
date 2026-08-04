@@ -9,6 +9,11 @@ import imageio.v2 as imageio
 import numpy as np
 import pytest
 
+from armbench.vla.probe_batch_comparison import (
+    BOOTSTRAP_RESAMPLES,
+    BOOTSTRAP_SEED,
+    execute_recorded_probe_batch_comparison,
+)
 from armbench.vla.probe_comparison import (
     ProbeComparisonValidationError,
     execute_recorded_probe_comparison,
@@ -221,3 +226,99 @@ def test_comparison_validator_rejects_tampered_actions(
         match="left raw action SHA-256 mismatch",
     ):
         validate_recorded_probe_comparison(output)
+
+
+def test_batch_comparison_pairs_exact_request_cohorts(tmp_path: Path) -> None:
+    left_root = tmp_path / "left_cohort"
+    right_root = tmp_path / "right_cohort"
+    left_root.mkdir()
+    right_root.mkdir()
+    for index, difference in enumerate((0.1, 0.2)):
+        request_hash = f"{index + 1:x}" * 64
+        left_actions = np.full((15, 8), index * 0.05, dtype=np.float64)
+        right_actions = left_actions + difference
+        _write_probe(
+            left_root / f"query_{index}",
+            left_actions,
+            request_hash=request_hash,
+            latency_ms=10.0 + index,
+            interventions=index,
+        )
+        _write_probe(
+            right_root / f"query_{index}",
+            right_actions,
+            request_hash=request_hash,
+            latency_ms=14.0 + index,
+            interventions=index + 2,
+        )
+
+    output = tmp_path / "batch_comparison"
+    execute_recorded_probe_batch_comparison(
+        left_root,
+        right_root,
+        output,
+        left_label="pi0 cohort",
+        right_label="pi0.5 cohort",
+    )
+
+    batch = json.loads((output / "batch.json").read_text(encoding="utf-8"))
+    assert batch["pair_count"] == 2
+    assert batch["aggregate"]["raw_action_rmse"]["mean"] == pytest.approx(
+        0.15
+    )
+    assert batch["aggregate"]["raw_action_rmse"]["median"] == pytest.approx(
+        0.15
+    )
+    assert batch["aggregate"]["left_total_guard_intervention_steps"] == 1
+    assert batch["aggregate"]["right_total_guard_intervention_steps"] == 5
+    assert batch["aggregate"]["mean_latency_delta_ms"] == pytest.approx(4.0)
+    assert batch["bootstrap"]["seed"] == BOOTSTRAP_SEED
+    assert batch["bootstrap"]["resamples"] == BOOTSTRAP_RESAMPLES
+    assert batch["physics_executed"] is False
+    assert batch["checkpoint_identity_verified"] is False
+    with (output / "per_pair.csv").open(
+        encoding="utf-8", newline=""
+    ) as handle:
+        rows = list(csv.DictReader(handle))
+    assert len(rows) == 2
+    for row in rows:
+        child = output / row["child_comparison"]
+        validation = validate_recorded_probe_comparison(child)
+        assert validation.artifact_sha256 == row["child_artifact_sha256"]
+    overview = imageio.imread(output / "overview.png")
+    assert overview.ndim == 3
+    assert float(overview.std()) > 1.0
+    summary = (output / "summary.md").read_text(encoding="utf-8")
+    assert "fixed request cohort" in summary
+    assert "Physics executed: `false`" in summary
+
+
+def test_batch_comparison_rejects_unmatched_request_sets(
+    tmp_path: Path,
+) -> None:
+    left_root = tmp_path / "left_cohort"
+    right_root = tmp_path / "right_cohort"
+    left_root.mkdir()
+    right_root.mkdir()
+    actions = np.zeros((15, 8), dtype=np.float64)
+    _write_probe(
+        left_root / "left_only",
+        actions,
+        request_hash="a" * 64,
+        latency_ms=10.0,
+        interventions=0,
+    )
+    _write_probe(
+        right_root / "right_only",
+        actions,
+        request_hash="b" * 64,
+        latency_ms=10.0,
+        interventions=0,
+    )
+    output = tmp_path / "batch_comparison"
+
+    with pytest.raises(ValueError, match="same request payloads"):
+        execute_recorded_probe_batch_comparison(
+            left_root, right_root, output
+        )
+    assert not output.exists()

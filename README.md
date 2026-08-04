@@ -479,6 +479,11 @@ MuJoCo, probe one replayable request:
 
 & $ArmbenchPython -m armbench vla-recorded-probe-compare-validate `
   'results\pi0_vs_pi05_query_1'
+
+& $ArmbenchPython -m armbench vla-recorded-probe-batch-compare `
+  'results\pi0_probe_cohort' 'results\pi05_probe_cohort' `
+  --left-label 'pi0 server' --right-label 'pi0.5 server' `
+  --output-directory 'results\pi0_vs_pi05_cohort_001'
 ```
 
 The output stores the fixed input payload SHA, validated raw 15x8 action SHA,
@@ -504,6 +509,15 @@ arrays to recompute every aggregate, dimension, and CSV step metric and checks
 file hashes plus plot decoding. This makes the response-difference report
 auditable after the servers stop; retain the original replay artifact to inspect
 the request content behind its matched payload SHA.
+
+For more than a one-request demonstration, place each model/server's validated
+probe directories under a separate cohort root and run the batch comparator.
+It recursively indexes probes by the full request payload SHA, rejects missing
+or duplicate matches, generates one independently validated child comparison
+per request, and reports mean/median/P95/max plus a deterministic 10,000-sample
+bootstrap interval. The interval describes only the fixed paired request cohort;
+it is not a task-success confidence interval, and correlated frames are not
+independent trials.
 
 `probe.json` is written only after a remote response passes shape validation and
 the guard runs. It records `remote_policy_response_validated: true`, server

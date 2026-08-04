@@ -201,6 +201,27 @@
       "justMyCode": true
     },
     {
+      "name": "ArmBench: compare recorded probe cohorts",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "armbench",
+      "args": [
+        "vla-recorded-probe-batch-compare",
+        "${input:leftProbeCohortRoot}",
+        "${input:rightProbeCohortRoot}",
+        "--left-label",
+        "server A",
+        "--right-label",
+        "server B",
+        "--output-directory",
+        "results/${input:probeBatchComparisonRunId}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "ArmBench: OpenPI loopback timeout fault",
       "type": "debugpy",
       "request": "launch",
@@ -365,6 +386,24 @@
       "type": "promptString",
       "description": "Paired probe comparison artifact directory",
       "default": "results/recorded_probe_comparison_01"
+    },
+    {
+      "id": "leftProbeCohortRoot",
+      "type": "promptString",
+      "description": "Left validated probe cohort root",
+      "default": "results/server_a_probe_cohort"
+    },
+    {
+      "id": "rightProbeCohortRoot",
+      "type": "promptString",
+      "description": "Right validated probe cohort root",
+      "default": "results/server_b_probe_cohort"
+    },
+    {
+      "id": "probeBatchComparisonRunId",
+      "type": "promptString",
+      "description": "New probe cohort comparison directory name",
+      "default": "probe_batch_comparison_01"
     },
     {
       "id": "openpiOnlineRunId",

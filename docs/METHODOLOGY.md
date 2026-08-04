@@ -162,6 +162,15 @@ reported response deltas reproducible without a live policy server. It does not
 embed the original camera request; request inspection continues to use the
 replayable source artifact identified by the matched payload SHA.
 
+`vla-recorded-probe-batch-compare` extends exact pairing to two artifact
+cohorts. It requires identical request-hash sets and exactly one response per
+hash on each side, validates every source and child comparison, then aggregates
+raw/guarded RMSE and paired latency/guard effects. Mean uncertainty uses a
+deterministic percentile bootstrap over request pairs (seed 20260804, 10,000
+resamples). This quantifies variation within the selected request cohort only:
+temporally adjacent observations may be correlated, and no success labels or
+physics outcomes are present.
+
 `vla-openpi-run` replaces the reference policy with the bounded transport built
 on official OpenPI serialization while retaining the same live physics loop. It
 records server metadata and separates attempted remote calls from validated

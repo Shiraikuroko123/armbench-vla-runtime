@@ -35,6 +35,9 @@ from armbench.vla.probe_comparison import (
     execute_recorded_probe_comparison,
     validate_recorded_probe_comparison,
 )
+from armbench.vla.probe_batch_comparison import (
+    execute_recorded_probe_batch_comparison,
+)
 from armbench.vla.request_replay import load_recorded_openpi_request
 from armbench.vla.replay_probe import (
     execute_recorded_openpi_probe,
@@ -485,6 +488,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="recompute a paired recorded-probe comparison artifact",
     )
     vla_recorded_probe_compare_validate.add_argument("directory", type=Path)
+    vla_recorded_probe_batch_compare = subparsers.add_parser(
+        "vla-recorded-probe-batch-compare",
+        help="pair and summarize two directories of recorded probe artifacts",
+    )
+    vla_recorded_probe_batch_compare.add_argument("left_root", type=Path)
+    vla_recorded_probe_batch_compare.add_argument("right_root", type=Path)
+    vla_recorded_probe_batch_compare.add_argument(
+        "--output-directory", type=Path, required=True
+    )
+    vla_recorded_probe_batch_compare.add_argument(
+        "--left-label", default="left"
+    )
+    vla_recorded_probe_batch_compare.add_argument(
+        "--right-label", default="right"
+    )
     return parser
 
 
@@ -709,6 +727,20 @@ def main(arguments: list[str] | None = None) -> int:
     if args.command == "vla-recorded-probe-compare-validate":
         result = validate_recorded_probe_comparison(args.directory)
         print(json.dumps(result.metrics(), indent=2, ensure_ascii=False))
+        return 0
+    if args.command == "vla-recorded-probe-batch-compare":
+        output = execute_recorded_probe_batch_comparison(
+            args.left_root,
+            args.right_root,
+            args.output_directory,
+            left_label=args.left_label,
+            right_label=args.right_label,
+        )
+        batch = json.loads(
+            (output / "batch.json").read_text(encoding="utf-8")
+        )
+        print(json.dumps(batch, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
         return 0
     planning_seeds = parse_seed_spec(args.seeds) if args.seeds else None
     control_seeds = (

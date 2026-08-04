@@ -317,6 +317,12 @@ request:
 
 & $ArmbenchPython -m armbench vla-recorded-probe-compare-validate `
   'results\recorded_probe_comparison_01'
+
+& $ArmbenchPython -m armbench vla-recorded-probe-batch-compare `
+  'results\server_a_probe_cohort' `
+  'results\server_b_probe_cohort' `
+  --left-label 'server A' --right-label 'server B' `
+  --output-directory 'results\probe_batch_comparison_01'
 ```
 
 Set breakpoints in `vla/request_replay.py`, `vla/policy.py`, and
@@ -345,6 +351,13 @@ dimensions, verifies report-file hashes, and decodes the plot. The response
 comparison is therefore locally auditable without reconnecting to either
 server. The original replay artifact is still required to reconstruct and view
 the request represented by the payload SHA.
+
+For a batch comparison, each cohort root may contain nested probe directories.
+The command accepts exactly one validated artifact per request SHA on each side;
+duplicates are ambiguous repeated samples and missing hashes break pairing, so
+both are explicit errors. Inspect `per_pair.csv`, then open each path in
+`child_comparison` and run the single-comparison validator when diagnosing an
+outlier. Bootstrap seed and resample count are stored in `batch.json`.
 
 ## 6. Debug the runtime guard
 
