@@ -5,16 +5,25 @@ import hashlib
 import json
 import pathlib
 
+import numpy as np
 import pytest
 
 from integrations.openpi.validate_measured_age_artifact import (
     EPISODE_FIELDS,
+    POLICY_SAMPLING_FIELDS,
     QUERY_FIELDS,
     RUNTIME_SOURCE_FILES,
     SCHEMA_VERSION,
     WARMUP_FIELDS,
     main,
     validate_artifact,
+)
+
+
+POLICY_SAMPLING_SCHEMA_VERSION = "armbench.policy_sampling.v1"
+POLICY_SAMPLING_TRACE_SCHEMA_VERSION = "armbench.policy_sampling_trace.v1"
+POLICY_SAMPLING_GENERATOR = (
+    "numpy_randomstate_mt19937_standard_normal_float32_v1"
 )
 
 
@@ -49,6 +58,69 @@ def _jitter(pairing, query_index: int, seed: int, candidates):
     return digest.hex(), candidates[int.from_bytes(digest[:8], "big") % len(candidates)]
 
 
+def _sampling_hashes(namespace: str, pairing, query_index: int, seed: int):
+    payload = json.dumps(
+        {
+            "schema_version": POLICY_SAMPLING_SCHEMA_VERSION,
+            "namespace": namespace,
+            "seed": seed,
+            "pairing_key": list(pairing),
+            "query_index": query_index,
+        },
+        ensure_ascii=True,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    key = hashlib.sha256(payload).hexdigest()
+    digest = bytes.fromhex(key)
+    words = [
+        int.from_bytes(digest[index : index + 4], "big")
+        for index in range(0, 32, 4)
+    ]
+    random = np.random.RandomState(words)
+    noise = np.asarray(random.standard_normal((10, 32)), dtype="<f4", order="C")
+    return key, hashlib.sha256(noise.tobytes(order="C")).hexdigest()
+
+
+def _sampling_contract(seed: int):
+    return {
+        "schema_version": POLICY_SAMPLING_SCHEMA_VERSION,
+        "trace_schema_version": POLICY_SAMPLING_TRACE_SCHEMA_VERSION,
+        "request_field": "armbench_policy_sampling",
+        "response_field": "armbench_policy_sampling",
+        "generator": POLICY_SAMPLING_GENERATOR,
+        "noise_shape": [10, 32],
+        "noise_dtype": "little-endian float32",
+        "mode_in_key": False,
+        "payload_fields": [
+            "schema_version",
+            "namespace",
+            "seed",
+            "pairing_key",
+            "query_index",
+        ],
+        "json_encoding": "utf-8 canonical sorted compact ASCII",
+        "namespaces": {
+            "scored": {
+                "pairing_key_fields": [
+                    "task_suite",
+                    "task_id",
+                    "episode_index",
+                    "replan_steps",
+                ]
+            },
+            "warmup": {
+                "pairing_key_fields": [
+                    "task_suite",
+                    "task_id",
+                    "episode_index",
+                ]
+            },
+        },
+        "seed": seed,
+    }
+
+
 def _refresh_manifest(root: pathlib.Path) -> None:
     files = {}
     for path in sorted(root.rglob("*")):
@@ -61,7 +133,7 @@ def _refresh_manifest(root: pathlib.Path) -> None:
     _write_json(root / "manifest.json", {"schema_version": SCHEMA_VERSION, "files": files})
 
 
-def _artifact(root: pathlib.Path) -> pathlib.Path:
+def _artifact(root: pathlib.Path, *, controlled_sampling: bool = True) -> pathlib.Path:
     root.mkdir()
     candidates = [40.0]
     seed = 7
@@ -213,6 +285,75 @@ def _artifact(root: pathlib.Path) -> pathlib.Path:
     _write_csv(root / "per_episode.csv", EPISODE_FIELDS, episodes)
     _write_csv(root / "per_query.csv", QUERY_FIELDS, queries)
 
+    if controlled_sampling:
+        sampling_rows = []
+        warmup_key, warmup_noise = _sampling_hashes(
+            "warmup", ("libero_spatial", 0, 49), 0, seed
+        )
+        sampling_rows.append(
+            {
+                "schema_version": POLICY_SAMPLING_TRACE_SCHEMA_VERSION,
+                "namespace": "warmup",
+                "episode_id": "",
+                "pair_id": "",
+                "condition_order": "",
+                "mode": "",
+                "task_suite": "libero_spatial",
+                "task_id": 0,
+                "episode_index": 49,
+                "replan_steps": "",
+                "query_index": 0,
+                "seed": seed,
+                "requested_key_sha256": warmup_key,
+                "expected_noise_sha256": warmup_noise,
+                "server_key_sha256": warmup_key,
+                "server_noise_sha256": warmup_noise,
+                "accepted": True,
+                "error_type": "",
+                "error_message": "",
+            }
+        )
+        for query in queries:
+            key, noise = _sampling_hashes(
+                "scored",
+                (
+                    query["task_suite"],
+                    query["task_id"],
+                    query["episode_index"],
+                    query["replan_steps"],
+                ),
+                query["query_index"],
+                seed,
+            )
+            sampling_rows.append(
+                {
+                    "schema_version": POLICY_SAMPLING_TRACE_SCHEMA_VERSION,
+                    "namespace": "scored",
+                    "episode_id": query["episode_id"],
+                    "pair_id": query["pair_id"],
+                    "condition_order": query["condition_order"],
+                    "mode": query["mode"],
+                    "task_suite": query["task_suite"],
+                    "task_id": query["task_id"],
+                    "episode_index": query["episode_index"],
+                    "replan_steps": query["replan_steps"],
+                    "query_index": query["query_index"],
+                    "seed": seed,
+                    "requested_key_sha256": key,
+                    "expected_noise_sha256": noise,
+                    "server_key_sha256": key,
+                    "server_noise_sha256": noise,
+                    "accepted": True,
+                    "error_type": "",
+                    "error_message": "",
+                }
+            )
+        _write_csv(
+            root / "policy_sampling.csv",
+            POLICY_SAMPLING_FIELDS,
+            sampling_rows,
+        )
+
     protocol = {
         "schema_version": SCHEMA_VERSION,
         "temporal_alignment": {
@@ -240,6 +381,9 @@ def _artifact(root: pathlib.Path) -> pathlib.Path:
             "queries": 1,
             "scored": False,
             "same_checkpoint_and_action_contract": True,
+            "task_suite": "libero_spatial",
+            "task_id": 0,
+            "episode_index": 49,
         },
         "matrix": {
             "schema_version": SCHEMA_VERSION,
@@ -257,6 +401,8 @@ def _artifact(root: pathlib.Path) -> pathlib.Path:
         "registered_cells": cells,
         "seed": seed,
     }
+    if controlled_sampling:
+        protocol["policy_sampling"] = _sampling_contract(seed)
     _write_json(root / "resolved_protocol.json", protocol)
     source_hashes = {}
     for index, relative in enumerate(RUNTIME_SOURCE_FILES):
@@ -338,11 +484,35 @@ def artifact(tmp_path: pathlib.Path) -> pathlib.Path:
     return _artifact(tmp_path / "artifact")
 
 
+@pytest.fixture
+def legacy_artifact(tmp_path: pathlib.Path) -> pathlib.Path:
+    return _artifact(tmp_path / "legacy", controlled_sampling=False)
+
+
 def test_valid_artifact_and_cli_json(artifact: pathlib.Path, capsys) -> None:
     report = validate_artifact(artifact)
     assert report.valid, "\n".join(report.errors)
+    assert not report.warnings
     assert main([str(artifact), "--json"]) == 0
     assert json.loads(capsys.readouterr().out)["valid"] is True
+
+
+def test_legacy_artifact_remains_valid_with_sampling_warning(
+    legacy_artifact: pathlib.Path,
+) -> None:
+    report = validate_artifact(legacy_artifact)
+    assert report.valid, "\n".join(report.errors)
+    assert any("policy RNG pairing cannot be verified" in item for item in report.warnings)
+
+
+def test_controlled_protocol_requires_policy_sampling_trace(
+    artifact: pathlib.Path,
+) -> None:
+    (artifact / "policy_sampling.csv").unlink()
+    _refresh_manifest(artifact)
+    report = validate_artifact(artifact)
+    assert not report.valid
+    assert any("cannot read policy_sampling.csv" in error for error in report.errors)
 
 
 def _tamper_csv(root: pathlib.Path, filename: str, field: str, value: str) -> None:
@@ -376,6 +546,57 @@ def test_resigned_jitter_tamper_is_recomputed(artifact: pathlib.Path) -> None:
     report = validate_artifact(artifact)
     assert not report.valid
     assert any("jitter key SHA-256 mismatch" in error for error in report.errors)
+
+
+@pytest.mark.parametrize(
+    ("field", "message"),
+    [
+        ("requested_key_sha256", "scored requested key mismatch"),
+        ("expected_noise_sha256", "scored expected noise mismatch"),
+        ("server_key_sha256", "scored server key echo mismatch"),
+        ("server_noise_sha256", "scored server noise echo mismatch"),
+    ],
+)
+def test_resigned_policy_sampling_tamper_is_recomputed(
+    artifact: pathlib.Path, field: str, message: str
+) -> None:
+    path = artifact / "policy_sampling.csv"
+    fields, rows = _read_csv(path)
+    rows[1][field] = "c" * 64
+    _write_csv(path, fields, rows)
+    _refresh_manifest(artifact)
+
+    report = validate_artifact(artifact)
+
+    assert not report.valid
+    assert any(message in error for error in report.errors)
+
+
+def test_warmup_policy_sampling_namespace_is_independent(
+    artifact: pathlib.Path,
+) -> None:
+    _tamper_csv(artifact, "policy_sampling.csv", "namespace", "scored")
+    report = validate_artifact(artifact)
+    assert not report.valid
+    assert any("warmup trace coverage" in error for error in report.errors)
+
+
+def test_matched_modes_must_share_policy_sampling_noise(
+    artifact: pathlib.Path,
+) -> None:
+    path = artifact / "policy_sampling.csv"
+    fields, rows = _read_csv(path)
+    rows[2]["requested_key_sha256"] = "d" * 64
+    rows[2]["expected_noise_sha256"] = "e" * 64
+    rows[2]["server_key_sha256"] = "d" * 64
+    rows[2]["server_noise_sha256"] = "e" * 64
+    _write_csv(path, fields, rows)
+    _refresh_manifest(artifact)
+
+    report = validate_artifact(artifact)
+
+    assert not report.valid
+    assert any("matched modes use different key/noise" in error for error in report.errors)
 
 
 def test_manifest_detects_unresigned_tamper(artifact: pathlib.Path) -> None:

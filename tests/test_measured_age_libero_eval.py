@@ -20,9 +20,11 @@ from integrations.openpi.libero_runtime import (
 from integrations.openpi.libero_runtime_eval import ExperimentCell
 from integrations.openpi.measured_age_libero_eval import (
     EPISODE_FIELDS,
+    POLICY_SAMPLING_FIELDS,
     QUERY_FIELDS,
     SCHEMA_VERSION,
     WARMUP_FIELDS,
+    MeasuredAgePolicySamplingProxy,
     artifact_errors,
     jitter_key_sha256,
     jitter_value_ms,
@@ -30,7 +32,20 @@ from integrations.openpi.measured_age_libero_eval import (
     make_runtime_config,
     resolved_protocol,
     result_rows,
+    validate_policy_sampling_server_contract,
     write_artifacts,
+)
+from integrations.openpi.serve_policy_attested import (
+    POLICY_SAMPLING_GENERATOR,
+    POLICY_SAMPLING_METADATA_FIELD,
+    POLICY_SAMPLING_RESPONSE_FIELD,
+    POLICY_SAMPLING_SCORED_NAMESPACE,
+    POLICY_SAMPLING_TRACE_SCHEMA_VERSION,
+    POLICY_SAMPLING_WARMUP_NAMESPACE,
+    build_policy_sampling_control,
+    policy_sampling_noise,
+    policy_sampling_noise_sha256,
+    policy_sampling_contract,
 )
 
 
@@ -155,6 +170,86 @@ def _warmups():
     return rows
 
 
+def _sampling_hashes(namespace, seed, pairing_key, query_index):
+    control = build_policy_sampling_control(
+        namespace, seed, pairing_key, query_index
+    )
+    key = control["key_sha256"]
+    return key, policy_sampling_noise_sha256(policy_sampling_noise(key))
+
+
+def _sampling_rows(warmups, queries, seed=7):
+    rows = []
+    for warmup in warmups:
+        query_index = int(warmup["warmup_index"])
+        key, noise = _sampling_hashes(
+            POLICY_SAMPLING_WARMUP_NAMESPACE,
+            seed,
+            ("libero_spatial", 0, 49),
+            query_index,
+        )
+        rows.append(
+            {
+                "schema_version": POLICY_SAMPLING_TRACE_SCHEMA_VERSION,
+                "namespace": POLICY_SAMPLING_WARMUP_NAMESPACE,
+                "episode_id": None,
+                "pair_id": None,
+                "condition_order": None,
+                "mode": None,
+                "task_suite": "libero_spatial",
+                "task_id": 0,
+                "episode_index": 49,
+                "replan_steps": None,
+                "query_index": query_index,
+                "seed": seed,
+                "requested_key_sha256": key,
+                "expected_noise_sha256": noise,
+                "server_key_sha256": key,
+                "server_noise_sha256": noise,
+                "accepted": True,
+                "error_type": None,
+                "error_message": None,
+            }
+        )
+    for query in queries:
+        query_index = int(query["query_index"])
+        key, noise = _sampling_hashes(
+            POLICY_SAMPLING_SCORED_NAMESPACE,
+            seed,
+            (
+                query["task_suite"],
+                int(query["task_id"]),
+                int(query["episode_index"]),
+                int(query["replan_steps"]),
+            ),
+            query_index,
+        )
+        rows.append(
+            {
+                "schema_version": POLICY_SAMPLING_TRACE_SCHEMA_VERSION,
+                "namespace": POLICY_SAMPLING_SCORED_NAMESPACE,
+                "episode_id": query["episode_id"],
+                "pair_id": query["pair_id"],
+                "condition_order": query["condition_order"],
+                "mode": query["mode"],
+                "task_suite": query["task_suite"],
+                "task_id": query["task_id"],
+                "episode_index": query["episode_index"],
+                "replan_steps": query["replan_steps"],
+                "query_index": query_index,
+                "seed": seed,
+                "requested_key_sha256": key,
+                "expected_noise_sha256": noise,
+                "server_key_sha256": key,
+                "server_noise_sha256": noise,
+                "accepted": True,
+                "error_type": None,
+                "error_message": None,
+            }
+        )
+    return rows
+
+
 def test_plan_contract_is_measured_only_and_has_three_unscored_warmups(capsys):
     assert main(["plan", "--task-ids", "0", "--episode-indices", "0"]) == 0
     plan = json.loads(capsys.readouterr().out)
@@ -166,6 +261,9 @@ def test_plan_contract_is_measured_only_and_has_three_unscored_warmups(capsys):
     assert plan["matrix"]["latency_steps"] == [0]
     assert plan["temporal_alignment"]["completed_step_rounding"] == "floor"
     assert plan["temporal_alignment"]["action_offset_rounding"] == "ceil"
+    assert plan["policy_sampling"]["mode_in_key"] is False
+    assert plan["policy_sampling"]["seed"] == 7
+    assert set(plan["policy_sampling"]["namespaces"]) == {"scored", "warmup"}
     assert plan["warmup"] == {
         "queries": 3,
         "task_suite": "libero_spatial",
@@ -258,6 +356,84 @@ def test_keyed_jitter_excludes_mode_and_rows_retain_raw_timing():
     assert baseline_rows[0]["alignment_reason"] == "async_unguarded"
 
 
+def test_policy_sampling_proxy_injects_and_audits_mode_independent_noise():
+    class FakeClient:
+        def __init__(self):
+            self.requests = []
+
+        def infer(self, request):
+            self.requests.append(request)
+            control = request["armbench_policy_sampling"]
+            key = control["key_sha256"]
+            noise = policy_sampling_noise_sha256(policy_sampling_noise(key))
+            return {
+                "actions": [[0.0] * 7] * 10,
+                POLICY_SAMPLING_RESPONSE_FIELD: {
+                    "schema_version": "armbench.policy_sampling.v1",
+                    "namespace": control["namespace"],
+                    "key_sha256": key,
+                    "noise_sha256": noise,
+                    "generator": POLICY_SAMPLING_GENERATOR,
+                },
+            }
+
+    client = FakeClient()
+    traces = []
+    for cell in (_cell(ASYNC_UNGUARDED, 0), _cell(LATENCY_ALIGNED, 1)):
+        proxy = MeasuredAgePolicySamplingProxy(
+            client,
+            namespace=POLICY_SAMPLING_SCORED_NAMESPACE,
+            seed=7,
+            task_suite=cell.task_suite,
+            task_id=cell.task_id,
+            episode_index=cell.episode_index,
+            episode_id=cell.episode_id,
+            pair_id=cell.pair_id,
+            condition_order=cell.condition_order,
+            mode=cell.mode,
+            replan_steps=cell.replan_steps,
+        )
+        response = proxy.infer({"prompt": "test"})
+        assert "actions" in response
+        traces.extend(proxy.trace_rows)
+
+    assert len(client.requests) == 2
+    assert all("armbench_policy_sampling" in request for request in client.requests)
+    assert traces[0]["requested_key_sha256"] == traces[1]["requested_key_sha256"]
+    assert traces[0]["expected_noise_sha256"] == traces[1]["expected_noise_sha256"]
+    assert traces[0]["mode"] != traces[1]["mode"]
+    assert all(row["accepted"] for row in traces)
+
+    warmup = MeasuredAgePolicySamplingProxy(
+        client,
+        namespace=POLICY_SAMPLING_WARMUP_NAMESPACE,
+        seed=7,
+        task_suite="libero_spatial",
+        task_id=0,
+        episode_index=0,
+    )
+    warmup.infer({"prompt": "test"})
+    assert (
+        warmup.trace_rows[0]["requested_key_sha256"]
+        != traces[0]["requested_key_sha256"]
+    )
+
+
+def test_measured_age_requires_the_exact_server_sampling_contract():
+    contract = policy_sampling_contract()
+    validate_policy_sampling_server_contract(
+        {POLICY_SAMPLING_METADATA_FIELD: contract}
+    )
+    with pytest.raises(ValueError, match="did not advertise"):
+        validate_policy_sampling_server_contract({})
+    mismatch = dict(contract)
+    mismatch["noise_shape"] = [10, 31]
+    with pytest.raises(ValueError, match="contract mismatch"):
+        validate_policy_sampling_server_contract(
+            {POLICY_SAMPLING_METADATA_FIELD: mismatch}
+        )
+
+
 @pytest.mark.parametrize(
     ("mode", "decision"),
     [
@@ -347,6 +523,7 @@ def test_writer_emits_v2_manifest_bound_complete_artifact(tmp_path):
         queries,
         planned_rollouts=2,
         complete=True,
+        policy_sampling_rows=_sampling_rows(_warmups(), queries),
     )
 
     assert integrity["valid"] is True
@@ -356,6 +533,7 @@ def test_writer_emits_v2_manifest_bound_complete_artifact(tmp_path):
         "warmup_queries.csv",
         "per_episode.csv",
         "per_query.csv",
+        "policy_sampling.csv",
         "progress.json",
         "summary.json",
         "summary.md",
@@ -372,6 +550,12 @@ def test_writer_emits_v2_manifest_bound_complete_artifact(tmp_path):
         ]
     with (tmp_path / "per_query.csv").open(encoding="utf-8", newline="") as handle:
         assert all(row["schema_version"] == SCHEMA_VERSION for row in csv.DictReader(handle))
+    with (tmp_path / "policy_sampling.csv").open(
+        encoding="utf-8", newline=""
+    ) as handle:
+        sampling = list(csv.DictReader(handle))
+    assert len(sampling) == 5
+    assert tuple(sampling[0]) == POLICY_SAMPLING_FIELDS
     summary = json.loads((tmp_path / "summary.json").read_text(encoding="utf-8"))
     assert summary["valid"] is True
     assert summary["warmup_queries_planned"] == 3

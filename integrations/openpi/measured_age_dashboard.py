@@ -216,11 +216,18 @@ def _portable_analysis_equal(
     observed_source = observed.get("source")
     if isinstance(expected_source, dict) and isinstance(observed_source, Mapping):
         expected_source["artifact"] = observed_source.get("artifact")
+        # The current validator may add checks while remaining compatible with
+        # an artifact-bound historical validator snapshot.
+        expected_source["validator_checks"] = observed_source.get(
+            "validator_checks"
+        )
     expected_impl = expected.get("implementation")
     observed_impl = observed.get("implementation")
     if isinstance(expected_impl, dict) and isinstance(observed_impl, Mapping):
         for field in ("python_version", "numpy_version"):
             expected_impl[field] = observed_impl.get(field)
+        expected_impl["validator_source"] = observed_impl.get("validator_source")
+        expected_impl["validator_sha256"] = observed_impl.get("validator_sha256")
     return expected == observed
 
 
@@ -249,23 +256,46 @@ def _validate_source_bindings(
         verified[field] = expected
     if source.get("validator_schema_version") != validator_report.get("schema_version"):
         raise ValueError("analysis validator schema binding mismatch")
-    if source.get("validator_checks") != validator_report.get("checks"):
-        raise ValueError("analysis validator check binding mismatch")
 
     implementation = analysis.get("implementation")
     if not isinstance(implementation, Mapping):
         raise ValueError("analysis implementation must be an object")
     project_root = pathlib.Path(__file__).resolve().parents[2]
-    for source_field, hash_field, expected_relative in (
-        ("analyzer_source", "analyzer_sha256", ANALYZER_SOURCE),
-        ("validator_source", "validator_sha256", VALIDATOR_SOURCE),
+    if implementation.get("analyzer_source") != ANALYZER_SOURCE:
+        raise ValueError("analysis implementation source mismatch: analyzer_source")
+    analyzer_digest = implementation.get("analyzer_sha256")
+    analyzer_path = project_root / pathlib.PurePosixPath(ANALYZER_SOURCE)
+    if not isinstance(analyzer_digest, str) or _sha256(analyzer_path) != analyzer_digest:
+        raise ValueError("analysis implementation hash mismatch: analyzer_sha256")
+
+    if implementation.get("validator_source") != VALIDATOR_SOURCE:
+        raise ValueError("analysis implementation source mismatch: validator_source")
+    validator_digest = implementation.get("validator_sha256")
+    current_validator = project_root / pathlib.PurePosixPath(VALIDATOR_SOURCE)
+    if not isinstance(validator_digest, str) or not _SHA256.fullmatch(
+        validator_digest
     ):
-        if implementation.get(source_field) != expected_relative:
-            raise ValueError("analysis implementation source mismatch: %s" % source_field)
-        digest = implementation.get(hash_field)
-        path = project_root / pathlib.PurePosixPath(expected_relative)
-        if not isinstance(digest, str) or _sha256(path) != digest:
-            raise ValueError("analysis implementation hash mismatch: %s" % hash_field)
+        raise ValueError("analysis validator_sha256 is invalid")
+    current_digest = _sha256(current_validator)
+    if validator_digest == current_digest:
+        if source.get("validator_checks") != validator_report.get("checks"):
+            raise ValueError("analysis validator check binding mismatch")
+    else:
+        frozen_validator = (
+            source_root
+            / "provenance"
+            / "armbench_source"
+            / pathlib.PurePosixPath(VALIDATOR_SOURCE)
+        )
+        if not frozen_validator.is_file() or _sha256(frozen_validator) != validator_digest:
+            raise ValueError("analysis implementation hash mismatch: validator_sha256")
+        recorded_checks = source.get("validator_checks")
+        if not isinstance(recorded_checks, list) or not all(
+            isinstance(value, str) and value for value in recorded_checks
+        ):
+            raise ValueError("historical validator checks are invalid")
+    verified["analyzer_sha256"] = analyzer_digest
+    verified["validator_sha256"] = validator_digest
     return verified
 
 
@@ -297,10 +327,12 @@ def _relative_video(
         raise ValueError("video escapes source artifact: %s" % raw_path) from exc
     if not video.is_file() or video.stat().st_size <= 0:
         raise ValueError("required video is missing or empty: %s" % raw_path)
-    return quote(
-        pathlib.Path(os.path.relpath(video, output_parent.resolve())).as_posix(),
-        safe="/:",
-    )
+    try:
+        relative = os.path.relpath(video, output_parent.resolve())
+    except ValueError:
+        # Windows cannot form a relative path across drive letters.
+        return video.as_uri()
+    return quote(pathlib.Path(relative).as_posix(), safe="/:")
 
 
 def _outcome(async_success: bool, aligned_success: bool) -> str:

@@ -19,10 +19,19 @@ import re
 import sys
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
+import numpy as np
+
 
 SCHEMA_VERSION = "armbench.pi05_libero_measured_age.v2"
 VALID_MODES = ("async_unguarded", "latency_aligned")
 MEASURED_WALL = "measured_wall"
+POLICY_SAMPLING_SCHEMA_VERSION = "armbench.policy_sampling.v1"
+POLICY_SAMPLING_TRACE_SCHEMA_VERSION = "armbench.policy_sampling_trace.v1"
+POLICY_SAMPLING_GENERATOR = (
+    "numpy_randomstate_mt19937_standard_normal_float32_v1"
+)
+POLICY_SAMPLING_SCORED_NAMESPACE = "scored"
+POLICY_SAMPLING_WARMUP_NAMESPACE = "warmup"
 
 # Copied from measured_age_libero_eval.py.  Importing the producer would make a
 # producer regression invisible to this validator.
@@ -67,6 +76,13 @@ QUERY_FIELDS = (
     "accepted", "decision", "rejection_reasons", "position_mismatch_m",
     "orientation_mismatch_rad", "gripper_mismatch_linf", "error_stage",
     "error_type", "error_message",
+)
+POLICY_SAMPLING_FIELDS = (
+    "schema_version", "namespace", "episode_id", "pair_id",
+    "condition_order", "mode", "task_suite", "task_id", "episode_index",
+    "replan_steps", "query_index", "seed", "requested_key_sha256",
+    "expected_noise_sha256", "server_key_sha256", "server_noise_sha256",
+    "accepted", "error_type", "error_message",
 )
 RUNTIME_SOURCE_FILES = (
     "integrations/openpi/libero_runtime.py",
@@ -124,6 +140,9 @@ class _Collector:
             self.errors.append("[%s] %s" % (section, message))
         elif len(self.errors) == 250:
             self.errors.append("[validator] further errors suppressed")
+
+    def warn(self, message: str) -> None:
+        self.warnings.append(message)
 
     def checked(self, message: str) -> None:
         self.checks.append(message)
@@ -429,6 +448,30 @@ def _parse_query(raw: Mapping[str, str]) -> Dict[str, Any]:
     return row
 
 
+def _parse_policy_sampling(raw: Mapping[str, str]) -> Dict[str, Any]:
+    if raw["schema_version"] != POLICY_SAMPLING_TRACE_SCHEMA_VERSION:
+        raise ValueError("policy sampling trace schema_version mismatch")
+    row: Dict[str, Any] = dict(raw)
+    row["namespace"] = _required(raw["namespace"], "namespace")
+    row["task_suite"] = _required(raw["task_suite"], "task_suite")
+    for field in ("task_id", "episode_index", "query_index", "seed"):
+        row[field] = _uint(raw[field], field)
+    for field in ("condition_order", "replan_steps"):
+        row[field] = _opt_uint(raw[field], field)
+    row["accepted"] = _bool(raw["accepted"], "accepted")
+    for field in (
+        "requested_key_sha256",
+        "expected_noise_sha256",
+        "server_key_sha256",
+        "server_noise_sha256",
+    ):
+        if not _SHA256.fullmatch(raw[field]):
+            raise ValueError("%s is invalid" % field)
+    for field in ("episode_id", "pair_id", "mode"):
+        row[field] = None if raw[field] == "" else _required(raw[field], field)
+    return row
+
+
 def _parse_rows(root: pathlib.Path, c: _Collector) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]]]:
     specs = (
         ("warmup_queries.csv", WARMUP_FIELDS, "warmup", _parse_warmup),
@@ -451,6 +494,26 @@ def _parse_rows(root: pathlib.Path, c: _Collector) -> Tuple[List[Dict[str, Any]]
     return parsed_sets[0], parsed_sets[1], parsed_sets[2]
 
 
+def _parse_policy_sampling_rows(
+    root: pathlib.Path, c: _Collector
+) -> List[Dict[str, Any]]:
+    raw_rows = _read_csv(
+        root / "policy_sampling.csv",
+        POLICY_SAMPLING_FIELDS,
+        "policy_sampling",
+        c,
+    ) or []
+    parsed = []
+    for number, raw in enumerate(raw_rows, start=2):
+        try:
+            parsed.append(_parse_policy_sampling(raw))
+        except (KeyError, ValueError) as exc:
+            c.error("policy_sampling", "row %d: %s" % (number, exc))
+    if len(parsed) != len(raw_rows):
+        c.error("policy_sampling", "one or more rows failed canonical parsing")
+    return parsed
+
+
 def _json_number(value: Any, name: str, nonnegative: bool = True) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise ValueError("%s must be numeric" % name)
@@ -466,6 +529,45 @@ def _json_uint(value: Any, name: str, positive: bool = False) -> int:
     return value
 
 
+def _expected_policy_sampling_contract(seed: int) -> Dict[str, Any]:
+    return {
+        "schema_version": POLICY_SAMPLING_SCHEMA_VERSION,
+        "trace_schema_version": POLICY_SAMPLING_TRACE_SCHEMA_VERSION,
+        "request_field": "armbench_policy_sampling",
+        "response_field": "armbench_policy_sampling",
+        "generator": POLICY_SAMPLING_GENERATOR,
+        "noise_shape": [10, 32],
+        "noise_dtype": "little-endian float32",
+        "mode_in_key": False,
+        "payload_fields": [
+            "schema_version",
+            "namespace",
+            "seed",
+            "pairing_key",
+            "query_index",
+        ],
+        "json_encoding": "utf-8 canonical sorted compact ASCII",
+        "namespaces": {
+            POLICY_SAMPLING_SCORED_NAMESPACE: {
+                "pairing_key_fields": [
+                    "task_suite",
+                    "task_id",
+                    "episode_index",
+                    "replan_steps",
+                ]
+            },
+            POLICY_SAMPLING_WARMUP_NAMESPACE: {
+                "pairing_key_fields": [
+                    "task_suite",
+                    "task_id",
+                    "episode_index",
+                ]
+            },
+        },
+        "seed": seed,
+    }
+
+
 @dataclasses.dataclass(frozen=True)
 class _Protocol:
     control_period_ms: float
@@ -478,6 +580,10 @@ class _Protocol:
     jitter_candidates: Tuple[float, ...]
     registered_cells: Tuple[Mapping[str, Any], ...]
     warmup_queries: int
+    warmup_task_suite: Optional[str]
+    warmup_task_id: Optional[int]
+    warmup_episode_index: Optional[int]
+    policy_sampling_seed: Optional[int]
     matrix: Mapping[str, Any]
 
 
@@ -488,6 +594,7 @@ def _protocol(value: Any, c: _Collector) -> Optional[_Protocol]:
         temporal = value["temporal_alignment"]
         jitter = value["jitter"]
         warmup = value["warmup"]
+        policy_sampling = value.get("policy_sampling")
         cells = value["registered_cells"]
         if not all(isinstance(item, Mapping) for item in (temporal, jitter, warmup)):
             raise ValueError("protocol sections must be objects")
@@ -520,6 +627,32 @@ def _protocol(value: Any, c: _Collector) -> Optional[_Protocol]:
             raise ValueError("jitter candidates must be unique")
         if warmup.get("scored") is not False or warmup.get("same_checkpoint_and_action_contract") is not True:
             raise ValueError("warmup must be unscored and use the scored action contract")
+        sampling_seed: Optional[int] = None
+        warmup_task_suite: Optional[str] = None
+        warmup_task_id: Optional[int] = None
+        warmup_episode_index: Optional[int] = None
+        if policy_sampling is not None:
+            if not isinstance(policy_sampling, Mapping):
+                raise ValueError("policy_sampling must be an object")
+            sampling_seed = _json_uint(
+                policy_sampling.get("seed"), "policy_sampling.seed"
+            )
+            if dict(policy_sampling) != _expected_policy_sampling_contract(
+                sampling_seed
+            ):
+                raise ValueError("policy_sampling contract mismatch")
+            raw_warmup_suite = warmup.get("task_suite")
+            if not isinstance(raw_warmup_suite, str):
+                raise ValueError("warmup.task_suite must be a string")
+            warmup_task_suite = _required(
+                raw_warmup_suite, "warmup.task_suite"
+            )
+            warmup_task_id = _json_uint(
+                warmup.get("task_id"), "warmup.task_id"
+            )
+            warmup_episode_index = _json_uint(
+                warmup.get("episode_index"), "warmup.episode_index"
+            )
         result = _Protocol(
             control_period_ms=_json_number(temporal["control_period_ms"], "control_period_ms"),
             completed_rounding=str(completed),
@@ -531,12 +664,21 @@ def _protocol(value: Any, c: _Collector) -> Optional[_Protocol]:
             jitter_candidates=candidates,
             registered_cells=tuple(cells),
             warmup_queries=_json_uint(warmup["queries"], "warmup.queries", positive=True),
+            warmup_task_suite=warmup_task_suite,
+            warmup_task_id=warmup_task_id,
+            warmup_episode_index=warmup_episode_index,
+            policy_sampling_seed=sampling_seed,
             matrix=value["matrix"],
         )
         if not isinstance(result.matrix, Mapping):
             raise ValueError("matrix must be an object")
         if result.control_period_ms <= 0.0:
             raise ValueError("control_period_ms must be positive")
+        if result.policy_sampling_seed is not None:
+            if result.policy_sampling_seed != result.jitter_seed:
+                raise ValueError("policy sampling seed must match jitter seed")
+            if value.get("seed") != result.policy_sampling_seed:
+                raise ValueError("policy sampling seed must match protocol seed")
     except (KeyError, TypeError, ValueError) as exc:
         c.error("protocol", str(exc))
         return None
@@ -580,6 +722,41 @@ def _jitter(row: Mapping[str, Any], protocol: _Protocol) -> Tuple[str, float]:
     digest = hashlib.sha256(payload).digest()
     index = int.from_bytes(digest[:8], "big") % len(protocol.jitter_candidates)
     return digest.hex(), protocol.jitter_candidates[index]
+
+
+def _policy_sampling_key(
+    namespace: str,
+    seed: int,
+    pairing_key: Sequence[Any],
+    query_index: int,
+) -> str:
+    payload = {
+        "schema_version": POLICY_SAMPLING_SCHEMA_VERSION,
+        "namespace": namespace,
+        "seed": int(seed),
+        "pairing_key": list(pairing_key),
+        "query_index": int(query_index),
+    }
+    encoded = json.dumps(
+        payload,
+        ensure_ascii=True,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _policy_sampling_noise_sha256(key_sha256: str) -> str:
+    if not _SHA256.fullmatch(key_sha256):
+        raise ValueError("policy sampling key is not a SHA-256 digest")
+    digest = bytes.fromhex(key_sha256)
+    seed_words = [
+        int.from_bytes(digest[index : index + 4], "big")
+        for index in range(0, 32, 4)
+    ]
+    random = np.random.RandomState(seed_words)
+    noise = np.asarray(random.standard_normal((10, 32)), dtype="<f4", order="C")
+    return hashlib.sha256(noise.tobytes(order="C")).hexdigest()
 
 
 def _percentile(values: Sequence[float], percentile: float) -> Optional[float]:
@@ -628,6 +805,158 @@ def _validate_warmup(
     if last_ready is not None and scored_starts and last_ready > min(scored_starts):
         c.error("warmup", "warmup did not finish before scored observations")
     c.checked("unscored attested warmup precedes every scored query")
+
+
+def _validate_policy_sampling(
+    sampling_rows: Sequence[Mapping[str, Any]],
+    warmups: Sequence[Mapping[str, Any]],
+    queries: Sequence[Mapping[str, Any]],
+    protocol: _Protocol,
+    c: _Collector,
+) -> None:
+    seed = protocol.policy_sampling_seed
+    if seed is None:
+        c.error("policy_sampling", "internal validator contract is absent")
+        return
+    if len(sampling_rows) != len(warmups) + len(queries):
+        c.error("policy_sampling", "trace row count does not match policy calls")
+
+    warmup_map: Dict[int, Mapping[str, Any]] = {}
+    scored_map: Dict[Tuple[str, int], Mapping[str, Any]] = {}
+    for row in sampling_rows:
+        if row["seed"] != seed:
+            c.error("policy_sampling", "trace seed does not match protocol")
+        if not row["accepted"] or row["error_type"] or row["error_message"]:
+            c.error("policy_sampling", "trace contains a rejected or errored request")
+        namespace = row["namespace"]
+        if namespace == POLICY_SAMPLING_WARMUP_NAMESPACE:
+            query_index = int(row["query_index"])
+            if query_index in warmup_map:
+                c.error("policy_sampling", "duplicate warmup trace row")
+            warmup_map[query_index] = row
+        elif namespace == POLICY_SAMPLING_SCORED_NAMESPACE:
+            key = (str(row["episode_id"]), int(row["query_index"]))
+            if key in scored_map:
+                c.error("policy_sampling", "duplicate scored trace row")
+            scored_map[key] = row
+        else:
+            c.error("policy_sampling", "unknown trace namespace")
+
+    expected_warmups = {int(row["warmup_index"]) for row in warmups}
+    if set(warmup_map) != expected_warmups:
+        c.error("policy_sampling", "warmup trace coverage is not one-to-one")
+    warmup_pairing = (
+        protocol.warmup_task_suite,
+        protocol.warmup_task_id,
+        protocol.warmup_episode_index,
+    )
+    warmup_hashes = set()
+    for query_index, row in warmup_map.items():
+        if any(
+            row[field] is not None
+            for field in (
+                "episode_id",
+                "pair_id",
+                "condition_order",
+                "mode",
+                "replan_steps",
+            )
+        ):
+            c.error("policy_sampling", "warmup trace contains scored context")
+        if (
+            row["task_suite"],
+            row["task_id"],
+            row["episode_index"],
+        ) != warmup_pairing:
+            c.error("policy_sampling", "warmup trace context mismatch")
+        key = _policy_sampling_key(
+            POLICY_SAMPLING_WARMUP_NAMESPACE,
+            seed,
+            warmup_pairing,
+            query_index,
+        )
+        noise = _policy_sampling_noise_sha256(key)
+        warmup_hashes.add((key, noise))
+        if row["requested_key_sha256"] != key:
+            c.error("policy_sampling", "warmup requested key mismatch")
+        if row["expected_noise_sha256"] != noise:
+            c.error("policy_sampling", "warmup expected noise mismatch")
+        if row["server_key_sha256"] != key:
+            c.error("policy_sampling", "warmup server key echo mismatch")
+        if row["server_noise_sha256"] != noise:
+            c.error("policy_sampling", "warmup server noise echo mismatch")
+
+    query_map = {
+        (str(row["episode_id"]), int(row["query_index"])): row for row in queries
+    }
+    if set(scored_map) != set(query_map):
+        c.error("policy_sampling", "scored trace coverage is not one-to-one")
+    paired: Dict[Tuple[str, int], Dict[str, Tuple[str, str]]] = {}
+    scored_hashes = set()
+    for trace_key, row in scored_map.items():
+        query = query_map.get(trace_key)
+        if query is None:
+            continue
+        expected_context = (
+            query["episode_id"],
+            query["pair_id"],
+            query["condition_order"],
+            query["mode"],
+            query["task_suite"],
+            query["task_id"],
+            query["episode_index"],
+            query["replan_steps"],
+        )
+        actual_context = (
+            row["episode_id"],
+            row["pair_id"],
+            row["condition_order"],
+            row["mode"],
+            row["task_suite"],
+            row["task_id"],
+            row["episode_index"],
+            row["replan_steps"],
+        )
+        if actual_context != expected_context:
+            c.error("policy_sampling", "scored trace context mismatch")
+        pairing_key = (
+            query["task_suite"],
+            query["task_id"],
+            query["episode_index"],
+            query["replan_steps"],
+        )
+        key = _policy_sampling_key(
+            POLICY_SAMPLING_SCORED_NAMESPACE,
+            seed,
+            pairing_key,
+            int(query["query_index"]),
+        )
+        noise = _policy_sampling_noise_sha256(key)
+        scored_hashes.add((key, noise))
+        if row["requested_key_sha256"] != key:
+            c.error("policy_sampling", "scored requested key mismatch")
+        if row["expected_noise_sha256"] != noise:
+            c.error("policy_sampling", "scored expected noise mismatch")
+        if row["server_key_sha256"] != key:
+            c.error("policy_sampling", "scored server key echo mismatch")
+        if row["server_noise_sha256"] != noise:
+            c.error("policy_sampling", "scored server noise echo mismatch")
+        pair_query = (str(query["pair_id"]), int(query["query_index"]))
+        paired.setdefault(pair_query, {})[str(query["mode"])] = (
+            row["requested_key_sha256"],
+            row["expected_noise_sha256"],
+        )
+    if warmup_hashes & scored_hashes:
+        c.error("policy_sampling", "warmup and scored namespaces are not separated")
+    for pair_query, modes in paired.items():
+        if len(modes) > 1 and len(set(modes.values())) != 1:
+            c.error(
+                "policy_sampling",
+                "matched modes use different key/noise for %s/%d" % pair_query,
+            )
+    c.checked(
+        "independent keyed policy-noise recomputation, server echoes, namespace separation, and exact call coverage"
+    )
 
 
 def _registered_cell_key(row: Mapping[str, Any]) -> Tuple[Any, ...]:
@@ -1076,12 +1405,32 @@ def validate_artifact(path: pathlib.Path) -> ValidationReport:
         environment = _read_json(root / "environment.json", "environment", c)
         protocol = _protocol(protocol_value, c)
         warmups, episodes, queries = _parse_rows(root, c)
+        has_policy_sampling = isinstance(protocol_value, Mapping) and (
+            "policy_sampling" in protocol_value
+        )
+        sampling_rows: List[Dict[str, Any]] = []
+        if has_policy_sampling:
+            sampling_rows = _parse_policy_sampling_rows(root, c)
+        elif (root / "policy_sampling.csv").exists():
+            c.error(
+                "policy_sampling",
+                "policy_sampling.csv exists without a protocol contract",
+            )
+        else:
+            c.warn(
+                "legacy measured-age artifact has no keyed policy sampling contract; "
+                "policy RNG pairing cannot be verified"
+            )
         if isinstance(environment, Mapping) and environment.get("schema_version") != SCHEMA_VERSION:
             c.error("environment", "schema_version mismatch")
         _validate_source_provenance(root, environment, c)
         if protocol is not None:
             _validate_warmup(warmups, queries, protocol, c)
             _validate_queries(episodes, queries, protocol, c)
+            if protocol.policy_sampling_seed is not None:
+                _validate_policy_sampling(
+                    sampling_rows, warmups, queries, protocol, c
+                )
             _validate_derived(root, episodes, queries, warmups, protocol, c)
     except Exception as exc:  # Fail closed for malformed-input edges.
         c.error("validator", "unexpected failure: %s: %s" % (type(exc).__name__, exc))
@@ -1107,6 +1456,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print("VALID" if report.valid else "INVALID", report.artifact)
         for error in report.errors:
             print("ERROR", error)
+        for warning in report.warnings:
+            print("WARNING", warning)
         if report.valid:
             print("Checked: %s" % "; ".join(report.checks))
     return 0 if report.valid else 2

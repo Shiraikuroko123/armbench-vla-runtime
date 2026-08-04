@@ -280,6 +280,45 @@ def test_resigned_analysis_tamper_fails_fresh_recomputation(
         dashboard.build_dashboard(source, analysis_root, tmp_path / "index.html")
 
 
+def test_historical_validator_snapshot_preserves_portable_recomputation(
+    dashboard_fixture, tmp_path: pathlib.Path
+) -> None:
+    source, _analysis_root, analysis, _pair_row = dashboard_fixture
+    frozen_validator = (
+        source
+        / "provenance"
+        / "armbench_source"
+        / pathlib.PurePosixPath(dashboard.VALIDATOR_SOURCE)
+    )
+    frozen_validator.parent.mkdir(parents=True)
+    frozen_validator.write_bytes(b"historical-validator-snapshot\n")
+    _refresh_manifest(source, SOURCE_SCHEMA_VERSION)
+
+    recorded = copy.deepcopy(analysis)
+    recorded["source"]["source_manifest_sha256"] = _sha256(
+        source / "manifest.json"
+    )
+    recorded["source"]["validator_checks"] = ["historical strict checks"]
+    recorded["implementation"]["validator_sha256"] = _sha256(frozen_validator)
+    current_report = {
+        "schema_version": recorded["source"]["validator_schema_version"],
+        "checks": ["current strict checks", "new compatible check"],
+    }
+
+    verified = dashboard._validate_source_bindings(
+        source, recorded, current_report
+    )
+    assert verified["validator_sha256"] == _sha256(frozen_validator)
+
+    recomputed = copy.deepcopy(recorded)
+    recomputed["source"]["validator_checks"] = current_report["checks"]
+    project_root = pathlib.Path(dashboard.__file__).resolve().parents[2]
+    recomputed["implementation"]["validator_sha256"] = _sha256(
+        project_root / dashboard.VALIDATOR_SOURCE
+    )
+    assert dashboard._portable_analysis_equal(recorded, recomputed)
+
+
 def test_missing_or_empty_video_fails_closed(
     dashboard_fixture, tmp_path: pathlib.Path
 ) -> None:
@@ -288,6 +327,23 @@ def test_missing_or_empty_video_fails_closed(
 
     with pytest.raises(ValueError, match="required video is missing or empty"):
         dashboard.build_dashboard(source, analysis_root, tmp_path / "index.html")
+
+
+def test_video_reference_falls_back_to_file_uri_across_windows_drives(
+    dashboard_fixture, tmp_path: pathlib.Path, monkeypatch
+) -> None:
+    source, _analysis_root, _analysis_value, _pair_row = dashboard_fixture
+
+    def cross_drive(*_args, **_kwargs):
+        raise ValueError("other drive")
+
+    monkeypatch.setattr(dashboard.os.path, "relpath", cross_drive)
+
+    reference = dashboard._relative_video(
+        source, tmp_path, "videos/aligned.mp4"
+    )
+
+    assert reference == (source / "videos/aligned.mp4").resolve().as_uri()
 
 
 @pytest.mark.parametrize("mutation", ["extra", "bad_sha", "omitted"])

@@ -9,15 +9,258 @@ import json
 import logging
 import pathlib
 import platform
+import re
 import subprocess
 import sys
 from typing import Any, Dict, List, Mapping, Optional, Sequence
+
+import numpy as np
 
 
 ATTESTATION_SCHEMA_VERSION = "armbench.openpi_server_attestation.v1"
 OPENPI_COMMIT = "15a9616a00943ada6c20a0f158e3adb39df2ccac"
 DEFAULT_POLICY_CONFIG = "pi05_libero"
 DEFAULT_CHECKPOINT = "gs://openpi-assets/checkpoints/pi05_libero"
+POLICY_SAMPLING_SCHEMA_VERSION = "armbench.policy_sampling.v1"
+POLICY_SAMPLING_TRACE_SCHEMA_VERSION = "armbench.policy_sampling_trace.v1"
+POLICY_SAMPLING_REQUEST_FIELD = "armbench_policy_sampling"
+POLICY_SAMPLING_RESPONSE_FIELD = "armbench_policy_sampling"
+POLICY_SAMPLING_METADATA_FIELD = "armbench_policy_sampling_contract"
+POLICY_SAMPLING_GENERATOR = (
+    "numpy_randomstate_mt19937_standard_normal_float32_v1"
+)
+POLICY_SAMPLING_SCORED_NAMESPACE = "scored"
+POLICY_SAMPLING_WARMUP_NAMESPACE = "warmup"
+PI05_ACTION_HORIZON = 10
+PI05_MODEL_ACTION_DIM = 32
+
+_SHA256 = re.compile(r"[0-9a-f]{64}\Z")
+
+
+def policy_sampling_contract(
+    action_horizon: int = PI05_ACTION_HORIZON,
+    model_action_dim: int = PI05_MODEL_ACTION_DIM,
+) -> Dict[str, Any]:
+    """Return the exact request, noise, and audit contract advertised by the server."""
+
+    return {
+        "schema_version": POLICY_SAMPLING_SCHEMA_VERSION,
+        "trace_schema_version": POLICY_SAMPLING_TRACE_SCHEMA_VERSION,
+        "request_field": POLICY_SAMPLING_REQUEST_FIELD,
+        "response_field": POLICY_SAMPLING_RESPONSE_FIELD,
+        "generator": POLICY_SAMPLING_GENERATOR,
+        "noise_shape": [int(action_horizon), int(model_action_dim)],
+        "noise_dtype": "little-endian float32",
+        "mode_in_key": False,
+        "payload_fields": [
+            "schema_version",
+            "namespace",
+            "seed",
+            "pairing_key",
+            "query_index",
+        ],
+        "json_encoding": "utf-8 canonical sorted compact ASCII",
+        "namespaces": {
+            POLICY_SAMPLING_SCORED_NAMESPACE: {
+                "pairing_key_fields": [
+                    "task_suite",
+                    "task_id",
+                    "episode_index",
+                    "replan_steps",
+                ]
+            },
+            POLICY_SAMPLING_WARMUP_NAMESPACE: {
+                "pairing_key_fields": [
+                    "task_suite",
+                    "task_id",
+                    "episode_index",
+                ]
+            },
+        },
+    }
+
+
+def _canonical_sampling_payload(
+    namespace: str,
+    seed: int,
+    pairing_key: Sequence[Any],
+    query_index: int,
+) -> Dict[str, Any]:
+    if namespace not in (
+        POLICY_SAMPLING_SCORED_NAMESPACE,
+        POLICY_SAMPLING_WARMUP_NAMESPACE,
+    ):
+        raise ValueError("unsupported policy sampling namespace")
+    if type(seed) is not int or seed < 0 or seed > 2**63 - 1:
+        raise ValueError("policy sampling seed must be an unsigned 63-bit integer")
+    if type(query_index) is not int or query_index < 0 or query_index > 2**63 - 1:
+        raise ValueError("policy sampling query_index must be an unsigned 63-bit integer")
+    if not isinstance(pairing_key, Sequence) or isinstance(
+        pairing_key, (str, bytes, bytearray)
+    ):
+        raise ValueError("policy sampling pairing_key must be an array")
+    key = list(pairing_key)
+    if namespace == POLICY_SAMPLING_SCORED_NAMESPACE:
+        valid = (
+            len(key) == 4
+            and type(key[0]) is str
+            and bool(key[0])
+            and all(type(value) is int and value >= 0 for value in key[1:])
+        )
+    else:
+        valid = (
+            len(key) == 3
+            and type(key[0]) is str
+            and bool(key[0])
+            and all(type(value) is int and value >= 0 for value in key[1:])
+        )
+    if not valid:
+        raise ValueError("policy sampling pairing_key does not match its namespace")
+    return {
+        "schema_version": POLICY_SAMPLING_SCHEMA_VERSION,
+        "namespace": namespace,
+        "seed": seed,
+        "pairing_key": key,
+        "query_index": query_index,
+    }
+
+
+def policy_sampling_key_sha256(
+    namespace: str,
+    seed: int,
+    pairing_key: Sequence[Any],
+    query_index: int,
+) -> str:
+    payload = _canonical_sampling_payload(namespace, seed, pairing_key, query_index)
+    encoded = json.dumps(
+        payload,
+        ensure_ascii=True,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def policy_sampling_noise(
+    key_sha256: str,
+    action_horizon: int = PI05_ACTION_HORIZON,
+    model_action_dim: int = PI05_MODEL_ACTION_DIM,
+) -> np.ndarray:
+    """Generate versioned standard-normal noise from all 256 key bits."""
+
+    if not isinstance(key_sha256, str) or not _SHA256.fullmatch(key_sha256):
+        raise ValueError("policy sampling key_sha256 is invalid")
+    if type(action_horizon) is not int or action_horizon <= 0:
+        raise ValueError("action_horizon must be a positive integer")
+    if type(model_action_dim) is not int or model_action_dim <= 0:
+        raise ValueError("model_action_dim must be a positive integer")
+    digest = bytes.fromhex(key_sha256)
+    seed_words = [int.from_bytes(digest[index : index + 4], "big") for index in range(0, 32, 4)]
+    random = np.random.RandomState(seed_words)
+    values = random.standard_normal((action_horizon, model_action_dim))
+    return np.asarray(values, dtype="<f4", order="C")
+
+
+def policy_sampling_noise_sha256(noise: np.ndarray) -> str:
+    canonical = np.asarray(noise, dtype="<f4", order="C")
+    if canonical.ndim != 2:
+        raise ValueError("policy sampling noise must be a two-dimensional array")
+    return hashlib.sha256(canonical.tobytes(order="C")).hexdigest()
+
+
+def build_policy_sampling_control(
+    namespace: str,
+    seed: int,
+    pairing_key: Sequence[Any],
+    query_index: int,
+) -> Dict[str, Any]:
+    payload = _canonical_sampling_payload(namespace, seed, pairing_key, query_index)
+    payload["key_sha256"] = policy_sampling_key_sha256(
+        namespace, seed, pairing_key, query_index
+    )
+    return payload
+
+
+def _validate_policy_sampling_control(value: Any) -> Dict[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ValueError("policy sampling control must be an object")
+    expected_fields = {
+        "schema_version",
+        "namespace",
+        "seed",
+        "pairing_key",
+        "query_index",
+        "key_sha256",
+    }
+    if set(value) != expected_fields:
+        raise ValueError("policy sampling control fields do not match the contract")
+    namespace = value.get("namespace")
+    if type(namespace) is not str:
+        raise ValueError("policy sampling namespace must be a string")
+    payload = _canonical_sampling_payload(
+        namespace,
+        value.get("seed"),
+        value.get("pairing_key"),
+        value.get("query_index"),
+    )
+    if value.get("schema_version") != POLICY_SAMPLING_SCHEMA_VERSION:
+        raise ValueError("policy sampling schema_version mismatch")
+    expected_key = policy_sampling_key_sha256(
+        payload["namespace"],
+        payload["seed"],
+        payload["pairing_key"],
+        payload["query_index"],
+    )
+    if value.get("key_sha256") != expected_key:
+        raise ValueError("policy sampling key_sha256 mismatch")
+    payload["key_sha256"] = expected_key
+    return payload
+
+
+class KeyedPolicySamplingWrapper:
+    """Inject explicit keyed noise while preserving uncontrolled legacy requests."""
+
+    def __init__(
+        self,
+        policy: Any,
+        *,
+        action_horizon: int = PI05_ACTION_HORIZON,
+        model_action_dim: int = PI05_MODEL_ACTION_DIM,
+    ) -> None:
+        self._policy = policy
+        self._action_horizon = int(action_horizon)
+        self._model_action_dim = int(model_action_dim)
+
+    @property
+    def metadata(self) -> Mapping[str, Any]:
+        return self._policy.metadata
+
+    def infer(self, observation: Mapping[str, Any]) -> Mapping[str, Any]:
+        if POLICY_SAMPLING_REQUEST_FIELD not in observation:
+            return self._policy.infer(observation)
+        clean_observation = dict(observation)
+        control = _validate_policy_sampling_control(
+            clean_observation.pop(POLICY_SAMPLING_REQUEST_FIELD)
+        )
+        key_sha256 = str(control["key_sha256"])
+        noise = policy_sampling_noise(
+            key_sha256, self._action_horizon, self._model_action_dim
+        )
+        noise_sha256 = policy_sampling_noise_sha256(noise)
+        response = self._policy.infer(clean_observation, noise=noise)
+        if not isinstance(response, Mapping):
+            raise TypeError("controlled policy response must be an object")
+        if POLICY_SAMPLING_RESPONSE_FIELD in response:
+            raise ValueError("policy response already contains reserved sampling audit field")
+        output = dict(response)
+        output[POLICY_SAMPLING_RESPONSE_FIELD] = {
+            "schema_version": POLICY_SAMPLING_SCHEMA_VERSION,
+            "namespace": control["namespace"],
+            "key_sha256": key_sha256,
+            "noise_sha256": noise_sha256,
+            "generator": POLICY_SAMPLING_GENERATOR,
+        }
+        return output
 
 
 def _command_output(command: Sequence[str], cwd: pathlib.Path) -> str:
@@ -183,8 +426,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     logging.info("Hashing checkpoint content at %s", local_checkpoint)
     content_manifest = checkpoint_content_manifest(local_checkpoint)
     config = training_config.get_config(args.policy_config)
-    if int(config.model.action_horizon) != 10:
+    action_horizon = int(config.model.action_horizon)
+    model_action_dim = int(config.model.action_dim)
+    if action_horizon != PI05_ACTION_HORIZON:
         raise ValueError("attested pi05_libero config must have action_horizon=10")
+    if model_action_dim != PI05_MODEL_ACTION_DIM:
+        raise ValueError("attested pi05_libero config must have action_dim=32")
     logging.info("Loading policy config=%s", args.policy_config)
     policy = openpi_policy_config.create_trained_policy(config, local_checkpoint)
     attestation = build_attestation(
@@ -193,18 +440,26 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         checkpoint_uri=args.checkpoint,
         checkpoint_manifest=content_manifest,
         server_source=pathlib.Path(__file__).resolve(),
-        action_horizon=int(config.model.action_horizon),
-        model_action_dim=int(config.model.action_dim),
+        action_horizon=action_horizon,
+        model_action_dim=model_action_dim,
     )
     _write_json(pathlib.Path(args.attestation_output), attestation)
     metadata = dict(policy.metadata)
     metadata["armbench_server_attestation"] = public_attestation(attestation)
+    metadata[POLICY_SAMPLING_METADATA_FIELD] = policy_sampling_contract(
+        action_horizon, model_action_dim
+    )
+    served_policy = KeyedPolicySamplingWrapper(
+        policy,
+        action_horizon=action_horizon,
+        model_action_dim=model_action_dim,
+    )
     logging.info(
         "Serving attested policy checkpoint_sha256=%s",
         attestation["checkpoint_content_sha256"],
     )
     server = websocket_policy_server.WebsocketPolicyServer(
-        policy=policy,
+        policy=served_policy,
         host=args.host,
         port=args.port,
         metadata=metadata,
