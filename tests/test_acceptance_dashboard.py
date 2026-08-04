@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import pathlib
 
 import pytest
 
 import integrations.openpi.acceptance_dashboard as dashboard
+from integrations.openpi.latency_aligned_analysis import ANALYSIS_SCHEMA_VERSION
 
 
 def _write_csv(path: pathlib.Path, rows):
@@ -15,6 +17,33 @@ def _write_csv(path: pathlib.Path, rows):
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
         writer.writeheader()
         writer.writerows(rows)
+
+
+def _sha256(path: pathlib.Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _write_analysis_manifest(analysis_root: pathlib.Path) -> None:
+    files = {}
+    for path in sorted(analysis_root.iterdir()):
+        if path.is_file() and path.name != "manifest.json":
+            files[path.name] = {
+                "bytes": path.stat().st_size,
+                "sha256": _sha256(path),
+            }
+    (analysis_root / "manifest.json").write_text(
+        json.dumps(
+            {
+                "schema_version": ANALYSIS_SCHEMA_VERSION,
+                "files": files,
+            }
+        ),
+        encoding="utf-8",
+    )
 
 
 def _fixture(tmp_path: pathlib.Path):
@@ -62,8 +91,12 @@ def _fixture(tmp_path: pathlib.Path):
             }
         )
     _write_csv(evaluation / "per_episode.csv", episode_rows)
+    (run_root / "manifest.json").write_text(
+        json.dumps({"fixture": True}), encoding="utf-8"
+    )
 
     analysis = {
+        "schema_version": ANALYSIS_SCHEMA_VERSION,
         "claim_boundary": "deterministic injected delay only",
         "itt": {"rollouts": 2, "pairs": 1},
         "runtime_failures": [],
@@ -72,7 +105,10 @@ def _fixture(tmp_path: pathlib.Path):
             "checkpoint_content_sha256": "a" * 64,
             "armbench_run_commit": "b" * 40,
         },
-        "source": {"root_manifest_sha256": "c" * 64},
+        "source": {
+            "root_manifest_sha256": _sha256(run_root / "manifest.json"),
+            "per_episode_csv_sha256": _sha256(evaluation / "per_episode.csv"),
+        },
         "latency_strata": [
             {
                 "injected_latency_ms": 200.0,
@@ -93,6 +129,7 @@ def _fixture(tmp_path: pathlib.Path):
     (analysis_root / "analysis.json").write_text(
         json.dumps(analysis), encoding="utf-8"
     )
+    _write_analysis_manifest(analysis_root)
     return run_root, analysis_root
 
 
@@ -127,6 +164,13 @@ def test_build_dashboard_verifies_and_embeds_paired_videos(
     assert "async.mp4" in html
     assert "aligned.mp4" in html
     assert "put the bowl on the plate" in html
+    assert "a" * 64 in html
+    assert "b" * 40 in html
+    assert _sha256(run_root / "manifest.json") in html
+    assert _sha256(run_root / "evaluation" / "per_episode.csv") in html
+    assert _sha256(analysis_root / "manifest.json") in html
+    assert '["Run commit", data.validation.runCommit]' in html
+    assert "shortHash" not in html
 
 
 def test_build_dashboard_rejects_missing_required_video(
@@ -167,6 +211,115 @@ def test_build_dashboard_rejects_invalid_source_before_rendering(
     )
 
     with pytest.raises(ValueError, match="manifest hash mismatch"):
+        dashboard.build_dashboard(
+            run_root, analysis_root, tmp_path / "reports" / "index.html"
+        )
+
+
+def test_build_dashboard_rejects_tampered_analysis_file(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    run_root, analysis_root = _fixture(tmp_path)
+    monkeypatch.setattr(
+        dashboard,
+        "validate_run_manifest",
+        lambda _root: {
+            "valid": True,
+            "complete": True,
+            "errors": [],
+            "files_checked": 9,
+        },
+    )
+    with (analysis_root / "per_pair.csv").open("a", encoding="utf-8") as handle:
+        handle.write("tampered\n")
+    output = tmp_path / "reports" / "index.html"
+
+    with pytest.raises(ValueError, match="derived analysis.*SHA-256 mismatch"):
+        dashboard.build_dashboard(run_root, analysis_root, output)
+
+    assert not output.exists()
+
+
+def test_build_dashboard_rejects_unprotected_analysis_file(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    run_root, analysis_root = _fixture(tmp_path)
+    monkeypatch.setattr(
+        dashboard,
+        "validate_run_manifest",
+        lambda _root: {
+            "valid": True,
+            "complete": True,
+            "errors": [],
+            "files_checked": 9,
+        },
+    )
+    (analysis_root / "unprotected.txt").write_text("extra", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="file is not protected by manifest"):
+        dashboard.build_dashboard(
+            run_root, analysis_root, tmp_path / "reports" / "index.html"
+        )
+
+
+def test_build_dashboard_rejects_wrong_analysis_manifest_schema(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    run_root, analysis_root = _fixture(tmp_path)
+    monkeypatch.setattr(
+        dashboard,
+        "validate_run_manifest",
+        lambda _root: {
+            "valid": True,
+            "complete": True,
+            "errors": [],
+            "files_checked": 9,
+        },
+    )
+    manifest_path = analysis_root / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["schema_version"] = "wrong.analysis.schema"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="manifest schema_version"):
+        dashboard.build_dashboard(
+            run_root, analysis_root, tmp_path / "reports" / "index.html"
+        )
+
+
+@pytest.mark.parametrize(
+    ("source_field", "expected_label"),
+    (
+        ("root_manifest_sha256", "root manifest"),
+        ("per_episode_csv_sha256", "per_episode.csv"),
+    ),
+)
+def test_build_dashboard_rejects_analysis_bound_to_wrong_source(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+    source_field: str,
+    expected_label: str,
+) -> None:
+    run_root, analysis_root = _fixture(tmp_path)
+    monkeypatch.setattr(
+        dashboard,
+        "validate_run_manifest",
+        lambda _root: {
+            "valid": True,
+            "complete": True,
+            "errors": [],
+            "files_checked": 9,
+        },
+    )
+    analysis_path = analysis_root / "analysis.json"
+    analysis = json.loads(analysis_path.read_text(encoding="utf-8"))
+    analysis["source"][source_field] = "f" * 64
+    analysis_path.write_text(json.dumps(analysis), encoding="utf-8")
+    _write_analysis_manifest(analysis_root)
+
+    with pytest.raises(
+        ValueError, match="analysis source %s SHA-256 mismatch" % expected_label
+    ):
         dashboard.build_dashboard(
             run_root, analysis_root, tmp_path / "reports" / "index.html"
         )

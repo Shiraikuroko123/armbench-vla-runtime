@@ -12,7 +12,12 @@ import webbrowser
 from typing import Any, Dict, Iterable, Mapping, Optional, Sequence
 from urllib.parse import quote
 
-from integrations.openpi.libero_compose_run import validate_run_manifest
+from integrations.openpi.latency_aligned_analysis import ANALYSIS_SCHEMA_VERSION
+from integrations.openpi.libero_compose_run import (
+    sha256_file,
+    validate_directory_manifest,
+    validate_run_manifest,
+)
 
 
 PROJECT_ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -120,7 +125,51 @@ def build_dashboard(
             % "; ".join(str(item) for item in validation.get("errors", []))
         )
 
+    analysis_validation = validate_directory_manifest(
+        analysis_root, expected_schema=ANALYSIS_SCHEMA_VERSION
+    )
+    if not analysis_validation.get("valid"):
+        raise ValueError(
+            "derived analysis failed independent validation: %s"
+            % "; ".join(
+                str(item) for item in analysis_validation.get("errors", [])
+            )
+        )
+
     analysis = _read_json(analysis_root / "analysis.json")
+    if analysis.get("schema_version") != ANALYSIS_SCHEMA_VERSION:
+        raise ValueError(
+            "analysis.json schema_version=%r, expected %r"
+            % (analysis.get("schema_version"), ANALYSIS_SCHEMA_VERSION)
+        )
+    source = analysis.get("source")
+    if not isinstance(source, dict):
+        raise ValueError("analysis.json source must be an object")
+    source_bindings = (
+        (
+            "root_manifest_sha256",
+            run_root / "manifest.json",
+            "root manifest",
+        ),
+        (
+            "per_episode_csv_sha256",
+            run_root / "evaluation" / "per_episode.csv",
+            "per_episode.csv",
+        ),
+    )
+    for field, path, label in source_bindings:
+        expected_sha256 = source.get(field)
+        if not isinstance(expected_sha256, str) or len(expected_sha256) != 64:
+            raise ValueError("analysis source %s is not a SHA-256" % field)
+        if not path.is_file():
+            raise ValueError("analysis source %s is missing: %s" % (label, path))
+        actual_sha256 = sha256_file(path)
+        if expected_sha256 != actual_sha256:
+            raise ValueError(
+                "analysis source %s SHA-256 mismatch: expected %s, got %s"
+                % (label, expected_sha256, actual_sha256)
+            )
+
     pair_rows = _read_csv(analysis_root / "per_pair.csv")
     episode_rows = _read_csv(run_root / "evaluation" / "per_episode.csv")
     if not pair_rows:
@@ -229,7 +278,6 @@ def build_dashboard(
     summary.sort(key=lambda item: item["latencyMs"])
 
     identity = analysis.get("frozen_identity", {})
-    source = analysis.get("source", {})
     payload = {
         "runId": run_root.parent.name,
         "claimBoundary": analysis.get("claim_boundary", ""),
@@ -246,6 +294,13 @@ def build_dashboard(
             "checkpointSha256": identity.get("checkpoint_content_sha256", ""),
             "runCommit": identity.get("armbench_run_commit", ""),
             "manifestSha256": source.get("root_manifest_sha256", ""),
+            "perEpisodeSha256": source.get("per_episode_csv_sha256", ""),
+            "analysisManifestSha256": sha256_file(
+                analysis_root / "manifest.json"
+            ),
+            "analysisFilesChecked": int(
+                analysis_validation.get("files_checked", 0)
+            ),
         },
     }
     serialized = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
@@ -610,7 +665,6 @@ HTML_TEMPLATE = r"""<!doctype html>
       const byId = (id) => document.getElementById(id);
       const percent = (value) => Math.round(value * 100) + "%";
       const signedPoints = (value) => (value >= 0 ? "+" : "") + Math.round(value * 100) + " points";
-      const shortHash = (value) => value ? value.slice(0, 12) : "-";
       const outcomeText = {
         aligned_win: "基线失败 / 对齐成功",
         async_win: "基线成功 / 对齐失败",
@@ -625,7 +679,7 @@ HTML_TEMPLATE = r"""<!doctype html>
         byId("primary-difference").textContent = signedPoints(primary.difference);
         byId("primary-ci").textContent = "95% CI [" + signedPoints(primary.ciLow) + ", " + signedPoints(primary.ciHigh) + "]";
         byId("integrity-status").textContent = data.validation.valid && data.validation.complete ? "VALID" : "INVALID";
-        byId("integrity-detail").textContent = data.validation.filesChecked + " protected files";
+        byId("integrity-detail").textContent = data.validation.filesChecked + " run + " + data.validation.analysisFilesChecked + " analysis files";
         byId("run-line").textContent = data.runId + " / " + data.validation.rollouts + " rollouts / " + data.validation.matchedPairs + " matched pairs";
         byId("claim-boundary").textContent = "Claim boundary: " + data.claimBoundary;
       }
@@ -789,9 +843,12 @@ HTML_TEMPLATE = r"""<!doctype html>
           ["Protected files", String(data.validation.filesChecked)],
           ["Runtime failures", String(data.validation.runtimeFailures)],
           ["Checkpoint", data.validation.checkpoint],
-          ["Checkpoint SHA-256", shortHash(data.validation.checkpointSha256)],
-          ["Run commit", shortHash(data.validation.runCommit)],
-          ["Root manifest SHA-256", shortHash(data.validation.manifestSha256)]
+          ["Checkpoint SHA-256", data.validation.checkpointSha256],
+          ["Run commit", data.validation.runCommit],
+          ["Root manifest SHA-256", data.validation.manifestSha256],
+          ["per_episode.csv SHA-256", data.validation.perEpisodeSha256],
+          ["Analysis manifest SHA-256", data.validation.analysisManifestSha256],
+          ["Analysis protected files", String(data.validation.analysisFilesChecked)]
         ];
         const list = byId("integrity-list");
         fields.forEach((field) => {
