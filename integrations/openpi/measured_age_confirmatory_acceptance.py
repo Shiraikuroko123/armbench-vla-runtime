@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import pathlib
 import webbrowser
 from typing import Any, Dict, Mapping, Optional, Sequence
 
+from integrations.openpi import measured_age_analysis as base_analysis
 from integrations.openpi.measured_age_compose_run import validate_run_manifest
 from integrations.openpi.measured_age_confirmatory_analysis import (
     analyze_artifact,
@@ -43,6 +45,24 @@ _SCIENTIFIC_FIELDS = (
     "statistics",
     "claim_boundary",
 )
+_BASE_SCIENTIFIC_FIELDS = (
+    "schema_version",
+    "cohort",
+    "success",
+    "timing",
+    "runtime_burden",
+    "statistics",
+    "claim_boundary",
+)
+_CHECKPOINT_URI = "gs://openpi-assets/checkpoints/pi05_libero"
+_POLICY_CONFIG = "pi05_libero"
+_CLAIM_BOUNDARY = (
+    "Simulation-only measured-age pi0.5-LIBERO evidence. Inference remains "
+    "blocking and controller catch-up is simulated after response arrival; "
+    "this is not true concurrent control, a hard real-time guarantee, physical "
+    "safety, cross-model evidence, RTC-style policy-internal continuation, or "
+    "a real-robot result."
+)
 
 
 def _strict_json(path: pathlib.Path) -> Dict[str, Any]:
@@ -76,6 +96,25 @@ def _mapping(value: Any, label: str) -> Mapping[str, Any]:
     return value
 
 
+def _canonical_sha256(value: Any) -> str:
+    payload = json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+        allow_nan=False,
+    ).encode("ascii")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _sha256_file(path: pathlib.Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
 def _require_recomputed_analysis(
     source_root: pathlib.Path,
     base_analysis_root: pathlib.Path,
@@ -96,11 +135,28 @@ def _require_recomputed_analysis(
     recorded_source = _mapping(recorded.get("source"), "confirmatory source")
     recomputed_source = _mapping(recomputed.get("source"), "recomputed source")
     base = _strict_json(base_analysis_root / "analysis.json")
+    fresh_base, _fresh_pairs = base_analysis.analyze_artifact(
+        source_root,
+        bootstrap_resamples=base_analysis.DEFAULT_BOOTSTRAP_RESAMPLES,
+        bootstrap_seed=base_analysis.DEFAULT_BOOTSTRAP_SEED,
+    )
+    for field in _BASE_SCIENTIFIC_FIELDS:
+        if base.get(field) != fresh_base.get(field):
+            raise ValueError("base analysis disagrees with source: %s" % field)
     base_source = _mapping(base.get("source"), "base-analysis source")
     for field in _SOURCE_HASH_FIELDS:
         expected = recorded_source.get(field)
-        if expected != recomputed_source.get(field) or expected != base_source.get(field):
+        if (
+            expected != recomputed_source.get(field)
+            or expected != base_source.get(field)
+            or expected != fresh_base["source"].get(field)
+        ):
             raise ValueError("analysis source binding mismatch: %s" % field)
+    fresh_base_canonical = _canonical_sha256(fresh_base)
+    if recorded_source.get("base_analysis_canonical_sha256") != fresh_base_canonical:
+        raise ValueError("confirmatory analysis base canonical hash mismatch")
+    if recomputed_source.get("base_analysis_canonical_sha256") != fresh_base_canonical:
+        raise ValueError("recomputed confirmatory base canonical hash mismatch")
     return recorded
 
 
@@ -125,14 +181,9 @@ def build_acceptance(
     analysis = _require_recomputed_analysis(
         source_root, base_analysis_root, confirmatory_analysis_root
     )
-    dashboard = build_dashboard(
-        source_root, base_analysis_root, dashboard_output
-    )
     cohort = _mapping(analysis.get("cohort"), "confirmatory cohort")
     if cohort.get("tasks") != 10 or cohort.get("pairs") != 120 or cohort.get("rollouts") != 240:
         raise ValueError("confirmatory cohort is not the frozen 10/120/240 matrix")
-    if dashboard.get("pairs") != 120 or dashboard.get("rollouts") != 240:
-        raise ValueError("dashboard cohort disagrees with confirmatory analysis")
 
     primary = _mapping(analysis.get("primary"), "primary analysis")
     secondary = _mapping(analysis.get("secondary"), "secondary analysis")
@@ -154,14 +205,29 @@ def build_acceptance(
         metadata.get("armbench_policy_sampling_contract"),
         "policy-sampling contract",
     )
-    if attestation.get("policy_loaded") is not True:
-        raise ValueError("server attestation does not record policy_loaded=true")
+    if (
+        attestation.get("policy_loaded") is not True
+        or attestation.get("policy_config") != _POLICY_CONFIG
+        or attestation.get("checkpoint_uri") != _CHECKPOINT_URI
+        or attestation.get("action_horizon") != 10
+        or attestation.get("model_action_dim") != 32
+        or attestation.get("openpi_tracked_clean") is not True
+        or attestation.get("openpi_submodules_clean") is not True
+        or attestation.get("openpi_commit") != environment.get("openpi_git_commit")
+    ):
+        raise ValueError("server attestation is not the frozen clean pi05_libero policy")
     if (
         sampling.get("schema_version") != "armbench.policy_sampling.v1"
         or sampling.get("noise_shape") != [10, 32]
         or sampling.get("mode_in_key") is not False
     ):
         raise ValueError("policy-sampling contract is not the frozen paired-noise contract")
+
+    # Rendering is the final operation: no new dashboard is written until all
+    # source, analysis, cohort, identity, and sampling checks have passed.
+    dashboard = build_dashboard(source_root, base_analysis_root, dashboard_output)
+    if dashboard.get("pairs") != 120 or dashboard.get("rollouts") != 240:
+        raise ValueError("dashboard cohort disagrees with confirmatory analysis")
 
     exact_p = float(primary["exact_p"])
     candidate_wins = int(primary["candidate_wins"])
@@ -194,12 +260,33 @@ def build_acceptance(
         "identity": {
             "armbench_run_commit": environment.get("armbench_git_commit"),
             "openpi_commit": environment.get("openpi_git_commit"),
+            "openpi_tracked_clean": attestation.get("openpi_tracked_clean"),
+            "openpi_submodules_clean": attestation.get("openpi_submodules_clean"),
+            "policy_config": attestation.get("policy_config"),
+            "checkpoint_uri": attestation.get("checkpoint_uri"),
             "checkpoint_content_sha256": attestation.get(
                 "checkpoint_content_sha256"
             ),
+            "action_horizon": attestation.get("action_horizon"),
             "source_manifest_sha256": analysis["source"][
                 "source_manifest_sha256"
             ],
+            "base_analysis_canonical_sha256": analysis["source"][
+                "base_analysis_canonical_sha256"
+            ],
+            "base_analysis_manifest_sha256": _sha256_file(
+                base_analysis_root / "manifest.json"
+            ),
+            "confirmatory_analysis_manifest_sha256": _sha256_file(
+                confirmatory_analysis_root / "manifest.json"
+            ),
+            "confirmatory_analyzer_sha256": analysis["implementation"][
+                "analyzer_sha256"
+            ],
+            "base_analyzer_sha256": analysis["implementation"][
+                "base_analyzer_sha256"
+            ],
+            "validator_sha256": analysis["implementation"]["validator_sha256"],
             "paired_policy_noise": True,
         },
         "evidence": {
@@ -210,7 +297,7 @@ def build_acceptance(
         },
         "dashboard": str(dashboard_output),
         "dashboard_uri": dashboard_output.as_uri(),
-        "claim_boundary": analysis.get("claim_boundary"),
+        "claim_boundary": _CLAIM_BOUNDARY,
     }
 
 

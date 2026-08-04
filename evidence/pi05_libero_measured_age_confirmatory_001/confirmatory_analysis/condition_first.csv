@@ -1,0 +1,3 @@
+condition_first,pairs,async_successes,async_success_rate,aligned_successes,aligned_success_rate,candidate_wins,reference_wins,ties,risk_difference
+async_unguarded,60,50,0.8333333333333334,58,0.9666666666666667,10,2,48,0.13333333333333333
+latency_aligned,60,38,0.6333333333333333,58,0.9666666666666667,22,2,36,0.3333333333333333

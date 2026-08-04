@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "docker",
+    "compose",
+    "--project-name",
+    "armbench-measured-pi05_libero_measured_age_confirmatory_001",
+    "--project-directory",
+    "/workspace/openpi",
+    "-f",
+    "/workspace/openpi/examples/libero/compose.yml",
+    "-f",
+    "/workspace/armbench/project/integrations/openpi/compose.libero-runtime.yml",
+    "-f",
+    "/workspace/armbench/project/integrations/openpi/compose.libero-measured-age.yml",
+    "stop",
+    "--timeout",
+    "60"
+  ],
+  "attempted": true,
+  "duration_s": 0.086,
+  "returncode": 0,
+  "schema_version": "armbench.compose_process.v1",
+  "started_at_utc": "2026-08-04T20:55:54.037449+00:00",
+  "stderr": "time=\"2026-08-05T04:55:54+08:00\" level=warning msg=\"The \\\"DISPLAY\\\" variable is not set. Defaulting to a blank string.\"\n Container armbench-measured-pi05_libero_measured_age_confirmatory_001-runtime-1 Stopping \n Container armbench-measured-pi05_libero_measured_age_confirmatory_001-runtime-1 Stopped \n Container armbench-measured-pi05_libero_measured_age_confirmatory_001-openpi_server-1 Stopping \n Container armbench-measured-pi05_libero_measured_age_confirmatory_001-openpi_server-1 Stopped \n",
+  "stdout": ""
+}

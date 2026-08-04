@@ -1,0 +1,17 @@
+{
+  "files": {
+    "analysis.json": {
+      "bytes": 8601,
+      "sha256": "efed3640d168d2b5b7ba4d9f0c0899a3da37482bd7d71d8e793629b6eb22dac9"
+    },
+    "per_pair.csv": {
+      "bytes": 26433,
+      "sha256": "ed65b5e4b63a1a98d88c84f95223a6c5a096f2a0a920780215907d92b8890abf"
+    },
+    "summary.md": {
+      "bytes": 784,
+      "sha256": "6cd07cd6d16f778cb0fce0a3d073fc76173da13982b80f3f8785e75284e56872"
+    }
+  },
+  "schema_version": "armbench.pi05_libero_measured_age_analysis.v1"
+}

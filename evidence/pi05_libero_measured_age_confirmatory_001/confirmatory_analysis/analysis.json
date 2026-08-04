@@ -1,0 +1,385 @@
+{
+  "claim_boundary": "Simulation-only task-cluster robustness analysis of a validated measured-age pi0.5-LIBERO artifact.",
+  "cohort": {
+    "condition_first_counts": {
+      "async_unguarded": 60,
+      "latency_aligned": 60
+    },
+    "episode_indices": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "pairs": 120,
+    "pairs_per_task": 12,
+    "rollouts": 240,
+    "task_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "task_suites": [
+      "libero_spatial"
+    ],
+    "tasks": 10
+  },
+  "implementation": {
+    "analyzer_sha256": "a76e35db30451c736738aef8c59e8671ee2fa06bf80e6b9df5fec3bb99b5c050",
+    "analyzer_source": "integrations/openpi/measured_age_confirmatory_analysis.py",
+    "base_analyzer_sha256": "2a966c28f2fe1fcf0e6a78c76b516fce146a9c97468228a9297a37a54c38aa74",
+    "base_analyzer_source": "integrations/openpi/measured_age_analysis.py",
+    "numpy_version": "1.26.4",
+    "python_version": "3.10.8",
+    "validator_sha256": "22c5bda26b7ecff787ad287328535dafda90c4b6bfb3f07105bb5b9a7dab1544",
+    "validator_source": "integrations/openpi/validate_measured_age_artifact.py"
+  },
+  "primary": {
+    "aligned_success_rate": 0.9666666666666667,
+    "aligned_successes": 116,
+    "alpha": 0.05,
+    "async_success_rate": 0.7333333333333333,
+    "async_successes": 88,
+    "candidate_wins": 32,
+    "exact_p": 1.941574737429619e-06,
+    "pairs": 120,
+    "reference_wins": 4,
+    "risk_difference": 0.23333333333333334,
+    "role": "single primary confirmatory test",
+    "test": "two-sided exact McNemar",
+    "ties": 84
+  },
+  "schema_version": "armbench.pi05_measured_age_confirmatory_analysis.v1",
+  "secondary": {
+    "condition_first": [
+      {
+        "aligned_success_rate": 0.9666666666666667,
+        "aligned_successes": 58,
+        "async_success_rate": 0.8333333333333334,
+        "async_successes": 50,
+        "candidate_wins": 10,
+        "condition_first": "async_unguarded",
+        "pairs": 60,
+        "reference_wins": 2,
+        "risk_difference": 0.13333333333333333,
+        "ties": 48
+      },
+      {
+        "aligned_success_rate": 0.9666666666666667,
+        "aligned_successes": 58,
+        "async_success_rate": 0.6333333333333333,
+        "async_successes": 38,
+        "candidate_wins": 22,
+        "condition_first": "latency_aligned",
+        "pairs": 60,
+        "reference_wins": 2,
+        "risk_difference": 0.3333333333333333,
+        "ties": 36
+      }
+    ],
+    "exact_task_sign_flip": {
+      "alternative": "two-sided",
+      "enumerated_assignments": 1024,
+      "exact_p": 0.015625,
+      "extreme_assignments": 16,
+      "observed_mean_task_risk_difference": 0.23333333333333334,
+      "statistic": "absolute mean task risk difference",
+      "unit": "task-level risk difference"
+    },
+    "leave_one_task_out": [
+      {
+        "candidate_wins": 28,
+        "omitted_task_id": 0,
+        "omitted_task_suite": "libero_spatial",
+        "reference_wins": 4,
+        "remaining_pairs": 108,
+        "remaining_tasks": 9,
+        "risk_difference": 0.2222222222222222,
+        "ties": 76
+      },
+      {
+        "candidate_wins": 31,
+        "omitted_task_id": 1,
+        "omitted_task_suite": "libero_spatial",
+        "reference_wins": 4,
+        "remaining_pairs": 108,
+        "remaining_tasks": 9,
+        "risk_difference": 0.25,
+        "ties": 73
+      },
+      {
+        "candidate_wins": 32,
+        "omitted_task_id": 2,
+        "omitted_task_suite": "libero_spatial",
+        "reference_wins": 4,
+        "remaining_pairs": 108,
+        "remaining_tasks": 9,
+        "risk_difference": 0.25925925925925924,
+        "ties": 72
+      },
+      {
+        "candidate_wins": 29,
+        "omitted_task_id": 3,
+        "omitted_task_suite": "libero_spatial",
+        "reference_wins": 3,
+        "remaining_pairs": 108,
+        "remaining_tasks": 9,
+        "risk_difference": 0.24074074074074073,
+        "ties": 76
+      },
+      {
+        "candidate_wins": 27,
+        "omitted_task_id": 4,
+        "omitted_task_suite": "libero_spatial",
+        "reference_wins": 4,
+        "remaining_pairs": 108,
+        "remaining_tasks": 9,
+        "risk_difference": 0.21296296296296297,
+        "ties": 77
+      },
+      {
+        "candidate_wins": 23,
+        "omitted_task_id": 5,
+        "omitted_task_suite": "libero_spatial",
+        "reference_wins": 4,
+        "remaining_pairs": 108,
+        "remaining_tasks": 9,
+        "risk_difference": 0.17592592592592593,
+        "ties": 81
+      },
+      {
+        "candidate_wins": 32,
+        "omitted_task_id": 6,
+        "omitted_task_suite": "libero_spatial",
+        "reference_wins": 4,
+        "remaining_pairs": 108,
+        "remaining_tasks": 9,
+        "risk_difference": 0.25925925925925924,
+        "ties": 72
+      },
+      {
+        "candidate_wins": 31,
+        "omitted_task_id": 7,
+        "omitted_task_suite": "libero_spatial",
+        "reference_wins": 3,
+        "remaining_pairs": 108,
+        "remaining_tasks": 9,
+        "risk_difference": 0.25925925925925924,
+        "ties": 74
+      },
+      {
+        "candidate_wins": 28,
+        "omitted_task_id": 8,
+        "omitted_task_suite": "libero_spatial",
+        "reference_wins": 4,
+        "remaining_pairs": 108,
+        "remaining_tasks": 9,
+        "risk_difference": 0.2222222222222222,
+        "ties": 76
+      },
+      {
+        "candidate_wins": 27,
+        "omitted_task_id": 9,
+        "omitted_task_suite": "libero_spatial",
+        "reference_wins": 2,
+        "remaining_pairs": 108,
+        "remaining_tasks": 9,
+        "risk_difference": 0.23148148148148148,
+        "ties": 79
+      }
+    ],
+    "leave_one_task_out_range": {
+      "maximum_risk_difference": 0.25925925925925924,
+      "minimum_risk_difference": 0.17592592592592593
+    },
+    "per_task": [
+      {
+        "aligned_success_rate": 1.0,
+        "aligned_successes": 12,
+        "async_success_rate": 0.6666666666666666,
+        "async_successes": 8,
+        "candidate_wins": 4,
+        "pairs": 12,
+        "reference_wins": 0,
+        "risk_difference": 0.3333333333333333,
+        "task_id": 0,
+        "task_suite": "libero_spatial",
+        "ties": 8
+      },
+      {
+        "aligned_success_rate": 1.0,
+        "aligned_successes": 12,
+        "async_success_rate": 0.9166666666666666,
+        "async_successes": 11,
+        "candidate_wins": 1,
+        "pairs": 12,
+        "reference_wins": 0,
+        "risk_difference": 0.08333333333333333,
+        "task_id": 1,
+        "task_suite": "libero_spatial",
+        "ties": 11
+      },
+      {
+        "aligned_success_rate": 1.0,
+        "aligned_successes": 12,
+        "async_success_rate": 1.0,
+        "async_successes": 12,
+        "candidate_wins": 0,
+        "pairs": 12,
+        "reference_wins": 0,
+        "risk_difference": 0.0,
+        "task_id": 2,
+        "task_suite": "libero_spatial",
+        "ties": 12
+      },
+      {
+        "aligned_success_rate": 0.9166666666666666,
+        "aligned_successes": 11,
+        "async_success_rate": 0.75,
+        "async_successes": 9,
+        "candidate_wins": 3,
+        "pairs": 12,
+        "reference_wins": 1,
+        "risk_difference": 0.16666666666666666,
+        "task_id": 3,
+        "task_suite": "libero_spatial",
+        "ties": 8
+      },
+      {
+        "aligned_success_rate": 1.0,
+        "aligned_successes": 12,
+        "async_success_rate": 0.5833333333333334,
+        "async_successes": 7,
+        "candidate_wins": 5,
+        "pairs": 12,
+        "reference_wins": 0,
+        "risk_difference": 0.4166666666666667,
+        "task_id": 4,
+        "task_suite": "libero_spatial",
+        "ties": 7
+      },
+      {
+        "aligned_success_rate": 1.0,
+        "aligned_successes": 12,
+        "async_success_rate": 0.25,
+        "async_successes": 3,
+        "candidate_wins": 9,
+        "pairs": 12,
+        "reference_wins": 0,
+        "risk_difference": 0.75,
+        "task_id": 5,
+        "task_suite": "libero_spatial",
+        "ties": 3
+      },
+      {
+        "aligned_success_rate": 1.0,
+        "aligned_successes": 12,
+        "async_success_rate": 1.0,
+        "async_successes": 12,
+        "candidate_wins": 0,
+        "pairs": 12,
+        "reference_wins": 0,
+        "risk_difference": 0.0,
+        "task_id": 6,
+        "task_suite": "libero_spatial",
+        "ties": 12
+      },
+      {
+        "aligned_success_rate": 0.9166666666666666,
+        "aligned_successes": 11,
+        "async_success_rate": 0.9166666666666666,
+        "async_successes": 11,
+        "candidate_wins": 1,
+        "pairs": 12,
+        "reference_wins": 1,
+        "risk_difference": 0.0,
+        "task_id": 7,
+        "task_suite": "libero_spatial",
+        "ties": 10
+      },
+      {
+        "aligned_success_rate": 1.0,
+        "aligned_successes": 12,
+        "async_success_rate": 0.6666666666666666,
+        "async_successes": 8,
+        "candidate_wins": 4,
+        "pairs": 12,
+        "reference_wins": 0,
+        "risk_difference": 0.3333333333333333,
+        "task_id": 8,
+        "task_suite": "libero_spatial",
+        "ties": 8
+      },
+      {
+        "aligned_success_rate": 0.8333333333333334,
+        "aligned_successes": 10,
+        "async_success_rate": 0.5833333333333334,
+        "async_successes": 7,
+        "candidate_wins": 5,
+        "pairs": 12,
+        "reference_wins": 2,
+        "risk_difference": 0.25,
+        "task_id": 9,
+        "task_suite": "libero_spatial",
+        "ties": 5
+      }
+    ],
+    "task_cluster_bootstrap": {
+      "percentile95_high": 0.38333333333333336,
+      "percentile95_low": 0.10833333333333334,
+      "resamples": 10000,
+      "seed": 20260805,
+      "statistic": "pooled paired risk difference after resampling whole tasks",
+      "tasks_per_resample": 10,
+      "unit": "task block"
+    }
+  },
+  "source": {
+    "artifact": "D:\\arm-planning-control-project\\project\\evidence\\pi05_libero_measured_age_confirmatory_001\\run\\evaluation",
+    "base_analysis_canonical_sha256": "333a95f075f4622e1b423f151ed062340b57b70f9e19f6b00f9e6a87436cbcec",
+    "base_analysis_schema_version": "armbench.pi05_libero_measured_age_analysis.v1",
+    "per_episode_sha256": "4574c8946f02c07cc63e923e0a815366b5502154b8d847e8d799d6fb99c000e8",
+    "per_query_sha256": "2fdd961205f0d28d8b2a30bfab764ae7d2b6caf9466bc932c2e0965cb29602af",
+    "second_validator_schema_version": "armbench.measured_age_artifact_validation.v1",
+    "source_manifest_sha256": "ce439762242328ceeee5177c470ee498becfe422beaeec868a9b2637eddc8d39",
+    "source_schema_version": "armbench.pi05_libero_measured_age.v2",
+    "validator_checks": [
+      "manifest path safety, complete coverage, byte counts, and hashes",
+      "fixed measured-age protocol, matrix, rounding, refresh, and jitter contract",
+      "exact CSV headers and canonical finite scalar parsing",
+      "environment source hashes close over every frozen provenance copy",
+      "unscored attested warmup precedes every scored query",
+      "raw clocks, timing arithmetic, alignment, refresh bounds, paired jitter, episodes, pairs, matrix, and videos",
+      "independent keyed policy-noise recomputation, server echoes, namespace separation, and exact call coverage",
+      "summary, pair outcome, progress, integrity, and Markdown consistency"
+    ],
+    "validator_schema_version": "armbench.measured_age_artifact_validation.v1"
+  },
+  "statistics": {
+    "cluster_bootstrap_resamples": 10000,
+    "cluster_bootstrap_seed": 20260805,
+    "cluster_bootstrap_unit": "whole task",
+    "multiplicity": "no secondary result replaces the single primary test",
+    "primary_alpha": 0.05,
+    "primary_test": "pooled two-sided exact McNemar",
+    "secondary_status": "prespecified robustness analyses",
+    "task_level_rows": "descriptive; no task-level significance claims",
+    "task_sign_flip": "two-sided exhaustive 2^10 sign assignments"
+  },
+  "valid": true
+}

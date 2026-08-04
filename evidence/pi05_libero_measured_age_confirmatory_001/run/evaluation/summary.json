@@ -1,0 +1,51 @@
+{
+  "aggregate": [
+    {
+      "age_refreshes": 0,
+      "deadline_misses": 48,
+      "fallback_hold_steps": 0,
+      "horizon_overruns": 48,
+      "mean_policy_queries": 22.75,
+      "mode": "async_unguarded",
+      "observation_age_max_ms": 263.97619400086114,
+      "observation_age_p50_ms": 129.4544215015776,
+      "observation_age_p95_ms": 248.53958579988102,
+      "policy_queries": 2730,
+      "rollouts": 120,
+      "success_rate": 0.7333333333333333,
+      "successes": 88
+    },
+    {
+      "age_refreshes": 25,
+      "deadline_misses": 25,
+      "fallback_hold_steps": 25,
+      "horizon_overruns": 25,
+      "mean_policy_queries": 15.141666666666667,
+      "mode": "latency_aligned",
+      "observation_age_max_ms": 254.77805099944817,
+      "observation_age_p50_ms": 129.3016310009989,
+      "observation_age_p95_ms": 248.40309860010166,
+      "policy_queries": 1817,
+      "rollouts": 120,
+      "success_rate": 0.9666666666666667,
+      "successes": 116
+    }
+  ],
+  "complete": true,
+  "completed_rollouts": 240,
+  "paired": {
+    "aligned_successes": 116,
+    "async_successes": 88,
+    "candidate_wins": 32,
+    "pairs": 120,
+    "reference_wins": 4,
+    "success_rate_difference": 0.23333333333333334,
+    "ties": 84
+  },
+  "planned_rollouts": 240,
+  "schema_version": "armbench.pi05_libero_measured_age.v2",
+  "valid": true,
+  "warmup_queries_completed": 3,
+  "warmup_queries_planned": 3,
+  "warmup_queries_valid": 3
+}

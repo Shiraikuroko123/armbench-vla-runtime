@@ -617,6 +617,17 @@ HTML_TEMPLATE = r"""<!doctype html>
     .integrity dd { margin:0; font-family:Consolas,monospace; overflow-wrap:anywhere; }
     .boundary { border-left:5px solid var(--amber); background:#fff7ed; padding:12px 14px; }
     @media (max-width:820px) { .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } .videos { grid-template-columns:1fr; } .video-pane + .video-pane { border-left:0; border-top:1px solid var(--line); } }
+    @media (max-width:600px) {
+      .table-wrap { overflow:visible; border:0; background:transparent; }
+      .timing-table, .timing-table tbody, .timing-table tr, .timing-table td { display:block; width:100%; }
+      .timing-table thead { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+      .timing-table tbody { display:grid; gap:8px; }
+      .timing-table tr { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); border:1px solid var(--line); border-radius:6px; background:var(--surface); overflow:hidden; }
+      .timing-table td { min-width:0; padding:8px 10px; border:0; border-top:1px solid var(--line); overflow-wrap:anywhere; }
+      .timing-table td:nth-child(even) { border-left:1px solid var(--line); }
+      .timing-table td:first-child { grid-column:1/-1; border-top:0; border-left:0; font-weight:700; }
+      .timing-table td::before { content:attr(data-label); display:block; margin-bottom:2px; color:var(--muted); font-size:10px; font-weight:600; }
+    }
     @media (max-width:480px) { .metrics { grid-template-columns:1fr; } main { padding:14px; } }
   </style>
 </head>
@@ -624,7 +635,7 @@ HTML_TEMPLATE = r"""<!doctype html>
   <header><span class="scope" id="scope"></span><h1 id="evidence-title"></h1><p>Training-free action-chunk alignment under observed response age</p></header>
   <main>
     <section><h2>Paired outcome</h2><div class="metrics"><div class="metric"><span>Async success</span><strong id="async-success"></strong><small id="async-rate"></small></div><div class="metric"><span>Aligned success</span><strong id="aligned-success"></strong><small id="aligned-rate"></small></div><div class="metric"><span>Paired effect</span><strong id="effect"></strong><small id="effect-ci"></small></div><div class="metric"><span>Evidence</span><strong id="cohort"></strong><small id="query-count"></small></div></div></section>
-    <section><h2>Measured timing and runtime burden</h2><div class="table-wrap"><table><thead><tr><th>Mode</th><th>Age P95</th><th>Age max</th><th>Deadline</th><th>Horizon</th><th>Hold-refresh</th><th>Fail closed</th></tr></thead><tbody id="timing-body"></tbody></table></div></section>
+    <section><h2>Measured timing and runtime burden</h2><div class="table-wrap"><table class="timing-table"><thead><tr><th>Mode</th><th>Age P95</th><th>Age max</th><th>Deadline</th><th>Horizon</th><th>Hold-refresh</th><th>Fail closed</th></tr></thead><tbody id="timing-body"></tbody></table></div></section>
     <section><h2>Matched-pair rollouts</h2><div class="controls"><div><label for="task-filter">Task</label><select id="task-filter"><option value="all">All tasks</option></select></div><div><label for="outcome-filter">Outcome</label><select id="outcome-filter"><option value="all">All outcomes</option><option value="aligned_win">Aligned win</option><option value="async_win">Async win</option><option value="both_success">Both succeed</option><option value="both_failure">Both fail</option></select></div></div><div class="pair-grid" id="pair-grid"></div><div class="selection hidden" id="selection"><div class="selection-head"><div><h3 id="selection-id"></h3><p id="task-description"></p></div><span id="pair-outcome"></span></div><div class="videos"><div class="video-pane"><div class="video-title"><h3>Async baseline</h3><span class="video-meta" id="async-meta"></span></div><video id="async-video" controls preload="metadata"></video></div><div class="video-pane"><div class="video-title"><h3>Latency aligned</h3><span class="video-meta" id="aligned-meta"></span></div><video id="aligned-video" controls preload="metadata"></video></div></div><div class="playback"><button id="play-both" type="button">Play both</button><button id="pause-both" type="button">Pause</button><button id="restart-both" type="button">Restart</button></div></div></section>
     <section><h2>Evidence integrity</h2><dl class="integrity" id="integrity"></dl></section>
     <p class="boundary" id="boundary"></p>
@@ -641,7 +652,7 @@ HTML_TEMPLATE = r"""<!doctype html>
       byId("aligned-success").textContent=l.successes+"/"+l.rollouts; byId("aligned-rate").textContent=pct(l.rate);
       byId("effect").textContent=signed(p.rate_difference); byId("effect-ci").textContent="paired 95% ["+signed(p.paired_bootstrap95_low)+", "+signed(p.paired_bootstrap95_high)+"]";
       byId("cohort").textContent=data.cohort.rollouts+" rollouts"; byId("query-count").textContent=data.cohort.pairs+" pairs / "+data.cohort.queries+" queries";
-      data.timing.forEach((row)=>{ const tr=document.createElement("tr"), values=[row.mode,row.observation_age_ms.p95.toFixed(1)+" ms",row.observation_age_ms.max.toFixed(1)+" ms",row.deadline_misses+" ("+pct(row.deadline_miss_rate_per_query)+")",row.horizon_overruns+" ("+pct(row.horizon_overrun_rate_per_query)+")",String(row.hold_refresh_queries),String(row.fail_closed_queries)]; values.forEach((value)=>{const td=document.createElement("td");td.textContent=value;tr.appendChild(td);});byId("timing-body").appendChild(tr);});
+      data.timing.forEach((row)=>{ const tr=document.createElement("tr"), labels=["Mode","Age P95","Age max","Deadline","Horizon","Hold-refresh","Fail closed"], values=[row.mode,row.observation_age_ms.p95.toFixed(1)+" ms",row.observation_age_ms.max.toFixed(1)+" ms",row.deadline_misses+" ("+pct(row.deadline_miss_rate_per_query)+")",row.horizon_overruns+" ("+pct(row.horizon_overrun_rate_per_query)+")",String(row.hold_refresh_queries),String(row.fail_closed_queries)]; values.forEach((value,index)=>{const td=document.createElement("td");td.dataset.label=labels[index];td.textContent=value;tr.appendChild(td);});byId("timing-body").appendChild(tr);});
       const taskFilter=byId("task-filter"), outcomeFilter=byId("outcome-filter"); Array.from(new Set(data.pairs.map((row)=>row.taskId))).sort((x,y)=>x-y).forEach((task)=>{const option=document.createElement("option");option.value=String(task);option.textContent="Task "+task;taskFilter.appendChild(option);});
       const labels={aligned_win:"Aligned win",async_win:"Async win",both_success:"Both succeed",both_failure:"Both fail"}; let selected=null;
       function status(result){return (result.success?"success":"failure")+" / "+result.queries+" queries / D"+result.deadline+" H"+result.horizon+" R"+result.refresh;}

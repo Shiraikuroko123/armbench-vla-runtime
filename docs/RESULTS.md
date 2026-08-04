@@ -1,5 +1,42 @@
 # Verified result snapshots
 
+## pi0.5-LIBERO held-out measured-age confirmation
+
+### Provenance and protocol
+
+- Run ID: `pi05_libero_measured_age_confirmatory_001`
+- Frozen protocol/run commit:
+  `12070625cd6f46186282317262065d015c8fbe27`
+- OpenPI commit: `15a9616a00943ada6c20a0f158e3adb39df2ccac`
+- Policy/checkpoint: official `pi05_libero`
+- Matrix: 10 Spatial tasks x 12 held-out initial states x 2 modes
+- Evidence: 240/240 rollouts, 240 videos, 4,547 scored policy queries
+- Pairing: identical initial state, keyed response jitter, and explicit
+  mode-independent `10 x 32` float32 pi0.5 sampling noise
+- Validation: root `valid=true`, 271 protected files; evaluation `valid=true`,
+  261 protected files; independently recomputed noise and statistics
+
+### Outcomes
+
+| Measure | Async unguarded | Measured-age aligned | Paired result |
+|---|---:|---:|---:|
+| Success | 88/120 | 116/120 | +23.33 points, pair bootstrap 95% [+15.00,+31.67] |
+| Discordance | - | - | 32 aligned wins / 4 async wins / 84 ties |
+| Primary test | - | - | exact two-sided McNemar `p=1.941574737e-6` |
+| Whole-task bootstrap | - | - | 95% [+10.83,+38.33] |
+| Task sign flip | - | - | exhaustive `2^10`, `p=0.015625` |
+| Mean policy queries | 22.75 | 15.14 | -7.61, bootstrap 95% [-8.78,-6.44] |
+
+Every leave-one-task-out effect remains positive (+17.59 to +25.93 points).
+Condition-order strata are also both positive, but differ in magnitude:
++13.33 points when the baseline ran first and +33.33 points when alignment ran
+first. The result supports training-free suffix selection under measured
+client-visible age in blocking LIBERO simulation. It is not evidence of true
+concurrent control, hard real-time behavior, physical safety, cross-model
+generality, RTC-style policy-internal continuation, or a real robot. The full
+artifact and paired dashboard are in
+[`evidence/pi05_libero_measured_age_confirmatory_001`](../evidence/pi05_libero_measured_age_confirmatory_001/README.md).
+
 ## pi0.5-LIBERO cross-suite external validation
 
 ### Provenance and protocol

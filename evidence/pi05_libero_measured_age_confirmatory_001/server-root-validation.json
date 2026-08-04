@@ -1,0 +1,32 @@
+{
+  "artifact_validation": {
+    "artifact": "evaluation",
+    "checks": [
+      "manifest path safety, complete coverage, byte counts, and hashes",
+      "fixed measured-age protocol, matrix, rounding, refresh, and jitter contract",
+      "exact CSV headers and canonical finite scalar parsing",
+      "environment source hashes close over every frozen provenance copy",
+      "unscored attested warmup precedes every scored query",
+      "raw clocks, timing arithmetic, alignment, refresh bounds, paired jitter, episodes, pairs, matrix, and videos",
+      "independent keyed policy-noise recomputation, server echoes, namespace separation, and exact call coverage",
+      "summary, pair outcome, progress, integrity, and Markdown consistency"
+    ],
+    "errors": [],
+    "schema_version": "armbench.measured_age_artifact_validation.v1",
+    "valid": true,
+    "warnings": []
+  },
+  "complete": true,
+  "content_assessment": {
+    "artifact_validation_valid": true,
+    "complete": true,
+    "compose_stop_confirmed": true,
+    "errors": [],
+    "evaluation_manifest_files_checked": 261,
+    "schema_version": "armbench.pi05_libero_measured_age_container_run.v1"
+  },
+  "errors": [],
+  "files_checked": 271,
+  "schema_version": "armbench.pi05_libero_measured_age_container_run.v1",
+  "valid": true
+}

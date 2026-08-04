@@ -41,6 +41,15 @@ claim at the conventional 0.05 level: with only five discordant pairs, the
 exact two-sided result is `p=0.0625`. No parameter or condition was changed
 after the run began.
 
+There is an additional pairing limitation: the pilot paired the injected
+response-jitter schedule but used OpenPI's mutable policy RNG, so the two modes
+did not receive identical pi0.5 flow-sampling noise. The artifact is valid for
+the exploratory executions it records, but its efficacy contrast has this
+latent sampling-noise confound. The separately frozen 240-rollout successor
+fixes it with explicit mode-independent `10 x 32` noise keyed by pair/query
+identity and independently recomputed by the validator. The successor is a
+distinct held-out study; it does not retroactively repair or pool this pilot.
+
 The Compose evaluation completed in 413.917 seconds on an RTX 4090. All 40
 videos are present. There were no infrastructure, transport, policy-contract,
 or video failures. One aligned query crossed the registered deadline/horizon,
@@ -100,6 +109,7 @@ From the repository root:
 This is simulation-only evidence for training-free action-suffix selection
 under measured client-visible age and registered response-delivery jitter.
 Inference is still blocking, controller catch-up is simulated after response
-arrival, and the study covers one checkpoint family and 20 pairs. It is not a
-hard real-time guarantee, physical safety certificate, real-robot experiment,
-trained-policy contribution, or top-venue-scale confirmatory result.
+arrival, policy-sampling noise is not paired between modes, and the study
+covers one checkpoint family and 20 pairs. It is not a hard real-time
+guarantee, physical safety certificate, real-robot experiment, trained-policy
+contribution, or confirmatory efficacy result.

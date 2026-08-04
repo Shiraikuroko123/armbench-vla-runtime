@@ -1,0 +1,101 @@
+time="2026-08-05T04:19:51+08:00" level=warning msg="The \"DISPLAY\" variable is not set. Defaulting to a blank string."
+ Container armbench-measured-pi05_libero_measured_age_confirmatory_001-openpi_server-1 Creating 
+ Container armbench-measured-pi05_libero_measured_age_confirmatory_001-openpi_server-1 Created 
+ Container armbench-measured-pi05_libero_measured_age_confirmatory_001-runtime-1 Creating 
+ Container armbench-measured-pi05_libero_measured_age_confirmatory_001-runtime-1 Created 
+Attaching to openpi_server-1, runtime-1
+ Container armbench-measured-pi05_libero_measured_age_confirmatory_001-openpi_server-1 Starting 
+ Container armbench-measured-pi05_libero_measured_age_confirmatory_001-openpi_server-1 Started 
+ Container armbench-measured-pi05_libero_measured_age_confirmatory_001-runtime-1 Starting 
+openpi_server-1  | 
+openpi_server-1  | ==========
+openpi_server-1  | == CUDA ==
+openpi_server-1  | ==========
+openpi_server-1  | 
+openpi_server-1  | CUDA Version 12.2.2
+openpi_server-1  | 
+openpi_server-1  | Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+openpi_server-1  | 
+openpi_server-1  | This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+openpi_server-1  | By pulling and using the container, you accept the terms and conditions of this license:
+openpi_server-1  | https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+openpi_server-1  | 
+openpi_server-1  | A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+openpi_server-1  | 
+runtime-1        | 
+runtime-1        | ==========
+runtime-1        | == CUDA ==
+runtime-1        | ==========
+ Container armbench-measured-pi05_libero_measured_age_confirmatory_001-runtime-1 Started 
+runtime-1        | 
+runtime-1        | CUDA Version 12.2.2
+runtime-1        | 
+runtime-1        | Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+runtime-1        | 
+runtime-1        | This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+runtime-1        | By pulling and using the container, you accept the terms and conditions of this license:
+runtime-1        | https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+runtime-1        | 
+runtime-1        | A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+runtime-1        | 
+runtime-1        | [info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [1m[33m[robosuite WARNING] [0mNo private macro file found! (macros.py:53)
+runtime-1        | 2026-08-04 20:20:28,385 WARNING No private macro file found!
+runtime-1        | [1m[33m[robosuite WARNING] [0mIt is recommended to use a private macro file (macros.py:54)
+runtime-1        | 2026-08-04 20:20:28,386 WARNING It is recommended to use a private macro file
+runtime-1        | [1m[33m[robosuite WARNING] [0mTo setup, run: python /.venv/lib/python3.8/site-packages/robosuite/scripts/setup_macros.py (macros.py:55)
+runtime-1        | 2026-08-04 20:20:28,386 WARNING To setup, run: python /.venv/lib/python3.8/site-packages/robosuite/scripts/setup_macros.py
+runtime-1        | 2026-08-04 20:20:28,491 INFO No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | /.venv/lib/python3.8/site-packages/numba/np/arraymath.py:3845: DeprecationWarning: `np.MachAr` is deprecated (NumPy 1.22).
+runtime-1        |   @overload(np.MachAr)
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+runtime-1        | [Warning]: datasets path /app/third_party/libero/libero/datasets does not exist!
+
+[Kruntime-1 exited with code 0
+ Compose Stopping Aborting on container exit...
+ Container armbench-measured-pi05_libero_measured_age_confirmatory_001-runtime-1 Stopping 
+ Container armbench-measured-pi05_libero_measured_age_confirmatory_001-runtime-1 Stopped 
+ Container armbench-measured-pi05_libero_measured_age_confirmatory_001-openpi_server-1 Stopping 
+ Container armbench-measured-pi05_libero_measured_age_confirmatory_001-openpi_server-1 Stopped 
+
+[Kopenpi_server-1 exited with code 143
+{
+  "complete": true,
+  "errors": [],
+  "manifest_files": 271,
+  "manifest_validation": {
+    "errors": [],
+    "files_checked": 271,
+    "valid": true
+  },
+  "schema_version": "armbench.pi05_libero_measured_age_container_run.v1"
+}
+PLAN=/workspace/armbench-results/pi05_libero_measured_age_confirmatory_001.plan.json
+PLAN_SHA256=/workspace/armbench-results/pi05_libero_measured_age_confirmatory_001.plan.json.sha256
+PROTOCOL_SOURCES=/workspace/armbench-results/pi05_libero_measured_age_confirmatory_001.protocol_sources.tar.gz
+PROTOCOL_SOURCES_SHA256=/workspace/armbench-results/pi05_libero_measured_age_confirmatory_001.protocol_sources.tar.gz.sha256
+PROTOCOL_COMMIT=/workspace/armbench-results/pi05_libero_measured_age_confirmatory_001.protocol_commit.txt
+RUN=/workspace/armbench-results/pi05_libero_measured_age_confirmatory_001
+VALIDATION=/workspace/armbench-results/pi05_libero_measured_age_confirmatory_001.root_validation.json
+ARCHIVE=/workspace/armbench-results/pi05_libero_measured_age_confirmatory_001.tar.gz
+SHA256=/workspace/armbench-results/pi05_libero_measured_age_confirmatory_001.tar.gz.sha256

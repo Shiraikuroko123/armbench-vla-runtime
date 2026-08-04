@@ -22,11 +22,12 @@ delay.
 The scientific gap is not simply "no RL." The closest formal comparator is RTC
 (NeurIPS 2025), which changes flow-policy inference itself by freezing already
 committed actions and inpainting a continuation. ArmBench currently sees only a
-completed action chunk. It now has an exploratory measured-age suffix-selection
-pilot and a frozen held-out successor protocol. The pilot did not pair OpenPI's
-mutable policy-sampling RNG, so its efficacy result remains a mechanism signal,
-not confirmatory evidence. ArmBench cannot yet claim policy-internal
-replanning, multi-model generality, or real-robot validity.
+completed action chunk. It now has both an exploratory measured-age pilot and a
+completed held-out 120-pair confirmation. The successor pairs explicit pi0.5
+flow-sampling noise, improves success by 23.33 points, and remains positive
+under task-cluster sensitivity analyses. ArmBench still cannot claim
+policy-internal replanning, multi-model generality, true concurrent control, or
+real-robot validity.
 
 The next defensible project thesis is:
 
@@ -101,9 +102,10 @@ project, not as a newly trained policy:
   policy for its formal LIBERO claims.
 - It preserves the training-free intervention boundary: the VLA checkpoint is
   frozen, and only action dispatch changes.
-- The confirmatory Spatial study and separately frozen Object, Goal, and
-  LIBERO-10 external study cover 40 tasks and 600 rollouts in total. These are
-  two study families, not one post-hoc pooled experiment.
+- The deterministic Spatial study and separately frozen Object, Goal, and
+  LIBERO-10 external study cover 40 tasks and 600 rollouts. A distinct
+  measured-age confirmation adds 240 held-out rollouts with paired policy
+  noise. These are three study families, not one post-hoc pooled experiment.
 - Every matched condition keeps the same initial state, task, horizon, and seed;
   success is analyzed with paired methods rather than independent proportions.
 - Source, checkpoint, protocol, CSV, manifest, and video consistency are
@@ -124,7 +126,9 @@ The portfolio evidence itself is traceable to repository history:
 - measured-age runtime core: `39faa089329c8e8466437b6c98c763d86cd52df7`,
   and auditable pilot driver: `d098dd285e3dc4b434d42888f91049f6da7cd385`,
   followed by the scored pilot at run commit
-  `b1835dabf2b76714bda01eeae43516f99ddc0505`.
+  `b1835dabf2b76714bda01eeae43516f99ddc0505`;
+- held-out measured-age protocol and scored run:
+  `12070625cd6f46186282317262065d015c8fbe27`.
 
 Those commits are present on the configured `origin/main`, but the repository
 returned HTTP 404 to an unauthenticated link check on the access date. An
@@ -150,8 +154,11 @@ remains inside the action horizon. Its separately registered 40-rollout pi0.5
 pilot completed with valid artifacts. That legacy artifact proves the runtime
 and timing path, but its two modes consumed different draws from the server's
 mutable policy RNG. The held-out successor supplies mode-independent explicit
-pi0.5 sampling noise and independently validates every request binding. Neither
-study may be used to relabel the old 200 ms result.
+pi0.5 sampling noise and independently validates every request binding. Its
+120-pair primary result is positive, so measured-age suffix selection is now a
+confirmed simulation result rather than only a software path. Neither study
+may be used to relabel the old deterministic 200 ms result, and post-response
+catch-up still falls short of independently ticking inference and control.
 
 ### 2. Fixed suffix skipping versus policy-consistent continuation
 
@@ -260,7 +267,7 @@ This is calibration evidence, not a registered outcome. A measured-latency
 study must run an attested, unscored warm-up before condition randomization or
 the first assigned mode will absorb a severe order effect.
 
-### Stage A2: held-out measured-age confirmation (frozen)
+### Stage A2: held-out measured-age confirmation (completed)
 
 The successor protocol is frozen at commit `12070625cd6f46186282317262065d015c8fbe27`
 before inspecting any scored episode in its held-out split. It uses all ten
@@ -268,14 +275,16 @@ Spatial tasks, episode indices `5:17`, two adjacent counterbalanced modes, 120
 matched pairs, and 240 rollouts. Every shared pair/query index receives the same
 mode-independent jitter and explicit `10 x 32` pi0.5 flow-sampling noise.
 
-The sole primary test is a two-sided exact McNemar test at `.05`; a positive
-claim additionally requires more aligned-only than baseline-only successes.
-The protocol pre-specifies 10,000 whole-task bootstrap resamples, exhaustive
-`2^10` task sign flips, leave-one-task-out effects, condition-first strata, and
-a no-interim-inspection rule. Exact power is 0.824 under the lower registered
-`.18/.05` discordance alternative and 0.904 under the primary `.20/.05`
-alternative. Until all 240 rollouts and both validators finish, its efficacy
-status is deliberately unresolved.
+The study completed all 240 rollouts with no infrastructure failure. Success
+was 88/120 for `async_unguarded` and 116/120 for `latency_aligned`: +23.33
+points, 32/4/84 wins/losses/ties, and exact two-sided McNemar
+`p=1.941574737e-6`. The pair bootstrap 95% interval is [+15.00,+31.67].
+Prespecified robustness checks remain positive: whole-task bootstrap 95%
+[+10.83,+38.33], exhaustive `2^10` task sign-flip `p=0.015625`, and
+leave-one-task-out effects [+17.59,+25.93]. Both condition-first strata are
+positive (+13.33 and +33.33 points), although their magnitude difference is a
+remaining order-sensitivity warning. This closes the measured-age evidence
+stage, not the policy-internal RTC, cross-model, concurrency, or hardware gaps.
 
 ### Stage B: direct asynchronous-method baseline
 

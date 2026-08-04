@@ -17,23 +17,29 @@ not model-learning research.
 ## Ninety-second explanation
 
 ArmBench studies stale action chunks in asynchronous VLA deployment. I added a
-training-free dispatcher that, after `d` delay steps, skips the first `d`
-actions returned by pi0.5 and executes the following suffix. The initial frozen
-LIBERO Spatial study covered 300 official checkpoint rollouts at 0/100/200 ms;
-at the 200 ms primary condition, success improved from 18/50 to 50/50. I then
-froze an external validation before running Object, Goal, or LIBERO-10: another
-300 rollouts at 200 ms. Success improved from 25/50 to 49/50, 35/50 to 47/50,
-and 23/50 to 45/50; every suite-level exact McNemar test remained significant
-after Holm correction. Across the external suites, the descriptive count was
-83/150 versus 141/150 and mean policy queries fell from 34.11 to 22.10. All 600
-formal rollouts, failures, videos, source/checkpoint identity, and manifests are
-preserved and independently validated. The result is simulation-only and does
-not claim pi0.5 training, hard real-time guarantees, or certified safety.
+training-free dispatcher that uses measured observation age to skip the stale
+prefix and execute a still-valid suffix. In the held-out 240-rollout study, I
+paired initial states, response jitter, and explicit pi0.5 sampling noise;
+success improved from 88/120 to 116/120, a +23.3-point paired effect with exact
+McNemar `p=1.94e-6` and whole-task bootstrap 95% interval [+10.8,+38.3]. Mean
+policy queries fell from 22.75 to 15.14. Separate deterministic-delay studies
+cover another 600 rollouts across 40 LIBERO tasks, including three external
+suites whose prespecified exact tests all survive Holm correction. All 840
+confirmatory/external rollouts, failures, videos, source/checkpoint identity,
+and manifests are preserved and independently validated. The result is
+simulation-only and does not claim pi0.5 training, concurrent hard real-time
+execution, or certified safety.
 
 ## What you actually built
 
 - The `latency_aligned` pi0.5-LIBERO dispatch mode, horizon preflight, strict
   short-chunk failure, and delay-matched action-prefix removal.
+- A measured-age runtime with conservative suffix selection, deadline-bounded
+  hold-refresh, counterbalanced execution, and mode-independent response-jitter
+  and `10 x 32` pi0.5 sampling-noise pairing.
+- A held-out confirmatory analyzer with exact paired McNemar, pair bootstrap,
+  whole-task bootstrap, exhaustive task sign flips, leave-one-task-out effects,
+  condition-order strata, and a 240-video acceptance dashboard.
 - A transactional official-checkpoint evaluator with fixed matrices,
   checkpoint/source attestation, full video retention, and nested validation.
 - A read-only paired ITT analyzer with Wilson intervals, deterministic paired
@@ -321,13 +327,13 @@ auditability.
 ## Resume wording
 
 > Built an OpenPI-compatible VLA runtime and attested pi0.5-LIBERO evaluator.
-> Implemented training-free temporal action-chunk alignment; on a frozen
-> 300-rollout external validation across 30 LIBERO tasks, improved 200 ms
-> success from 83/150 to 141/150 (+38.7 points, paired bootstrap 95% CI
-> [+29.3,+47.3]), with all three suite-level exact tests significant after Holm
-> correction, while reducing mean policy queries from 34.11 to 22.10. Preserved
-> every rollout/video with source/checkpoint attestation, transactional
-> execution, nested manifests, and independent artifact/statistical validation.
+> Implemented training-free measured-age action-chunk alignment with paired
+> response jitter and policy-sampling noise; in a frozen 240-rollout held-out
+> study, improved success from 88/120 to 116/120 (+23.3 points, exact McNemar
+> p=1.94e-6; whole-task bootstrap 95% CI [+10.8,+38.3]) while reducing mean
+> policy queries from 22.75 to 15.14. Preserved 840 confirmatory/external
+> rollouts and videos with checkpoint/source attestation, immutable manifests,
+> independent validators, and one-command paired visual acceptance.
 
 Use "evaluated the attested official pi0.5-LIBERO checkpoint," not "trained
 pi0.5" or "deployed on a real robot."
@@ -339,8 +345,8 @@ You should be able to do all of the following without reading a prepared answer:
 1. explain why delay makes an action prefix stale and why skipping it is only a
    discrete temporal-alignment assumption;
 2. reproduce root validation and the paired analysis from `per_episode.csv`;
-3. explain paired McNemar, Holm correction, the +64-point effect, and why the
-   100 ms result is not confirmatory evidence;
+3. explain paired McNemar, pair versus whole-task bootstrap, task sign flips,
+   the +23.3-point measured-age effect, and the condition-order strata;
 4. draw the LIBERO and MuJoCo runtime boundaries without mixing their tensor
    shapes or action semantics;
 5. explain why pi0/pi0.5 is not a simulator and why Isaac Lab is not a VLA;
@@ -349,7 +355,9 @@ You should be able to do all of the following without reading a prepared answer:
    scripted MuJoCo evidence;
 8. distinguish artifact consistency, checkpoint attestation, and publisher
    authenticity;
-9. state which code/assets are yours and which are pinned dependencies.
+9. state which code/assets are yours and which are pinned dependencies;
+10. explain why the 40-rollout pilot's unpaired policy RNG is a confound and
+    how explicit keyed sampling noise fixes it in the held-out study.
 
 AI assistance produced substantial implementation and documentation. Your
 defensible ownership comes from being able to reproduce, inspect, modify,

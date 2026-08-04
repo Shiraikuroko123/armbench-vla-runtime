@@ -2,12 +2,14 @@
 
 ## Status
 
-This module is an implemented, unit-tested, and closed-loop evaluated research
-extension. A separately registered 40-rollout/20-pair pilot using the official
-`pi05_libero` checkpoint is preserved in
-`evidence/pi05_libero_measured_age_pilot_001`. It is exploratory and is not part
-of the frozen 200 ms confirmatory result. The legacy `fixed_steps` path remains
-the default, so all deterministic-delay evidence keeps its original meaning.
+This module is implemented, unit-tested, and evaluated in two deliberately
+separate official-checkpoint studies. The historical 40-rollout/20-pair pilot
+is exploratory because it did not pair OpenPI policy-sampling RNG. The held-out
+successor in `evidence/pi05_libero_measured_age_confirmatory_001` contains 120
+matched pairs and explicitly pairs both response jitter and pi0.5 flow-sampling
+noise. It improved success from 88/120 to 116/120 with exact McNemar
+`p=1.941574737e-6`. The legacy `fixed_steps` path remains the default, so all
+deterministic-delay evidence keeps its original meaning.
 
 The implementation consists of:
 
@@ -15,6 +17,12 @@ The implementation consists of:
   and keyed-jitter decisions;
 - `integrations/openpi/libero_runtime.py`: measured observation age, simulated
   controller catch-up, action selection, and bounded hold-refresh;
+- `integrations/openpi/serve_policy_attested.py`: explicit keyed pi0.5
+  flow-sampling noise and server-side request/hash attestation;
+- `integrations/openpi/validate_measured_age_artifact.py`: independent timing,
+  pairing, noise, source, matrix, and video recomputation;
+- `integrations/openpi/measured_age_confirmatory_analysis.py`: prespecified
+  primary and task-cluster robustness analyses;
 - `tests/test_deadline_alignment.py`: timing boundary and jitter determinism;
 - measured-wall cases in `tests/test_libero_runtime.py`: end-to-end runtime
   behavior with a fake monotonic clock.
@@ -174,6 +182,28 @@ scored queries had per-mode inference-latency P95 values of 82.920 ms and
 82.390 ms. Keeping the first compilation query out of the randomized modes was
 therefore necessary, not cosmetic.
 
+## Held-out confirmatory evidence
+
+The successor protocol was frozen at
+`12070625cd6f46186282317262065d015c8fbe27` before scored held-out episodes were
+inspected. It uses all ten Spatial tasks, episode indices 5-16, 120 matched
+pairs, counterbalanced condition order, and a mode-independent jitter/noise key
+for every common query identity. The explicit float32 noise shape is `10 x 32`,
+matching pi0.5-LIBERO's action horizon and action dimension.
+
+The primary paired difference is +23.33 points (bootstrap 95%
+[+15.00,+31.67]), with 32 aligned-only successes, 4 baseline-only successes,
+84 ties, and exact two-sided McNemar `p=1.941574737e-6`. Prespecified
+task-sensitivity checks also remain positive: whole-task bootstrap 95%
+[+10.83,+38.33], exhaustive `2^10` task sign-flip `p=0.015625`, and
+leave-one-task-out effects from +17.59 to +25.93 points. Condition-first
+effects are +13.33 and +33.33 points, so order-magnitude heterogeneity must be
+reported even though both strata are positive.
+
+Run `scripts/measured_age_confirmatory_acceptance.cmd` to revalidate the
+artifact, recompute the statistics, verify all 240 manifest-bound video files,
+and open the paired dashboard.
+
 ## Limitations
 
 - `policy.infer` remains a blocking call. LIBERO catch-up occurs after response
@@ -185,9 +215,9 @@ therefore necessary, not cosmetic.
 - Time-only suffix selection assumes temporal consistency inside the returned
   chunk. RTC-style flow inpainting requires access inside policy sampling and
   cannot be implemented faithfully from completed actions alone.
-- The official measured-age evidence is a 20-pair pilot. It provides an
-  independent artifact validator and paired analysis, but not a separately
-  powered confirmatory matrix or a second VLA family.
+- The official measured-age confirmation is a powered 120-pair matrix with
+  paired policy noise, but it still covers one pi0.5 checkpoint family and one
+  simulator. It does not establish cross-model generality.
 - This layer checks temporal availability, not joint, acceleration, collision,
   or dynamics feasibility in the formal LIBERO path.
 

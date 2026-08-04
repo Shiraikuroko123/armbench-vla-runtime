@@ -1,0 +1,39 @@
+# Third Compose layer for the measured-age evaluator. The official OpenPI
+# Compose file and compose.libero-runtime.yml provide images, GPU access,
+# attested policy serving, mounts, and shared environment variables.
+services:
+  runtime:
+    environment:
+      ARMBENCH_MEASURED_AGE_ARGS: "${ARMBENCH_MEASURED_AGE_ARGS:-}"
+    command:
+      - /bin/bash
+      - -lc
+      - |
+        set -euo pipefail
+        source /.venv/bin/activate
+        if [[ ! "$${ARMBENCH_RUN_ID}" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$ ]]; then
+          echo "Invalid ARMBENCH_RUN_ID" >&2
+          exit 64
+        fi
+        for attempt in $$(seq 1 "$${ARMBENCH_SERVER_WAIT_ATTEMPTS}"); do
+          if (: >"/dev/tcp/127.0.0.1/$${ARMBENCH_POLICY_PORT}") 2>/dev/null; then
+            break
+          fi
+          if [ "$${attempt}" -eq "$${ARMBENCH_SERVER_WAIT_ATTEMPTS}" ]; then
+            echo "OpenPI server did not become ready before the bounded wait expired" >&2
+            exit 70
+          fi
+          sleep 5
+        done
+        exec python -m integrations.openpi.measured_age_libero_eval run \
+          --output-dir "/armbench_results/$${ARMBENCH_RUN_ID}/evaluation" \
+          --host 127.0.0.1 \
+          --port "$${ARMBENCH_POLICY_PORT}" \
+          --openpi-root /app \
+          --armbench-root /armbench \
+          --expected-openpi-commit 15a9616a00943ada6c20a0f158e3adb39df2ccac \
+          --checkpoint gs://openpi-assets/checkpoints/pi05_libero \
+          --server-launch-args "$${ARMBENCH_SERVER_ARGS}" \
+          --resize-size 224 \
+          --num-steps-wait 10 \
+          $${ARMBENCH_MEASURED_AGE_ARGS}

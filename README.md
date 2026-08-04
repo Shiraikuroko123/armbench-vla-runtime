@@ -62,19 +62,24 @@ separates formal publications from current preprints and compares ArmBench with
 RTC, OpenVLA-OFT, DPPO, HIL-SERL, and other relevant routes. Its source metadata
 and method figure are reproducible from repository scripts.
 
-A new [measured-age temporal alignment core](docs/MEASURED_LATENCY_RUNTIME.md)
+The [measured-age temporal alignment core](docs/MEASURED_LATENCY_RUNTIME.md)
 removes the dispatcher's dependence on a hidden injected-delay label. It uses
-end-to-end observation age, a frozen floor/ceil discretization, mode-independent
-keyed jitter, and bounded hold-refresh when a deadline or action horizon is
-exceeded. A separately registered
-[40-rollout official pi0.5 pilot](evidence/pi05_libero_measured_age_pilot_001/README.md)
-completed all 20 pairs: success was 14/20 for `async_unguarded` and 19/20 for
-`latency_aligned`, a +25-point paired difference (bootstrap 95% [+10,+45])
-with 5/0/15 wins/losses/ties and exact McNemar `p=0.0625`. Mean policy queries
-fell from 24.6 to 15.9. This is an encouraging exploratory result, not a
-confirmatory significance claim, and it does not broaden the frozen 200 ms
-result. The complete archive and derived outputs are attached to the
-[measured-age evidence release](https://github.com/Shiraikuroko123/armbench-vla-runtime/releases/tag/evidence-pi05-libero-measured-age-pilot-001).
+end-to-end observation age, conservative ceil discretization,
+mode-independent keyed jitter, and bounded hold-refresh when a deadline or
+action horizon is exceeded.
+
+A held-out [240-rollout measured-age confirmation](evidence/pi05_libero_measured_age_confirmatory_001/README.md)
+was frozen before scoring and pairs both response jitter and explicit `10 x 32`
+pi0.5 flow-sampling noise across modes. Success improved from 88/120 (73.33%)
+to 116/120 (96.67%): +23.33 points, paired bootstrap 95% [+15.00,+31.67],
+32/4/84 wins/losses/ties, and exact McNemar `p=1.94e-6`. The whole-task
+bootstrap interval was [+10.83,+38.33], exhaustive task sign-flip
+`p=0.015625`, and every leave-one-task-out effect remained positive.
+
+The earlier [40-rollout pilot](evidence/pi05_libero_measured_age_pilot_001/README.md)
+remains exploratory because it paired response jitter but not OpenPI's mutable
+policy RNG. Its result is neither pooled with nor used to strengthen the
+held-out claim.
 
 ## Confirmatory pi0.5 result
 
@@ -101,11 +106,21 @@ reports.
 
 ### Offline visual acceptance
 
-The measured-age pilot has a separate fail-closed
-[paired video dashboard](reports/pi05_libero_measured_age_pilot_001/index.html).
-It recomputes the pilot statistics from the protected source artifact, verifies
-the source, analysis, implementation, and video bindings, and exposes all 20
-matched pairs without broadening the exploratory claim.
+The measured-age confirmation has a fail-closed
+[paired video dashboard](reports/pi05_libero_measured_age_confirmatory_001/index.html)
+covering all 120 held-out pairs and 240 videos. From any directory on Windows,
+run:
+
+```powershell
+D:\arm-planning-control-project\project\scripts\measured_age_confirmatory_acceptance.cmd
+```
+
+The command validates 271 root files and 261 nested evaluation files,
+independently recomputes the confirmatory statistics, verifies source/analysis
+hash bindings and all 240 manifest-bound video files, rebuilds the dashboard,
+and opens it. Use `-NoOpen` for a noninteractive check. The exploratory pilot
+remains available in its separate
+[20-pair dashboard](reports/pi05_libero_measured_age_pilot_001/index.html).
 
 On Windows, the shortest interview handoff is one command from any directory:
 
@@ -346,7 +361,7 @@ but incomplete episode is not counted as task success.
 
 | Component | Role | Present here? |
 |---|---|---|
-| pi0 / pi0.5 | Learned VLA policy: images + language + state -> action chunk | Attested pi0.5-LIBERO checkpoint, 600 formal rollouts across confirmatory and external studies; DROID remote client remains separate |
+| pi0 / pi0.5 | Learned VLA policy: images + language + state -> action chunk | Attested pi0.5-LIBERO checkpoint, 840 confirmatory/external rollouts plus a separate 40-rollout pilot; DROID remote client remains separate |
 | OpenPI | Official model code, checkpoints, transforms, and remote protocol | Official lightweight client pinned and tested |
 | LIBERO | Standard manipulation benchmark used by the official pi0.5 policy | All 10 Spatial tasks in the confirmatory run |
 | Isaac Gym | Legacy NVIDIA GPU simulator / RL environment stack | No |
@@ -806,9 +821,12 @@ results/<run_id>/
 - The LIBERO artifact uses the attested official pi0.5 checkpoint. The older
   MuJoCo/DROID safety, camera, wire-fault, and request-replay artifacts use
   scripted non-learned action streams and make no learned-policy claim.
-- The confirmatory result covers deterministic injected LIBERO delay. It is not
-  measured network jitter, an operating-system hard real-time guarantee, a
-  real-robot result, or evidence that pi0.5 was retrained.
+- The deterministic studies cover injected LIBERO delay. The separate
+  measured-age study records client-visible wall-clock inference age plus
+  registered injected response jitter, but still uses blocking inference and
+  post-response simulator catch-up. Neither is an operating-system hard
+  real-time guarantee, a real-robot result, or evidence that pi0.5 was
+  retrained.
 - Collision checking uses exact MuJoCo mesh contacts at configurations and
   joint interpolation at 0.02 rad resolution along edges. It is not analytic
   continuous collision detection or a formal safety certificate.
@@ -832,15 +850,14 @@ fault-generation substrate for the VLA runtime, not the headline claim.
 After reproducing the experiment and understanding the code, a defensible entry
 for a VLA systems / embodied deployment role is:
 
-> Built an OpenPI-compatible VLA action runtime for a MuJoCo Franka Panda and
-> an attested pi0.5-LIBERO evaluator. Implemented training-free temporal
-> action-chunk alignment for delayed observations; in a frozen 300-rollout
-> external validation across 30 LIBERO tasks, improved 200 ms success from
-> 83/150 to 141/150 (+38.7 points, paired bootstrap 95% CI [+29.3,+47.3]), with
-> all three suite-level exact McNemar tests significant after Holm correction,
-> while reducing mean policy queries from 34.11 to 22.10. Preserved every
-> rollout/video and built source/checkpoint attestation, transactional execution,
-> nested manifests, and independent artifact/statistical validation.
+> Built an OpenPI-compatible VLA runtime and attested pi0.5-LIBERO evaluator.
+> Implemented training-free measured-age action-chunk alignment with paired
+> response jitter and policy-sampling noise; in a frozen 240-rollout held-out
+> study, improved success from 88/120 to 116/120 (+23.3 points, exact McNemar
+> p=1.94e-6; whole-task bootstrap 95% CI [+10.8,+38.3]) while reducing mean
+> policy queries from 22.75 to 15.14. Preserved 840 confirmatory/external
+> rollouts and videos with checkpoint/source attestation, immutable manifests,
+> independent validators, and one-command paired visual acceptance.
 
 Use "evaluated the attested official pi0.5-LIBERO checkpoint," not "trained
 pi0.5" or "deployed on a real robot." This is a VLA runtime/evaluation project,

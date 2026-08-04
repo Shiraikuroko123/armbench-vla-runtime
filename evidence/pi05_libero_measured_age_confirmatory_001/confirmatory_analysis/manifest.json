@@ -1,0 +1,25 @@
+{
+  "files": {
+    "analysis.json": {
+      "bytes": 12365,
+      "sha256": "10641858e98a727bfdc96f56c51ce5a3ec55cf0b25718c9222beff972aa664ef"
+    },
+    "condition_first.csv": {
+      "bytes": 328,
+      "sha256": "1750c309c26396d022a8084586a426108b6af970d49c17bdd5648c5766e73014"
+    },
+    "leave_one_task_out.csv": {
+      "bytes": 611,
+      "sha256": "4a01fe471a00ede2b1dd86cdd13449c010e00648873c150545d660240a0bc909"
+    },
+    "per_task.csv": {
+      "bytes": 804,
+      "sha256": "3561f279ca9bf61b134a548bc6fcae9b6c185b59cfabc019d3f1a08cf9bec2a7"
+    },
+    "summary.md": {
+      "bytes": 1398,
+      "sha256": "b872d7a4d988b0688b020f7a8a4340c70dd4cc192ff66e4be080d43d069fb477"
+    }
+  },
+  "schema_version": "armbench.pi05_measured_age_confirmatory_analysis.v1"
+}
