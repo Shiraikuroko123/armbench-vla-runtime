@@ -1,0 +1,22 @@
+{
+  "schema_version": "armbench.openpi_extension_manifest.v1",
+  "upstream_repository": "https://github.com/Physical-Intelligence/openpi.git",
+  "upstream_base_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+  "extension_commit": "2c8e61d5fbfde4b670ae428ef4b8440d35c1c7fd",
+  "method": "projected_flow_inpainting",
+  "patch": {
+    "path": "0001-Add-projected-pi0-action-conditioning.patch",
+    "bytes": 15872,
+    "sha256": "9aee07008800cc1e5dff8c2ca553cac322e4ac937a8ad6e0d80ac2d2edf6ca0c"
+  },
+  "production_source_sha256": {
+    "src/openpi/models/pi0.py": "8d8b1669f0b3b5628237aac476e9079b3f6c8d9c7e19a399b03933ac6d241e2e",
+    "src/openpi/policies/policy.py": "4cdb0ad194c859968fb15f93960d5b79e5e2e0e04afdfb5efcd36d47d28decd2"
+  },
+  "raw_action_shape": [10, 7],
+  "model_action_shape": [10, 32],
+  "openpi_tests": [
+    "src/openpi/models/pi0_conditioning_test.py",
+    "src/openpi/policies/conditioning_test.py"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "schema_version": "armbench.evidence_manifest.v1",
+  "run_id": "pi05_projected_conditioning_g0_001",
+  "report": {
+    "path": "report.json",
+    "bytes": 2579,
+    "sha256": "ed43793b834d86163dca1e7a87b370e5fce6e4009aa6eccc7e3dc17d2f9cd0aa"
+  },
+  "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+  "openpi_extension_commit": "2c8e61d5fbfde4b670ae428ef4b8440d35c1c7fd",
+  "openpi_extension_manifest": "integrations/openpi/patches/projected_conditioning_v1.json"
+}

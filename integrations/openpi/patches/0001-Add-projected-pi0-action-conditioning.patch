@@ -1,0 +1,366 @@
+From 2c8e61d5fbfde4b670ae428ef4b8440d35c1c7fd Mon Sep 17 00:00:00 2001
+From: Shiraikuroko123 <1911057162@qq.com>
+Date: Wed, 5 Aug 2026 05:57:17 +0800
+Subject: [PATCH] Add projected pi0 action conditioning
+
+---
+ src/openpi/models/pi0.py                   |  28 +++++-
+ src/openpi/models/pi0_conditioning_test.py |  18 ++++
+ src/openpi/policies/conditioning_test.py   | 105 +++++++++++++++++++++
+ src/openpi/policies/policy.py              |  98 ++++++++++++++++++-
+ 4 files changed, 247 insertions(+), 2 deletions(-)
+ create mode 100644 src/openpi/models/pi0_conditioning_test.py
+ create mode 100644 src/openpi/policies/conditioning_test.py
+
+diff --git a/src/openpi/models/pi0.py b/src/openpi/models/pi0.py
+index ae7c459..b82b252 100644
+--- a/src/openpi/models/pi0.py
++++ b/src/openpi/models/pi0.py
+@@ -16,6 +16,11 @@ from openpi.shared import array_typing as at
+ logger = logging.getLogger("openpi")
+ 
+ 
++def _project_flow_condition(x_t, initial_noise, condition_actions, condition_mask, time):
++    known_t = time * initial_noise + (1.0 - time) * condition_actions
++    return jnp.where(condition_mask[..., None], known_t, x_t)
++
++
+ def make_attn_mask(input_mask, mask_ar):
+     """Adapted from big_vision.
+ 
+@@ -221,6 +226,8 @@ class Pi0(_model.BaseModel):
+         *,
+         num_steps: int | at.Int[at.Array, ""] = 10,
+         noise: at.Float[at.Array, "b ah ad"] | None = None,
++        condition_actions: at.Float[at.Array, "b ah ad"] | None = None,
++        condition_mask: at.Bool[at.Array, "b ah"] | None = None,
+     ) -> _model.Actions:
+         observation = _model.preprocess_observation(None, observation, train=False)
+         # note that we use the convention more common in diffusion literature, where t=1 is noise and t=0 is the target
+@@ -230,6 +237,17 @@ class Pi0(_model.BaseModel):
+         if noise is None:
+             noise = jax.random.normal(rng, (batch_size, self.action_horizon, self.action_dim))
+ 
++        conditioning_enabled = condition_actions is not None
++        if conditioning_enabled != (condition_mask is not None):
++            raise ValueError("condition_actions and condition_mask must be provided together")
++        if conditioning_enabled:
++            if condition_actions.shape != noise.shape:
++                raise ValueError("condition_actions must match the sampler noise shape")
++            if condition_mask.shape != noise.shape[:2]:
++                raise ValueError("condition_mask must have shape (batch, action_horizon)")
++            if condition_mask.dtype != jnp.bool_:
++                raise ValueError("condition_mask must have boolean dtype")
++
+         # first fill KV cache with a forward pass of the prefix
+         prefix_tokens, prefix_mask, prefix_ar_mask = self.embed_prefix(observation)
+         prefix_attn_mask = make_attn_mask(prefix_mask, prefix_ar_mask)
+@@ -238,6 +256,8 @@ class Pi0(_model.BaseModel):
+ 
+         def step(carry):
+             x_t, time = carry
++            if conditioning_enabled:
++                x_t = _project_flow_condition(x_t, noise, condition_actions, condition_mask, time)
+             suffix_tokens, suffix_mask, suffix_ar_mask, adarms_cond = self.embed_suffix(
+                 observation, x_t, jnp.broadcast_to(time, batch_size)
+             )
+@@ -268,7 +288,11 @@ class Pi0(_model.BaseModel):
+             assert prefix_out is None
+             v_t = self.action_out_proj(suffix_out[:, -self.action_horizon :])
+ 
+-            return x_t + dt * v_t, time + dt
++            next_x = x_t + dt * v_t
++            next_time = time + dt
++            if conditioning_enabled:
++                next_x = _project_flow_condition(next_x, noise, condition_actions, condition_mask, next_time)
++            return next_x, next_time
+ 
+         def cond(carry):
+             x_t, time = carry
+@@ -276,4 +300,6 @@ class Pi0(_model.BaseModel):
+             return time >= -dt / 2
+ 
+         x_0, _ = jax.lax.while_loop(cond, step, (noise, 1.0))
++        if conditioning_enabled:
++            x_0 = jnp.where(condition_mask[..., None], condition_actions, x_0)
+         return x_0
+diff --git a/src/openpi/models/pi0_conditioning_test.py b/src/openpi/models/pi0_conditioning_test.py
+new file mode 100644
+index 0000000..06283aa
+--- /dev/null
++++ b/src/openpi/models/pi0_conditioning_test.py
+@@ -0,0 +1,18 @@
++import jax.numpy as jnp
++import numpy as np
++
++from openpi.models.pi0 import _project_flow_condition
++
++
++def test_projected_flow_path_endpoints_are_exact():
++    noise = jnp.arange(24, dtype=jnp.float32).reshape(1, 3, 8)
++    actions = -noise
++    mask = jnp.array([[True, True, False]])
++    state = jnp.full_like(noise, 99.0)
++
++    at_noise = _project_flow_condition(state, noise, actions, mask, 1.0)
++    at_action = _project_flow_condition(state, noise, actions, mask, 0.0)
++
++    np.testing.assert_array_equal(np.asarray(at_noise[:, :2]), np.asarray(noise[:, :2]))
++    np.testing.assert_array_equal(np.asarray(at_action[:, :2]), np.asarray(actions[:, :2]))
++    np.testing.assert_array_equal(np.asarray(at_action[:, 2:]), np.asarray(state[:, 2:]))
+diff --git a/src/openpi/policies/conditioning_test.py b/src/openpi/policies/conditioning_test.py
+new file mode 100644
+index 0000000..5d72743
+--- /dev/null
++++ b/src/openpi/policies/conditioning_test.py
+@@ -0,0 +1,105 @@
++# ruff: noqa: SLF001
++
++from types import SimpleNamespace
++
++import jax
++import numpy as np
++import pytest
++
++from openpi.policies import policy as _policy
++
++
++def _make_policy():
++    policy = object.__new__(_policy.Policy)
++    policy._model = SimpleNamespace(action_horizon=3, action_dim=4)
++    policy._sample_kwargs = {}
++    policy._metadata = {}
++    policy._is_pytorch_model = False
++    policy._pytorch_device = "cpu"
++    policy._rng = jax.random.key(0)
++    calls = []
++
++    def input_transform(data):
++        output = {
++            "state": np.pad(np.asarray(data["state"], dtype=np.float32), (0, 2)),
++            "image": {
++                "base_0_rgb": np.zeros((2, 2, 3), dtype=np.uint8),
++                "left_wrist_0_rgb": np.zeros((2, 2, 3), dtype=np.uint8),
++                "right_wrist_0_rgb": np.zeros((2, 2, 3), dtype=np.uint8),
++            },
++            "image_mask": {
++                "base_0_rgb": np.True_,
++                "left_wrist_0_rgb": np.True_,
++                "right_wrist_0_rgb": np.False_,
++            },
++        }
++        if "actions" in data:
++            normalized = np.asarray(data["actions"], dtype=np.float32) * 2.0
++            output["actions"] = np.pad(normalized, ((0, 0), (0, 2)))
++        return output
++
++    def sample_actions(_rng, _observation, **kwargs):
++        calls.append(kwargs)
++        if "condition_actions" in kwargs:
++            return kwargs["condition_actions"]
++        return np.zeros((1, 3, 4), dtype=np.float32)
++
++    policy._input_transform = input_transform
++    policy._output_transform = lambda data: {"actions": np.asarray(data["actions"])[..., :2] / 2.0}
++    policy._sample_actions = sample_actions
++    return policy, calls
++
++
++def test_condition_actions_follow_input_transforms_and_are_audited():
++    policy, calls = _make_policy()
++    raw_actions = np.arange(6, dtype=np.float32).reshape(3, 2)
++    mask = np.array([True, True, False])
++
++    result = policy.infer(
++        {"state": np.array([1.0, 2.0], dtype=np.float32)},
++        condition_actions=raw_actions,
++        condition_mask=mask,
++    )
++
++    model_actions = np.asarray(calls[0]["condition_actions"])
++    np.testing.assert_array_equal(model_actions[0, :, :2], raw_actions * 2.0)
++    np.testing.assert_array_equal(model_actions[0, :, 2:], 0.0)
++    np.testing.assert_array_equal(np.asarray(calls[0]["condition_mask"])[0], mask)
++    np.testing.assert_array_equal(result["actions"], raw_actions)
++    assert result["policy_conditioning"]["method"] == "projected_flow_inpainting"
++    assert result["policy_conditioning"]["conditioned_prefix_steps"] == 2
++    assert result["policy_conditioning"]["max_model_residual"] == 0.0
++    assert len(result["policy_conditioning"]["model_actions_sha256"]) == 64
++
++
++def test_no_condition_preserves_the_legacy_sampler_call():
++    policy, calls = _make_policy()
++
++    result = policy.infer({"state": np.array([1.0, 2.0], dtype=np.float32)})
++
++    assert calls == [{}]
++    assert "policy_conditioning" not in result
++
++
++@pytest.mark.parametrize(
++    ("actions", "mask", "message"),
++    [
++        (np.zeros((3, 2)), None, "provided together"),
++        (np.zeros((2, 2)), np.zeros(3, dtype=bool), "action_horizon"),
++        (np.zeros((3, 5)), np.zeros(3, dtype=bool), "raw_action_dim"),
++        (np.full((3, 2), np.nan), np.zeros(3, dtype=bool), "finite"),
++        (np.zeros((3, 2)), np.zeros(3, dtype=np.int8), "boolean"),
++        (np.zeros((3, 2)), np.array([True, False, True]), "contiguous prefix"),
++    ],
++)
++def test_malformed_conditioning_fails_before_sampling(actions, mask, message):
++    policy, calls = _make_policy()
++
++    with pytest.raises(ValueError, match=message):
++        policy.infer(
++            {"state": np.array([1.0, 2.0], dtype=np.float32)},
++            condition_actions=actions,
++            condition_mask=mask,
++        )
++
++    assert calls == []
+diff --git a/src/openpi/policies/policy.py b/src/openpi/policies/policy.py
+index b9b708b..e3fe332 100644
+--- a/src/openpi/policies/policy.py
++++ b/src/openpi/policies/policy.py
+@@ -1,4 +1,5 @@
+ from collections.abc import Sequence
++import hashlib
+ import logging
+ import pathlib
+ import time
+@@ -20,6 +21,46 @@ from openpi.shared import nnx_utils
+ 
+ BasePolicy: TypeAlias = _base_policy.BasePolicy
+ 
++CONDITIONING_SCHEMA_VERSION = "armbench.openpi_conditioning.v1"
++CONDITIONING_METHOD = "projected_flow_inpainting"
++
++
++def _array_sha256(value: np.ndarray, dtype: str) -> str:
++    canonical = np.asarray(value, dtype=np.dtype(dtype), order="C")
++    return hashlib.sha256(canonical.tobytes(order="C")).hexdigest()
++
++
++def _validate_conditioning(
++    condition_actions: np.ndarray | None,
++    condition_mask: np.ndarray | None,
++    *,
++    action_horizon: int,
++    model_action_dim: int,
++) -> tuple[np.ndarray, np.ndarray] | None:
++    requested = condition_actions is not None or condition_mask is not None
++    if not requested:
++        return None
++    if condition_actions is None or condition_mask is None:
++        raise ValueError("condition_actions and condition_mask must be provided together")
++
++    try:
++        actions = np.asarray(condition_actions, dtype=np.float32, order="C")
++    except (TypeError, ValueError) as exc:
++        raise ValueError("condition_actions must be a numeric array") from exc
++    mask = np.asarray(condition_mask)
++    if actions.ndim != 2 or actions.shape[0] != action_horizon:
++        raise ValueError("condition_actions must have shape (action_horizon, raw_action_dim)")
++    if actions.shape[1] <= 0 or actions.shape[1] > model_action_dim:
++        raise ValueError("condition_actions raw_action_dim is invalid")
++    if not np.all(np.isfinite(actions)):
++        raise ValueError("condition_actions must contain only finite values")
++    if mask.dtype != np.bool_ or mask.shape != (action_horizon,):
++        raise ValueError("condition_mask must be boolean with shape (action_horizon,)")
++    false_seen = np.maximum.accumulate(~mask)
++    if np.any(mask & false_seen):
++        raise ValueError("condition_mask must select a contiguous prefix")
++    return np.array(actions, copy=True, order="C"), np.array(mask, copy=True, order="C")
++
+ 
+ class Policy(BasePolicy):
+     def __init__(
+@@ -65,10 +106,43 @@ class Policy(BasePolicy):
+             self._rng = rng or jax.random.key(0)
+ 
+     @override
+-    def infer(self, obs: dict, *, noise: np.ndarray | None = None) -> dict:  # type: ignore[misc]
++    def infer(
++        self,
++        obs: dict,
++        *,
++        noise: np.ndarray | None = None,
++        condition_actions: np.ndarray | None = None,
++        condition_mask: np.ndarray | None = None,
++    ) -> dict:  # type: ignore[misc]
++        conditioning = _validate_conditioning(
++            condition_actions,
++            condition_mask,
++            action_horizon=self._model.action_horizon,
++            model_action_dim=self._model.action_dim,
++        )
++        if conditioning is not None and self._is_pytorch_model:
++            raise ValueError("projected flow conditioning is only supported by the JAX pi0 sampler")
++        if conditioning is not None and "actions" in obs:
++            raise ValueError("observation actions are reserved when conditioning is requested")
++
+         # Make a copy since transformations may modify the inputs in place.
+         inputs = jax.tree.map(lambda x: x, obs)
++        if conditioning is not None:
++            inputs["actions"] = conditioning[0]
+         inputs = self._input_transform(inputs)
++        model_condition_actions = None
++        if conditioning is not None:
++            if "actions" not in inputs:
++                raise ValueError("input transforms dropped condition_actions")
++            model_condition_actions = np.asarray(inputs.pop("actions"), dtype=np.float32, order="C")
++            expected_shape = (self._model.action_horizon, self._model.action_dim)
++            if model_condition_actions.shape != expected_shape:
++                raise ValueError("transformed condition_actions do not match the model action shape")
++            if not np.all(np.isfinite(model_condition_actions)):
++                raise ValueError("transformed condition_actions must contain only finite values")
++            raw_action_dim = conditioning[0].shape[1]
++            if raw_action_dim < self._model.action_dim and np.any(model_condition_actions[:, raw_action_dim:] != 0):
++                raise ValueError("transformed condition_actions must use zero-valued padded dimensions")
+         if not self._is_pytorch_model:
+             # Make a batch and convert to jax.Array.
+             inputs = jax.tree.map(lambda x: jnp.asarray(x)[np.newaxis, ...], inputs)
+@@ -86,6 +160,9 @@ class Policy(BasePolicy):
+             if noise.ndim == 2:  # If noise is (action_horizon, action_dim), add batch dimension
+                 noise = noise[None, ...]  # Make it (1, action_horizon, action_dim)
+             sample_kwargs["noise"] = noise
++        if conditioning is not None:
++            sample_kwargs["condition_actions"] = jnp.asarray(model_condition_actions)[None, ...]
++            sample_kwargs["condition_mask"] = jnp.asarray(conditioning[1])[None, ...]
+ 
+         observation = _model.Observation.from_dict(inputs)
+         start_time = time.monotonic()
+@@ -99,10 +176,29 @@ class Policy(BasePolicy):
+         else:
+             outputs = jax.tree.map(lambda x: np.asarray(x[0, ...]), outputs)
+ 
++        conditioning_audit = None
++        if conditioning is not None:
++            selected = conditioning[1]
++            residual = (
++                float(np.max(np.abs(outputs["actions"][selected] - model_condition_actions[selected])))
++                if np.any(selected)
++                else 0.0
++            )
++            conditioning_audit = {
++                "schema_version": CONDITIONING_SCHEMA_VERSION,
++                "method": CONDITIONING_METHOD,
++                "conditioned_prefix_steps": int(np.count_nonzero(selected)),
++                "raw_actions_sha256": _array_sha256(conditioning[0], "<f4"),
++                "model_actions_sha256": _array_sha256(model_condition_actions, "<f4"),
++                "mask_sha256": _array_sha256(selected, "u1"),
++                "max_model_residual": residual,
++            }
+         outputs = self._output_transform(outputs)
+         outputs["policy_timing"] = {
+             "infer_ms": model_time * 1000,
+         }
++        if conditioning_audit is not None:
++            outputs["policy_conditioning"] = conditioning_audit
+         return outputs
+ 
+     @property
+-- 
+2.49.0.windows.1
+

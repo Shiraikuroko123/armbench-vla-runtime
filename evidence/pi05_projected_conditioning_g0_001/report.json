@@ -1,0 +1,83 @@
+{
+  "compile_wall_ms": {
+    "baseline": 18632.99704200108,
+    "conditioned_array_variant": 8759.556355998939,
+    "first_active_after_empty": 82.97364700047183
+  },
+  "contract": {
+    "explicit_noise_sha256": "eef61acd9bc520c4967353a3572d7742d814ea579ae674cdb77fee10cc75e13b",
+    "model_action_shape": [
+      10,
+      32
+    ],
+    "prefix_steps": 4,
+    "raw_action_shape": [
+      10,
+      7
+    ]
+  },
+  "created_at_utc": "2026-08-04T22:06:21.960206+00:00",
+  "device_memory": {
+    "bytes_in_use": 6706868224,
+    "bytes_limit": 38346080256,
+    "peak_bytes_in_use": 6906790912
+  },
+  "gates": {
+    "baseline_exact_repeatability": true,
+    "empty_mask_exact_parity": true,
+    "latency_gate": true,
+    "max_model_residual": 0.0,
+    "max_peak_device_bytes": 24696061952,
+    "max_raw_prefix_residual": 0.0,
+    "max_warm_model_p95_ratio": 1.25,
+    "memory_gate": true,
+    "warm_model_p95_ratio": 0.9928601656227686
+  },
+  "identity": {
+    "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+    "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+    "checkpoint_file_count": 16,
+    "checkpoint_total_bytes": 12439085481,
+    "gate_source_canonical_sha256": "fc5324099953f9c00c3cf7127a01c5b89a7ddf18e9ebc2e2310af1bbcb0d7b18",
+    "openpi_commit": "2c8e61d5fbfde4b670ae428ef4b8440d35c1c7fd",
+    "openpi_status": "",
+    "policy_config": "pi05_libero",
+    "source_sha256": {
+      "src/openpi/models/pi0.py": "8d8b1669f0b3b5628237aac476e9079b3f6c8d9c7e19a399b03933ac6d241e2e",
+      "src/openpi/policies/policy.py": "4cdb0ad194c859968fb15f93960d5b79e5e2e0e04afdfb5efcd36d47d28decd2"
+    }
+  },
+  "method": "projected_flow_inpainting",
+  "passed": true,
+  "schema_version": "armbench.pi05_projected_conditioning_g0.v1",
+  "warm_latency": {
+    "baseline_model": {
+      "count": 20,
+      "max_ms": 58.56342000333825,
+      "mean_ms": 54.40885230036656,
+      "p50_ms": 54.155848500158754,
+      "p95_ms": 54.918822899890074
+    },
+    "baseline_wall": {
+      "count": 20,
+      "max_ms": 81.7639289998624,
+      "mean_ms": 75.61925664995215,
+      "p50_ms": 74.9864544995944,
+      "p95_ms": 78.69789994983876
+    },
+    "conditioned_model": {
+      "count": 20,
+      "max_ms": 54.93393099823152,
+      "mean_ms": 54.32014819980395,
+      "p50_ms": 54.26659849945281,
+      "p95_ms": 54.52671160019236
+    },
+    "conditioned_wall": {
+      "count": 20,
+      "max_ms": 80.19275900005596,
+      "mean_ms": 76.67764979942149,
+      "p50_ms": 75.98511799915286,
+      "p95_ms": 79.52901774879138
+    }
+  }
+}

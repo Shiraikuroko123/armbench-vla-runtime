@@ -19,6 +19,9 @@ import numpy as np
 
 ATTESTATION_SCHEMA_VERSION = "armbench.openpi_server_attestation.v1"
 OPENPI_COMMIT = "15a9616a00943ada6c20a0f158e3adb39df2ccac"
+OPENPI_PROJECTED_CONDITIONING_COMMIT = (
+    "2c8e61d5fbfde4b670ae428ef4b8440d35c1c7fd"
+)
 DEFAULT_POLICY_CONFIG = "pi05_libero"
 DEFAULT_CHECKPOINT = "gs://openpi-assets/checkpoints/pi05_libero"
 POLICY_SAMPLING_SCHEMA_VERSION = "armbench.policy_sampling.v1"
@@ -31,8 +34,16 @@ POLICY_SAMPLING_GENERATOR = (
 )
 POLICY_SAMPLING_SCORED_NAMESPACE = "scored"
 POLICY_SAMPLING_WARMUP_NAMESPACE = "warmup"
+POLICY_CONDITIONING_SCHEMA_VERSION = "armbench.policy_conditioning.v1"
+POLICY_CONDITIONING_TRACE_SCHEMA_VERSION = "armbench.policy_conditioning_trace.v1"
+POLICY_CONDITIONING_REQUEST_FIELD = "armbench_policy_conditioning"
+POLICY_CONDITIONING_RESPONSE_FIELD = "armbench_policy_conditioning"
+POLICY_CONDITIONING_METADATA_FIELD = "armbench_policy_conditioning_contract"
+POLICY_CONDITIONING_METHOD = "projected_flow_inpainting"
+OPENPI_INTERNAL_CONDITIONING_FIELD = "policy_conditioning"
 PI05_ACTION_HORIZON = 10
 PI05_MODEL_ACTION_DIM = 32
+PI05_RAW_ACTION_DIM = 7
 
 _SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 
@@ -77,6 +88,26 @@ def policy_sampling_contract(
                 ]
             },
         },
+    }
+
+
+def policy_conditioning_contract(
+    action_horizon: int = PI05_ACTION_HORIZON,
+    raw_action_dim: int = PI05_RAW_ACTION_DIM,
+    model_action_dim: int = PI05_MODEL_ACTION_DIM,
+) -> Dict[str, Any]:
+    return {
+        "schema_version": POLICY_CONDITIONING_SCHEMA_VERSION,
+        "trace_schema_version": POLICY_CONDITIONING_TRACE_SCHEMA_VERSION,
+        "request_field": POLICY_CONDITIONING_REQUEST_FIELD,
+        "response_field": POLICY_CONDITIONING_RESPONSE_FIELD,
+        "method": POLICY_CONDITIONING_METHOD,
+        "raw_action_shape": [int(action_horizon), int(raw_action_dim)],
+        "model_action_shape": [int(action_horizon), int(model_action_dim)],
+        "actions_dtype": "little-endian float32",
+        "mask_shape": [int(action_horizon)],
+        "mask_dtype": "bool",
+        "mask_semantics": "contiguous committed prefix",
     }
 
 
@@ -181,6 +212,138 @@ def build_policy_sampling_control(
     return payload
 
 
+def policy_conditioning_actions_sha256(actions: np.ndarray) -> str:
+    canonical = np.asarray(actions, dtype="<f4", order="C")
+    if canonical.ndim != 2:
+        raise ValueError("conditioning actions must be a two-dimensional array")
+    return hashlib.sha256(canonical.tobytes(order="C")).hexdigest()
+
+
+def policy_conditioning_mask_sha256(mask: np.ndarray) -> str:
+    canonical = np.asarray(mask)
+    if canonical.ndim != 1 or canonical.dtype != np.bool_:
+        raise ValueError("conditioning mask must be a one-dimensional boolean array")
+    return hashlib.sha256(np.asarray(canonical, dtype="u1").tobytes(order="C")).hexdigest()
+
+
+def _canonical_conditioning_arrays(
+    actions: Any,
+    mask: Any,
+    *,
+    action_horizon: int,
+    raw_action_dim: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    try:
+        canonical_actions = np.asarray(actions, dtype="<f4", order="C")
+    except (TypeError, ValueError) as exc:
+        raise ValueError("conditioning actions must be numeric") from exc
+    canonical_mask = np.asarray(mask)
+    if canonical_actions.shape != (action_horizon, raw_action_dim):
+        raise ValueError("conditioning actions do not match the raw action shape")
+    if not np.all(np.isfinite(canonical_actions)):
+        raise ValueError("conditioning actions must contain only finite values")
+    if canonical_mask.shape != (action_horizon,) or canonical_mask.dtype != np.bool_:
+        raise ValueError("conditioning mask must be boolean with shape (action_horizon,)")
+    false_seen = np.maximum.accumulate(~canonical_mask)
+    if np.any(canonical_mask & false_seen):
+        raise ValueError("conditioning mask must select a contiguous prefix")
+    return (
+        np.array(canonical_actions, dtype="<f4", order="C", copy=True),
+        np.array(canonical_mask, dtype=np.bool_, order="C", copy=True),
+    )
+
+
+def build_policy_conditioning_control(
+    actions: Any,
+    *,
+    inference_delay: int,
+    execute_horizon: int,
+    action_horizon: int = PI05_ACTION_HORIZON,
+    raw_action_dim: int = PI05_RAW_ACTION_DIM,
+) -> Dict[str, Any]:
+    if type(inference_delay) is not int or inference_delay < 0:
+        raise ValueError("conditioning inference_delay must be a nonnegative integer")
+    if type(execute_horizon) is not int or execute_horizon <= 0:
+        raise ValueError("conditioning execute_horizon must be a positive integer")
+    if inference_delay > execute_horizon or execute_horizon > action_horizon:
+        raise ValueError("conditioning horizons are inconsistent")
+    mask = np.arange(action_horizon) < inference_delay
+    canonical_actions, canonical_mask = _canonical_conditioning_arrays(
+        actions,
+        mask,
+        action_horizon=action_horizon,
+        raw_action_dim=raw_action_dim,
+    )
+    return {
+        "schema_version": POLICY_CONDITIONING_SCHEMA_VERSION,
+        "method": POLICY_CONDITIONING_METHOD,
+        "inference_delay": inference_delay,
+        "execute_horizon": execute_horizon,
+        "condition_actions": canonical_actions,
+        "condition_mask": canonical_mask,
+        "raw_actions_sha256": policy_conditioning_actions_sha256(canonical_actions),
+        "mask_sha256": policy_conditioning_mask_sha256(canonical_mask),
+    }
+
+
+def _validate_policy_conditioning_control(
+    value: Any,
+    *,
+    action_horizon: int,
+    raw_action_dim: int,
+) -> Dict[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ValueError("policy conditioning control must be an object")
+    expected_fields = {
+        "schema_version",
+        "method",
+        "inference_delay",
+        "execute_horizon",
+        "condition_actions",
+        "condition_mask",
+        "raw_actions_sha256",
+        "mask_sha256",
+    }
+    if set(value) != expected_fields:
+        raise ValueError("policy conditioning control fields do not match the contract")
+    if value.get("schema_version") != POLICY_CONDITIONING_SCHEMA_VERSION:
+        raise ValueError("policy conditioning schema_version mismatch")
+    if value.get("method") != POLICY_CONDITIONING_METHOD:
+        raise ValueError("unsupported policy conditioning method")
+    delay = value.get("inference_delay")
+    execute = value.get("execute_horizon")
+    if type(delay) is not int or delay < 0:
+        raise ValueError("policy conditioning inference_delay is invalid")
+    if type(execute) is not int or execute <= 0:
+        raise ValueError("policy conditioning execute_horizon is invalid")
+    if delay > execute or execute > action_horizon:
+        raise ValueError("policy conditioning horizons are inconsistent")
+    actions, mask = _canonical_conditioning_arrays(
+        value.get("condition_actions"),
+        value.get("condition_mask"),
+        action_horizon=action_horizon,
+        raw_action_dim=raw_action_dim,
+    )
+    if not np.array_equal(mask, np.arange(action_horizon) < delay):
+        raise ValueError("policy conditioning mask does not match inference_delay")
+    actions_sha256 = policy_conditioning_actions_sha256(actions)
+    mask_sha256 = policy_conditioning_mask_sha256(mask)
+    if value.get("raw_actions_sha256") != actions_sha256:
+        raise ValueError("policy conditioning raw_actions_sha256 mismatch")
+    if value.get("mask_sha256") != mask_sha256:
+        raise ValueError("policy conditioning mask_sha256 mismatch")
+    return {
+        "schema_version": POLICY_CONDITIONING_SCHEMA_VERSION,
+        "method": POLICY_CONDITIONING_METHOD,
+        "inference_delay": delay,
+        "execute_horizon": execute,
+        "condition_actions": actions,
+        "condition_mask": mask,
+        "raw_actions_sha256": actions_sha256,
+        "mask_sha256": mask_sha256,
+    }
+
+
 def _validate_policy_sampling_control(value: Any) -> Dict[str, Any]:
     if not isinstance(value, Mapping):
         raise ValueError("policy sampling control must be an object")
@@ -218,7 +381,7 @@ def _validate_policy_sampling_control(value: Any) -> Dict[str, Any]:
 
 
 class KeyedPolicySamplingWrapper:
-    """Inject explicit keyed noise while preserving uncontrolled legacy requests."""
+    """Inject keyed noise and optional committed actions with auditable traces."""
 
     def __init__(
         self,
@@ -226,40 +389,93 @@ class KeyedPolicySamplingWrapper:
         *,
         action_horizon: int = PI05_ACTION_HORIZON,
         model_action_dim: int = PI05_MODEL_ACTION_DIM,
+        raw_action_dim: int = PI05_RAW_ACTION_DIM,
     ) -> None:
         self._policy = policy
         self._action_horizon = int(action_horizon)
         self._model_action_dim = int(model_action_dim)
+        self._raw_action_dim = int(raw_action_dim)
 
     @property
     def metadata(self) -> Mapping[str, Any]:
         return self._policy.metadata
 
     def infer(self, observation: Mapping[str, Any]) -> Mapping[str, Any]:
-        if POLICY_SAMPLING_REQUEST_FIELD not in observation:
+        has_sampling = POLICY_SAMPLING_REQUEST_FIELD in observation
+        has_conditioning = POLICY_CONDITIONING_REQUEST_FIELD in observation
+        if not has_sampling and not has_conditioning:
             return self._policy.infer(observation)
         clean_observation = dict(observation)
-        control = _validate_policy_sampling_control(
-            clean_observation.pop(POLICY_SAMPLING_REQUEST_FIELD)
-        )
-        key_sha256 = str(control["key_sha256"])
-        noise = policy_sampling_noise(
-            key_sha256, self._action_horizon, self._model_action_dim
-        )
-        noise_sha256 = policy_sampling_noise_sha256(noise)
-        response = self._policy.infer(clean_observation, noise=noise)
+        kwargs: Dict[str, Any] = {}
+        sampling_control = None
+        key_sha256 = None
+        noise_sha256 = None
+        if has_sampling:
+            sampling_control = _validate_policy_sampling_control(
+                clean_observation.pop(POLICY_SAMPLING_REQUEST_FIELD)
+            )
+            key_sha256 = str(sampling_control["key_sha256"])
+            noise = policy_sampling_noise(
+                key_sha256, self._action_horizon, self._model_action_dim
+            )
+            noise_sha256 = policy_sampling_noise_sha256(noise)
+            kwargs["noise"] = noise
+        conditioning_control = None
+        if has_conditioning:
+            conditioning_control = _validate_policy_conditioning_control(
+                clean_observation.pop(POLICY_CONDITIONING_REQUEST_FIELD),
+                action_horizon=self._action_horizon,
+                raw_action_dim=self._raw_action_dim,
+            )
+            kwargs["condition_actions"] = conditioning_control["condition_actions"]
+            kwargs["condition_mask"] = conditioning_control["condition_mask"]
+
+        response = self._policy.infer(clean_observation, **kwargs)
         if not isinstance(response, Mapping):
             raise TypeError("controlled policy response must be an object")
-        if POLICY_SAMPLING_RESPONSE_FIELD in response:
-            raise ValueError("policy response already contains reserved sampling audit field")
         output = dict(response)
-        output[POLICY_SAMPLING_RESPONSE_FIELD] = {
-            "schema_version": POLICY_SAMPLING_SCHEMA_VERSION,
-            "namespace": control["namespace"],
-            "key_sha256": key_sha256,
-            "noise_sha256": noise_sha256,
-            "generator": POLICY_SAMPLING_GENERATOR,
-        }
+        if sampling_control is not None:
+            if POLICY_SAMPLING_RESPONSE_FIELD in output:
+                raise ValueError("policy response already contains reserved sampling audit field")
+            output[POLICY_SAMPLING_RESPONSE_FIELD] = {
+                "schema_version": POLICY_SAMPLING_SCHEMA_VERSION,
+                "namespace": sampling_control["namespace"],
+                "key_sha256": key_sha256,
+                "noise_sha256": noise_sha256,
+                "generator": POLICY_SAMPLING_GENERATOR,
+            }
+        if conditioning_control is not None:
+            if POLICY_CONDITIONING_RESPONSE_FIELD in output:
+                raise ValueError("policy response already contains reserved conditioning audit field")
+            internal = output.pop(OPENPI_INTERNAL_CONDITIONING_FIELD, None)
+            if not isinstance(internal, Mapping):
+                raise ValueError("policy response omitted its internal conditioning audit")
+            if internal.get("schema_version") != "armbench.openpi_conditioning.v1":
+                raise ValueError("policy conditioning audit schema mismatch")
+            if internal.get("method") != POLICY_CONDITIONING_METHOD:
+                raise ValueError("policy conditioning audit method mismatch")
+            if internal.get("raw_actions_sha256") != conditioning_control["raw_actions_sha256"]:
+                raise ValueError("policy conditioning audit raw action hash mismatch")
+            if internal.get("mask_sha256") != conditioning_control["mask_sha256"]:
+                raise ValueError("policy conditioning audit mask hash mismatch")
+            if internal.get("conditioned_prefix_steps") != conditioning_control["inference_delay"]:
+                raise ValueError("policy conditioning audit prefix length mismatch")
+            model_actions_sha256 = internal.get("model_actions_sha256")
+            if not isinstance(model_actions_sha256, str) or not _SHA256.fullmatch(model_actions_sha256):
+                raise ValueError("policy conditioning audit model action hash is invalid")
+            residual = internal.get("max_model_residual")
+            if not isinstance(residual, (int, float)) or not np.isfinite(residual) or residual < 0:
+                raise ValueError("policy conditioning audit residual is invalid")
+            output[POLICY_CONDITIONING_RESPONSE_FIELD] = {
+                "schema_version": POLICY_CONDITIONING_TRACE_SCHEMA_VERSION,
+                "method": POLICY_CONDITIONING_METHOD,
+                "inference_delay": conditioning_control["inference_delay"],
+                "execute_horizon": conditioning_control["execute_horizon"],
+                "raw_actions_sha256": conditioning_control["raw_actions_sha256"],
+                "model_actions_sha256": model_actions_sha256,
+                "mask_sha256": conditioning_control["mask_sha256"],
+                "max_model_residual": float(residual),
+            }
         return output
 
 
@@ -330,6 +546,7 @@ def build_attestation(
     server_source: pathlib.Path,
     action_horizon: int,
     model_action_dim: int,
+    upstream_base_commit: str = OPENPI_COMMIT,
 ) -> Dict[str, Any]:
     commit = _command_output(("git", "rev-parse", "HEAD"), openpi_root)
     tracked_status = _command_output(
@@ -353,6 +570,14 @@ def build_attestation(
         ],
         "checkpoint_files": checkpoint_manifest["checkpoint_files"],
         "openpi_commit": commit,
+        "openpi_upstream_base_commit": upstream_base_commit,
+        "openpi_extension_files": {
+            relative: sha256_file(openpi_root / relative)
+            for relative in (
+                "src/openpi/models/pi0.py",
+                "src/openpi/policies/policy.py",
+            )
+        },
         "openpi_tracked_status": tracked_status,
         "openpi_tracked_clean": tracked_status == "",
         "openpi_submodule_status": submodule_status,
@@ -389,6 +614,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--checkpoint", default=DEFAULT_CHECKPOINT)
     parser.add_argument("--openpi-root", default="/app")
     parser.add_argument("--expected-openpi-commit", default=OPENPI_COMMIT)
+    parser.add_argument("--expected-openpi-base-commit", default=OPENPI_COMMIT)
     parser.add_argument("--attestation-output", required=True)
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8000)
@@ -403,6 +629,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         raise RuntimeError(
             "OpenPI commit mismatch: expected %s, got %s"
             % (args.expected_openpi_commit, commit)
+        )
+    merge_base = _command_output(
+        ("git", "merge-base", args.expected_openpi_base_commit, commit),
+        openpi_root,
+    )
+    if merge_base != args.expected_openpi_base_commit:
+        raise RuntimeError(
+            "OpenPI extension is not based on the expected upstream commit: "
+            f"expected {args.expected_openpi_base_commit}, merge-base {merge_base}"
         )
     tracked_status = _command_output(
         ("git", "status", "--porcelain=v1", "--untracked-files=all"),
@@ -442,12 +677,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         server_source=pathlib.Path(__file__).resolve(),
         action_horizon=action_horizon,
         model_action_dim=model_action_dim,
+        upstream_base_commit=args.expected_openpi_base_commit,
     )
     _write_json(pathlib.Path(args.attestation_output), attestation)
     metadata = dict(policy.metadata)
     metadata["armbench_server_attestation"] = public_attestation(attestation)
     metadata[POLICY_SAMPLING_METADATA_FIELD] = policy_sampling_contract(
         action_horizon, model_action_dim
+    )
+    metadata[POLICY_CONDITIONING_METADATA_FIELD] = policy_conditioning_contract(
+        action_horizon, PI05_RAW_ACTION_DIM, model_action_dim
     )
     served_policy = KeyedPolicySamplingWrapper(
         policy,
