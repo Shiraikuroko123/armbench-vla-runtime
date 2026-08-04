@@ -192,4 +192,8 @@ def test_compose_overlay_mounts_artifacts_and_runs_the_standalone_evaluator():
     assert "ARMBENCH_SERVER_ARGS: >-" in compose
     assert "--policy-config pi05_libero" in compose
     assert "--checkpoint gs://openpi-assets/checkpoints/pi05_libero" in compose
+    assert compose.count('GIT_CONFIG_COUNT: "1"') == 2
+    assert compose.count('GIT_CONFIG_KEY_0: "safe.directory"') == 2
+    assert compose.count('GIT_CONFIG_VALUE_0: "/app"') == 2
+    assert "safe.directory=*" not in compose
     assert "GPU reservations are inherited from the pinned official Compose file" in compose

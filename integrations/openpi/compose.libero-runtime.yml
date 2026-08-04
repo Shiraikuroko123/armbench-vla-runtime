@@ -23,6 +23,9 @@ services:
         --host 0.0.0.0
         --port ${ARMBENCH_POLICY_PORT:-8000}
       ARMBENCH_SERVER_WAIT_ATTEMPTS: "${ARMBENCH_SERVER_WAIT_ATTEMPTS:-360}"
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: "safe.directory"
+      GIT_CONFIG_VALUE_0: "/app"
       PYTHONPATH: /armbench:/app:/app/packages/openpi-client/src:/app/third_party/libero
     command:
       - /bin/bash
@@ -70,6 +73,9 @@ services:
     environment:
       ARMBENCH_POLICY_PORT: "${ARMBENCH_POLICY_PORT:-8000}"
       ARMBENCH_RUN_ID: "${ARMBENCH_RUN_ID:-pi05_libero_async}"
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: "safe.directory"
+      GIT_CONFIG_VALUE_0: "/app"
       NVIDIA_DRIVER_CAPABILITIES: compute,utility
     command:
       - /bin/bash
