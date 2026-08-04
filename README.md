@@ -36,6 +36,21 @@ The [validated GitHub Release](https://github.com/Shiraikuroko123/armbench-vla-r
 contains the complete cloud archive, its SHA-256 record, and both validator
 reports.
 
+### Offline visual acceptance
+
+Open the [generated acceptance dashboard](reports/pi05_libero_alignment_core_001/index.html)
+from a local clone to inspect all three latency strata, filter the 150 matched
+pairs, and play the baseline and aligned videos side by side. The default view
+selects a 200 ms pair where the asynchronous baseline fails and temporal
+alignment succeeds.
+
+Rebuild the page from the preserved evidence and independently validate every
+protected artifact and required video before rendering:
+
+```powershell
+& '..\.venv\Scripts\python.exe' -m integrations.openpi.acceptance_dashboard --open
+```
+
 The project does **not** train or fine-tune pi0.5. The contribution is runtime
 dispatch and evidence infrastructure: checkpoint/source attestation, delay and
 failure injection, strict action contracts, paired evaluation, fail-closed
