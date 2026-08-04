@@ -1,0 +1,242 @@
+{
+  "claim_boundary": "Simulation-only measured-age analysis. Inference remains blocking and controller catch-up is simulated after response arrival.",
+  "cohort": {
+    "age_rounding": "ceil",
+    "deadline_ms": 250.0,
+    "pairs": 20,
+    "queries": 810,
+    "replan_steps": [
+      5
+    ],
+    "rollouts": 40,
+    "task_suites": [
+      "libero_spatial"
+    ]
+  },
+  "implementation": {
+    "analyzer_sha256": "2a966c28f2fe1fcf0e6a78c76b516fce146a9c97468228a9297a37a54c38aa74",
+    "analyzer_source": "integrations/openpi/measured_age_analysis.py",
+    "numpy_version": "1.26.4",
+    "python_version": "3.10.8",
+    "validator_sha256": "d1ae387e06fa4326b53fda4fbe4b478b8192294c1758f43b24053cb0db4b93ca",
+    "validator_source": "integrations/openpi/validate_measured_age_artifact.py"
+  },
+  "runtime_burden": [
+    {
+      "aligned_mean_per_rollout": 15.9,
+      "aligned_total": 318,
+      "async_mean_per_rollout": 24.6,
+      "async_total": 492,
+      "metric": "policy_queries",
+      "paired_bootstrap95_high": -6.5,
+      "paired_bootstrap95_low": -10.95,
+      "paired_mean_difference": -8.7,
+      "pairs": 20
+    },
+    {
+      "aligned_mean_per_rollout": 15.5,
+      "aligned_total": 310,
+      "async_mean_per_rollout": 24.15,
+      "async_total": 483,
+      "metric": "accepted_chunks",
+      "paired_bootstrap95_high": -6.45,
+      "paired_bootstrap95_low": -10.85,
+      "paired_mean_difference": -8.65,
+      "pairs": 20
+    },
+    {
+      "aligned_mean_per_rollout": 0.05,
+      "aligned_total": 1,
+      "async_mean_per_rollout": 0.0,
+      "async_total": 0,
+      "metric": "rejected_chunks",
+      "paired_bootstrap95_high": 0.15,
+      "paired_bootstrap95_low": 0.0,
+      "paired_mean_difference": 0.05,
+      "pairs": 20
+    },
+    {
+      "aligned_mean_per_rollout": 0.05,
+      "aligned_total": 1,
+      "async_mean_per_rollout": 0.0,
+      "async_total": 0,
+      "metric": "interventions",
+      "paired_bootstrap95_high": 0.15,
+      "paired_bootstrap95_low": 0.0,
+      "paired_mean_difference": 0.05,
+      "pairs": 20
+    },
+    {
+      "aligned_mean_per_rollout": 0.05,
+      "aligned_total": 1,
+      "async_mean_per_rollout": 0.05,
+      "async_total": 1,
+      "metric": "deadline_misses",
+      "paired_bootstrap95_high": 0.15,
+      "paired_bootstrap95_low": -0.15,
+      "paired_mean_difference": 0.0,
+      "pairs": 20
+    },
+    {
+      "aligned_mean_per_rollout": 0.05,
+      "aligned_total": 1,
+      "async_mean_per_rollout": 0.05,
+      "async_total": 1,
+      "metric": "horizon_overruns",
+      "paired_bootstrap95_high": 0.15,
+      "paired_bootstrap95_low": -0.15,
+      "paired_mean_difference": 0.0,
+      "pairs": 20
+    },
+    {
+      "aligned_mean_per_rollout": 0.05,
+      "aligned_total": 1,
+      "async_mean_per_rollout": 0.0,
+      "async_total": 0,
+      "metric": "age_refreshes",
+      "paired_bootstrap95_high": 0.15,
+      "paired_bootstrap95_low": 0.0,
+      "paired_mean_difference": 0.05,
+      "pairs": 20
+    },
+    {
+      "aligned_mean_per_rollout": 0.05,
+      "aligned_total": 1,
+      "async_mean_per_rollout": 0.0,
+      "async_total": 0,
+      "metric": "fallback_hold_steps",
+      "paired_bootstrap95_high": 0.15,
+      "paired_bootstrap95_low": 0.0,
+      "paired_mean_difference": 0.05,
+      "pairs": 20
+    },
+    {
+      "aligned_mean_per_rollout": 39.3,
+      "aligned_total": 786,
+      "async_mean_per_rollout": 60.5,
+      "async_total": 1210,
+      "metric": "simulated_catchup_steps",
+      "paired_bootstrap95_high": -15.9,
+      "paired_bootstrap95_low": -26.55,
+      "paired_mean_difference": -21.2,
+      "pairs": 20
+    }
+  ],
+  "schema_version": "armbench.pi05_libero_measured_age_analysis.v1",
+  "source": {
+    "artifact": "D:\\arm-planning-control-project\\cloud_archive\\pi05_libero_measured_age_pilot_001\\evaluation",
+    "per_episode_sha256": "a40b434e5e6870bb4d57f0a71579a95be62a2270c91705c887316426b02d9478",
+    "per_query_sha256": "4080763fdda776c6ed78ad164610821facf0dc541ced25bfd693e2ff45f8b31f",
+    "source_manifest_sha256": "fb233967926e78ba26231556f70e1835909273e58813b0761e63a2f7f70bf02a",
+    "source_schema_version": "armbench.pi05_libero_measured_age.v2",
+    "validator_checks": [
+      "manifest path safety, complete coverage, byte counts, and hashes",
+      "fixed measured-age protocol, matrix, rounding, refresh, and jitter contract",
+      "exact CSV headers and canonical finite scalar parsing",
+      "environment source hashes close over every frozen provenance copy",
+      "unscored attested warmup precedes every scored query",
+      "raw clocks, timing arithmetic, alignment, refresh bounds, paired jitter, episodes, pairs, matrix, and videos",
+      "summary, pair outcome, progress, integrity, and Markdown consistency"
+    ],
+    "validator_schema_version": "armbench.measured_age_artifact_validation.v1"
+  },
+  "statistics": {
+    "bootstrap_resamples": 10000,
+    "bootstrap_seed": 20260805,
+    "confidence_level": 0.95,
+    "multiplicity_adjustment": "none; one prespecified success comparison",
+    "paired_difference_interval": "paired percentile bootstrap of the mean",
+    "paired_test": "exact two-sided McNemar binomial test",
+    "success_rate_interval": "Wilson score interval"
+  },
+  "success": {
+    "async_unguarded": {
+      "rate": 0.7,
+      "rollouts": 20,
+      "successes": 14,
+      "wilson95_high": 0.8545227551323956,
+      "wilson95_low": 0.4810271816464765
+    },
+    "latency_aligned": {
+      "rate": 0.95,
+      "rollouts": 20,
+      "successes": 19,
+      "wilson95_high": 0.9911185511992047,
+      "wilson95_low": 0.763868806553258
+    },
+    "paired": {
+      "candidate_wins": 5,
+      "mcnemar_exact_two_sided_p": 0.0625,
+      "paired_bootstrap95_high": 0.45,
+      "paired_bootstrap95_low": 0.1,
+      "pairs": 20,
+      "rate_difference": 0.25,
+      "reference_wins": 0,
+      "ties": 15
+    }
+  },
+  "timing": [
+    {
+      "deadline_miss_rate_per_query": 0.0020325203252032522,
+      "deadline_misses": 1,
+      "fail_closed_queries": 0,
+      "hold_refresh_queries": 0,
+      "horizon_overrun_rate_per_query": 0.0020325203252032522,
+      "horizon_overruns": 1,
+      "inference_latency_ms": {
+        "max": 87.34156900027301,
+        "p50": 80.83720850027021,
+        "p95": 82.91953165007726
+      },
+      "mode": "async_unguarded",
+      "observation_age_ms": {
+        "max": 250.1661559999775,
+        "p50": 125.6078249998609,
+        "p95": 244.74043340060234
+      },
+      "queries": 492,
+      "requested_jitter_ms": {
+        "max": 160.0,
+        "p50": 40.0,
+        "p95": 160.0
+      },
+      "response_delivery_ms": {
+        "max": 160.3225159997237,
+        "p50": 40.178045999709866,
+        "p95": 160.27450255087388
+      },
+      "terminal_before_dispatch_queries": 9
+    },
+    {
+      "deadline_miss_rate_per_query": 0.0031446540880503146,
+      "deadline_misses": 1,
+      "fail_closed_queries": 0,
+      "hold_refresh_queries": 1,
+      "horizon_overrun_rate_per_query": 0.0031446540880503146,
+      "horizon_overruns": 1,
+      "inference_latency_ms": {
+        "max": 88.55041600145341,
+        "p50": 80.90117449955869,
+        "p95": 82.38965550008288
+      },
+      "mode": "latency_aligned",
+      "observation_age_ms": {
+        "max": 251.42760400012776,
+        "p50": 162.4206670003332,
+        "p95": 244.58661369935726
+      },
+      "queries": 318,
+      "requested_jitter_ms": {
+        "max": 160.0,
+        "p50": 80.0,
+        "p95": 160.0
+      },
+      "response_delivery_ms": {
+        "max": 160.39885499958473,
+        "p50": 80.1552034999986,
+        "p95": 160.27208220011744
+      },
+      "terminal_before_dispatch_queries": 7
+    }
+  ]
+}

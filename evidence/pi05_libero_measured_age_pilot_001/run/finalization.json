@@ -1,0 +1,10 @@
+{
+  "artifact_validation_valid": true,
+  "complete": true,
+  "compose_stop_confirmed": true,
+  "errors": [],
+  "evaluation_manifest_files_checked": 60,
+  "finalized_at_utc": "2026-08-04T19:19:09.574749+00:00",
+  "schema_version": "armbench.pi05_libero_measured_age_container_run.v1",
+  "server_log_hashed_only_after_compose_stop": true
+}

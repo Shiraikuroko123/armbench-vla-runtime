@@ -1,0 +1,613 @@
+{
+  "checkpoint_provenance": "server_attestation_with_checkpoint_content_sha256",
+  "declared_checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+  "episode_budget": {
+    "official_suite_task_steps": {
+      "libero_10": 520,
+      "libero_90": 400,
+      "libero_goal": 300,
+      "libero_object": 280,
+      "libero_spatial": 220
+    },
+    "task_steps_override": null
+  },
+  "jitter": {
+    "candidates_ms": [
+      0.0,
+      40.0,
+      80.0,
+      160.0
+    ],
+    "generator": "sha256_first_u64_mod_v1",
+    "json_encoding": "utf-8 canonical sorted compact ASCII",
+    "mode_in_key": false,
+    "pairing_key_fields": [
+      "task_suite",
+      "task_id",
+      "episode_index",
+      "replan_steps"
+    ],
+    "payload_fields": [
+      "seed",
+      "pairing_key",
+      "query_index"
+    ],
+    "query_index_field": "query_index",
+    "seed": 7
+  },
+  "limitations": [
+    "Inference remains blocking; catch-up is simulated after response arrival.",
+    "This is not an OS hard-real-time loop or a formal safety certificate.",
+    "Temporal suffix selection is not dynamics-aware action repair."
+  ],
+  "matrix": {
+    "episode_indices": [
+      0,
+      1
+    ],
+    "latency_sources": [
+      "measured_wall"
+    ],
+    "latency_steps": [
+      0
+    ],
+    "matched_condition_groups": 20,
+    "modes": [
+      "async_unguarded",
+      "latency_aligned"
+    ],
+    "paired_conditions": 20,
+    "replan_steps": [
+      5
+    ],
+    "rollouts": 40,
+    "schema_version": "armbench.pi05_libero_measured_age.v2",
+    "task_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "task_suites": [
+      "libero_spatial"
+    ]
+  },
+  "official_protocol": {
+    "action_dimension": 7,
+    "action_horizon": 10,
+    "control_frequency_hz": 20,
+    "environment_render_resolution": [
+      256,
+      256
+    ],
+    "resize": [
+      224,
+      224
+    ],
+    "stabilization_steps": 10,
+    "state_dimension": 8,
+    "task_success_source": "LIBERO environment done"
+  },
+  "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+  "policy_config": "pi05_libero",
+  "registered_cells": [
+    {
+      "condition_order": 0,
+      "episode_id": "libero_spatial__task_000__episode_000__h_05__l_000__async_unguarded",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_000/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 0,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 1,
+      "episode_id": "libero_spatial__task_000__episode_000__h_05__l_000__latency_aligned",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_000/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 0,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 2,
+      "episode_id": "libero_spatial__task_000__episode_001__h_05__l_000__latency_aligned",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_000/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 0,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 3,
+      "episode_id": "libero_spatial__task_000__episode_001__h_05__l_000__async_unguarded",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_000/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 0,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 4,
+      "episode_id": "libero_spatial__task_001__episode_000__h_05__l_000__async_unguarded",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_001/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 1,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 5,
+      "episode_id": "libero_spatial__task_001__episode_000__h_05__l_000__latency_aligned",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_001/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 1,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 6,
+      "episode_id": "libero_spatial__task_001__episode_001__h_05__l_000__latency_aligned",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_001/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 1,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 7,
+      "episode_id": "libero_spatial__task_001__episode_001__h_05__l_000__async_unguarded",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_001/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 1,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 8,
+      "episode_id": "libero_spatial__task_002__episode_000__h_05__l_000__async_unguarded",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_002/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 2,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 9,
+      "episode_id": "libero_spatial__task_002__episode_000__h_05__l_000__latency_aligned",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_002/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 2,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 10,
+      "episode_id": "libero_spatial__task_002__episode_001__h_05__l_000__latency_aligned",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_002/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 2,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 11,
+      "episode_id": "libero_spatial__task_002__episode_001__h_05__l_000__async_unguarded",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_002/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 2,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 12,
+      "episode_id": "libero_spatial__task_003__episode_000__h_05__l_000__async_unguarded",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_003/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 3,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 13,
+      "episode_id": "libero_spatial__task_003__episode_000__h_05__l_000__latency_aligned",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_003/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 3,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 14,
+      "episode_id": "libero_spatial__task_003__episode_001__h_05__l_000__latency_aligned",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_003/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 3,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 15,
+      "episode_id": "libero_spatial__task_003__episode_001__h_05__l_000__async_unguarded",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_003/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 3,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 16,
+      "episode_id": "libero_spatial__task_004__episode_000__h_05__l_000__async_unguarded",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_004/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 4,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 17,
+      "episode_id": "libero_spatial__task_004__episode_000__h_05__l_000__latency_aligned",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_004/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 4,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 18,
+      "episode_id": "libero_spatial__task_004__episode_001__h_05__l_000__latency_aligned",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_004/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 4,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 19,
+      "episode_id": "libero_spatial__task_004__episode_001__h_05__l_000__async_unguarded",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_004/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 4,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 20,
+      "episode_id": "libero_spatial__task_005__episode_000__h_05__l_000__async_unguarded",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_005/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 5,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 21,
+      "episode_id": "libero_spatial__task_005__episode_000__h_05__l_000__latency_aligned",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_005/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 5,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 22,
+      "episode_id": "libero_spatial__task_005__episode_001__h_05__l_000__latency_aligned",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_005/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 5,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 23,
+      "episode_id": "libero_spatial__task_005__episode_001__h_05__l_000__async_unguarded",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_005/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 5,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 24,
+      "episode_id": "libero_spatial__task_006__episode_000__h_05__l_000__async_unguarded",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_006/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 6,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 25,
+      "episode_id": "libero_spatial__task_006__episode_000__h_05__l_000__latency_aligned",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_006/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 6,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 26,
+      "episode_id": "libero_spatial__task_006__episode_001__h_05__l_000__latency_aligned",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_006/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 6,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 27,
+      "episode_id": "libero_spatial__task_006__episode_001__h_05__l_000__async_unguarded",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_006/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 6,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 28,
+      "episode_id": "libero_spatial__task_007__episode_000__h_05__l_000__async_unguarded",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_007/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 7,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 29,
+      "episode_id": "libero_spatial__task_007__episode_000__h_05__l_000__latency_aligned",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_007/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 7,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 30,
+      "episode_id": "libero_spatial__task_007__episode_001__h_05__l_000__latency_aligned",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_007/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 7,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 31,
+      "episode_id": "libero_spatial__task_007__episode_001__h_05__l_000__async_unguarded",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_007/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 7,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 32,
+      "episode_id": "libero_spatial__task_008__episode_000__h_05__l_000__async_unguarded",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_008/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 8,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 33,
+      "episode_id": "libero_spatial__task_008__episode_000__h_05__l_000__latency_aligned",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_008/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 8,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 34,
+      "episode_id": "libero_spatial__task_008__episode_001__h_05__l_000__latency_aligned",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_008/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 8,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 35,
+      "episode_id": "libero_spatial__task_008__episode_001__h_05__l_000__async_unguarded",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_008/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 8,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 36,
+      "episode_id": "libero_spatial__task_009__episode_000__h_05__l_000__async_unguarded",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_009/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 9,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 37,
+      "episode_id": "libero_spatial__task_009__episode_000__h_05__l_000__latency_aligned",
+      "episode_index": 0,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_009/episode_000/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 9,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 38,
+      "episode_id": "libero_spatial__task_009__episode_001__h_05__l_000__latency_aligned",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "latency_aligned",
+      "pair_id": "libero_spatial/task_009/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 9,
+      "task_suite": "libero_spatial"
+    },
+    {
+      "condition_order": 39,
+      "episode_id": "libero_spatial__task_009__episode_001__h_05__l_000__async_unguarded",
+      "episode_index": 1,
+      "latency_source": "measured_wall",
+      "latency_steps": 0,
+      "mode": "async_unguarded",
+      "pair_id": "libero_spatial/task_009/episode_001/h_05/l_000",
+      "replan_steps": 5,
+      "task_id": 9,
+      "task_suite": "libero_spatial"
+    }
+  ],
+  "research_question": "Can a frozen pi0.5 policy remain useful under measured, variable response age when the runtime must select a suffix or fail closed?",
+  "schema_version": "armbench.pi05_libero_measured_age.v2",
+  "seed": 7,
+  "server_launch_args": "--policy-config pi05_libero --checkpoint gs://openpi-assets/checkpoints/pi05_libero --openpi-root /app --attestation-output /armbench_results/pi05_libero_measured_age_pilot_001/checkpoint_attestation.json --host 0.0.0.0 --port 8000",
+  "temporal_alignment": {
+    "action_offset_rounding": "ceil",
+    "age_endpoint": "after response delivery jitter",
+    "age_origin": "before request construction",
+    "boundary_tolerance_ms": 1e-09,
+    "clock": "time.perf_counter_ns",
+    "completed_step_rounding": "floor",
+    "control_period_ms": 50.0,
+    "controller_model": "post_response_catchup_simulation",
+    "deadline_ms": 250.0,
+    "hold_policy": "zero Cartesian delta and preserve gripper",
+    "latency_source": "measured_wall",
+    "latency_steps": 0,
+    "max_age_refreshes": 2
+  },
+  "timeouts": {
+    "policy_inference_s": 600.0,
+    "server_startup_s": 1200.0
+  },
+  "warmup": {
+    "episode_index": 49,
+    "queries": 3,
+    "required_before_scoring": true,
+    "same_checkpoint_and_action_contract": true,
+    "scored": false,
+    "task_id": 0,
+    "task_suite": "libero_spatial"
+  }
+}

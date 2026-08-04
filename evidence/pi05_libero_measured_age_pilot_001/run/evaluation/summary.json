@@ -1,0 +1,51 @@
+{
+  "aggregate": [
+    {
+      "age_refreshes": 0,
+      "deadline_misses": 1,
+      "fallback_hold_steps": 0,
+      "horizon_overruns": 1,
+      "mean_policy_queries": 24.6,
+      "mode": "async_unguarded",
+      "observation_age_max_ms": 250.1661559999775,
+      "observation_age_p50_ms": 125.6078249998609,
+      "observation_age_p95_ms": 244.74043340060234,
+      "policy_queries": 492,
+      "rollouts": 20,
+      "success_rate": 0.7,
+      "successes": 14
+    },
+    {
+      "age_refreshes": 1,
+      "deadline_misses": 1,
+      "fallback_hold_steps": 1,
+      "horizon_overruns": 1,
+      "mean_policy_queries": 15.9,
+      "mode": "latency_aligned",
+      "observation_age_max_ms": 251.42760400012776,
+      "observation_age_p50_ms": 162.4206670003332,
+      "observation_age_p95_ms": 244.58661369935726,
+      "policy_queries": 318,
+      "rollouts": 20,
+      "success_rate": 0.95,
+      "successes": 19
+    }
+  ],
+  "complete": true,
+  "completed_rollouts": 40,
+  "paired": {
+    "aligned_successes": 19,
+    "async_successes": 14,
+    "candidate_wins": 5,
+    "pairs": 20,
+    "reference_wins": 0,
+    "success_rate_difference": 0.25,
+    "ties": 15
+  },
+  "planned_rollouts": 40,
+  "schema_version": "armbench.pi05_libero_measured_age.v2",
+  "valid": true,
+  "warmup_queries_completed": 3,
+  "warmup_queries_planned": 3,
+  "warmup_queries_valid": 3
+}

@@ -1,0 +1,9 @@
+{
+  "complete": true,
+  "completed_rollouts": 40,
+  "planned_rollouts": 40,
+  "schema_version": "armbench.pi05_libero_measured_age.v2",
+  "updated_at_utc": "2026-08-04T19:19:08.415644+00:00",
+  "warmup_queries_completed": 3,
+  "warmup_queries_required": 3
+}

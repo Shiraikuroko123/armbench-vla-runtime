@@ -1,0 +1,100 @@
+# Overlay for the official OpenPI examples/libero/compose.yml.
+# ARMBENCH_ROOT and ARMBENCH_RESULTS_ROOT must be absolute host paths.
+# GPU reservations are inherited from the pinned official Compose file.
+services:
+  runtime:
+    volumes:
+      - type: bind
+        source: ${ARMBENCH_ROOT:?set ARMBENCH_ROOT to the ArmBench project root}
+        target: /armbench
+        read_only: true
+      - type: bind
+        source: ${ARMBENCH_RESULTS_ROOT:?set ARMBENCH_RESULTS_ROOT to a writable directory}
+        target: /armbench_results
+    environment:
+      ARMBENCH_POLICY_PORT: "${ARMBENCH_POLICY_PORT:-8000}"
+      ARMBENCH_RUN_ID: "${ARMBENCH_RUN_ID:-pi05_libero_async}"
+      ARMBENCH_LIBERO_ARGS: "${ARMBENCH_LIBERO_ARGS:-}"
+      ARMBENCH_SERVER_ARGS: >-
+        --policy-config pi05_libero
+        --checkpoint gs://openpi-assets/checkpoints/pi05_libero
+        --openpi-root /app
+        --attestation-output /armbench_results/${ARMBENCH_RUN_ID:-pi05_libero_async}/checkpoint_attestation.json
+        --host 0.0.0.0
+        --port ${ARMBENCH_POLICY_PORT:-8000}
+      ARMBENCH_SERVER_WAIT_ATTEMPTS: "${ARMBENCH_SERVER_WAIT_ATTEMPTS:-360}"
+      GIT_CONFIG_COUNT: "2"
+      GIT_CONFIG_KEY_0: "safe.directory"
+      GIT_CONFIG_VALUE_0: "/app"
+      GIT_CONFIG_KEY_1: "safe.directory"
+      GIT_CONFIG_VALUE_1: "/armbench"
+      PYTHONPATH: /armbench:/app:/app/packages/openpi-client/src:/app/third_party/libero
+    command:
+      - /bin/bash
+      - -lc
+      - |
+        set -euo pipefail
+        source /.venv/bin/activate
+        if [[ ! "$${ARMBENCH_RUN_ID}" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$ ]]; then
+          echo "Invalid ARMBENCH_RUN_ID" >&2
+          exit 64
+        fi
+        for attempt in $$(seq 1 "$${ARMBENCH_SERVER_WAIT_ATTEMPTS}"); do
+          if (: >"/dev/tcp/127.0.0.1/$${ARMBENCH_POLICY_PORT}") 2>/dev/null; then
+            break
+          fi
+          if [ "$${attempt}" -eq "$${ARMBENCH_SERVER_WAIT_ATTEMPTS}" ]; then
+            echo "OpenPI server did not become ready before the bounded wait expired" >&2
+            exit 70
+          fi
+          sleep 5
+        done
+        exec python -m integrations.openpi.libero_runtime_eval run \
+          --output-dir "/armbench_results/$${ARMBENCH_RUN_ID}/evaluation" \
+          --host 127.0.0.1 \
+          --port "$${ARMBENCH_POLICY_PORT}" \
+          --openpi-root /app \
+          --resize-size 224 \
+          --task-suite libero_spatial \
+          --task-ids 0 \
+          --episode-indices 0 \
+          --modes async_unguarded,state_guard \
+          --replan-steps 5 \
+          --latency-steps 0,2 \
+          $${ARMBENCH_LIBERO_ARGS}
+
+  openpi_server:
+    volumes:
+      - type: bind
+        source: ${ARMBENCH_ROOT:?set ARMBENCH_ROOT to the ArmBench project root}
+        target: /armbench
+        read_only: true
+      - type: bind
+        source: ${ARMBENCH_RESULTS_ROOT:?set ARMBENCH_RESULTS_ROOT to a writable directory}
+        target: /armbench_results
+    environment:
+      ARMBENCH_POLICY_PORT: "${ARMBENCH_POLICY_PORT:-8000}"
+      ARMBENCH_RUN_ID: "${ARMBENCH_RUN_ID:-pi05_libero_async}"
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: "safe.directory"
+      GIT_CONFIG_VALUE_0: "/app"
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+    command:
+      - /bin/bash
+      - -lc
+      - |
+        set -euo pipefail
+        if [[ ! "$${ARMBENCH_RUN_ID}" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$ ]]; then
+          echo "Invalid ARMBENCH_RUN_ID" >&2
+          exit 64
+        fi
+        run_directory="/armbench_results/$${ARMBENCH_RUN_ID}"
+        mkdir -p "$${run_directory}"
+        exec uv run --frozen python /armbench/integrations/openpi/serve_policy_attested.py \
+          --policy-config pi05_libero \
+          --checkpoint gs://openpi-assets/checkpoints/pi05_libero \
+          --openpi-root /app \
+          --attestation-output "$${run_directory}/checkpoint_attestation.json" \
+          --host 0.0.0.0 \
+          --port "$${ARMBENCH_POLICY_PORT}" \
+          >>"$${run_directory}/openpi_server.log" 2>&1

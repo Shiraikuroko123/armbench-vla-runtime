@@ -1,0 +1,27 @@
+{
+  "argv": [
+    "docker",
+    "compose",
+    "--project-name",
+    "armbench-measured-pi05_libero_measured_age_pilot_001",
+    "--project-directory",
+    "/workspace/openpi",
+    "-f",
+    "/workspace/openpi/examples/libero/compose.yml",
+    "-f",
+    "/workspace/armbench/project/integrations/openpi/compose.libero-runtime.yml",
+    "-f",
+    "/workspace/armbench/project/integrations/openpi/compose.libero-measured-age.yml",
+    "up",
+    "--abort-on-container-exit",
+    "--exit-code-from",
+    "runtime"
+  ],
+  "attempted": true,
+  "duration_s": 413.917,
+  "returncode": 0,
+  "schema_version": "armbench.compose_process.v1",
+  "started_at_utc": "2026-08-04T19:12:15.522868+00:00",
+  "stderr": "",
+  "stdout": ""
+}
