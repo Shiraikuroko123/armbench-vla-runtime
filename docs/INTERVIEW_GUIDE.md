@@ -76,7 +76,8 @@ performance or certified safety.
 - A same-request paired server comparator with per-step/per-dimension action
   deltas, guard effects, latency, provenance, and an explicit hash mismatch
   refusal path for future pi0 versus pi0.5 experiments; response snapshots and
-  an independent report validator make every displayed delta recomputable.
+  an embedded exact request plus an independent report validator make every
+  displayed input/output delta recomputable.
 - A request-hash-indexed cohort comparator that rejects missing/duplicate pairs,
   validates every child, and reports deterministic descriptive/bootstrap
   statistics without presenting action difference as task performance.

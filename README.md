@@ -533,12 +533,11 @@ labels are user-supplied: preserve each server launch log to support a pi0 or
 pi0.5 identity claim. A single paired query measures output difference, not
 task success or statistical model quality.
 
-The comparison also snapshots both raw/guarded response chunks and predicted
-joint paths in `paired_responses.npz`. The comparison validator uses those
-arrays to recompute every aggregate, dimension, and CSV step metric and checks
-file hashes plus plot decoding. This makes the response-difference report
-auditable after the servers stop; retain either a v2 source probe or the original
-replay artifact to inspect the request content behind its matched payload SHA.
+Comparison artifact v2 embeds the byte-identical `request.msgpack` plus both
+raw/guarded response chunks and predicted joint paths. Its validator reconstructs
+the DROID input contract, recomputes every aggregate, dimension, and CSV step
+metric, and checks file hashes plus plot decoding. The fixed input/output report
+therefore remains auditable after both source servers and probe directories stop.
 
 For more than a one-request demonstration, place each model/server's validated
 probe directories under a separate cohort root and run the batch comparator.

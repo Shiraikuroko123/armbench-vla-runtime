@@ -176,6 +176,11 @@ def test_compare_validated_probes_with_same_request(tmp_path: Path) -> None:
     )
     assert comparison["same_request_payload"] is True
     assert comparison["request_payload_sha256"] == request_hash
+    assert comparison["request_payload_embedded"] is True
+    assert comparison["request"]["prompt"] == "test request shared-a"
+    assert hashlib.sha256(
+        (output / "request.msgpack").read_bytes()
+    ).hexdigest() == request_hash
     assert comparison["metrics"]["raw_action_rmse"] == pytest.approx(0.1)
     assert comparison["metrics"]["guarded_action_rmse"] == pytest.approx(0.05)
     assert comparison["metrics"]["raw_actions_identical"] is False
@@ -200,6 +205,9 @@ def test_compare_validated_probes_with_same_request(tmp_path: Path) -> None:
     assert "Physics executed: `false`" in summary
     validation = validate_recorded_probe_comparison(output)
     assert validation.request_payload_sha256 == request_hash
+    assert validation.request_payload_size_bytes == len(
+        (output / "request.msgpack").read_bytes()
+    )
     assert validation.raw_action_rmse == pytest.approx(0.1)
     assert validation.action_rows == 15
     assert len(validation.artifact_sha256) == 64
@@ -283,6 +291,39 @@ def test_comparison_validator_rejects_tampered_actions(
     with pytest.raises(
         ProbeComparisonValidationError,
         match="left raw action SHA-256 mismatch",
+    ):
+        validate_recorded_probe_comparison(output)
+
+
+def test_comparison_validator_rejects_tampered_request(
+    tmp_path: Path,
+) -> None:
+    left = tmp_path / "left_probe"
+    right = tmp_path / "right_probe"
+    _write_probe(
+        left,
+        np.zeros((15, 8), dtype=np.float64),
+        request_token="comparison-request-tamper",
+        latency_ms=10.0,
+        interventions=0,
+    )
+    _write_probe(
+        right,
+        np.ones((15, 8), dtype=np.float64),
+        request_token="comparison-request-tamper",
+        latency_ms=11.0,
+        interventions=0,
+    )
+    output = tmp_path / "comparison"
+    execute_recorded_probe_comparison(left, right, output)
+    request_path = output / "request.msgpack"
+    payload = bytearray(request_path.read_bytes())
+    payload[-1] ^= 0x01
+    request_path.write_bytes(payload)
+
+    with pytest.raises(
+        ProbeComparisonValidationError,
+        match="comparison request payload SHA-256 mismatch",
     ):
         validate_recorded_probe_comparison(output)
 

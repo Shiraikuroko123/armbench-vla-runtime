@@ -376,13 +376,11 @@ action differences. `comparison.png` summarizes differences by chunk step and
 action dimension. Latency values remain host/network observations and labels do
 not attest server checkpoint identity.
 
-The comparison validator reloads `paired_responses.npz`, recomputes both action
-hashes and every reported error metric, checks all 15 CSV rows and eight action
-dimensions, verifies report-file hashes, and decodes the plot. The response
-comparison is therefore locally auditable without reconnecting to either
-server. The original replay artifact is still required to reconstruct and view
-the request represented by the payload SHA, or retain either v2 source probe
-whose `request.msgpack` contains those bytes.
+Comparison schema v2 embeds its own `request.msgpack`. The validator reconstructs
+that DROID input, reloads `paired_responses.npz`, recomputes both action hashes
+and every reported error metric, checks all 15 CSV rows and eight action
+dimensions, verifies report-file hashes, and decodes the plot. The comparison
+is therefore locally auditable without either source probe or live server.
 
 For a batch comparison, each cohort root may contain nested probe directories.
 The command accepts exactly one validated artifact per request SHA on each side;

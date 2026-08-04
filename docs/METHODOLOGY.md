@@ -175,13 +175,12 @@ but one request is not a benchmark distribution and latency is not controlled
 across independently provisioned servers. User labels are retained as labels,
 not promoted to checkpoint attestation.
 
-The paired report snapshots both validated response arrays, both guarded
-chunks, and both predicted joint paths. Its independent validator recomputes
-the action hashes and all aggregate/per-step/per-dimension differences from
-those snapshots, then checks CSV, plot, and environment file hashes. This makes
-reported response deltas reproducible without a live policy server. It does not
-embed the original camera request; request inspection continues to use the
-replayable source artifact identified by the matched payload SHA.
+Paired report v2 requires byte-identical source requests and embeds one exact
+MessagePack payload alongside both validated responses, guarded chunks, and
+predicted joint paths. Its independent validator reconstructs the DROID input,
+recomputes action hashes and all aggregate/per-step/per-dimension differences,
+then checks CSV, plot, and environment hashes. The fixed input/output comparison
+is reproducible without source probes or a live policy server.
 
 `vla-recorded-probe-batch-compare` extends exact pairing to two artifact
 cohorts. It requires identical request-hash sets and exactly one response per

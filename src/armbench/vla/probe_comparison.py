@@ -19,7 +19,14 @@ from armbench.vla.replay_probe import (
 )
 
 
-PROBE_COMPARISON_ARTIFACT_TYPE = "armbench_recorded_openpi_probe_comparison_v1"
+PROBE_COMPARISON_ARTIFACT_TYPE = "armbench_recorded_openpi_probe_comparison_v2"
+_DROID_REQUEST_KEYS = (
+    "observation/exterior_image_1_left",
+    "observation/wrist_image_left",
+    "observation/joint_position",
+    "observation/gripper_position",
+    "prompt",
+)
 
 
 class ProbeComparisonValidationError(ValueError):
@@ -30,6 +37,7 @@ class ProbeComparisonValidationError(ValueError):
 class ProbeComparisonValidationResult:
     directory: str
     request_payload_sha256: str
+    request_payload_size_bytes: int
     left_action_sha256: str
     right_action_sha256: str
     raw_action_rmse: float
@@ -41,6 +49,7 @@ class ProbeComparisonValidationResult:
         return {
             "directory": self.directory,
             "request_payload_sha256": self.request_payload_sha256,
+            "request_payload_size_bytes": self.request_payload_size_bytes,
             "left_action_sha256": self.left_action_sha256,
             "right_action_sha256": self.right_action_sha256,
             "raw_action_rmse": self.raw_action_rmse,
@@ -56,6 +65,7 @@ class _ProbeData:
     directory: Path
     validation: RecordedProbeValidationResult
     response: dict[str, object]
+    request_payload: bytes
     raw_actions: np.ndarray
     guarded_actions: np.ndarray
     predicted_positions: np.ndarray
@@ -82,6 +92,51 @@ def _count(value: object, label: str) -> int:
     if not 0 <= value <= 15:
         raise ValueError(f"{label} must be in [0, 15]")
     return value
+
+
+def _request_descriptor(payload: bytes) -> dict[str, object]:
+    try:
+        from openpi_client import msgpack_numpy
+
+        value = msgpack_numpy.unpackb(payload)
+    except Exception as error:
+        raise ValueError("OpenPI request payload cannot be unpacked") from error
+    if not isinstance(value, dict) or tuple(value) != _DROID_REQUEST_KEYS:
+        raise ValueError("OpenPI request payload does not match DROID keys")
+    exterior = np.asarray(value[_DROID_REQUEST_KEYS[0]])
+    wrist = np.asarray(value[_DROID_REQUEST_KEYS[1]])
+    joints = np.asarray(value[_DROID_REQUEST_KEYS[2]])
+    gripper = np.asarray(value[_DROID_REQUEST_KEYS[3]])
+    prompt = value[_DROID_REQUEST_KEYS[4]]
+    if (
+        exterior.shape != (224, 224, 3)
+        or wrist.shape != (224, 224, 3)
+        or exterior.dtype != np.uint8
+        or wrist.dtype != np.uint8
+        or joints.shape != (7,)
+        or gripper.shape != (1,)
+        or not np.all(np.isfinite(joints))
+        or not np.all(np.isfinite(gripper))
+        or not isinstance(prompt, str)
+        or not prompt.strip()
+    ):
+        raise ValueError("OpenPI request payload has an invalid DROID contract")
+    return {
+        "openpi_keys": list(value),
+        "exterior_shape": list(exterior.shape),
+        "exterior_dtype": str(exterior.dtype),
+        "exterior_sha256": hashlib.sha256(
+            exterior.tobytes(order="C")
+        ).hexdigest(),
+        "wrist_shape": list(wrist.shape),
+        "wrist_dtype": str(wrist.dtype),
+        "wrist_sha256": hashlib.sha256(
+            wrist.tobytes(order="C")
+        ).hexdigest(),
+        "joint_position": joints.tolist(),
+        "gripper_position": gripper.tolist(),
+        "prompt": prompt,
+    }
 
 
 def _file_sha256(path: Path) -> str:
@@ -150,6 +205,7 @@ def _load_probe(directory: Path) -> _ProbeData:
         (root / "response.json").read_text(encoding="utf-8")
     )
     response = _mapping(response_value, "probe response")
+    request_payload = (root / "request.msgpack").read_bytes()
     with np.load(root / "response.npz", allow_pickle=False) as trace:
         raw_actions = np.asarray(trace["raw_actions"]).copy()
         guarded_actions = np.asarray(trace["guarded_actions"]).copy()
@@ -158,6 +214,7 @@ def _load_probe(directory: Path) -> _ProbeData:
         directory=root,
         validation=validation,
         response=response,
+        request_payload=request_payload,
         raw_actions=raw_actions,
         guarded_actions=guarded_actions,
         predicted_positions=predicted_positions,
@@ -331,6 +388,8 @@ def _summary(comparison: dict[str, object]) -> str:
             f"- Right label: `{right['label']}`",
             "- Matched request payload SHA-256: "
             f"`{comparison['request_payload_sha256']}`",
+            "- Embedded request bytes: "
+            f"`{comparison['request_payload_size_bytes']}`",
             f"- Raw action RMSE: `{float(metrics['raw_action_rmse']):.9f}`",
             "- Raw maximum absolute difference: "
             f"`{float(metrics['raw_action_max_abs_difference']):.9f}`",
@@ -367,13 +426,14 @@ def validate_recorded_probe_comparison(
     )
     comparison_path = root / "comparison.json"
     csv_path = root / "per_step.csv"
+    request_path = root / "request.msgpack"
     arrays_path = root / "paired_responses.npz"
     plot_path = root / "comparison.png"
     environment_path = root / "environment.json"
     summary_path = root / "summary.md"
     comparison = _validation_json(comparison_path)
     environment = _validation_json(environment_path)
-    for path in (csv_path, arrays_path, plot_path, summary_path):
+    for path in (csv_path, request_path, arrays_path, plot_path, summary_path):
         _validation_require(
             path.is_file() and path.stat().st_size > 0,
             f"missing file: {path}",
@@ -410,6 +470,27 @@ def validate_recorded_probe_comparison(
     request_hash = _valid_sha256(
         comparison.get("request_payload_sha256"),
         "comparison request payload SHA-256",
+    )
+    request_payload = request_path.read_bytes()
+    _validation_require(
+        comparison.get("request_payload_embedded") is True,
+        "comparison request payload is not marked embedded",
+    )
+    _validation_require(
+        comparison.get("request_payload_size_bytes") == len(request_payload),
+        "comparison request payload size mismatch",
+    )
+    _validation_require(
+        hashlib.sha256(request_payload).hexdigest() == request_hash,
+        "comparison request payload SHA-256 mismatch",
+    )
+    try:
+        request_descriptor = _request_descriptor(request_payload)
+    except ValueError as error:
+        raise ProbeComparisonValidationError(str(error)) from error
+    _validation_require(
+        comparison.get("request") == request_descriptor,
+        "comparison request descriptor mismatch",
     )
     left = _validation_mapping(comparison.get("left"), "left comparison")
     right = _validation_mapping(comparison.get("right"), "right comparison")
@@ -605,6 +686,9 @@ def validate_recorded_probe_comparison(
     expected_environment: dict[str, object] = {
         "artifact_type": PROBE_COMPARISON_ARTIFACT_TYPE,
         "request_payload_sha256": request_hash,
+        "request_payload_embedded": True,
+        "request_payload_size_bytes": len(request_payload),
+        "request_msgpack_sha256": _file_sha256(request_path),
         "left_action_sha256": left_action_hash,
         "right_action_sha256": right_action_hash,
         "comparison_json_sha256": _file_sha256(comparison_path),
@@ -633,6 +717,10 @@ def validate_recorded_probe_comparison(
     summary = summary_path.read_text(encoding="utf-8")
     _validation_require(request_hash in summary, "summary request hash mismatch")
     _validation_require(
+        f"Embedded request bytes: `{len(request_payload)}`" in summary,
+        "summary request payload size mismatch",
+    )
+    _validation_require(
         "Physics executed: `false`" in summary,
         "summary physics claim mismatch",
     )
@@ -644,6 +732,7 @@ def validate_recorded_probe_comparison(
     for path in (
         comparison_path,
         csv_path,
+        request_path,
         arrays_path,
         plot_path,
         environment_path,
@@ -654,6 +743,7 @@ def validate_recorded_probe_comparison(
     return ProbeComparisonValidationResult(
         directory=str(root),
         request_payload_sha256=request_hash,
+        request_payload_size_bytes=len(request_payload),
         left_action_sha256=left_action_hash,
         right_action_sha256=right_action_hash,
         raw_action_rmse=expected_metrics["raw_action_rmse"],
@@ -661,6 +751,7 @@ def validate_recorded_probe_comparison(
         artifact_sha256=aggregate.hexdigest(),
         checks=(
             "claim_boundaries",
+            "embedded_request_payload",
             "paired_response_arrays",
             "action_hashes",
             "aggregate_metrics",
@@ -701,6 +792,11 @@ def execute_recorded_probe_comparison(
             "probe requests differ; paired comparison requires the same "
             "serialized input payload SHA-256"
         )
+    if left.request_payload != right.request_payload:
+        raise ValueError(
+            "probe request bytes differ despite matching payload SHA-256"
+        )
+    request_descriptor = _request_descriptor(left.request_payload)
 
     left_metrics = _probe_metrics(left, left_label)
     right_metrics = _probe_metrics(right, right_label)
@@ -712,6 +808,9 @@ def execute_recorded_probe_comparison(
         "comparison_validated": True,
         "same_request_payload": True,
         "request_payload_sha256": left.validation.request_payload_sha256,
+        "request_payload_embedded": True,
+        "request_payload_size_bytes": len(left.request_payload),
+        "request": request_descriptor,
         "labels_user_supplied": True,
         "left": left_metrics,
         "right": right_metrics,
@@ -722,6 +821,7 @@ def execute_recorded_probe_comparison(
     }
 
     output_directory.mkdir(parents=True, exist_ok=False)
+    (output_directory / "request.msgpack").write_bytes(left.request_payload)
     _write_json(output_directory / "comparison.json", comparison)
     _write_csv(output_directory / "per_step.csv", per_step)
     np.savez_compressed(
@@ -748,6 +848,11 @@ def execute_recorded_probe_comparison(
     metadata["recorded_probe_comparison"] = {
         "artifact_type": PROBE_COMPARISON_ARTIFACT_TYPE,
         "request_payload_sha256": left.validation.request_payload_sha256,
+        "request_payload_embedded": True,
+        "request_payload_size_bytes": len(left.request_payload),
+        "request_msgpack_sha256": _file_sha256(
+            output_directory / "request.msgpack"
+        ),
         "left_action_sha256": left.validation.action_sha256,
         "right_action_sha256": right.validation.action_sha256,
         "comparison_json_sha256": _file_sha256(
