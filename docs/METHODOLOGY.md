@@ -137,6 +137,14 @@ DROID payload fields; this lets the guard measure the replay call's actual age
 without changing request bytes. No physics is stepped, so the artifact reports
 no physical-safety outcome.
 
+`vla-recorded-probe-validate` independently reloads that probe artifact and
+cross-checks its four files. It recomputes the raw-response hash from the exact
+array bytes, verifies shape/dtype/range metadata, finite guarded trajectories,
+source-request and environment hashes, and the explicit absence of physics and
+checkpoint-attestation claims. This detects post-run corruption and coordinated
+metadata inconsistencies; it does not establish that the remote server loaded a
+particular learned checkpoint.
+
 `vla-openpi-run` replaces the reference policy with the bounded transport built
 on official OpenPI serialization while retaining the same live physics loop. It
 records server metadata and separates attempted remote calls from validated

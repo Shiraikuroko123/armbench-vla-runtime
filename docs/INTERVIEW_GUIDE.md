@@ -65,6 +65,8 @@ performance or certified safety.
 - A recorded-request OpenPI probe for paired checkpoint/server comparison,
   retaining fixed input SHA, validated action SHA, timing, metadata, and guard
   output without mislabeling offline inference as a physics rollout.
+- An independent recorded-probe validator that recomputes response bytes and
+  cross-checks arrays, metadata, provenance, and non-physics claim boundaries.
 - Client-visible failure stage, exception type, and bounded message mirrored
   between per-chunk CSV and NPZ traces for remote-server diagnosis.
 - A schema-v5 artifact validator that cross-checks JSON/CSV/NPZ counts, camera

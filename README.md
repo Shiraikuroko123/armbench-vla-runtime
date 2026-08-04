@@ -467,6 +467,9 @@ MuJoCo, probe one replayable request:
   evidence\vla_openpi_request_replay_20260804 `
   --query 1 --host '<GPU_SERVER_IP>' --port 8000 `
   --output-directory 'results\pi05_recorded_probe_001'
+
+& $ArmbenchPython -m armbench vla-recorded-probe-validate `
+  'results\pi05_recorded_probe_001'
 ```
 
 The output stores the fixed input payload SHA, validated raw 15x8 action SHA,
@@ -475,6 +478,9 @@ metadata. It deliberately records `physics_executed=false`,
 `physical_safe=null`, and `checkpoint_identity_verified=false`. Run the same
 query against multiple preserved server launch logs for paired checkpoint
 comparison; do not call the result a rollout or physical-safety experiment.
+The read-only validator recomputes the action hash from the NPZ and cross-checks
+the JSON, environment metadata, guard result, and human-readable claim
+boundaries before the artifact is used as evidence.
 
 `probe.json` is written only after a remote response passes shape validation and
 the guard runs. It records `remote_policy_response_validated: true`, server

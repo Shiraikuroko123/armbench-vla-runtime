@@ -41,7 +41,11 @@ from armbench.vla.observation_guard import (
     VLAObservationGuard,
 )
 from armbench.vla.request_replay import load_recorded_openpi_request
-from armbench.vla.replay_probe import execute_recorded_openpi_probe
+from armbench.vla.replay_probe import (
+    RecordedProbeValidationError,
+    execute_recorded_openpi_probe,
+    validate_recorded_openpi_probe,
+)
 from armbench.vla.types import ActionChunk, VLAObservation
 
 
@@ -1070,6 +1074,22 @@ def test_loopback_cli_backend_exercises_complete_remote_policy_path(
         assert replay_trace["raw_actions"].shape == (15, 8)
         assert replay_trace["guarded_actions"].shape == (15, 8)
         assert replay_trace["predicted_positions"].shape == (16, 7)
+    validation = validate_recorded_openpi_probe(replay_output)
+    assert validation.action_sha256 == response["action_sha256"]
+    assert validation.request_payload_sha256 == (
+        recorded.packed_payload_sha256
+    )
+    assert validation.guard_safe_after is True
+
+    with np.load(replay_output / "response.npz", allow_pickle=False) as trace:
+        probe_arrays = {key: trace[key] for key in trace.files}
+    probe_arrays["raw_actions"] = probe_arrays["raw_actions"].copy()
+    probe_arrays["raw_actions"][0, 0] += 0.125
+    np.savez_compressed(replay_output / "response.npz", **probe_arrays)
+    with pytest.raises(
+        RecordedProbeValidationError, match="raw action SHA-256 mismatch"
+    ):
+        validate_recorded_openpi_probe(replay_output)
 
     with np.load(trace_path, allow_pickle=False) as trace:
         trace_arrays = {key: trace[key] for key in trace.files}

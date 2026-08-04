@@ -32,7 +32,10 @@ from armbench.vla.loopback import (
     execute_openpi_loopback_run,
 )
 from armbench.vla.request_replay import load_recorded_openpi_request
-from armbench.vla.replay_probe import execute_recorded_openpi_probe
+from armbench.vla.replay_probe import (
+    execute_recorded_openpi_probe,
+    validate_recorded_openpi_probe,
+)
 
 
 def _validate(config_path: Path) -> int:
@@ -457,6 +460,11 @@ def build_parser() -> argparse.ArgumentParser:
     vla_recorded_probe.add_argument(
         "--inference-timeout-s", type=float, default=1.0
     )
+    vla_recorded_probe_validate = subparsers.add_parser(
+        "vla-recorded-probe-validate",
+        help="cross-check a fixed-request OpenPI probe artifact",
+    )
+    vla_recorded_probe_validate.add_argument("directory", type=Path)
     return parser
 
 
@@ -659,6 +667,10 @@ def main(arguments: list[str] | None = None) -> int:
             inference_timeout_s=args.inference_timeout_s,
         )
         print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-recorded-probe-validate":
+        result = validate_recorded_openpi_probe(args.directory)
+        print(json.dumps(result.metrics(), indent=2, ensure_ascii=False))
         return 0
     planning_seeds = parse_seed_spec(args.seeds) if args.seeds else None
     control_seeds = (

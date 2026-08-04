@@ -305,6 +305,9 @@ request:
   --query 1 --host '<GPU_SERVER_IP>' --port 8000 `
   --connect-timeout-s 3 --inference-timeout-s 1 `
   --output-directory 'results\recorded_probe_debug_01'
+
+& $ArmbenchPython -m armbench vla-recorded-probe-validate `
+  'results\recorded_probe_debug_01'
 ```
 
 Set breakpoints in `vla/request_replay.py`, `vla/policy.py`, and
@@ -313,6 +316,12 @@ strict response shape/hash, latency, metadata, and guard result. The NPZ contain
 raw and guarded actions plus predicted positions. There is no MuJoCo stepping in
 this command, so `guard_safe_after` is a sampled kinematic check and
 `physical_safe` must remain null.
+
+The validator is intentionally independent of the remote server. It reloads the
+saved arrays, requires finite `(15, 8)` raw and guarded actions and finite
+`(16, 7)` predicted positions, recomputes the raw-action SHA-256, and rejects
+inconsistent JSON, environment, summary, or claim-boundary fields. A validation
+failure means the directory must not be used for a checkpoint comparison.
 
 ## 6. Debug the runtime guard
 

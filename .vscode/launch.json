@@ -152,6 +152,20 @@
       "justMyCode": true
     },
     {
+      "name": "ArmBench: validate recorded OpenPI probe",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "armbench",
+      "args": [
+        "vla-recorded-probe-validate",
+        "${input:recordedProbeArtifactDirectory}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "ArmBench: OpenPI loopback timeout fault",
       "type": "debugpy",
       "request": "launch",
@@ -286,6 +300,12 @@
       "type": "promptString",
       "description": "New recorded OpenPI probe directory name",
       "default": "recorded_openpi_probe_01"
+    },
+    {
+      "id": "recordedProbeArtifactDirectory",
+      "type": "promptString",
+      "description": "Recorded OpenPI probe artifact directory",
+      "default": "results/recorded_openpi_probe_01"
     },
     {
       "id": "openpiOnlineRunId",
