@@ -137,6 +137,12 @@ DROID payload fields; this lets the guard measure the replay call's actual age
 without changing request bytes. No physics is stepped, so the artifact reports
 no physical-safety outcome.
 
+Probe artifact v2 embeds the exact official MessagePack request sent to the
+server. Validation rehashes and unpacks it, then reconciles the two RGB arrays,
+proprioception, prompt, key order, and source request metadata. This removes the
+original replay directory as a dependency for inspecting one fixed probe input.
+It does not prove which checkpoint processed those bytes.
+
 `vla-recorded-probe-sweep` collects an explicitly bounded query-index cohort
 from one replayable source artifact. All requests are reconstructed and hash
 checked before creating the output directory. Each query then uses an isolated

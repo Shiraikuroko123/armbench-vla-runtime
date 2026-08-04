@@ -21,6 +21,7 @@ class RecordedOpenPIRequest:
     execution_horizon: int
     query_index: int
     observation: VLAObservation
+    packed_payload: bytes
     packed_payload_sha256: str
     server_payload_sha256: str | None
 
@@ -61,6 +62,7 @@ class RecordedOpenPIRequest:
             "prompt": self.observation.prompt,
             "sequence_id": self.observation.sequence_id,
             "packed_payload_sha256": self.packed_payload_sha256,
+            "packed_payload_size_bytes": len(self.packed_payload),
             "server_payload_sha256": self.server_payload_sha256,
             "server_payload_matches": self.server_payload_matches,
             "replayable": True,
@@ -198,6 +200,7 @@ def load_recorded_openpi_request(
         execution_horizon=int(row["execution_horizon"]),
         query_index=query_index,
         observation=observation,
+        packed_payload=packed,
         packed_payload_sha256=packed_hash,
         server_payload_sha256=server_hash,
     )

@@ -8,6 +8,7 @@ from pathlib import Path
 import imageio.v2 as imageio
 import numpy as np
 import pytest
+from openpi_client import msgpack_numpy
 
 from armbench.vla.probe_batch_comparison import (
     BOOTSTRAP_RESAMPLES,
@@ -28,10 +29,24 @@ def _write_probe(
     directory: Path,
     raw_actions: np.ndarray,
     *,
-    request_hash: str,
+    request_token: str,
     latency_ms: float,
     interventions: int,
-) -> None:
+) -> str:
+    exterior = np.zeros((224, 224, 3), dtype=np.uint8)
+    wrist = np.full((224, 224, 3), 17, dtype=np.uint8)
+    joints = np.zeros(7, dtype=np.float64)
+    gripper = np.ones(1, dtype=np.float64)
+    prompt = f"test request {request_token}"
+    request = {
+        "observation/exterior_image_1_left": exterior,
+        "observation/wrist_image_left": wrist,
+        "observation/joint_position": joints,
+        "observation/gripper_position": gripper,
+        "prompt": prompt,
+    }
+    request_payload = msgpack_numpy.packb(request)
+    request_hash = hashlib.sha256(request_payload).hexdigest()
     guarded_actions = raw_actions * 0.5
     predicted_positions = np.zeros((16, 7), dtype=float)
     predicted_positions[1:] = np.cumsum(guarded_actions[:, :7], axis=0)
@@ -39,13 +54,30 @@ def _write_probe(
         raw_actions.tobytes(order="C")
     ).hexdigest()
     response = {
-        "artifact_type": "armbench_recorded_openpi_probe_v1",
+        "artifact_type": "armbench_recorded_openpi_probe_v2",
         "source_request": {
+            "openpi_keys": list(request),
+            "exterior_shape": list(exterior.shape),
+            "exterior_dtype": str(exterior.dtype),
+            "exterior_sha256": hashlib.sha256(
+                exterior.tobytes(order="C")
+            ).hexdigest(),
+            "wrist_shape": list(wrist.shape),
+            "wrist_dtype": str(wrist.dtype),
+            "wrist_sha256": hashlib.sha256(
+                wrist.tobytes(order="C")
+            ).hexdigest(),
+            "joint_position": joints.tolist(),
+            "gripper_position": gripper.tolist(),
+            "prompt": prompt,
             "packed_payload_sha256": request_hash,
+            "packed_payload_size_bytes": len(request_payload),
             "server_payload_sha256": request_hash,
             "server_payload_matches": True,
             "replayable": True,
         },
+        "request_payload_embedded": True,
+        "request_payload_size_bytes": len(request_payload),
         "server": "127.0.0.1:8000",
         "policy_provenance": "test_server_user_asserted",
         "remote_policy_response_validated": True,
@@ -72,11 +104,14 @@ def _write_probe(
             "policy_provenance": "test_server_user_asserted",
             "server": "127.0.0.1:8000",
             "source_request_payload_sha256": request_hash,
+            "request_payload_embedded": True,
+            "request_payload_size_bytes": len(request_payload),
             "response_action_sha256": action_hash,
             "physics_executed": False,
         }
     }
     directory.mkdir()
+    (directory / "request.msgpack").write_bytes(request_payload)
     (directory / "response.json").write_text(
         json.dumps(response), encoding="utf-8"
     )
@@ -101,28 +136,29 @@ def _write_probe(
         ),
         encoding="utf-8",
     )
+    return request_hash
 
 
 def test_compare_validated_probes_with_same_request(tmp_path: Path) -> None:
-    request_hash = "a" * 64
     left_actions = np.zeros((15, 8), dtype=np.float64)
     right_actions = np.full((15, 8), 0.1, dtype=np.float64)
     left = tmp_path / "left_probe"
     right = tmp_path / "right_probe"
-    _write_probe(
+    request_hash = _write_probe(
         left,
         left_actions,
-        request_hash=request_hash,
+        request_token="shared-a",
         latency_ms=12.0,
         interventions=0,
     )
-    _write_probe(
+    right_request_hash = _write_probe(
         right,
         right_actions,
-        request_hash=request_hash,
+        request_token="shared-a",
         latency_ms=18.0,
         interventions=15,
     )
+    assert right_request_hash == request_hash
     validate_recorded_openpi_probe(left)
     validate_recorded_openpi_probe(right)
 
@@ -176,14 +212,14 @@ def test_compare_rejects_different_request_payloads(tmp_path: Path) -> None:
     _write_probe(
         left,
         actions,
-        request_hash="a" * 64,
+        request_token="different-left",
         latency_ms=12.0,
         interventions=0,
     )
     _write_probe(
         right,
         actions,
-        request_hash="b" * 64,
+        request_token="different-right",
         latency_ms=12.0,
         interventions=0,
     )
@@ -194,23 +230,44 @@ def test_compare_rejects_different_request_payloads(tmp_path: Path) -> None:
     assert not output.exists()
 
 
+def test_probe_validator_rejects_tampered_embedded_request(
+    tmp_path: Path,
+) -> None:
+    probe = tmp_path / "probe"
+    _write_probe(
+        probe,
+        np.zeros((15, 8), dtype=np.float64),
+        request_token="request-tamper",
+        latency_ms=10.0,
+        interventions=0,
+    )
+    payload_path = probe / "request.msgpack"
+    payload = bytearray(payload_path.read_bytes())
+    payload[-1] ^= 0x01
+    payload_path.write_bytes(payload)
+
+    with pytest.raises(
+        ValueError, match="recorded request payload SHA-256 mismatch"
+    ):
+        validate_recorded_openpi_probe(probe)
+
+
 def test_comparison_validator_rejects_tampered_actions(
     tmp_path: Path,
 ) -> None:
-    request_hash = "c" * 64
     left = tmp_path / "left_probe"
     right = tmp_path / "right_probe"
     _write_probe(
         left,
         np.zeros((15, 8), dtype=np.float64),
-        request_hash=request_hash,
+        request_token="tampered-shared",
         latency_ms=10.0,
         interventions=0,
     )
     _write_probe(
         right,
         np.full((15, 8), 0.2, dtype=np.float64),
-        request_hash=request_hash,
+        request_token="tampered-shared",
         latency_ms=11.0,
         interventions=0,
     )
@@ -236,20 +293,19 @@ def test_batch_comparison_pairs_exact_request_cohorts(tmp_path: Path) -> None:
     left_root.mkdir()
     right_root.mkdir()
     for index, difference in enumerate((0.1, 0.2)):
-        request_hash = f"{index + 1:x}" * 64
         left_actions = np.full((15, 8), index * 0.05, dtype=np.float64)
         right_actions = left_actions + difference
         _write_probe(
             left_root / f"query_{index}",
             left_actions,
-            request_hash=request_hash,
+            request_token=f"cohort-{index}",
             latency_ms=10.0 + index,
             interventions=index,
         )
         _write_probe(
             right_root / f"query_{index}",
             right_actions,
-            request_hash=request_hash,
+            request_token=f"cohort-{index}",
             latency_ms=14.0 + index,
             interventions=index + 2,
         )
@@ -310,14 +366,14 @@ def test_batch_comparison_rejects_unmatched_request_sets(
     _write_probe(
         left_root / "left_only",
         actions,
-        request_hash="a" * 64,
+        request_token="left-only",
         latency_ms=10.0,
         interventions=0,
     )
     _write_probe(
         right_root / "right_only",
         actions,
-        request_hash="b" * 64,
+        request_token="right-only",
         latency_ms=10.0,
         interventions=0,
     )
@@ -337,18 +393,17 @@ def test_batch_validator_rejects_tampered_pair_metric(
     right_root = tmp_path / "right_cohort"
     left_root.mkdir()
     right_root.mkdir()
-    request_hash = "d" * 64
     _write_probe(
         left_root / "query",
         np.zeros((15, 8), dtype=np.float64),
-        request_hash=request_hash,
+        request_token="batch-tamper-shared",
         latency_ms=10.0,
         interventions=0,
     )
     _write_probe(
         right_root / "query",
         np.full((15, 8), 0.1, dtype=np.float64),
-        request_hash=request_hash,
+        request_token="batch-tamper-shared",
         latency_ms=12.0,
         interventions=0,
     )

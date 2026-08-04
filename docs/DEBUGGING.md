@@ -345,6 +345,12 @@ raw and guarded actions plus predicted positions. There is no MuJoCo stepping in
 this command, so `guard_safe_after` is a sampled kinematic check and
 `physical_safe` must remain null.
 
+Probe schema v2 also writes the exact sent bytes to `request.msgpack`. The
+validator unpacks them with the official OpenPI serializer and rechecks DROID
+key order, both camera hashes, joint/gripper values, and prompt. A changed byte
+fails before response metrics are trusted. Regenerate local v1 probe directories;
+they intentionally do not satisfy the stronger v2 contract.
+
 The validator is intentionally independent of the remote server. It reloads the
 saved arrays, requires finite `(15, 8)` raw and guarded actions and finite
 `(16, 7)` predicted positions, recomputes the raw-action SHA-256, and rejects
@@ -375,7 +381,8 @@ hashes and every reported error metric, checks all 15 CSV rows and eight action
 dimensions, verifies report-file hashes, and decodes the plot. The response
 comparison is therefore locally auditable without reconnecting to either
 server. The original replay artifact is still required to reconstruct and view
-the request represented by the payload SHA.
+the request represented by the payload SHA, or retain either v2 source probe
+whose `request.msgpack` contains those bytes.
 
 For a batch comparison, each cohort root may contain nested probe directories.
 The command accepts exactly one validated artifact per request SHA on each side;

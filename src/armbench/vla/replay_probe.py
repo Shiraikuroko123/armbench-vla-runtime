@@ -28,7 +28,7 @@ from armbench.vla.types import VLAObservation
 from armbench.vla.guard import ActionChunkGuard
 
 
-RECORDED_OPENPI_PROBE_ARTIFACT_TYPE = "armbench_recorded_openpi_probe_v1"
+RECORDED_OPENPI_PROBE_ARTIFACT_TYPE = "armbench_recorded_openpi_probe_v2"
 
 
 class RecordedProbeValidationError(ValueError):
@@ -39,6 +39,7 @@ class RecordedProbeValidationError(ValueError):
 class RecordedProbeValidationResult:
     directory: str
     request_payload_sha256: str
+    request_payload_size_bytes: int
     action_sha256: str
     action_shape: tuple[int, int]
     action_dtype: str
@@ -50,6 +51,7 @@ class RecordedProbeValidationResult:
         return {
             "directory": self.directory,
             "request_payload_sha256": self.request_payload_sha256,
+            "request_payload_size_bytes": self.request_payload_size_bytes,
             "action_sha256": self.action_sha256,
             "action_shape": list(self.action_shape),
             "action_dtype": self.action_dtype,
@@ -193,6 +195,81 @@ def validate_recorded_openpi_probe(
     _finite_array(guarded_actions, (15, 8), "guarded actions")
     _finite_array(predicted_positions, (16, 7), "predicted positions")
 
+    request_path = root / "request.msgpack"
+    _probe_require(
+        request_path.is_file() and request_path.stat().st_size > 0,
+        f"missing file: {request_path}",
+    )
+    request_payload = request_path.read_bytes()
+    _probe_require(
+        response.get("request_payload_embedded") is True,
+        "recorded request payload is not marked embedded",
+    )
+    _probe_require(
+        response.get("request_payload_size_bytes") == len(request_payload),
+        "recorded request payload size mismatch",
+    )
+    _probe_require(
+        hashlib.sha256(request_payload).hexdigest() == request_hash,
+        "recorded request payload SHA-256 mismatch",
+    )
+    try:
+        from openpi_client import msgpack_numpy
+
+        unpacked_request = msgpack_numpy.unpackb(request_payload)
+    except Exception as error:
+        raise RecordedProbeValidationError(
+            "recorded request payload cannot be unpacked"
+        ) from error
+    _probe_require(
+        isinstance(unpacked_request, dict),
+        "recorded request payload must unpack to a mapping",
+    )
+    expected_keys = source_request.get("openpi_keys")
+    _probe_require(
+        isinstance(expected_keys, list)
+        and list(unpacked_request) == expected_keys,
+        "recorded request keys mismatch",
+    )
+    try:
+        exterior = np.asarray(
+            unpacked_request["observation/exterior_image_1_left"]
+        )
+        wrist = np.asarray(unpacked_request["observation/wrist_image_left"])
+        joints = np.asarray(unpacked_request["observation/joint_position"])
+        gripper = np.asarray(unpacked_request["observation/gripper_position"])
+        prompt = unpacked_request["prompt"]
+    except KeyError as error:
+        raise RecordedProbeValidationError(
+            "recorded request payload is missing a DROID field"
+        ) from error
+    _probe_require(
+        list(exterior.shape) == source_request.get("exterior_shape")
+        and str(exterior.dtype) == source_request.get("exterior_dtype")
+        and hashlib.sha256(exterior.tobytes(order="C")).hexdigest()
+        == source_request.get("exterior_sha256"),
+        "recorded exterior image metadata mismatch",
+    )
+    _probe_require(
+        list(wrist.shape) == source_request.get("wrist_shape")
+        and str(wrist.dtype) == source_request.get("wrist_dtype")
+        and hashlib.sha256(wrist.tobytes(order="C")).hexdigest()
+        == source_request.get("wrist_sha256"),
+        "recorded wrist image metadata mismatch",
+    )
+    _probe_require(
+        joints.tolist() == source_request.get("joint_position"),
+        "recorded joint position mismatch",
+    )
+    _probe_require(
+        gripper.tolist() == source_request.get("gripper_position"),
+        "recorded gripper position mismatch",
+    )
+    _probe_require(
+        prompt == source_request.get("prompt"),
+        "recorded prompt mismatch",
+    )
+
     action_hash = _sha256(response.get("action_sha256"), "raw action SHA-256")
     recomputed_action_hash = hashlib.sha256(
         raw_actions.tobytes(order="C")
@@ -237,6 +314,8 @@ def validate_recorded_openpi_probe(
         "policy_provenance": policy_provenance,
         "server": response.get("server"),
         "source_request_payload_sha256": request_hash,
+        "request_payload_embedded": True,
+        "request_payload_size_bytes": len(request_payload),
         "response_action_sha256": action_hash,
         "physics_executed": False,
     }
@@ -260,6 +339,7 @@ def validate_recorded_openpi_probe(
     return RecordedProbeValidationResult(
         directory=str(root),
         request_payload_sha256=request_hash,
+        request_payload_size_bytes=len(request_payload),
         action_sha256=action_hash,
         action_shape=(15, 8),
         action_dtype=str(raw_actions.dtype),
@@ -268,6 +348,7 @@ def validate_recorded_openpi_probe(
         checks=(
             "artifact_contract",
             "source_request_hash",
+            "embedded_request_payload",
             "finite_action_arrays",
             "raw_action_hash",
             "guard_consistency",
@@ -361,6 +442,7 @@ def execute_recorded_openpi_probe(
         chunk.actions.tobytes(order="C")
     ).hexdigest()
     output_directory.mkdir(parents=True, exist_ok=False)
+    (output_directory / "request.msgpack").write_bytes(recorded.packed_payload)
     np.savez_compressed(
         output_directory / "response.npz",
         raw_actions=chunk.actions,
@@ -371,6 +453,8 @@ def execute_recorded_openpi_probe(
         "artifact_type": RECORDED_OPENPI_PROBE_ARTIFACT_TYPE,
         "source_artifact": str(artifact_directory.resolve()),
         "source_request": recorded.metrics(),
+        "request_payload_embedded": True,
+        "request_payload_size_bytes": len(recorded.packed_payload),
         "server": f"{host}:{port}",
         "server_metadata": server_metadata,
         "policy_provenance": policy_provenance,
@@ -406,6 +490,8 @@ def execute_recorded_openpi_probe(
         "policy_provenance": policy_provenance,
         "server": f"{host}:{port}",
         "source_request_payload_sha256": recorded.packed_payload_sha256,
+        "request_payload_embedded": True,
+        "request_payload_size_bytes": len(recorded.packed_payload),
         "response_action_sha256": action_sha256,
         "physics_executed": False,
     }
@@ -417,6 +503,7 @@ def execute_recorded_openpi_probe(
                 "",
                 f"- Source: `{artifact_directory.resolve()}` query `{query_index}`",
                 f"- Request payload SHA-256: `{recorded.packed_payload_sha256}`",
+                f"- Embedded request bytes: `{len(recorded.packed_payload)}`",
                 f"- Server: `{host}:{port}`",
                 f"- Policy provenance: `{policy_provenance}`",
                 "- Remote 15x8 response validated: `true`",

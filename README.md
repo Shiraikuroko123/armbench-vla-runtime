@@ -498,15 +498,18 @@ MuJoCo, probe one replayable request:
   'results\pi0_vs_pi05_cohort_001'
 ```
 
-The output stores the fixed input payload SHA, validated raw 15x8 action SHA,
+The v2 output stores the exact official OpenPI MessagePack request bytes in
+`request.msgpack`, the fixed input payload SHA, validated raw 15x8 action SHA,
 guarded actions, predicted joint positions, client/server timing, and server
 metadata. It deliberately records `physics_executed=false`,
 `physical_safe=null`, and `checkpoint_identity_verified=false`. Run the same
 query against multiple preserved server launch logs for paired checkpoint
 comparison; do not call the result a rollout or physical-safety experiment.
-The read-only validator recomputes the action hash from the NPZ and cross-checks
-the JSON, environment metadata, guard result, and human-readable claim
-boundaries before the artifact is used as evidence.
+The read-only validator rehashes and unpacks the embedded request, checks both
+camera arrays, joint/gripper state, prompt, and DROID key order against its
+metadata, then recomputes the action hash from the NPZ and cross-checks JSON,
+environment, guard, and human-readable claim boundaries. Local v1 probe outputs
+lack the request bytes and must be regenerated before using the v2 validator.
 
 `vla-recorded-probe-sweep` removes the manual per-query loop. It preflights the
 selected replay requests, runs each through an isolated OpenPI client session,
@@ -534,8 +537,8 @@ The comparison also snapshots both raw/guarded response chunks and predicted
 joint paths in `paired_responses.npz`. The comparison validator uses those
 arrays to recompute every aggregate, dimension, and CSV step metric and checks
 file hashes plus plot decoding. This makes the response-difference report
-auditable after the servers stop; retain the original replay artifact to inspect
-the request content behind its matched payload SHA.
+auditable after the servers stop; retain either a v2 source probe or the original
+replay artifact to inspect the request content behind its matched payload SHA.
 
 For more than a one-request demonstration, place each model/server's validated
 probe directories under a separate cohort root and run the batch comparator.

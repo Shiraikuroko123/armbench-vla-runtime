@@ -1081,6 +1081,13 @@ def test_loopback_cli_backend_exercises_complete_remote_policy_path(
     assert response["physics_executed"] is False
     assert response["physical_safe"] is None
     assert response["source_request"]["server_payload_matches"] is True
+    assert response["request_payload_embedded"] is True
+    assert response["request_payload_size_bytes"] == len(
+        recorded.packed_payload
+    )
+    assert (replay_output / "request.msgpack").read_bytes() == (
+        recorded.packed_payload
+    )
     assert response["policy_provenance"] == (
         "scripted_non_learned_replay_probe"
     )
@@ -1180,6 +1187,9 @@ def test_loopback_cli_backend_exercises_complete_remote_policy_path(
     assert validation.action_sha256 == response["action_sha256"]
     assert validation.request_payload_sha256 == (
         recorded.packed_payload_sha256
+    )
+    assert validation.request_payload_size_bytes == len(
+        recorded.packed_payload
     )
     assert validation.guard_safe_after is True
 

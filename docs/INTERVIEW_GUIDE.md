@@ -64,7 +64,8 @@ performance or certified safety.
   server-received payload SHA when loopback evidence is available.
 - A recorded-request OpenPI probe for paired checkpoint/server comparison,
   retaining fixed input SHA, validated action SHA, timing, metadata, and guard
-  output without mislabeling offline inference as a physics rollout.
+  output plus the exact official MessagePack input bytes without mislabeling
+  offline inference as a physics rollout.
 - An independent recorded-probe validator that recomputes response bytes and
   cross-checks arrays, metadata, provenance, and non-physics claim boundaries.
 - A bounded recorded-request sweep that preflights exact inputs, isolates each
