@@ -1,4 +1,4 @@
-"""Build a fail-closed offline dashboard for measured-age v2 pilot evidence."""
+"""Build a fail-closed offline dashboard for measured-age v2 evidence."""
 
 from __future__ import annotations
 
@@ -74,6 +74,8 @@ _SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 _ANALYSIS_CORE_FILES = frozenset(
     ("analysis.json", "per_pair.csv", "summary.md")
 )
+_CONFIRMATORY_TASK_IDS = tuple(range(10))
+_CONFIRMATORY_EPISODE_INDICES = tuple(range(5, 17))
 
 
 def _sha256(path: pathlib.Path) -> str:
@@ -343,6 +345,37 @@ def _outcome(async_success: bool, aligned_success: bool) -> str:
     return "both_success" if async_success else "both_failure"
 
 
+def _evidence_presentation(
+    pairs: Sequence[Mapping[str, Any]],
+) -> Dict[str, str]:
+    identities = {
+        (
+            pair.get("task_suite"),
+            pair.get("task_id"),
+            pair.get("episode_index"),
+            pair.get("replan_steps"),
+            pair.get("seed"),
+        )
+        for pair in pairs
+    }
+    expected = {
+        ("libero_spatial", task_id, episode_index, 5, 7)
+        for task_id in _CONFIRMATORY_TASK_IDS
+        for episode_index in _CONFIRMATORY_EPISODE_INDICES
+    }
+    if len(pairs) == len(expected) and identities == expected:
+        return {
+            "stage": "confirmatory",
+            "title": "Measured-Age VLA Confirmatory Study",
+            "scope_label": "CONFIRMATORY / SIMULATION / BLOCKING INFERENCE",
+        }
+    return {
+        "stage": "pilot",
+        "title": "Measured-Age VLA Pilot",
+        "scope_label": "PILOT / SIMULATION / BLOCKING INFERENCE",
+    }
+
+
 def _pair_payload(
     source_root: pathlib.Path,
     output: pathlib.Path,
@@ -468,9 +501,12 @@ def build_dashboard(
     if recorded_pairs != expected_csv:
         raise ValueError("per_pair.csv disagrees with fresh source recomputation")
     pairs = _pair_payload(source_root, output, expected_pairs)
+    presentation = _evidence_presentation(expected_pairs)
 
     payload = {
         "schemaVersion": DASHBOARD_SCHEMA_VERSION,
+        "evidenceStage": presentation["stage"],
+        "pageTitle": presentation["title"],
         "cohort": recomputed["cohort"],
         "success": recomputed["success"],
         "timing": recomputed["timing"],
@@ -491,7 +527,7 @@ def build_dashboard(
             "validatorSha256": recomputed["implementation"]["validator_sha256"],
         },
         "claimBoundary": recomputed["claim_boundary"],
-        "scopeLabel": "PILOT / SIMULATION / BLOCKING INFERENCE",
+        "scopeLabel": presentation["scope_label"],
     }
     serialized = json.dumps(payload, ensure_ascii=True, separators=(",", ":"))
     serialized = serialized.replace("</", "<\\/")
@@ -531,7 +567,7 @@ HTML_TEMPLATE = r"""<!doctype html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="data:,">
-  <title>ArmBench Measured-Age Pilot</title>
+  <title>ArmBench Measured-Age Evidence</title>
   <style>
     :root { color-scheme: light; --page:#eef2f3; --surface:#fff; --ink:#172126; --muted:#5b676d; --line:#ccd5d8; --header:#20282c; --green:#176b43; --amber:#a64811; --blue:#126b8a; --red:#a52d27; --focus:#6c4bd2; }
     * { box-sizing:border-box; }
@@ -585,7 +621,7 @@ HTML_TEMPLATE = r"""<!doctype html>
   </style>
 </head>
 <body>
-  <header><span class="scope" id="scope"></span><h1>Measured-Age VLA Pilot</h1><p>Training-free action-chunk alignment under observed response age</p></header>
+  <header><span class="scope" id="scope"></span><h1 id="evidence-title"></h1><p>Training-free action-chunk alignment under observed response age</p></header>
   <main>
     <section><h2>Paired outcome</h2><div class="metrics"><div class="metric"><span>Async success</span><strong id="async-success"></strong><small id="async-rate"></small></div><div class="metric"><span>Aligned success</span><strong id="aligned-success"></strong><small id="aligned-rate"></small></div><div class="metric"><span>Paired effect</span><strong id="effect"></strong><small id="effect-ci"></small></div><div class="metric"><span>Evidence</span><strong id="cohort"></strong><small id="query-count"></small></div></div></section>
     <section><h2>Measured timing and runtime burden</h2><div class="table-wrap"><table><thead><tr><th>Mode</th><th>Age P95</th><th>Age max</th><th>Deadline</th><th>Horizon</th><th>Hold-refresh</th><th>Fail closed</th></tr></thead><tbody id="timing-body"></tbody></table></div></section>
@@ -598,6 +634,7 @@ HTML_TEMPLATE = r"""<!doctype html>
     (() => {
       "use strict";
       const data=JSON.parse(document.getElementById("armbench-data").textContent), byId=(id)=>document.getElementById(id), pct=(v)=>((v*100).toFixed(1)+"%"), signed=(v)=>((v>=0?"+":"")+(v*100).toFixed(1)+" pp");
+      document.title=data.pageTitle; byId("evidence-title").textContent=data.pageTitle;
       byId("scope").textContent=data.scopeLabel;
       const a=data.success.async_unguarded,l=data.success.latency_aligned,p=data.success.paired;
       byId("async-success").textContent=a.successes+"/"+a.rollouts; byId("async-rate").textContent=pct(a.rate);

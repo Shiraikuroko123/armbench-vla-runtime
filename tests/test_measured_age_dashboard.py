@@ -240,6 +240,30 @@ def test_valid_fixture_builds_offline_paired_video_dashboard(
     assert "Age P95" in html and "Deadline" in html and "Hold-refresh" in html
 
 
+def test_exact_frozen_matrix_is_labeled_confirmatory() -> None:
+    pairs = [
+        {
+            "task_suite": "libero_spatial",
+            "task_id": task_id,
+            "episode_index": episode_index,
+            "replan_steps": 5,
+            "seed": 7,
+        }
+        for task_id in range(10)
+        for episode_index in range(5, 17)
+    ]
+
+    presentation = dashboard._evidence_presentation(pairs)
+
+    assert presentation == {
+        "stage": "confirmatory",
+        "title": "Measured-Age VLA Confirmatory Study",
+        "scope_label": "CONFIRMATORY / SIMULATION / BLOCKING INFERENCE",
+    }
+    pairs[0] = {**pairs[0], "episode_index": 0}
+    assert dashboard._evidence_presentation(pairs)["stage"] == "pilot"
+
+
 def test_invalid_source_fails_before_output(
     dashboard_fixture, tmp_path: pathlib.Path, monkeypatch
 ) -> None:
