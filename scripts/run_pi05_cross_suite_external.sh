@@ -26,7 +26,9 @@ require_empty_target() {
   fi
 }
 
-for command_name in python3 git tar sha256sum tee; do
+readonly PYTHON_BIN="${ARMBENCH_PYTHON:-python3}"
+
+for command_name in "$PYTHON_BIN" git tar sha256sum tee; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
     printf 'required command is unavailable: %s\n' "$command_name" >&2
     exit 69
@@ -74,7 +76,7 @@ for index in "${!SUITES[@]}"; do
   require_empty_target validation "$validation"
   require_empty_target plan "$plan"
 
-  python3 -m integrations.openpi.libero_runtime_eval plan \
+  "$PYTHON_BIN" -m integrations.openpi.libero_runtime_eval plan \
     --task-suite "$suite" \
     --task-ids all \
     --episode-indices 0:5 \
@@ -83,7 +85,7 @@ for index in "${!SUITES[@]}"; do
     --latency-steps 4 \
     >"$plan"
 
-  python3 - "$plan" "$suite" <<'PY'
+  "$PYTHON_BIN" - "$plan" "$suite" <<'PY'
 import json
 import pathlib
 import sys
@@ -108,11 +110,12 @@ PY
 
   printf 'Starting %s (%s) at %s\n' "$run_id" "$suite" "$(date -Is)"
   set +e
-  python3 -m integrations.openpi.libero_compose_run run \
+  "$PYTHON_BIN" -m integrations.openpi.libero_compose_run run \
     --openpi-root "$OPENPI_ROOT" \
     --armbench-root "$ARMBENCH_ROOT" \
     --results-root "$ARMBENCH_RESULTS_ROOT" \
     --run-id "$run_id" \
+    --no-build \
     --libero-args "--task-suite $suite --task-ids all --episode-indices 0:5 --modes async_unguarded,latency_aligned --replan-steps 5 --latency-steps 4 --seed 7 --bootstrap-resamples 10000 --video-mode all" \
     2>&1 | tee "$launcher_log"
   run_status="${PIPESTATUS[0]}"
@@ -123,9 +126,9 @@ PY
     exit "$run_status"
   fi
 
-  python3 -m integrations.openpi.libero_compose_run validate "$run_directory" \
+  "$PYTHON_BIN" -m integrations.openpi.libero_compose_run validate "$run_directory" \
     | tee "$validation"
-  python3 - "$validation" <<'PY'
+  "$PYTHON_BIN" - "$validation" <<'PY'
 import json
 import pathlib
 import sys

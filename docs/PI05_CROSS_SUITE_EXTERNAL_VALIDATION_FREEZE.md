@@ -70,6 +70,17 @@ artifact and report.
 
 ## Execution commands
 
+Pre-execution deployment amendment (2026-08-04): use the two already built
+and smoke-tested `openpi_server` and `libero` images via `--no-build`. Docker
+Compose v5 resolves the upstream relative build contexts incorrectly when the
+two absolute Compose files are combined with `--project-directory`; rebuilding
+would therefore target `/`. Both containers still execute the frozen OpenPI
+and ArmBench checkouts through bind mounts, and the run artifact records their
+source commits, source hashes, resolved Compose configuration, image identity,
+and checkpoint attestation. This operational amendment was made after a failed
+episode-45 smoke launch and before any registered external-validation rollout;
+it changes no suite, task, initial state, mode, seed, checkpoint, or metric.
+
 Each suite uses the same command template, changing only `SUITE` and `RUN_ID`:
 
 ```bash
@@ -78,6 +89,7 @@ python3 -m integrations.openpi.libero_compose_run run \
   --armbench-root "$ARMBENCH_ROOT" \
   --results-root "$ARMBENCH_RESULTS_ROOT" \
   --run-id "$RUN_ID" \
+  --no-build \
   --libero-args "--task-suite $SUITE --task-ids all --episode-indices 0:5 --modes async_unguarded,latency_aligned --replan-steps 5 --latency-steps 4 --seed 7 --bootstrap-resamples 10000 --video-mode all"
 ```
 
