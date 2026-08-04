@@ -37,6 +37,7 @@ from armbench.vla.probe_comparison import (
 )
 from armbench.vla.probe_batch_comparison import (
     execute_recorded_probe_batch_comparison,
+    validate_recorded_probe_batch_comparison,
 )
 from armbench.vla.request_replay import load_recorded_openpi_request
 from armbench.vla.replay_probe import (
@@ -503,6 +504,13 @@ def build_parser() -> argparse.ArgumentParser:
     vla_recorded_probe_batch_compare.add_argument(
         "--right-label", default="right"
     )
+    vla_recorded_probe_batch_compare_validate = subparsers.add_parser(
+        "vla-recorded-probe-batch-compare-validate",
+        help="recompute a recorded-probe cohort comparison artifact",
+    )
+    vla_recorded_probe_batch_compare_validate.add_argument(
+        "directory", type=Path
+    )
     return parser
 
 
@@ -741,6 +749,10 @@ def main(arguments: list[str] | None = None) -> int:
         )
         print(json.dumps(batch, indent=2, ensure_ascii=False))
         print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-recorded-probe-batch-compare-validate":
+        result = validate_recorded_probe_batch_comparison(args.directory)
+        print(json.dumps(result.metrics(), indent=2, ensure_ascii=False))
         return 0
     planning_seeds = parse_seed_spec(args.seeds) if args.seeds else None
     control_seeds = (

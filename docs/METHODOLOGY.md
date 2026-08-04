@@ -171,6 +171,13 @@ resamples). This quantifies variation within the selected request cohort only:
 temporally adjacent observations may be correlated, and no success labels or
 physics outcomes are present.
 
+The independent batch validator walks the full evidence hierarchy rather than
+trusting the top-level table: child response arrays regenerate child metrics,
+child metrics regenerate per-pair rows, and those rows regenerate aggregate and
+bootstrap statistics. Stored hashes bind each child and top-level JSON/CSV/plot
+to the reported environment. This is consistency and corruption detection, not
+a cryptographic signature against an adversary who can rewrite every file.
+
 `vla-openpi-run` replaces the reference policy with the bounded transport built
 on official OpenPI serialization while retaining the same live physics loop. It
 records server metadata and separates attempted remote calls from validated

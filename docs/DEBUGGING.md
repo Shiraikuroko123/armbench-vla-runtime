@@ -323,6 +323,9 @@ request:
   'results\server_b_probe_cohort' `
   --left-label 'server A' --right-label 'server B' `
   --output-directory 'results\probe_batch_comparison_01'
+
+& $ArmbenchPython -m armbench vla-recorded-probe-batch-compare-validate `
+  'results\probe_batch_comparison_01'
 ```
 
 Set breakpoints in `vla/request_replay.py`, `vla/policy.py`, and
@@ -358,6 +361,11 @@ duplicates are ambiguous repeated samples and missing hashes break pairing, so
 both are explicit errors. Inspect `per_pair.csv`, then open each path in
 `child_comparison` and run the single-comparison validator when diagnosing an
 outlier. Bootstrap seed and resample count are stored in `batch.json`.
+
+The batch validator is the final check before citing cohort statistics. It
+revalidates every `pairs/...` child, recomputes each `per_pair.csv` row from the
+child arrays/JSON, then reproduces the aggregate and bootstrap interval. If it
+fails, trace the first reported row or child instead of editing the aggregate.
 
 ## 6. Debug the runtime guard
 

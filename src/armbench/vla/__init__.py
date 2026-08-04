@@ -39,7 +39,10 @@ from armbench.vla.probe_comparison import (
     validate_recorded_probe_comparison,
 )
 from armbench.vla.probe_batch_comparison import (
+    ProbeBatchComparisonValidationError,
+    ProbeBatchComparisonValidationResult,
     execute_recorded_probe_batch_comparison,
+    validate_recorded_probe_batch_comparison,
 )
 from armbench.vla.runtime import RuntimeDecision, RuntimeFailure, VLARuntimeSupervisor
 from armbench.vla.request_replay import (
@@ -75,6 +78,8 @@ __all__ = [
     "ObservationRejectedError",
     "ProbeComparisonValidationError",
     "ProbeComparisonValidationResult",
+    "ProbeBatchComparisonValidationError",
+    "ProbeBatchComparisonValidationResult",
     "ReferenceActionChunkPolicy",
     "RecordedOpenPIRequest",
     "RecordedProbeValidationError",
@@ -93,6 +98,7 @@ __all__ = [
     "run_online_episode",
     "load_recorded_openpi_request",
     "validate_online_artifact",
+    "validate_recorded_probe_batch_comparison",
     "validate_recorded_probe_comparison",
     "validate_recorded_openpi_probe",
 ]

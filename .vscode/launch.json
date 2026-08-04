@@ -222,6 +222,20 @@
       "justMyCode": true
     },
     {
+      "name": "ArmBench: validate probe cohort comparison",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "armbench",
+      "args": [
+        "vla-recorded-probe-batch-compare-validate",
+        "${input:probeBatchComparisonArtifactDirectory}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}\\..\\.venv\\Scripts\\python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "ArmBench: OpenPI loopback timeout fault",
       "type": "debugpy",
       "request": "launch",
@@ -404,6 +418,12 @@
       "type": "promptString",
       "description": "New probe cohort comparison directory name",
       "default": "probe_batch_comparison_01"
+    },
+    {
+      "id": "probeBatchComparisonArtifactDirectory",
+      "type": "promptString",
+      "description": "Probe cohort comparison artifact directory",
+      "default": "results/probe_batch_comparison_01"
     },
     {
       "id": "openpiOnlineRunId",

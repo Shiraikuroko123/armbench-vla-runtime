@@ -12,7 +12,9 @@ import pytest
 from armbench.vla.probe_batch_comparison import (
     BOOTSTRAP_RESAMPLES,
     BOOTSTRAP_SEED,
+    ProbeBatchComparisonValidationError,
     execute_recorded_probe_batch_comparison,
+    validate_recorded_probe_batch_comparison,
 )
 from armbench.vla.probe_comparison import (
     ProbeComparisonValidationError,
@@ -291,6 +293,10 @@ def test_batch_comparison_pairs_exact_request_cohorts(tmp_path: Path) -> None:
     summary = (output / "summary.md").read_text(encoding="utf-8")
     assert "fixed request cohort" in summary
     assert "Physics executed: `false`" in summary
+    validation = validate_recorded_probe_batch_comparison(output)
+    assert validation.pair_count == 2
+    assert validation.mean_raw_action_rmse == pytest.approx(0.15)
+    assert len(validation.artifact_sha256) == 64
 
 
 def test_batch_comparison_rejects_unmatched_request_sets(
@@ -322,3 +328,43 @@ def test_batch_comparison_rejects_unmatched_request_sets(
             left_root, right_root, output
         )
     assert not output.exists()
+
+
+def test_batch_validator_rejects_tampered_pair_metric(
+    tmp_path: Path,
+) -> None:
+    left_root = tmp_path / "left_cohort"
+    right_root = tmp_path / "right_cohort"
+    left_root.mkdir()
+    right_root.mkdir()
+    request_hash = "d" * 64
+    _write_probe(
+        left_root / "query",
+        np.zeros((15, 8), dtype=np.float64),
+        request_hash=request_hash,
+        latency_ms=10.0,
+        interventions=0,
+    )
+    _write_probe(
+        right_root / "query",
+        np.full((15, 8), 0.1, dtype=np.float64),
+        request_hash=request_hash,
+        latency_ms=12.0,
+        interventions=0,
+    )
+    output = tmp_path / "batch_comparison"
+    execute_recorded_probe_batch_comparison(left_root, right_root, output)
+    csv_path = output / "per_pair.csv"
+    with csv_path.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    rows[0]["raw_action_rmse"] = "999.0"
+    with csv_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+
+    with pytest.raises(
+        ProbeBatchComparisonValidationError,
+        match="row 0 raw_action_rmse mismatch",
+    ):
+        validate_recorded_probe_batch_comparison(output)
