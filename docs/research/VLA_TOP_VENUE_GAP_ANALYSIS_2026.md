@@ -15,7 +15,7 @@ top-conference method paper. Its strongest evidence is unusually disciplined
 for a portfolio project: an attested official pi0.5 checkpoint, paired LIBERO
 conditions, frozen protocols, exact paired tests, multiplicity correction,
 bootstrap intervals, complete videos, and manifest-bound artifacts. The
-training-free temporal dispatcher also produced a large effect that replicated
+training-free temporal dispatcher also produced a large effect that persisted
 across a separately frozen three-suite validation under deterministic 200 ms
 delay.
 
@@ -48,7 +48,7 @@ a concrete engineering route relevant to VLA runtime reliability:
 
 Publication identity was checked against official RSS, PMLR, ICLR, NeurIPS, or
 publisher pages where available. arXiv was used for versioned preprint metadata,
-OpenAlex for independent indexing, and Crossref for registered DOI metadata.
+OpenAlex for identifier reconciliation, and Crossref for registered DOI metadata.
 An arXiv DOI never promotes a work to "formal." API failures are retained in
 the metadata artifact rather than interpreted as absence.
 
@@ -61,10 +61,10 @@ the metadata artifact rather than interpreted as absence.
 | OpenVLA-OFT, RSS 2025 | Parallel continuous action generation and action chunking with optimized supervised fine-tuning | Offline training plus simulation and real ALOHA evaluation | Demonstrates that decoding and training changes must be separated from runtime-only gains |
 | FAST, RSS 2025 | Compresses continuous robot actions into efficient tokens | Tokenizer and VLA training | Relevant to serving cost and horizon design, not by itself a stale-response solution |
 | ConRFT, RSS 2025 | Reinforced VLA fine-tuning through a consistency-policy route | Offline/online adaptation and intervention data | A serious RL comparison, far beyond a decorative PPO baseline |
-| DPPO, ICLR 2025 | Policy-gradient fine-tuning for diffusion policies | Parallel simulation or GPU physics, reward design, and repeated training runs | Useful only if the research question becomes reward-driven policy improvement |
+| DPPO, ICLR 2025 | Policy-gradient fine-tuning for diffusion policies | RL fine-tuning on simulated continuous-control and robot-learning tasks; the paper also reports zero-shot hardware deployment | Useful only if the research question becomes reward-driven policy improvement |
 | HIL-SERL, Science Robotics 2025 | Real-world online RL supported by demonstrations and human corrections | Real robot, human supervision, and online RL | Shows why real-world RL evidence is expensive and why a toy simulation run is not equivalent |
 | RTC, NeurIPS 2025 | Freezes committed flow-policy actions and inpaints a consistent continuation at inference time | Requires access inside the flow-policy sampling process; includes real-robot evidence | Closest direct comparator and the present method-quality target |
-| VLASH, arXiv 2025 | Rolls the previous action chunk forward to form a future-state-aware asynchronous query | No extra learned module claimed in the retrieved preprint metadata | Directly targets the stale-observation weakness; formal status not established in this review |
+| VLASH, arXiv 2025 | Future-state-aware asynchronous inference | Architectural and training burden not established by the frozen metadata audit | Directly targets the stale-observation weakness; formal status not established in this review |
 | FutureRTC, arXiv 2026 | Anticipatory conditioning and learned execution-time context | Learned prediction/adaptation modules | Raises the bar beyond time-only prefix selection; preprint evidence must be treated cautiously |
 | Action ControlNet, arXiv 2026 | Lightweight delay-aware adapter for smooth asynchronous handoff | Parameter-efficient adapter training | A useful learned-adapter control, but not training-free; preprint only as of the access date |
 
@@ -83,7 +83,8 @@ project, not as a newly trained policy:
 - Every matched condition keeps the same initial state, task, horizon, and seed;
   success is analyzed with paired methods rather than independent proportions.
 - Source, checkpoint, protocol, CSV, manifest, and video consistency are
-  independently checked. Runtime failures remain in intention-to-test counts.
+  cross-checked by separate repository validators. Runtime failures remain in
+  intention-to-test counts.
 
 This is enough for a strong graduate-level portfolio project because an
 interviewer can run the validator, inspect a matched video pair, recompute the
@@ -140,9 +141,9 @@ Panda path, but the two evidence paths are not yet one causal experiment.
 
 ## Why adding RL now would not automatically improve the project
 
-DPPO, ConRFT, and HIL-SERL are strong because reward design, training scale,
-baselines, multi-seed evaluation, and in HIL-SERL real hardware all support a
-policy-learning claim. Running PPO for a few hours on a toy reward would add a
+DPPO, ConRFT, and HIL-SERL make explicit policy-learning claims supported by
+substantive training and task evaluation; HIL-SERL additionally provides
+real-hardware evidence. Running PPO for a few hours on a toy reward would add a
 framework name while weakening the central story: it would not explain stale
 action chunks, would not be comparable to the frozen pi0.5 result, and would
 introduce reward and training confounds.
@@ -207,7 +208,8 @@ are true:
   retry limit, and failure inclusion are recorded;
 - paired modes receive the same initial state and keyed jitter sequence;
 - every measured offset and decision can be recomputed from raw query records;
-- a tampered age, offset, or deadline decision fails independent validation;
+- a tampered age, offset, or deadline decision is rejected by a separate
+  read-only validator;
 - the dashboard labels pilot, confirmatory, and external evidence separately;
 - any top-paper comparison is run from its real implementation or explicitly
   labeled an approximation.
