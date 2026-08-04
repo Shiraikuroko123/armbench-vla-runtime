@@ -1,0 +1,210 @@
+{
+  "calculation": {
+    "method": "exact enumeration of D~Binomial(n,p10+p01) and C|D~Binomial(D,p10/(p10+p01))",
+    "monte_carlo": false
+  },
+  "design": {
+    "alpha": 0.05,
+    "analysis_unit": "matched rollout pair",
+    "pair_counts": [
+      50,
+      75,
+      100,
+      120,
+      125,
+      150
+    ],
+    "planned_test": "two-sided exact McNemar",
+    "primary_outcome": "paired LIBERO task success"
+  },
+  "interpretation": "Prospective sensitivity analysis under paired-outcome assumptions; it does not account for within-task clustering or estimate observed power.",
+  "results": [
+    {
+      "exact_rejection_probability": 0.47752672460723966,
+      "metric": "power",
+      "pair_count": 50,
+      "scenario_id": "pilot_informed_primary_alternative"
+    },
+    {
+      "exact_rejection_probability": 0.7045114492396164,
+      "metric": "power",
+      "pair_count": 75,
+      "scenario_id": "pilot_informed_primary_alternative"
+    },
+    {
+      "exact_rejection_probability": 0.8367351211564417,
+      "metric": "power",
+      "pair_count": 100,
+      "scenario_id": "pilot_informed_primary_alternative"
+    },
+    {
+      "exact_rejection_probability": 0.9035135562763672,
+      "metric": "power",
+      "pair_count": 120,
+      "scenario_id": "pilot_informed_primary_alternative"
+    },
+    {
+      "exact_rejection_probability": 0.9160612960271634,
+      "metric": "power",
+      "pair_count": 125,
+      "scenario_id": "pilot_informed_primary_alternative"
+    },
+    {
+      "exact_rejection_probability": 0.9600627076676715,
+      "metric": "power",
+      "pair_count": 150,
+      "scenario_id": "pilot_informed_primary_alternative"
+    },
+    {
+      "exact_rejection_probability": 0.3803870151098373,
+      "metric": "power",
+      "pair_count": 50,
+      "scenario_id": "pilot_informed_sensitivity_low"
+    },
+    {
+      "exact_rejection_probability": 0.5954634552230067,
+      "metric": "power",
+      "pair_count": 75,
+      "scenario_id": "pilot_informed_sensitivity_low"
+    },
+    {
+      "exact_rejection_probability": 0.7408308671788486,
+      "metric": "power",
+      "pair_count": 100,
+      "scenario_id": "pilot_informed_sensitivity_low"
+    },
+    {
+      "exact_rejection_probability": 0.8239372664261995,
+      "metric": "power",
+      "pair_count": 120,
+      "scenario_id": "pilot_informed_sensitivity_low"
+    },
+    {
+      "exact_rejection_probability": 0.8411068554862005,
+      "metric": "power",
+      "pair_count": 125,
+      "scenario_id": "pilot_informed_sensitivity_low"
+    },
+    {
+      "exact_rejection_probability": 0.9082259012233236,
+      "metric": "power",
+      "pair_count": 150,
+      "scenario_id": "pilot_informed_sensitivity_low"
+    },
+    {
+      "exact_rejection_probability": 0.7470269852653085,
+      "metric": "power",
+      "pair_count": 50,
+      "scenario_id": "pilot_informed_sensitivity_high"
+    },
+    {
+      "exact_rejection_probability": 0.9256961432920693,
+      "metric": "power",
+      "pair_count": 75,
+      "scenario_id": "pilot_informed_sensitivity_high"
+    },
+    {
+      "exact_rejection_probability": 0.9796807946319118,
+      "metric": "power",
+      "pair_count": 100,
+      "scenario_id": "pilot_informed_sensitivity_high"
+    },
+    {
+      "exact_rejection_probability": 0.9932022828221221,
+      "metric": "power",
+      "pair_count": 120,
+      "scenario_id": "pilot_informed_sensitivity_high"
+    },
+    {
+      "exact_rejection_probability": 0.9948898720826582,
+      "metric": "power",
+      "pair_count": 125,
+      "scenario_id": "pilot_informed_sensitivity_high"
+    },
+    {
+      "exact_rejection_probability": 0.9988499993124244,
+      "metric": "power",
+      "pair_count": 150,
+      "scenario_id": "pilot_informed_sensitivity_high"
+    },
+    {
+      "exact_rejection_probability": 0.02212994024684033,
+      "metric": "type_i_error",
+      "pair_count": 50,
+      "scenario_id": "symmetric_null_calibration"
+    },
+    {
+      "exact_rejection_probability": 0.027389784536264325,
+      "metric": "type_i_error",
+      "pair_count": 75,
+      "scenario_id": "symmetric_null_calibration"
+    },
+    {
+      "exact_rejection_probability": 0.02944020599308847,
+      "metric": "type_i_error",
+      "pair_count": 100,
+      "scenario_id": "symmetric_null_calibration"
+    },
+    {
+      "exact_rejection_probability": 0.029613068390033463,
+      "metric": "type_i_error",
+      "pair_count": 120,
+      "scenario_id": "symmetric_null_calibration"
+    },
+    {
+      "exact_rejection_probability": 0.029717627250184564,
+      "metric": "type_i_error",
+      "pair_count": 125,
+      "scenario_id": "symmetric_null_calibration"
+    },
+    {
+      "exact_rejection_probability": 0.030795003119392657,
+      "metric": "type_i_error",
+      "pair_count": 150,
+      "scenario_id": "symmetric_null_calibration"
+    }
+  ],
+  "scenarios": [
+    {
+      "assumption_basis": "pilot-informed paired alternative with a +0.15 smallest effect of interest and 0.25 total discordance",
+      "candidate_only_probability": 0.2,
+      "concordant_probability": 0.75,
+      "paired_success_difference": 0.15000000000000002,
+      "reference_only_probability": 0.05,
+      "role": "power",
+      "scenario_id": "pilot_informed_primary_alternative",
+      "total_discordance_probability": 0.25
+    },
+    {
+      "assumption_basis": "lower pilot-informed sensitivity alternative",
+      "candidate_only_probability": 0.18,
+      "concordant_probability": 0.77,
+      "paired_success_difference": 0.13,
+      "reference_only_probability": 0.05,
+      "role": "power",
+      "scenario_id": "pilot_informed_sensitivity_low",
+      "total_discordance_probability": 0.22999999999999998
+    },
+    {
+      "assumption_basis": "upper pilot-informed sensitivity alternative",
+      "candidate_only_probability": 0.22,
+      "concordant_probability": 0.75,
+      "paired_success_difference": 0.19,
+      "reference_only_probability": 0.03,
+      "role": "power",
+      "scenario_id": "pilot_informed_sensitivity_high",
+      "total_discordance_probability": 0.25
+    },
+    {
+      "assumption_basis": "symmetric null used to expose test discreteness",
+      "candidate_only_probability": 0.1,
+      "concordant_probability": 0.8,
+      "paired_success_difference": 0.0,
+      "reference_only_probability": 0.1,
+      "role": "type_i_error",
+      "scenario_id": "symmetric_null_calibration",
+      "total_discordance_probability": 0.2
+    }
+  ],
+  "schema_version": "armbench.pi05_measured_age_exact_mcnemar_power.v1"
+}
