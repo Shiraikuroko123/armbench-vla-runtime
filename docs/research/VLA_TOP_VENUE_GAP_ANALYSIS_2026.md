@@ -15,8 +15,9 @@ top-conference method paper. Its strongest evidence is unusually disciplined
 for a portfolio project: an attested official pi0.5 checkpoint, paired LIBERO
 conditions, frozen protocols, exact paired tests, multiplicity correction,
 bootstrap intervals, complete videos, and manifest-bound artifacts. The
-training-free temporal dispatcher also produced a large and independently
-replicated effect under deterministic 200 ms delay.
+training-free temporal dispatcher also produced a large effect that replicated
+across a separately frozen three-suite validation under deterministic 200 ms
+delay.
 
 The scientific gap is not simply "no RL." The closest formal comparator is RTC
 (NeurIPS 2025), which changes flow-policy inference itself by freezing already
@@ -60,10 +61,10 @@ the metadata artifact rather than interpreted as absence.
 | OpenVLA-OFT, RSS 2025 | Parallel continuous action generation and action chunking with optimized supervised fine-tuning | Offline training plus simulation and real ALOHA evaluation | Demonstrates that decoding and training changes must be separated from runtime-only gains |
 | FAST, RSS 2025 | Compresses continuous robot actions into efficient tokens | Tokenizer and VLA training | Relevant to serving cost and horizon design, not by itself a stale-response solution |
 | ConRFT, RSS 2025 | Reinforced VLA fine-tuning through a consistency-policy route | Offline/online adaptation and intervention data | A serious RL comparison, far beyond a decorative PPO baseline |
-| DPPO, ICLR 2025 | Treats diffusion denoising as an RL process and applies policy-gradient fine-tuning | Parallel simulation or GPU physics plus multi-seed training | Useful only if the research question becomes reward-driven policy improvement |
-| HIL-SERL, Science Robotics 2025 | Asynchronous real-world actor/learner loop with demonstrations and human corrections | Real robot, human supervision, reward learning, and online RL | Shows why real-world RL evidence is expensive and why a toy simulation run is not equivalent |
+| DPPO, ICLR 2025 | Policy-gradient fine-tuning for diffusion policies | Parallel simulation or GPU physics, reward design, and repeated training runs | Useful only if the research question becomes reward-driven policy improvement |
+| HIL-SERL, Science Robotics 2025 | Real-world online RL supported by demonstrations and human corrections | Real robot, human supervision, and online RL | Shows why real-world RL evidence is expensive and why a toy simulation run is not equivalent |
 | RTC, NeurIPS 2025 | Freezes committed flow-policy actions and inpaints a consistent continuation at inference time | Requires access inside the flow-policy sampling process; includes real-robot evidence | Closest direct comparator and the present method-quality target |
-| VLASH, arXiv 2025 | Future-state-aware asynchronous VLA inference | Learned future-state mechanism | Directly targets the stale-observation weakness; formal status not established in this review |
+| VLASH, arXiv 2025 | Rolls the previous action chunk forward to form a future-state-aware asynchronous query | No extra learned module claimed in the retrieved preprint metadata | Directly targets the stale-observation weakness; formal status not established in this review |
 | FutureRTC, arXiv 2026 | Anticipatory conditioning and learned execution-time context | Learned prediction/adaptation modules | Raises the bar beyond time-only prefix selection; preprint evidence must be treated cautiously |
 | Action ControlNet, arXiv 2026 | Lightweight delay-aware adapter for smooth asynchronous handoff | Parameter-efficient adapter training | A useful learned-adapter control, but not training-free; preprint only as of the access date |
 
@@ -93,7 +94,7 @@ paper because the current causal intervention is still narrow.
 
 ### 1. Oracle timing versus measured timing
 
-The published ArmBench result injects four known delay steps and gives the same
+The frozen ArmBench study injects four known delay steps and gives the same
 number directly to the dispatcher. That isolates a causal mechanism cleanly,
 but it is an oracle protocol. A deployed runtime observes timestamps and
 response arrival; it does not receive the experimenter's hidden delay label.

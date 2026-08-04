@@ -55,6 +55,20 @@ The complete archives and SHA-256 records are published in the
 [validated external-evidence release](https://github.com/Shiraikuroko123/armbench-vla-runtime/releases/tag/evidence-pi05-cross-suite-external-001).
 The claim remains limited to deterministic injected 200 ms delay in simulation.
 
+## Research positioning and measured-age extension
+
+The [top-venue engineering gap analysis](docs/research/VLA_TOP_VENUE_GAP_ANALYSIS_2026.md)
+separates formal publications from current preprints and compares ArmBench with
+RTC, OpenVLA-OFT, DPPO, HIL-SERL, and other relevant routes. Its source metadata
+and method figure are reproducible from repository scripts.
+
+A new [measured-age temporal alignment core](docs/MEASURED_LATENCY_RUNTIME.md)
+removes the dispatcher's dependence on a hidden injected-delay label. It uses
+end-to-end observation age, a frozen floor/ceil discretization, mode-independent
+keyed jitter, and bounded hold-refresh when a deadline or action horizon is
+exceeded. This extension currently has deterministic unit/runtime tests only;
+it does not change or broaden the frozen 200 ms pi0.5 claim.
+
 ## Confirmatory pi0.5 result
 
 The frozen study covers all 10 LIBERO Spatial tasks, five initial states per

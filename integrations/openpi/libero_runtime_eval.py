@@ -66,6 +66,7 @@ SUITE_MAX_STEPS = {
 RUNTIME_SOURCE_FILES = (
     "integrations/openpi/libero_runtime.py",
     "integrations/openpi/libero_runtime_eval.py",
+    "integrations/openpi/deadline_alignment.py",
     "integrations/openpi/preflight.py",
     "integrations/openpi/compose.libero-runtime.yml",
     "integrations/openpi/serve_policy_attested.py",

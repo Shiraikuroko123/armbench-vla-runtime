@@ -7,6 +7,7 @@ from integrations.openpi.libero_runtime import (
     ASYNC_UNGUARDED,
     FIXED_REFRESH,
     LATENCY_ALIGNED,
+    MEASURED_WALL_LATENCY,
     STATE_GUARD,
     PolicyResponseError,
     RuntimeConfig,
@@ -313,3 +314,361 @@ def test_runtime_config_rejects_invalid_experiment_conditions() -> None:
         _config(FIXED_REFRESH)
     with pytest.raises(ValueError, match="max_requeries"):
         _config(FIXED_REFRESH, fixed_refresh_interval=2, max_requeries=0)
+
+
+class FakeMonotonicClock:
+    def __init__(self) -> None:
+        self.now_s = 0.0
+
+    def __call__(self) -> float:
+        return self.now_s
+
+    def advance_ms(self, milliseconds: float) -> None:
+        self.now_s += milliseconds / 1000.0
+
+    def sleep(self, seconds: float) -> None:
+        self.now_s += seconds
+
+
+class TimedIndexedPolicy(ConstantPolicy):
+    def __init__(self, clock: FakeMonotonicClock, inference_ms: float) -> None:
+        super().__init__(action_x=0.0, horizon=10)
+        self.clock = clock
+        self.inference_ms = inference_ms
+        self.actions[:, 0] = np.arange(1, 11, dtype=np.float64) / 100.0
+
+    def infer(self, request):
+        self.clock.advance_ms(self.inference_ms)
+        return super().infer(request)
+
+
+class SequencedTimedPolicy(TimedIndexedPolicy):
+    def __init__(
+        self, clock: FakeMonotonicClock, inference_schedule_ms: list[float]
+    ) -> None:
+        super().__init__(clock, inference_ms=0.0)
+        self.inference_schedule_ms = list(inference_schedule_ms)
+
+    def infer(self, request):
+        index = len(self.requests)
+        self.clock.advance_ms(self.inference_schedule_ms[index])
+        return ConstantPolicy.infer(self, request)
+
+
+def test_measured_wall_alignment_uses_observed_age_not_fixed_delay() -> None:
+    clock = FakeMonotonicClock()
+    environment = FakeEnvironment()
+    result = run_episode(
+        environment,
+        TimedIndexedPolicy(clock, inference_ms=120.0),
+        np.asarray([0.0]),
+        "test task",
+        _config(
+            LATENCY_ALIGNED,
+            latency_steps=0,
+            latency_source=MEASURED_WALL_LATENCY,
+            control_period_ms=50.0,
+            age_rounding="ceil",
+            replan_steps=2,
+            max_task_steps=4,
+        ),
+        clock=clock,
+        sleeper=clock.sleep,
+    )
+
+    first = result.query_records[0]
+    assert first.decision == "accepted_measured_latency_aligned"
+    assert first.observation_age_ms == pytest.approx(120.0)
+    assert first.measured_stale_steps == 3
+    assert first.action_offset_steps == 3
+    assert first.injected_latency_steps_executed == 0
+    assert result.latency_action_steps == 2
+    np.testing.assert_allclose(
+        [action[0] for action in environment.actions],
+        [0.0, 0.0, 0.04, 0.05],
+    )
+
+
+def test_measured_wall_age_includes_seedable_delivery_jitter() -> None:
+    clock = FakeMonotonicClock()
+    result = run_episode(
+        FakeEnvironment(),
+        TimedIndexedPolicy(clock, inference_ms=40.0),
+        np.asarray([0.0]),
+        "test task",
+        _config(
+            LATENCY_ALIGNED,
+            latency_steps=0,
+            latency_source=MEASURED_WALL_LATENCY,
+            replan_steps=1,
+            max_task_steps=3,
+        ),
+        clock=clock,
+        response_jitter_ms=lambda _: 80.0,
+        sleeper=clock.sleep,
+    )
+
+    first = result.query_records[0]
+    assert first.inference_latency_ms == pytest.approx(40.0)
+    assert first.response_jitter_ms == pytest.approx(80.0)
+    assert first.observation_age_ms == pytest.approx(120.0)
+    assert first.measured_stale_steps == 3
+
+
+def test_measured_horizon_overrun_fails_closed_without_executing_suffix() -> None:
+    clock = FakeMonotonicClock()
+    environment = FakeEnvironment()
+    result = run_episode(
+        environment,
+        TimedIndexedPolicy(clock, inference_ms=251.0),
+        np.asarray([0.0]),
+        "test task",
+        _config(
+            LATENCY_ALIGNED,
+            latency_steps=0,
+            latency_source=MEASURED_WALL_LATENCY,
+            replan_steps=5,
+            max_task_steps=20,
+            max_age_refreshes=0,
+        ),
+        clock=clock,
+        sleeper=clock.sleep,
+    )
+
+    assert not result.success
+    assert result.termination_reason == "stale_horizon_refresh_exhausted"
+    assert result.horizon_overruns == 1
+    assert result.accepted_chunks == 0
+    assert result.rejected_chunks == 1
+    assert result.query_records[0].decision == (
+        "rejected_horizon_overrun_fail_closed"
+    )
+    assert len(environment.actions) == 6
+    np.testing.assert_allclose(
+        [action[0] for action in environment.actions],
+        np.zeros(6),
+    )
+    assert result.fallback_hold_steps == 1
+    assert result.query_records[0].fallback_hold_steps == 1
+
+
+def test_measured_horizon_overrun_holds_and_accepts_fresh_retry() -> None:
+    clock = FakeMonotonicClock()
+    environment = FakeEnvironment()
+    result = run_episode(
+        environment,
+        SequencedTimedPolicy(clock, [251.0, 120.0, 120.0]),
+        np.asarray([0.0]),
+        "test task",
+        _config(
+            LATENCY_ALIGNED,
+            latency_steps=0,
+            latency_source=MEASURED_WALL_LATENCY,
+            replan_steps=5,
+            max_task_steps=13,
+            max_age_refreshes=1,
+        ),
+        clock=clock,
+        sleeper=clock.sleep,
+    )
+
+    assert result.query_records[0].decision == (
+        "rejected_horizon_overrun_hold_refresh"
+    )
+    assert result.query_records[1].decision == (
+        "accepted_measured_latency_aligned"
+    )
+    assert result.age_refreshes == 1
+    assert result.horizon_overruns == 1
+    np.testing.assert_allclose(
+        [action[0] for action in environment.actions[:13]],
+        [0.0] * 8 + [0.04, 0.05, 0.06, 0.07, 0.08],
+    )
+
+
+def test_measured_refresh_budget_resets_after_an_accepted_chunk() -> None:
+    clock = FakeMonotonicClock()
+    result = run_episode(
+        FakeEnvironment(),
+        SequencedTimedPolicy(clock, [251.0, 120.0, 251.0, 120.0]),
+        np.asarray([0.0]),
+        "test task",
+        _config(
+            LATENCY_ALIGNED,
+            latency_steps=0,
+            latency_source=MEASURED_WALL_LATENCY,
+            replan_steps=5,
+            max_task_steps=26,
+            max_age_refreshes=1,
+        ),
+        clock=clock,
+        sleeper=clock.sleep,
+    )
+
+    rejected = [record for record in result.query_records if not record.accepted]
+    assert [record.decision for record in rejected] == [
+        "rejected_horizon_overrun_hold_refresh",
+        "rejected_horizon_overrun_hold_refresh",
+    ]
+    assert [record.age_refresh_index for record in rejected] == [0, 0]
+    assert result.age_refreshes == 2
+
+
+def test_fail_closed_sends_hold_after_a_nonzero_previous_action() -> None:
+    clock = FakeMonotonicClock()
+    environment = FakeEnvironment()
+    result = run_episode(
+        environment,
+        SequencedTimedPolicy(clock, [40.0, 251.0]),
+        np.asarray([0.0]),
+        "test task",
+        _config(
+            LATENCY_ALIGNED,
+            latency_steps=0,
+            latency_source=MEASURED_WALL_LATENCY,
+            replan_steps=1,
+            deadline_ms=200.0,
+            max_task_steps=20,
+            max_age_refreshes=0,
+        ),
+        clock=clock,
+        sleeper=clock.sleep,
+    )
+
+    assert result.query_records[0].accepted
+    assert result.query_records[1].decision == (
+        "rejected_deadline_exceeded_fail_closed"
+    )
+    assert environment.actions[-2][0] == pytest.approx(0.02)
+    assert environment.actions[-1][0] == pytest.approx(0.0)
+    assert result.query_records[1].fallback_hold_steps == 1
+
+
+def test_measured_deadline_can_reject_even_when_suffix_fits() -> None:
+    clock = FakeMonotonicClock()
+    result = run_episode(
+        FakeEnvironment(),
+        TimedIndexedPolicy(clock, inference_ms=201.0),
+        np.asarray([0.0]),
+        "test task",
+        _config(
+            LATENCY_ALIGNED,
+            latency_steps=0,
+            latency_source=MEASURED_WALL_LATENCY,
+            replan_steps=1,
+            deadline_ms=200.0,
+            max_age_refreshes=0,
+            max_task_steps=20,
+        ),
+        clock=clock,
+        sleeper=clock.sleep,
+    )
+
+    assert result.termination_reason == "deadline_refresh_exhausted"
+    assert result.deadline_misses == 1
+    assert not result.query_records[0].horizon_overrun
+    assert result.query_records[0].deadline_exceeded
+
+
+def test_measured_async_records_would_overrun_but_executes_offset_zero() -> None:
+    clock = FakeMonotonicClock()
+    result = run_episode(
+        FakeEnvironment(),
+        TimedIndexedPolicy(clock, inference_ms=251.0),
+        np.asarray([0.0]),
+        "test task",
+        _config(
+            ASYNC_UNGUARDED,
+            latency_steps=0,
+            latency_source=MEASURED_WALL_LATENCY,
+            replan_steps=5,
+            max_task_steps=10,
+        ),
+        clock=clock,
+        sleeper=clock.sleep,
+    )
+
+    record = result.query_records[0]
+    assert record.accepted
+    assert record.horizon_overrun
+    assert record.available_suffix_steps == 4
+    assert record.action_offset_steps == 0
+    assert result.horizon_overruns == 1
+
+
+def test_measured_wall_protocol_rejects_ambiguous_fixed_delay() -> None:
+    with pytest.raises(ValueError, match="requires latency_steps=0"):
+        _config(
+            LATENCY_ALIGNED,
+            latency_source=MEASURED_WALL_LATENCY,
+            latency_steps=1,
+        )
+
+
+def test_invalid_response_jitter_is_recorded_as_latency_failure() -> None:
+    clock = FakeMonotonicClock()
+    result = run_episode(
+        FakeEnvironment(),
+        TimedIndexedPolicy(clock, inference_ms=40.0),
+        np.asarray([0.0]),
+        "test task",
+        _config(
+            LATENCY_ALIGNED,
+            latency_steps=0,
+            latency_source=MEASURED_WALL_LATENCY,
+        ),
+        clock=clock,
+        response_jitter_ms=lambda _: float("nan"),
+        sleeper=clock.sleep,
+    )
+
+    assert not result.success
+    assert result.termination_reason == "invalid_latency_measurement"
+    assert result.failure_category == "latency_measurement"
+    assert result.query_records[0].error_stage == "response_delivery"
+
+
+@pytest.mark.parametrize(
+    "clock",
+    [
+        lambda: float("nan"),
+        lambda: (_ for _ in ()).throw(RuntimeError("clock unavailable")),
+    ],
+)
+def test_invalid_observation_clock_is_a_latency_failure(clock) -> None:
+    result = run_episode(
+        FakeEnvironment(),
+        ConstantPolicy(),
+        np.asarray([0.0]),
+        "test task",
+        _config(
+            LATENCY_ALIGNED,
+            latency_steps=0,
+            latency_source=MEASURED_WALL_LATENCY,
+        ),
+        clock=clock,
+    )
+
+    assert result.termination_reason == "invalid_latency_measurement"
+    assert result.failure_category == "latency_measurement"
+    assert result.query_records[0].error_stage == "latency_measurement"
+
+
+def test_backward_clock_is_recorded_without_masking_the_original_failure() -> None:
+    values = iter((1.0, 1.0, 0.5))
+    result = run_episode(
+        FakeEnvironment(),
+        ConstantPolicy(),
+        np.asarray([0.0]),
+        "test task",
+        _config(
+            LATENCY_ALIGNED,
+            latency_steps=0,
+            latency_source=MEASURED_WALL_LATENCY,
+        ),
+        clock=lambda: next(values),
+    )
+
+    assert result.termination_reason == "invalid_latency_measurement"
+    assert result.query_records[0].error_type == "ValueError"
+    assert "moved backwards" in result.query_records[0].error_message

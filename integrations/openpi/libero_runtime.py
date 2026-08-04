@@ -17,12 +17,24 @@ from typing import Any, Callable, Deque, Dict, List, Mapping, Optional, Sequence
 
 import numpy as np
 
+from integrations.openpi.deadline_alignment import (
+    CEIL,
+    FAIL_CLOSED,
+    AlignmentConfig,
+    completed_control_steps,
+    plan_alignment,
+)
+
 
 ASYNC_UNGUARDED = "async_unguarded"
 LATENCY_ALIGNED = "latency_aligned"
 STATE_GUARD = "state_guard"
 FIXED_REFRESH = "fixed_refresh"
 VALID_MODES = (ASYNC_UNGUARDED, LATENCY_ALIGNED, STATE_GUARD, FIXED_REFRESH)
+
+FIXED_STEP_LATENCY = "fixed_steps"
+MEASURED_WALL_LATENCY = "measured_wall"
+VALID_LATENCY_SOURCES = (FIXED_STEP_LATENCY, MEASURED_WALL_LATENCY)
 
 LIBERO_ACTION_DIM = 7
 LIBERO_STATE_DIM = 8
@@ -49,6 +61,11 @@ class RuntimeConfig:
     max_requeries: int = 2
     fixed_refresh_interval: Optional[int] = None
     record_video: bool = False
+    latency_source: str = FIXED_STEP_LATENCY
+    control_period_ms: float = 50.0
+    age_rounding: str = CEIL
+    deadline_ms: Optional[float] = None
+    max_age_refreshes: int = 2
 
     def __post_init__(self) -> None:
         if self.mode not in VALID_MODES:
@@ -70,6 +87,28 @@ class RuntimeConfig:
                 )
             if self.max_requeries < 1:
                 raise ValueError("fixed_refresh mode requires max_requeries >= 1")
+        if self.latency_source not in VALID_LATENCY_SOURCES:
+            raise ValueError(
+                "latency_source must be one of: %s"
+                % ", ".join(VALID_LATENCY_SOURCES)
+            )
+        if self.latency_source == MEASURED_WALL_LATENCY:
+            if self.mode not in (ASYNC_UNGUARDED, LATENCY_ALIGNED):
+                raise ValueError(
+                    "measured_wall latency supports async_unguarded and "
+                    "latency_aligned modes only"
+                )
+            if self.latency_steps != 0:
+                raise ValueError(
+                    "measured_wall latency requires latency_steps=0; use a "
+                    "response jitter callback for controlled delay"
+                )
+        AlignmentConfig(
+            control_period_ms=self.control_period_ms,
+            rounding=self.age_rounding,
+            deadline_ms=self.deadline_ms,
+            max_refreshes=self.max_age_refreshes,
+        )
         for name, value in (
             ("position_threshold_m", self.position_threshold_m),
             ("orientation_threshold_rad", self.orientation_threshold_rad),
@@ -132,6 +171,16 @@ class QueryRecord:
     error_stage: Optional[str] = None
     error_type: Optional[str] = None
     error_message: Optional[str] = None
+    latency_source: str = FIXED_STEP_LATENCY
+    observation_age_ms: Optional[float] = None
+    response_jitter_ms: float = 0.0
+    measured_stale_steps: Optional[int] = None
+    action_offset_steps: int = 0
+    available_suffix_steps: Optional[int] = None
+    deadline_exceeded: bool = False
+    horizon_overrun: bool = False
+    age_refresh_index: int = 0
+    fallback_hold_steps: int = 0
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -151,6 +200,16 @@ class QueryRecord:
             "error_stage": self.error_stage,
             "error_type": self.error_type,
             "error_message": self.error_message,
+            "latency_source": self.latency_source,
+            "observation_age_ms": self.observation_age_ms,
+            "response_jitter_ms": self.response_jitter_ms,
+            "measured_stale_steps": self.measured_stale_steps,
+            "action_offset_steps": self.action_offset_steps,
+            "available_suffix_steps": self.available_suffix_steps,
+            "deadline_exceeded": self.deadline_exceeded,
+            "horizon_overrun": self.horizon_overrun,
+            "age_refresh_index": self.age_refresh_index,
+            "fallback_hold_steps": self.fallback_hold_steps,
         }
 
 
@@ -173,6 +232,10 @@ class EpisodeResult:
     failure_category: Optional[str] = None
     failure_type: Optional[str] = None
     failure_message: Optional[str] = None
+    deadline_misses: int = 0
+    horizon_overruns: int = 0
+    age_refreshes: int = 0
+    fallback_hold_steps: int = 0
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -188,6 +251,10 @@ class EpisodeResult:
             "stale_chunks_executed": self.stale_chunks_executed,
             "stale_action_steps": self.stale_action_steps,
             "interventions": self.interventions,
+            "deadline_misses": self.deadline_misses,
+            "horizon_overruns": self.horizon_overruns,
+            "age_refreshes": self.age_refreshes,
+            "fallback_hold_steps": self.fallback_hold_steps,
             "failure_category": self.failure_category,
             "failure_type": self.failure_type,
             "failure_message": self.failure_message,
@@ -196,6 +263,7 @@ class EpisodeResult:
 
 RequestBuilder = Callable[[Mapping[str, Any], str, int], Dict[str, Any]]
 FrameExtractor = Callable[[Mapping[str, Any], int], np.ndarray]
+JitterProvider = Callable[[int], float]
 
 
 def _require_positive_int(name: str, value: int) -> None:
@@ -206,6 +274,20 @@ def _require_positive_int(name: str, value: int) -> None:
 def _require_nonnegative_int(name: str, value: int) -> None:
     if isinstance(value, bool) or not isinstance(value, int) or value < 0:
         raise ValueError("%s must be a nonnegative integer" % name)
+
+
+def _clock_value(clock: Callable[[], float]) -> float:
+    value = float(clock())
+    if not math.isfinite(value):
+        raise ValueError("monotonic clock returned a non-finite value")
+    return value
+
+
+def _elapsed_ms(start_s: float, end_s: float, label: str) -> float:
+    elapsed = (end_s - start_s) * 1000.0
+    if not math.isfinite(elapsed) or elapsed < 0.0:
+        raise ValueError("monotonic clock moved backwards during %s" % label)
+    return elapsed
 
 
 def quat_to_axis_angle(quaternion: Sequence[float]) -> np.ndarray:
@@ -389,13 +471,16 @@ def run_episode(
     request_builder: RequestBuilder = build_libero_request,
     frame_extractor: FrameExtractor = extract_replay_frame,
     clock: Callable[[], float] = time.perf_counter,
+    response_jitter_ms: Optional[JitterProvider] = None,
+    sleeper: Callable[[float], None] = time.sleep,
 ) -> EpisodeResult:
-    """Run one LIBERO episode with an explicit asynchronous inference model.
+    """Run one LIBERO episode with a post-response catch-up simulation.
 
-    Inference remains a blocking websocket call, but the environment is advanced
-    by ``latency_steps`` using the last commanded action before the response is
-    consumed. This deterministic simulation models a controller continuing to
-    run while an asynchronous policy query is pending.
+    The websocket call remains blocking. In ``fixed_steps`` mode the environment
+    is advanced by the registered delay after the response returns. In
+    ``measured_wall`` mode full controller ticks are derived from end-to-end
+    observation age. Both paths simulate a separately ticking controller; they
+    do not provide a concurrent real-time watchdog or an OS scheduling guarantee.
     """
 
     digest = initial_state_digest(initial_state)
@@ -412,7 +497,18 @@ def run_episode(
     stale_chunks_executed = 0
     stale_action_steps = 0
     consecutive_rejections = 0
+    deadline_misses = 0
+    horizon_overruns = 0
+    age_refreshes = 0
+    consecutive_age_refreshes = 0
+    fallback_hold_steps = 0
     done = False
+    alignment_config = AlignmentConfig(
+        control_period_ms=config.control_period_ms,
+        rounding=config.age_rounding,
+        deadline_ms=config.deadline_ms,
+        max_refreshes=config.max_age_refreshes,
+    )
 
     def finish(
         success: bool,
@@ -434,6 +530,10 @@ def run_episode(
             stale_chunks_executed=stale_chunks_executed,
             stale_action_steps=stale_action_steps,
             interventions=rejected_chunks,
+            deadline_misses=deadline_misses,
+            horizon_overruns=horizon_overruns,
+            age_refreshes=age_refreshes,
+            fallback_hold_steps=fallback_hold_steps,
             query_records=query_records,
             replay_frames=replay_frames,
             failure_category=failure_category,
@@ -460,21 +560,56 @@ def run_episode(
             if not action_plan:
                 query_index = len(query_records)
                 observation_step = environment_steps
-                query_state = snapshot_robot_state(observation)
-                failure_stage = "observation_build"
+                failure_stage = "latency_measurement"
                 inference_start: Optional[float] = None
+                inference_latency_ms = 0.0
+                observed_age_ms: Optional[float] = None
+                jitter_ms = 0.0
+                measured_stale_steps: Optional[int] = None
+                environment_delay_steps = config.latency_steps
                 try:
+                    observation_captured_at = _clock_value(clock)
+                    failure_stage = "observation_build"
+                    query_state = snapshot_robot_state(observation)
                     request = request_builder(
                         observation, task_description, config.resize_size
                     )
                     failure_stage = "policy_inference"
-                    inference_start = clock()
+                    inference_start = _clock_value(clock)
                     response = policy.infer(request)
-                    inference_latency_ms = max(0.0, (clock() - inference_start) * 1000.0)
+                    failure_stage = "latency_measurement"
+                    inference_finished = _clock_value(clock)
+                    inference_latency_ms = _elapsed_ms(
+                        inference_start,
+                        inference_finished,
+                        "policy inference",
+                    )
+                    failure_stage = "response_delivery"
+                    if response_jitter_ms is not None:
+                        jitter_ms = float(response_jitter_ms(query_index))
+                        if not math.isfinite(jitter_ms) or jitter_ms < 0.0:
+                            raise ValueError(
+                                "response jitter must be finite and nonnegative"
+                            )
+                        if jitter_ms > 0.0:
+                            sleeper(jitter_ms / 1000.0)
+                    response_ready_at = _clock_value(clock)
+                    observed_age_ms = _elapsed_ms(
+                        observation_captured_at,
+                        response_ready_at,
+                        "observation age measurement",
+                    )
+                    if config.latency_source == MEASURED_WALL_LATENCY:
+                        environment_delay_steps = completed_control_steps(
+                            observed_age_ms, config.control_period_ms
+                        )
                     failure_stage = "policy_response_validation"
                     required_action_steps = config.replan_steps + (
                         config.latency_steps
-                        if config.mode == LATENCY_ALIGNED
+                        if (
+                            config.mode == LATENCY_ALIGNED
+                            and config.latency_source == FIXED_STEP_LATENCY
+                        )
                         else 0
                     )
                     actions = validate_action_chunk(
@@ -486,18 +621,34 @@ def run_episode(
                     server_inference_latency_ms = response_timing_ms(
                         response, "server_timing"
                     )
-                except Exception as exc:
-                    failed_latency_ms = 0.0
-                    if inference_start is not None:
-                        failed_latency_ms = max(
-                            0.0, (clock() - inference_start) * 1000.0
+                    alignment_decision = None
+                    if config.latency_source == MEASURED_WALL_LATENCY:
+                        alignment_decision = plan_alignment(
+                            observation_age_ms=observed_age_ms,
+                            action_chunk_steps=int(actions.shape[0]),
+                            replan_steps=config.replan_steps,
+                            refresh_index=consecutive_age_refreshes,
+                            config=alignment_config,
                         )
+                        measured_stale_steps = alignment_decision.stale_steps
+                        if alignment_decision.deadline_exceeded:
+                            deadline_misses += 1
+                        if alignment_decision.horizon_overrun:
+                            horizon_overruns += 1
+                except Exception as exc:
+                    failed_latency_ms = inference_latency_ms
                     if failure_stage == "observation_build":
                         failure_category = "observation_contract"
                         termination_reason = "invalid_observation"
                     elif failure_stage == "policy_response_validation":
                         failure_category = "policy_contract"
                         termination_reason = "invalid_policy_response"
+                    elif failure_stage in (
+                        "latency_measurement",
+                        "response_delivery",
+                    ):
+                        failure_category = "latency_measurement"
+                        termination_reason = "invalid_latency_measurement"
                     elif isinstance(exc, TimeoutError):
                         failure_category = "policy_timeout"
                         termination_reason = "policy_timeout"
@@ -522,6 +673,9 @@ def run_episode(
                             error_stage=failure_stage,
                             error_type=type(exc).__name__,
                             error_message=str(exc),
+                            latency_source=config.latency_source,
+                            observation_age_ms=observed_age_ms,
+                            response_jitter_ms=jitter_ms,
                         )
                     )
                     return finish(
@@ -533,7 +687,7 @@ def run_episode(
                     )
 
                 delay_steps_executed = 0
-                for _ in range(config.latency_steps):
+                for _ in range(environment_delay_steps):
                     if environment_steps >= config.environment_step_limit:
                         break
                     observation, _, done, _ = _environment_step(environment, last_action)
@@ -547,6 +701,37 @@ def run_episode(
                     if done:
                         break
 
+                recorded_injected_steps = (
+                    delay_steps_executed
+                    if config.latency_source == FIXED_STEP_LATENCY
+                    else 0
+                )
+                if alignment_decision is None:
+                    timing_fields = {
+                        "latency_source": config.latency_source,
+                        "observation_age_ms": observed_age_ms,
+                        "response_jitter_ms": jitter_ms,
+                    }
+                else:
+                    aligned_mode = config.mode == LATENCY_ALIGNED
+                    timing_fields = {
+                        "latency_source": config.latency_source,
+                        "observation_age_ms": observed_age_ms,
+                        "response_jitter_ms": jitter_ms,
+                        "measured_stale_steps": measured_stale_steps,
+                        "action_offset_steps": (
+                            alignment_decision.action_offset_steps
+                            if aligned_mode
+                            else 0
+                        ),
+                        "available_suffix_steps": (
+                            alignment_decision.available_suffix_steps
+                        ),
+                        "deadline_exceeded": alignment_decision.deadline_exceeded,
+                        "horizon_overrun": alignment_decision.horizon_overrun,
+                        "age_refresh_index": consecutive_age_refreshes,
+                    }
+
                 mismatch = state_mismatch(
                     query_state, snapshot_robot_state(observation)
                 )
@@ -558,7 +743,7 @@ def run_episode(
                             response_step=environment_steps,
                             inference_latency_ms=inference_latency_ms,
                             injected_latency_steps_requested=config.latency_steps,
-                            injected_latency_steps_executed=delay_steps_executed,
+                            injected_latency_steps_executed=recorded_injected_steps,
                             action_chunk_steps=int(actions.shape[0]),
                             accepted=False,
                             decision="success_during_inference_delay",
@@ -566,6 +751,7 @@ def run_episode(
                             mismatch=mismatch,
                             policy_inference_latency_ms=policy_inference_latency_ms,
                             server_inference_latency_ms=server_inference_latency_ms,
+                            **timing_fields,
                         )
                     )
                     return finish(True, "success_during_inference_delay")
@@ -578,7 +764,7 @@ def run_episode(
                             response_step=environment_steps,
                             inference_latency_ms=inference_latency_ms,
                             injected_latency_steps_requested=config.latency_steps,
-                            injected_latency_steps_executed=delay_steps_executed,
+                            injected_latency_steps_executed=recorded_injected_steps,
                             action_chunk_steps=int(actions.shape[0]),
                             accepted=False,
                             decision="step_budget_exhausted_during_delay",
@@ -586,9 +772,80 @@ def run_episode(
                             mismatch=mismatch,
                             policy_inference_latency_ms=policy_inference_latency_ms,
                             server_inference_latency_ms=server_inference_latency_ms,
+                            **timing_fields,
                         )
                     )
                     return finish(False, "step_limit")
+
+                if (
+                    config.latency_source == MEASURED_WALL_LATENCY
+                    and config.mode == LATENCY_ALIGNED
+                    and alignment_decision is not None
+                    and not alignment_decision.accepted
+                ):
+                    rejected_chunks += 1
+                    reason = alignment_decision.reason
+                    fail_closed = alignment_decision.disposition == FAIL_CLOSED
+                    response_environment_step = environment_steps
+                    last_action = hold_action(last_action)
+                    query_hold_steps = 0
+                    if environment_steps < config.environment_step_limit:
+                        observation, _, done, _ = _environment_step(
+                            environment, last_action
+                        )
+                        environment_steps += 1
+                        fallback_hold_steps += 1
+                        query_hold_steps = 1
+                        if config.record_video:
+                            replay_frames.append(
+                                frame_extractor(observation, config.resize_size)
+                            )
+                    rejection_timing_fields = dict(timing_fields)
+                    rejection_timing_fields["fallback_hold_steps"] = (
+                        query_hold_steps
+                    )
+                    query_records.append(
+                        QueryRecord(
+                            query_index=query_index,
+                            observation_step=observation_step,
+                            response_step=response_environment_step,
+                            inference_latency_ms=inference_latency_ms,
+                            injected_latency_steps_requested=0,
+                            injected_latency_steps_executed=0,
+                            action_chunk_steps=int(actions.shape[0]),
+                            accepted=False,
+                            decision="rejected_%s_%s"
+                            % (
+                                reason,
+                                "fail_closed" if fail_closed else "hold_refresh",
+                            ),
+                            rejection_reasons=(reason,),
+                            mismatch=mismatch,
+                            policy_inference_latency_ms=policy_inference_latency_ms,
+                            server_inference_latency_ms=server_inference_latency_ms,
+                            **rejection_timing_fields,
+                        )
+                    )
+                    if done:
+                        return finish(True, "success_during_fallback_hold")
+                    if fail_closed:
+                        if reason == "deadline_exceeded":
+                            exhausted_reason = "deadline_refresh_exhausted"
+                        elif reason == "horizon_overrun":
+                            exhausted_reason = "stale_horizon_refresh_exhausted"
+                        else:
+                            exhausted_reason = (
+                                "deadline_and_horizon_refresh_exhausted"
+                            )
+                        return finish(
+                            False,
+                            exhausted_reason,
+                        )
+                    age_refreshes += 1
+                    consecutive_age_refreshes += 1
+                    if environment_steps >= config.environment_step_limit:
+                        return finish(False, "step_limit")
+                    continue
 
                 mismatch_reasons = mismatch.rejection_reasons(config)
                 scheduled_refresh = (
@@ -614,7 +871,7 @@ def run_episode(
                             response_step=environment_steps,
                             inference_latency_ms=inference_latency_ms,
                             injected_latency_steps_requested=config.latency_steps,
-                            injected_latency_steps_executed=delay_steps_executed,
+                            injected_latency_steps_executed=recorded_injected_steps,
                             action_chunk_steps=int(actions.shape[0]),
                             accepted=False,
                             decision=(
@@ -626,6 +883,7 @@ def run_episode(
                             mismatch=mismatch,
                             policy_inference_latency_ms=policy_inference_latency_ms,
                             server_inference_latency_ms=server_inference_latency_ms,
+                            **timing_fields,
                         )
                     )
                     last_action = hold_action(last_action)
@@ -634,9 +892,14 @@ def run_episode(
                     continue
 
                 consecutive_rejections = 0
+                consecutive_age_refreshes = 0
                 accepted_chunks += 1
                 action_offset = (
-                    delay_steps_executed
+                    (
+                        alignment_decision.action_offset_steps
+                        if config.latency_source == MEASURED_WALL_LATENCY
+                        else delay_steps_executed
+                    )
                     if config.mode == LATENCY_ALIGNED
                     else 0
                 )
@@ -647,7 +910,11 @@ def run_episode(
                     np.asarray(action, dtype=np.float64).copy()
                     for action in selected_actions
                 )
-                chunk_is_stale = delay_steps_executed > 0
+                chunk_is_stale = (
+                    measured_stale_steps > 0
+                    if measured_stale_steps is not None
+                    else delay_steps_executed > 0
+                )
                 action_plan_stale.extend(
                     chunk_is_stale for _ in range(config.replan_steps)
                 )
@@ -658,14 +925,19 @@ def run_episode(
                         response_step=environment_steps,
                         inference_latency_ms=inference_latency_ms,
                         injected_latency_steps_requested=config.latency_steps,
-                        injected_latency_steps_executed=delay_steps_executed,
+                        injected_latency_steps_executed=recorded_injected_steps,
                         action_chunk_steps=int(actions.shape[0]),
                         accepted=True,
                         decision=(
                             "accepted_unguarded"
                             if config.mode == ASYNC_UNGUARDED
                             else (
-                                "accepted_latency_aligned"
+                                (
+                                    "accepted_measured_latency_aligned"
+                                    if config.latency_source
+                                    == MEASURED_WALL_LATENCY
+                                    else "accepted_latency_aligned"
+                                )
                                 if config.mode == LATENCY_ALIGNED
                                 else (
                                     "accepted_state_guard"
@@ -678,6 +950,7 @@ def run_episode(
                         mismatch=mismatch,
                         policy_inference_latency_ms=policy_inference_latency_ms,
                         server_inference_latency_ms=server_inference_latency_ms,
+                        **timing_fields,
                     )
                 )
                 if chunk_is_stale:
