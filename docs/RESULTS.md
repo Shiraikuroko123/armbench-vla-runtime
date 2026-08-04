@@ -1,6 +1,42 @@
 # Verified result snapshots
 
-## Primary online VLA runtime result
+## Primary pi0.5-LIBERO confirmatory result
+
+### Provenance and protocol
+
+- Run ID: `pi05_libero_alignment_core_001`
+- ArmBench run commit: `30676d2d3ff43e3df0750e2ad01f94748293cff5`
+- OpenPI commit: `15a9616a00943ada6c20a0f158e3adb39df2ccac`
+- Policy/checkpoint: official `pi05_libero`
+- Checkpoint content SHA-256:
+  `9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5`
+- Matrix: 10 LIBERO Spatial tasks x 5 initial states x 3 delays x 2 modes
+- Evidence: 300/300 rollouts, 300 videos, zero infrastructure failures
+- Validation: root `valid=true`, 331 protected files; nested evaluation
+  `valid=true`
+
+`latency_aligned` does not retrain the policy. After `d` injected delay steps,
+it discards the first `d` returned actions and dispatches the following
+five-action suffix. The frozen primary comparison is 200 ms; 0 and 100 ms are
+prespecified secondary conditions.
+
+### Outcomes
+
+| Delay | Role | Async success | Aligned success | Aligned - async (bootstrap 95%) | Wins / losses / ties | McNemar raw / Holm | Mean queries async / aligned |
+|---:|---|---:|---:|---:|---:|---:|---:|
+| 0 ms | secondary | 49/50 | 50/50 | +2 points [0, +6] | 1 / 0 / 49 | 1.000 / 1.000 | 22.14 / 21.50 |
+| 100 ms | secondary | 41/50 | 48/50 | +14 points [+2, +26] | 9 / 2 / 39 | 0.0654 / 0.1309 | 21.80 / 16.18 |
+| 200 ms | primary | 18/50 | 50/50 | +64 points [+50, +76] | 32 / 0 / 18 | 4.66e-10 / 1.40e-9 | 22.96 / 12.82 |
+
+The 200 ms primary result supports the training-free alignment mechanism under
+deterministic injected delay. The 100 ms result does not survive Holm
+correction. Bootstrap intervals are descriptive; the Holm-adjusted exact
+McNemar tests are the confirmatory decisions. This is not measured network
+jitter, a hard real-time guarantee, a real-robot result, or a safety
+certificate. The complete artifact and analysis are in
+[`evidence/pi05_libero_alignment_core_001`](../evidence/pi05_libero_alignment_core_001/README.md).
+
+## Local scripted online VLA runtime result
 
 ### Provenance
 

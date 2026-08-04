@@ -1,20 +1,44 @@
-# ArmBench: OpenPI-Compatible VLA Runtime Assurance
+# ArmBench: Training-Free Temporal Alignment for VLA Action Chunks
 
-ArmBench is a VLA deployment and evaluation project for a simulated Franka
-Panda. It turns MuJoCo camera images, proprioception, and a language instruction
-into the exact `pi05_droid` request contract, accepts a 15x8 action chunk from
-an OpenPI-compatible bounded remote transport or a deterministic test policy,
-and checks the chunk before torque-controlled execution.
+ArmBench is a VLA runtime and evaluation project centered on a deployment
+failure mode: asynchronous inference can return an action chunk whose leading
+actions are already stale when execution begins. The training-free
+`latency_aligned` dispatcher skips the delay-matched action prefix and executes
+the following suffix without modifying the VLA.
 
-![Receding-horizon VLA runtime benchmark](evidence/vla_online_formal_20260804/overview.png)
+The repository contains two deliberately separate execution paths. The formal
+Linux/NVIDIA path evaluates Physical Intelligence's official `pi05_libero`
+checkpoint on LIBERO. The local MuJoCo path implements an OpenPI-compatible
+15x8 DROID contract, fail-closed supervision, collision lookahead, and
+torque-controlled Franka Panda execution. Results and action semantics are
+never mixed across the two paths.
 
-The project does **not** train pi0/pi0.5 and the tracked benchmark does **not**
-claim learned-policy performance. Its contribution is the system around a VLA:
-observation adapters, remote inference boundary, deadline handling, action
-validation/repair, fail-closed runtime supervision, physics execution, failure
-injection, and auditable evidence.
+## Confirmatory pi0.5 result
 
-## System boundary
+The frozen study covers all 10 LIBERO Spatial tasks, five initial states per
+task, two dispatch modes, and 0/100/200 ms deterministic delay: 300 official
+checkpoint rollouts in 150 matched groups. The primary estimand is
+`latency_aligned - async_unguarded` at 200 ms.
+
+| Delay | Async success | Aligned success | Paired difference (bootstrap 95%) | Exact McNemar raw / Holm | Mean queries async / aligned |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 0 ms | 49/50 | 50/50 | +2 points [0, +6] | 1.000 / 1.000 | 22.14 / 21.50 |
+| 100 ms | 41/50 | 48/50 | +14 points [+2, +26] | 0.0654 / 0.1309 | 21.80 / 16.18 |
+| **200 ms (primary)** | **18/50** | **50/50** | **+64 points [+50, +76]** | **4.66e-10 / 1.40e-9** | **22.96 / 12.82** |
+
+The run completed 300/300 episodes with no infrastructure failures and all 300
+videos. Root validation checked 331 protected files; a separate read-only
+analyzer revalidated the full artifact before enforcing the pairing and
+statistics. See the [complete evidence and claim boundaries](evidence/pi05_libero_alignment_core_001/README.md),
+the [derived analysis](evidence/pi05_libero_alignment_core_001/analysis/summary.md),
+and the [frozen protocol](docs/PI05_ALIGNMENT_CONFIRMATORY_FREEZE.md).
+
+The project does **not** train or fine-tune pi0.5. The contribution is runtime
+dispatch and evidence infrastructure: checkpoint/source attestation, delay and
+failure injection, strict action contracts, paired evaluation, fail-closed
+behavior, full artifact validation, and reproducible reporting.
+
+## Local MuJoCo/DROID system boundary
 
 ```text
 MuJoCo Panda episode
@@ -55,6 +79,12 @@ velocity limits. The final value is a normalized gripper position.
 
 ## What was implemented
 
+- An attested Docker Compose evaluator for the official `pi05_libero`
+  checkpoint, with complete LIBERO matrix registration, transactional failure
+  handling, 300-video retention, nested manifests, and independent validation.
+- Training-free temporal alignment for delayed action chunks, including
+  horizon preflight, delay-matched prefix removal, short-chunk fail-closed
+  behavior, and a frozen paired ITT analysis with exact McNemar/Holm reporting.
 - A dual-camera MuJoCo observation adapter with visible red obstacles and a
   non-colliding green task target. Automated render tests require both colors in
   both camera views, not merely nonblank pixels.
@@ -219,8 +249,9 @@ but incomplete episode is not counted as task success.
 
 | Component | Role | Present here? |
 |---|---|---|
-| pi0 / pi0.5 | Learned VLA policy: images + language + state -> action chunk | Remote probe and bounded closed-loop client; no tracked checkpoint result |
+| pi0 / pi0.5 | Learned VLA policy: images + language + state -> action chunk | Attested pi0.5-LIBERO checkpoint, 300 formal rollouts; DROID remote client remains separate |
 | OpenPI | Official model code, checkpoints, transforms, and remote protocol | Official lightweight client pinned and tested |
+| LIBERO | Standard manipulation benchmark used by the official pi0.5 policy | All 10 Spatial tasks in the confirmatory run |
 | Isaac Gym | Legacy NVIDIA GPU simulator / RL environment stack | No |
 | Isaac Lab | Current NVIDIA/Omniverse robot simulation and training framework | No |
 | MuJoCo | CPU-capable rigid-body simulator used to execute and measure actions | Yes |
@@ -441,9 +472,8 @@ incomplete evidence, not intentional tampering or physical safety.
 The official `pi05_libero` checkpoint study is a separate Linux/NVIDIA
 container workflow from the MuJoCo DROID loop above. Its preregistered matrix,
 budget gates, claim boundaries, and acceptance criteria are defined in
-[`docs/PI05_LIBERO_STUDY.md`](docs/PI05_LIBERO_STUDY.md). No attested
-real-checkpoint rollout was tracked when that protocol was frozen. The
-repository now includes the validated two-rollout smoke evidence in
+[`docs/PI05_LIBERO_STUDY.md`](docs/PI05_LIBERO_STUDY.md). The repository
+includes the validated two-rollout smoke evidence in
 [`evidence/pi05_libero_smoke_003`](evidence/pi05_libero_smoke_003) and the
 complete 40-rollout pilot in
 [`evidence/pi05_libero_pilot_002`](evidence/pi05_libero_pilot_002). The pilot
@@ -452,12 +482,16 @@ improve success: unguarded was 7/20 and guarded was 6/20. The exploratory
 diagnostic is retained with the negative result rather than folded into a
 headline claim.
 
-The runtime also exposes an untrained `latency_aligned` candidate. For an
+The pilot diagnosis motivated the training-free `latency_aligned` method. For an
 injected delay of `d` control steps it discards actions `[0:d]` from the
 returned chunk and dispatches the next `replan_steps` actions. It fails before
 rollout when `d + replan_steps` exceeds the attested ten-action pi0.5 horizon.
-This candidate is motivated by the pilot diagnosis but remains exploratory
-until a disjoint cloud run is complete.
+The method was then frozen and evaluated on disjoint initial states in
+[`pi05_libero_alignment_core_001`](evidence/pi05_libero_alignment_core_001/README.md):
+300/300 rollouts completed, and the 200 ms primary comparison improved official
+success from 18/50 to 50/50 with a +64-point paired difference and
+Holm-adjusted exact McNemar `p=1.40e-9`. The 100 ms secondary result did not
+survive Holm correction and remains reported.
 
 Run the two-rollout paid smoke test from a pinned OpenPI checkout:
 
@@ -672,11 +706,12 @@ results/<run_id>/
 
 ## Claim boundaries
 
-- The tracked VLA artifact uses scripted non-learned action streams. No pi0 or
-  pi0.5 checkpoint produced those results.
-- `vla-probe` and `vla-openpi-run` can perform real remote inference when a
-  server is supplied; no real-checkpoint probe or rollout artifact is tracked
-  yet.
+- The LIBERO artifact uses the attested official pi0.5 checkpoint. The older
+  MuJoCo/DROID safety, camera, wire-fault, and request-replay artifacts use
+  scripted non-learned action streams and make no learned-policy claim.
+- The confirmatory result covers deterministic injected LIBERO delay. It is not
+  measured network jitter, an operating-system hard real-time guarantee, a
+  real-robot result, or evidence that pi0.5 was retrained.
 - Collision checking uses exact MuJoCo mesh contacts at configurations and
   joint interpolation at 0.02 rad resolution along edges. It is not analytic
   continuous collision detection or a formal safety certificate.
@@ -687,8 +722,8 @@ results/<run_id>/
 - Frozen-camera detection covers exact frame replay during sufficient joint
   motion. It is a configurable deployment heuristic, not a general sensor fault
   detector or proof that a visually changed frame is semantically correct.
-- Results are MuJoCo simulation on two spherical-obstacle scenes, not a real
-  robot or publication-scale learned-policy benchmark.
+- Results remain simulation-only: LIBERO for the formal checkpoint study and
+  MuJoCo for the local Panda runtime. Neither is a real-robot experiment.
 
 The classical planner/control foundation remains documented in
 [`evidence/mujoco_formal_20260803`](evidence/mujoco_formal_20260803/summary.md)
@@ -700,14 +735,15 @@ fault-generation substrate for the VLA runtime, not the headline claim.
 After reproducing the experiment and understanding the code, a defensible entry
 for a VLA systems / embodied deployment role is:
 
-> Built an OpenPI-compatible VLA action runtime for a MuJoCo Franka Panda,
-> converting dual 224x224 RGB views, language, and proprioception into the
-> pi0.5-DROID remote contract; implemented bounded transport, fail-closed
-> supervision, deadline/state latches, velocity/acceleration repair, and sampled
-> mesh-collision lookahead. Built a live MuJoCo loop comparing 1/5/15-action
-> horizons: 12/12 scene/payload runs completed safely while horizon 15 reduced
-> policy/camera queries from 193-233 to 13-16. In separate collision injection,
-> reduced 2,314 contact steps to zero and retained per-action audit evidence.
+> Built an OpenPI-compatible VLA action runtime for a MuJoCo Franka Panda and
+> an attested pi0.5-LIBERO evaluator. Implemented training-free temporal
+> action-chunk alignment for delayed observations; on a frozen 300-rollout,
+> 10-task paired study, improved 200 ms success from 18/50 to 50/50 (+64 points,
+> 95% bootstrap CI [+50,+76], Holm-exact McNemar p=1.40e-9) while reducing mean
+> policy queries from 22.96 to 12.82. Preserved all failures/videos and built
+> full source/checkpoint attestation, transactional execution, nested manifests,
+> and independent artifact/statistical validation.
 
-Do not write "deployed pi0.5" until a real checkpoint artifact exists. This is a
-strong VLA runtime/evaluation project, not yet a VLA model-training project.
+Use "evaluated the attested official pi0.5-LIBERO checkpoint," not "trained
+pi0.5" or "deployed on a real robot." This is a VLA runtime/evaluation project,
+not a VLA model-training project.

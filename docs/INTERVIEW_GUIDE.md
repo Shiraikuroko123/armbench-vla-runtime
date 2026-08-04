@@ -10,28 +10,34 @@ provenance, inject failures, and verify behavior in physics.
 
 It is only a supporting project for **VLA model architecture, pretraining, or
 fine-tuning research** roles. There is no learned model training, dataset
-pipeline, representation ablation, or real-checkpoint task benchmark yet. A
-remote closed-loop artifact would prove deployment integration, not close that
-research gap.
+pipeline, or representation ablation. It now includes an attested official
+pi0.5 checkpoint benchmark, but that demonstrates runtime/evaluation research,
+not model-learning research.
 
 ## Ninety-second explanation
 
-ArmBench is an OpenPI-compatible runtime assurance layer for VLA action chunks.
-The simulated Franka Panda produces an exterior image, a wrist image, seven
-joint positions, a gripper position, and a language prompt using the exact
-`pi05_droid` input keys. A common policy interface uses a bounded OpenPI
-transport or deterministic test policy. A fail-closed supervisor and stateful
-guard validate each 15-by-8 chunk for deadline, observation mismatch, velocity,
-acceleration, joint, and sampled mesh-collision constraints. The live loop then
-executes only 1, 5, or 15 actions before recapturing actual physics state and
-both cameras. Across two scenes, two payloads, and three horizons, all 12 runs
-completed safely; horizon 15 reduced query count from 193-233 to 13-16. A
-separate fault matrix reduced 2,314 injected contact steps to zero. Both policies
-are scripted, so the claim is runtime integration/evaluation, not learned-policy
-performance or certified safety.
+ArmBench studies stale action chunks in asynchronous VLA deployment. I added a
+training-free dispatcher that, after `d` delay steps, skips the first `d`
+actions returned by pi0.5 and executes the following suffix. I froze a paired
+study before running the confirmatory states: all 10 LIBERO Spatial tasks, five
+states, and 0/100/200 ms delay, for 300 official checkpoint rollouts. At the
+200 ms primary condition, success improved from 18/50 to 50/50, a +64-point
+paired difference with Holm-exact McNemar p=1.40e-9, while mean policy queries
+fell from 22.96 to 12.82. All rollouts, failures, videos, source/checkpoint
+attestation, and nested manifests are preserved and independently validated.
+Separately, the MuJoCo/DROID path implements fail-closed action validation,
+collision lookahead, camera/request audit, and torque-controlled Panda
+execution. The result is simulation-only and does not claim pi0.5 training,
+hard real-time guarantees, or certified safety.
 
 ## What you actually built
 
+- The `latency_aligned` pi0.5-LIBERO dispatch mode, horizon preflight, strict
+  short-chunk failure, and delay-matched action-prefix removal.
+- A transactional official-checkpoint evaluator with fixed matrices,
+  checkpoint/source attestation, full video retention, and nested validation.
+- A read-only paired ITT analyzer with Wilson intervals, deterministic paired
+  bootstrap, exact McNemar/Holm tests, and descriptive task-level tables.
 - The Panda camera/proprioception adapter and visible task target.
 - A pre-inference observation guard for blank images, nonmonotonic capture
   sequence/time, and exact camera replay during measured robot motion.
@@ -286,34 +292,34 @@ auditability.
 
 ## Resume wording
 
-> Built an OpenPI-compatible VLA action runtime for a MuJoCo Franka Panda,
-> converting dual 224x224 RGB views, language, and proprioception into the
-> pi0.5-DROID remote contract; implemented bounded transport, fail-closed
-> supervision, deadline/state latches, action repair, and sampled mesh-collision
-> lookahead. In a live 1/5/15-action horizon study, all 12 scene/payload runs
-> completed safely while horizon 15 reduced policy queries from 193-233 to 13-16.
->
-> Built a real-WebSocket fault matrix for malformed, nonfinite, disconnected,
-> and timed-out OpenPI replies: 4/4 faults produced zero validated actions, a
-> latched hold, and zero physical safety violations with exact dual-camera input
-> replay evidence. Separately reduced 2,314 injected contact steps to zero while
-> retaining raw/guarded per-action audit traces.
+> Built an OpenPI-compatible VLA runtime and attested pi0.5-LIBERO evaluator.
+> Implemented training-free temporal action-chunk alignment; on a frozen
+> 300-rollout, 10-task paired study, improved 200 ms success from 18/50 to 50/50
+> (+64 points, 95% bootstrap CI [+50,+76], Holm-exact McNemar p=1.40e-9) while
+> reducing mean policy queries from 22.96 to 12.82. Preserved every rollout and
+> video with source/checkpoint attestation, transactional execution, nested
+> manifests, and independent artifact/statistical validation.
 
-Use "OpenPI-compatible," not "pi0.5 deployment," until real checkpoint evidence
-exists.
+Use "evaluated the attested official pi0.5-LIBERO checkpoint," not "trained
+pi0.5" or "deployed on a real robot."
 
 ## Before placing it on a resume
 
 You should be able to do all of the following without reading a prepared answer:
 
-1. draw the five runtime boundaries and state every tensor shape;
-2. explain why pi0/pi0.5 is not a simulator and why Isaac Lab is not a VLA;
-3. reproduce the quick run and locate one rejected action in `per_action.csv`;
-4. validate a schema-v5 artifact and explain why consistency is not authenticity;
-5. run the online quick comparison and explain why horizon changes query count;
-6. explain the deadline-latch regression and the safety/task-success tradeoff;
-7. distinguish sampled kinematic validity from contact-free physics execution;
-8. change a prompt, latency schedule, or guard threshold and predict the result;
+1. explain why delay makes an action prefix stale and why skipping it is only a
+   discrete temporal-alignment assumption;
+2. reproduce root validation and the paired analysis from `per_episode.csv`;
+3. explain paired McNemar, Holm correction, the +64-point effect, and why the
+   100 ms result is not confirmatory evidence;
+4. draw the LIBERO and MuJoCo runtime boundaries without mixing their tensor
+   shapes or action semantics;
+5. explain why pi0/pi0.5 is not a simulator and why Isaac Lab is not a VLA;
+6. locate a matched baseline-failure/aligned-success pair and both videos;
+7. explain the deadline latch and the safety/task-success tradeoff in the local
+   scripted MuJoCo evidence;
+8. distinguish artifact consistency, checkpoint attestation, and publisher
+   authenticity;
 9. state which code/assets are yours and which are pinned dependencies.
 
 AI assistance produced substantial implementation and documentation. Your
