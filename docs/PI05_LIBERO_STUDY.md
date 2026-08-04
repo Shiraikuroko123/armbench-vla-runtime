@@ -214,6 +214,30 @@ pilot 的 `wall_time_s`、`policy_queries` 为准。
 故障不为零、guard 没有可校准的拒绝，或按保守上界估算核心矩阵将超过剩余预算，不进入
 阶段 B。
 
+#### 阶段 A2：pilot 后的时间对齐探索
+
+`pi05_libero_pilot_002` 完成后，固定状态阈值 guard 的 282 次拒绝全部包含位置失配，且
+11/20 个 guard 回合终止于连续重查询上限。由于延迟期间环境按协议继续执行上一动作，
+query-time 与 response-time 的位移混合了预期受控运动和未建模漂移。该结果保留为负结果，
+不能通过事后放宽阈值改写。
+
+新增的 `latency_aligned` 是 pilot 后提出的独立探索模式，不是原预注册 guard 的替代结果。
+若实际执行了 `d` 个延迟步，它跳过返回动作块的前 `d` 个动作，再执行长度为
+`replan_steps` 的后缀。运行前必须满足
+`latency_steps + replan_steps <= 10`；不足时 fail closed，不得截断 horizon 或静默回退。
+
+第一次云端探索固定使用未参与 pilot 与确认性矩阵的 initial states `47:49`：
+
+- task IDs：全部 10 个 Spatial 任务；
+- modes：`async_unguarded,latency_aligned`；
+- `replan_steps=5`、`latency_steps=4`；
+- 40 rollouts、20 个 matched condition groups；
+- 全部任务成功率、失败、视频和非效能故障均保留；
+- 结果只用于 go/no-go 和方法诊断，不使用确认性 p 值措辞。
+
+只有该探索无基础设施故障、动作长度契约全部通过且没有新的系统性终止类型，才能在新的
+冻结说明中把 `latency_aligned` 加入阶段 B。无论成功率是否提高，探索结果都必须归档。
+
 ### 阶段 B：300-run 核心矩阵
 
 - Spatial 全部 10 个任务
@@ -318,6 +342,21 @@ python3 -m integrations.openpi.libero_compose_run run \
   --run-id pi05_libero_pilot_001 \
   --libero-args "--task-suite libero_spatial --task-ids all --episode-indices 45:47 --modes async_unguarded,state_guard --replan-steps 5 --latency-steps 4 --position-threshold-m 0.01 --orientation-threshold-rad 0.10 --gripper-threshold 0.05 --max-requeries 2 --seed 7 --bootstrap-resamples 10000 --video-mode all"
 ```
+
+### 6.2a 40-run Post-pilot Temporal-alignment Exploration
+
+```bash
+python3 -m integrations.openpi.libero_compose_run run \
+  --openpi-root "$OPENPI_ROOT" \
+  --armbench-root "$ARMBENCH_ROOT" \
+  --results-root "$ARMBENCH_RESULTS_ROOT" \
+  --run-id pi05_libero_alignment_pilot_001 \
+  --no-build \
+  --libero-args "--task-suite libero_spatial --task-ids all --episode-indices 47:49 --modes async_unguarded,latency_aligned --replan-steps 5 --latency-steps 4 --seed 7 --bootstrap-resamples 10000 --video-mode all"
+```
+
+该 run 是在原 pilot 结果已知后提出的方法探索。即使结果为正，也不能写成原计划内的
+confirmatory finding；它只决定是否为 `latency_aligned` 冻结新的确认性矩阵。
 
 ### 6.3 300-run 核心矩阵
 

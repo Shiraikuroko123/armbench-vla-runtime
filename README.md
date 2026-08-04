@@ -442,7 +442,22 @@ The official `pi05_libero` checkpoint study is a separate Linux/NVIDIA
 container workflow from the MuJoCo DROID loop above. Its preregistered matrix,
 budget gates, claim boundaries, and acceptance criteria are defined in
 [`docs/PI05_LIBERO_STUDY.md`](docs/PI05_LIBERO_STUDY.md). No attested
-real-checkpoint rollout is tracked yet.
+real-checkpoint rollout was tracked when that protocol was frozen. The
+repository now includes the validated two-rollout smoke evidence in
+[`evidence/pi05_libero_smoke_003`](evidence/pi05_libero_smoke_003) and the
+complete 40-rollout pilot in
+[`evidence/pi05_libero_pilot_002`](evidence/pi05_libero_pilot_002). The pilot
+completed without infrastructure failures, but the fixed state guard did not
+improve success: unguarded was 7/20 and guarded was 6/20. The exploratory
+diagnostic is retained with the negative result rather than folded into a
+headline claim.
+
+The runtime also exposes an untrained `latency_aligned` candidate. For an
+injected delay of `d` control steps it discards actions `[0:d]` from the
+returned chunk and dispatches the next `replan_steps` actions. It fails before
+rollout when `d + replan_steps` exceeds the attested ten-action pi0.5 horizon.
+This candidate is motivated by the pilot diagnosis but remains exploratory
+until a disjoint cloud run is complete.
 
 Run the two-rollout paid smoke test from a pinned OpenPI checkout:
 

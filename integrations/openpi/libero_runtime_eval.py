@@ -25,6 +25,7 @@ import numpy as np
 from integrations.openpi.libero_runtime import (
     ASYNC_UNGUARDED,
     FIXED_REFRESH,
+    LATENCY_ALIGNED,
     STATE_GUARD,
     EpisodeResult,
     RuntimeConfig,
@@ -543,7 +544,8 @@ def matrix_plan(cells: Sequence[ExperimentCell]) -> Dict[str, Any]:
         "latency_steps": sorted({cell.latency_steps for cell in cells}),
         "warning": (
             "This count is environment rollouts, not policy queries. Query cost grows "
-            "as replan_steps decreases and guard or refresh rejections increase."
+            "as replan_steps decreases and guard or refresh rejections increase. "
+            "Latency alignment also requires latency_steps + replan_steps actions."
         ),
     }
 
@@ -2043,8 +2045,9 @@ def _resolved_protocol(
         "schema_version": SCHEMA_VERSION,
         "research_question": (
             "How do asynchronous inference delay and action execution horizon affect "
-            "pi0.5-LIBERO task success and query cost, and does state-mismatch "
-            "rejection outperform a preregistered fixed-refresh intervention control?"
+            "pi0.5-LIBERO task success and query cost, can training-free temporal "
+            "alignment mitigate stale action prefixes, and does state-mismatch rejection "
+            "outperform a preregistered fixed-refresh intervention control?"
         ),
         "openpi_commit": args.expected_openpi_commit,
         "policy_config": DEFAULT_POLICY_CONFIG,
@@ -2077,6 +2080,10 @@ def _resolved_protocol(
             "state_guard": (
                 "Compare current and query-time end-effector position, quaternion angular "
                 "distance, and gripper position; reject and requery from a Cartesian hold."
+            ),
+            "latency_alignment": (
+                "Discard the first executed-latency-step actions from each returned chunk "
+                "before dispatch, while retaining the requested replan horizon."
             ),
             "fixed_refresh_control": (
                 "Reject every Nth candidate chunk independently of measured state mismatch, "
@@ -2115,6 +2122,7 @@ def _resolved_protocol(
         "limitations": [
             "This runtime check is not a formal safety certificate.",
             "Injected latency steps model asynchronous execution independently of measured wall latency.",
+            "Latency alignment assumes action-chunk indices correspond to control-time offsets; it is not dynamics-aware action repair.",
             "Identical LIBERO initial states do not reset hidden policy-server sampling state.",
             "fixed_refresh_interval must be calibrated on disjoint pilot episodes and frozen before confirmatory runs.",
             "Checkpoint attestation proves the loaded cache content and launcher identity, not the upstream publisher's intent.",
@@ -2559,6 +2567,24 @@ def _resolve_matrix(args: argparse.Namespace) -> List[ExperimentCell]:
     )
 
 
+def _validate_action_horizon(cells: Sequence[ExperimentCell]) -> None:
+    if any(cell.replan_steps > PI05_LIBERO_ACTION_HORIZON for cell in cells):
+        raise ValueError(
+            "replan_steps cannot exceed pi05_libero action horizon %d"
+            % PI05_LIBERO_ACTION_HORIZON
+        )
+    if any(
+        cell.mode == LATENCY_ALIGNED
+        and cell.replan_steps + cell.latency_steps
+        > PI05_LIBERO_ACTION_HORIZON
+        for cell in cells
+    ):
+        raise ValueError(
+            "latency_aligned requires latency_steps + replan_steps <= "
+            "pi05_libero action horizon %d" % PI05_LIBERO_ACTION_HORIZON
+        )
+
+
 def _validate_run_arguments(
     args: argparse.Namespace, cells: Sequence[ExperimentCell]
 ) -> None:
@@ -2570,11 +2596,7 @@ def _validate_run_arguments(
         raise ValueError("port must be in [1, 65535]")
     if args.max_task_steps is not None and args.max_task_steps <= 0:
         raise ValueError("max_task_steps must be positive when provided")
-    if any(cell.replan_steps > PI05_LIBERO_ACTION_HORIZON for cell in cells):
-        raise ValueError(
-            "replan_steps cannot exceed pi05_libero action horizon %d"
-            % PI05_LIBERO_ACTION_HORIZON
-        )
+    _validate_action_horizon(cells)
     if args.bootstrap_resamples <= 0:
         raise ValueError("bootstrap_resamples must be positive")
     if args.max_consecutive_infrastructure_failures <= 0:
@@ -2608,6 +2630,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parser.parse_args(argv)
     try:
         cells = _resolve_matrix(args)
+        _validate_action_horizon(cells)
         if args.command == "plan":
             plan = matrix_plan(cells)
             plan["fixed_refresh_interval"] = args.fixed_refresh_interval

@@ -6,6 +6,7 @@ import pytest
 from integrations.openpi.libero_runtime import (
     ASYNC_UNGUARDED,
     FIXED_REFRESH,
+    LATENCY_ALIGNED,
     STATE_GUARD,
     PolicyResponseError,
     RuntimeConfig,
@@ -152,6 +153,49 @@ def test_unguarded_mode_executes_stale_chunk_after_latency_steps() -> None:
     assert second_query.server_inference_latency_ms == pytest.approx(14.0)
 
 
+def test_latency_aligned_mode_discards_delayed_action_prefix() -> None:
+    environment = FakeEnvironment()
+
+    class IndexedPolicy(ConstantPolicy):
+        def __init__(self) -> None:
+            super().__init__(action_x=0.0, horizon=8)
+            self.actions[:, 0] = np.arange(1, 9, dtype=np.float64) / 100.0
+
+    result = run_episode(
+        environment,
+        IndexedPolicy(),
+        np.asarray([0.0]),
+        "test task",
+        _config(
+            LATENCY_ALIGNED,
+            replan_steps=2,
+            latency_steps=2,
+            max_task_steps=4,
+        ),
+    )
+
+    assert result.query_records[0].decision == "accepted_latency_aligned"
+    np.testing.assert_allclose(
+        [action[0] for action in environment.actions[:4]],
+        [0.0, 0.0, 0.03, 0.04],
+    )
+
+
+def test_latency_aligned_mode_fails_closed_for_short_chunk() -> None:
+    result = run_episode(
+        FakeEnvironment(),
+        ConstantPolicy(horizon=2),
+        np.asarray([0.0]),
+        "test task",
+        _config(LATENCY_ALIGNED, replan_steps=1, latency_steps=2),
+    )
+
+    assert not result.success
+    assert result.termination_reason == "invalid_policy_response"
+    assert result.query_records[0].error_type == PolicyResponseError.__name__
+    assert "required_action_steps=3" in result.query_records[0].error_message
+
+
 def test_state_guard_rejects_mismatch_then_requeries_from_hold() -> None:
     result = run_episode(
         FakeEnvironment(),
@@ -252,8 +296,10 @@ def test_invalid_policy_chunks_fail_closed_and_remain_recorded(
 
 
 def test_action_validator_rejects_short_chunks() -> None:
-    with pytest.raises(PolicyResponseError, match="returned 2 actions"):
-        validate_action_chunk({"actions": np.zeros((2, 7))}, replan_steps=5)
+    with pytest.raises(
+        PolicyResponseError, match="returned 2 actions.*required_action_steps=5"
+    ):
+        validate_action_chunk({"actions": np.zeros((2, 7))}, required_steps=5)
 
 
 def test_runtime_config_rejects_invalid_experiment_conditions() -> None:

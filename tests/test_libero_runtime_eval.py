@@ -12,6 +12,7 @@ import integrations.openpi.libero_runtime_eval as runtime_eval
 from integrations.openpi.libero_runtime import (
     ASYNC_UNGUARDED,
     FIXED_REFRESH,
+    LATENCY_ALIGNED,
     STATE_GUARD,
     EpisodeResult,
     QueryRecord,
@@ -143,6 +144,26 @@ def test_fixed_refresh_plan_requires_explicit_interval(capsys) -> None:
     assert plan["rollouts"] == 3
     assert plan["matched_condition_groups"] == 1
     assert plan["fixed_refresh_interval"] == 4
+
+
+def test_latency_aligned_plan_fails_when_suffix_exceeds_policy_horizon(
+    capsys,
+) -> None:
+    with pytest.raises(SystemExit) as error:
+        main(
+            [
+                "plan",
+                "--modes",
+                LATENCY_ALIGNED,
+                "--replan-steps",
+                "5",
+                "--latency-steps",
+                "6",
+            ]
+        )
+
+    assert error.value.code == 2
+    assert "latency_steps + replan_steps" in capsys.readouterr().err
 
 
 def test_server_launch_provenance_requires_matching_libero_checkpoint() -> None:

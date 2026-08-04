@@ -19,9 +19,10 @@ import numpy as np
 
 
 ASYNC_UNGUARDED = "async_unguarded"
+LATENCY_ALIGNED = "latency_aligned"
 STATE_GUARD = "state_guard"
 FIXED_REFRESH = "fixed_refresh"
-VALID_MODES = (ASYNC_UNGUARDED, STATE_GUARD, FIXED_REFRESH)
+VALID_MODES = (ASYNC_UNGUARDED, LATENCY_ALIGNED, STATE_GUARD, FIXED_REFRESH)
 
 LIBERO_ACTION_DIM = 7
 LIBERO_STATE_DIM = 8
@@ -304,7 +305,7 @@ def extract_replay_frame(
     return preprocess_libero_image(observation["agentview_image"], resize_size)
 
 
-def validate_action_chunk(response: Mapping[str, Any], replan_steps: int) -> np.ndarray:
+def validate_action_chunk(response: Mapping[str, Any], required_steps: int) -> np.ndarray:
     if not isinstance(response, Mapping) or "actions" not in response:
         raise PolicyResponseError("policy response must contain an 'actions' field")
     try:
@@ -316,10 +317,10 @@ def validate_action_chunk(response: Mapping[str, Any], replan_steps: int) -> np.
             "pi05_libero actions must have shape (horizon, 7), got %s"
             % (actions.shape,)
         )
-    if actions.shape[0] < replan_steps:
+    if actions.shape[0] < required_steps:
         raise PolicyResponseError(
-            "policy returned %d actions but replan_steps=%d"
-            % (actions.shape[0], replan_steps)
+            "policy returned %d actions but required_action_steps=%d"
+            % (actions.shape[0], required_steps)
         )
     if not np.all(np.isfinite(actions)):
         raise PolicyResponseError("policy actions must all be finite")
@@ -471,7 +472,14 @@ def run_episode(
                     response = policy.infer(request)
                     inference_latency_ms = max(0.0, (clock() - inference_start) * 1000.0)
                     failure_stage = "policy_response_validation"
-                    actions = validate_action_chunk(response, config.replan_steps)
+                    required_action_steps = config.replan_steps + (
+                        config.latency_steps
+                        if config.mode == LATENCY_ALIGNED
+                        else 0
+                    )
+                    actions = validate_action_chunk(
+                        response, required_action_steps
+                    )
                     policy_inference_latency_ms = response_timing_ms(
                         response, "policy_timing"
                     )
@@ -627,9 +635,17 @@ def run_episode(
 
                 consecutive_rejections = 0
                 accepted_chunks += 1
+                action_offset = (
+                    delay_steps_executed
+                    if config.mode == LATENCY_ALIGNED
+                    else 0
+                )
+                selected_actions = actions[
+                    action_offset : action_offset + config.replan_steps
+                ]
                 action_plan.extend(
                     np.asarray(action, dtype=np.float64).copy()
-                    for action in actions[: config.replan_steps]
+                    for action in selected_actions
                 )
                 chunk_is_stale = delay_steps_executed > 0
                 action_plan_stale.extend(
@@ -649,9 +665,13 @@ def run_episode(
                             "accepted_unguarded"
                             if config.mode == ASYNC_UNGUARDED
                             else (
-                                "accepted_state_guard"
-                                if config.mode == STATE_GUARD
-                                else "accepted_fixed_refresh"
+                                "accepted_latency_aligned"
+                                if config.mode == LATENCY_ALIGNED
+                                else (
+                                    "accepted_state_guard"
+                                    if config.mode == STATE_GUARD
+                                    else "accepted_fixed_refresh"
+                                )
                             )
                         ),
                         rejection_reasons=tuple(mismatch_reasons),
