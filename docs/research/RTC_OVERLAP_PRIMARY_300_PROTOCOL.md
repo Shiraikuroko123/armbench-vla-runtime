@@ -1,5 +1,11 @@
 # pi0.5 RTC overlap: held-out 300-rollout protocol
 
+> **Historical v2 protocol — superseded.** The v2 execution was rejected after
+> a query-0 pairing audit found environment carryover. Do not use its outcomes
+> for method-effect claims. The active replacement is
+> [`RTC_OVERLAP_PRIMARY_300_V3_PROTOCOL.md`](RTC_OVERLAP_PRIMARY_300_V3_PROTOCOL.md),
+> whose corrected 300-rollout matrix is complete.
+
 Status: analysis plan frozen on 2026-08-05 before inspecting any held-out
 outcomes. The first seed job had started when this file was committed, so this
 is an auditable prospective project protocol, not a third-party preregistration.

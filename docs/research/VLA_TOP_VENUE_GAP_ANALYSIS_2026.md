@@ -26,17 +26,18 @@ completed held-out 120-pair measured-age confirmation and a clean pi0.5
 sampler extension for both hard committed-prefix projection and soft
 denoised-action VJP guidance. The measured-age
 successor pairs explicit pi0.5 flow-sampling noise, improves success by 23.33
-points, and remains positive under task-cluster sensitivity analyses. The hard
-projection and three-method RTC pilots improve motion continuity but do not
-show a task-success benefit. ArmBench therefore still cannot claim RTC-guidance
-efficacy, multi-model
+points, and remains positive under task-cluster sensitivity analyses. A
+corrected-v3 300-rollout RTC comparison found 96/100 baseline success and
+97/100 for both hard projection and RTC guidance, with Holm-adjusted `p=1.0`.
+It shows exploratory motion-seam decreases but no task-success superiority.
+ArmBench therefore still cannot claim RTC-guidance efficacy, multi-model
 generality, true concurrent control, or real-robot validity.
 
 The next defensible project thesis is:
 
-> Can soft sampler-internal committed-action guidance preserve both continuity
-> and task progress under asynchronous VLA execution where hard projection does
-> not?
+> Under independently ticking inference and control, when does sampler-internal
+> committed-action guidance improve temporal continuity without sacrificing
+> task progress?
 
 That question is closer to the project's demonstrated strength than adding a
 small PPO run that does not address stale actions.
@@ -292,12 +293,11 @@ stage, not the policy-internal RTC, cross-model, concurrency, or hardware gaps.
 
 ### Stage B: direct asynchronous-method baseline
 
-Extend the pinned OpenPI server so the evaluator can pass committed actions and
-execution timestamps into the flow sampler. Reproduce RTC or a clearly named
-approximation on the same checkpoint and tasks. Compare completed-chunk prefix
-selection against policy-internal continuation under the identical latency
-trace. This is the shortest route from a strong project to a research-method
-contribution.
+The pinned OpenPI server now accepts committed actions inside the flow sampler
+and exposes a clearly named RTC-style approximation on the same checkpoint and
+tasks. The next direct comparison must place completed-chunk prefix selection
+and policy-internal continuation under the same independently ticking latency
+trace; the present overlap evaluator still blocks on each response.
 
 Stage B0 now has an executable reference contract in
 `integrations/openpi/realtime_chunking.py`. It reproduces RTC commit `9296f31`'s
@@ -331,20 +331,29 @@ established bitwise zero-guidance parity, a weighted model-residual ratio of
 and exact repeatability under explicit noise.
 
 ArmBench commit `2aef062256fc3f6257f9f58d68c3f18c07d1b0b8` then added a
-reference-only-bootstrap, three-method evaluator. Its 20-triplet/60-rollout
-LIBERO-10 pilot used the same initial state and keyed policy noise within each
-triplet. Unconditioned overlap succeeded on 20/20 rollouts; hard projection and
-RTC guidance each succeeded on 19/20, each with 0/1/19 wins/losses/ties and raw
-exact McNemar `p=1.0`. Both conditioned methods reduced the runtime-summary
-motion seam, but this exploratory pilot does not establish efficacy.
+reference-only-bootstrap, three-method evaluator. Its first 60-rollout v2
+execution was subsequently rejected: environment reuse changed the query-0
+policy images and actions in 6/20 triplets. The same failure affected 15/50
+triplets in each v2 held-out seed. Those outcomes remain preserved but are
+excluded from method-effect estimates.
 
-The remaining direct-method gap is now a powered, disjoint confirmation rather
-than another sampler implementation. A frozen 300-rollout protocol uses five
-new initial states, two new sampling seeds, and all three methods. After that,
-the next causal gap is to replace blocking simulation with independently
-ticking inference and control loops. The existing suffix-selection rollouts
-remain a different baseline because they advance `d + E` rather than exactly
-`E` steps per query.
+The corrected evaluator at commit
+`44c358731c5493284b74bb29eefa7d538d0f38dd` creates a fresh environment per
+rollout and enforces matching query-0 policy-input, response-action,
+sampling-key, and sampling-noise hashes. Its separately frozen v3 matrix
+completed 300 rollouts and 100 matched triplets: unconditioned overlap succeeded
+on 96/100, hard projection on 97/100, and RTC guidance on 97/100. Both
+prespecified contrasts had a `+1` point risk difference and Holm-adjusted exact
+McNemar `p=1.0`. Hard projection and RTC guidance reduced exploratory motion
+seam by `0.023640` and `0.019524`, respectively, but this is not task-success,
+safety, or superiority evidence.
+
+The remaining direct-method gap is therefore not another blocking rollout
+matrix. It is to replace blocking simulation with independently ticking
+inference and control loops and then repeat a frozen comparison under genuine
+response age and jitter. The existing suffix-selection rollouts remain a
+different baseline because they advance `d + E` rather than exactly `E` steps
+per query.
 
 ### Stage C: cross-model and cross-simulator validity
 

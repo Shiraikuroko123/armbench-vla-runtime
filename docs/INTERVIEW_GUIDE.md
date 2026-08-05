@@ -38,10 +38,13 @@ execution, or certified safety.
 
 Separately, I ported RTC-style denoised-action VJP guidance into the pinned
 pi0.5 sampler. A 20-query G0 gate established bitwise zero-guidance parity,
-residual direction, 108.06 ms guided wall P95, and 6.43 GiB peak JAX memory. A
-60-rollout three-method pilot reduced action seams but did not improve task
-success, so I report it as an exploratory method result rather than an efficacy
-win.
+residual direction, 108.06 ms guided wall P95, and 6.43 GiB peak JAX memory.
+After rejecting a v2 comparison whose environment reuse broke query-0 pairing,
+I reran a corrected 300-rollout held-out matrix with fresh environments and a
+four-hash pairing gate. Baseline, hard projection, and RTC guidance succeeded
+on 96/100, 97/100, and 97/100; Holm-adjusted `p=1.0`, so I make no RTC
+task-success claim. Motion seam decreased only as an exploratory process
+metric.
 
 ## What you actually built
 
@@ -61,9 +64,9 @@ win.
   manifests, 150 matched pairs, 30 task rows, and 300 playable videos.
 - A reverse-time OpenPI RTC extension using `jax.vjp`, explicit sampling noise,
   attested sampler/source identity, and a fixed-observation latency/memory gate.
-- A reference-only-bootstrap three-method overlap evaluator with Latin order,
-  shared noise, exact transition transcripts, episode-equal seam analysis, and
-  a disjoint held-out protocol.
+- A reference-only-bootstrap three-method overlap evaluator, a fresh-environment
+  remediation for query-0 visual carryover, a four-hash pairing gate, and a
+  deterministic 300-rollout held-out analyzer/dashboard.
 - The Panda camera/proprioception adapter and visible task target.
 - A pre-inference observation guard for blank images, nonmonotonic capture
   sequence/time, and exact camera replay during measured robot motion.
@@ -301,13 +304,12 @@ validation. The present guard is research simulation code, not safety-rated.
 
 ### What would you do next with a GPU budget?
 
-First complete the frozen 300-rollout RTC overlap matrix on held-out LIBERO-10
-states and noise seeds, then preserve and independently analyze both artifacts.
-The next systems experiment should separate inference and control into
-independently ticking loops and measure observation/action age rather than
-blocking and injecting a fixed delay. After that, repeat a reduced matrix with
-a second open VLA checkpoint. A simulator port or RL run is useful only when it
-tests one of those scientific gaps.
+The corrected 300-rollout RTC overlap matrix is complete and does not establish
+task-success superiority. The next systems experiment should separate inference
+and control into independently ticking loops and measure observation/action age
+rather than blocking and injecting a fixed delay. After that, repeat a reduced
+frozen matrix with a second open VLA checkpoint. A simulator port or RL run is
+useful only when it tests one of those scientific gaps.
 
 ## How to live-debug it in an interview
 
@@ -327,8 +329,8 @@ IDs.
 Do not claim:
 
 - pi0/pi0.5 checkpoint results without real probe and closed-loop artifacts;
-- RTC task-success improvement from the fixed-observation G0 or 60-rollout
-  exploratory pilot;
+- RTC task-success improvement from the fixed-observation G0, rejected v2
+  artifacts, or corrected-v3 held-out matrix;
 - a specific checkpoint identity without the matching GPU server launch log;
 - model training, fine-tuning, or DROID/LIBERO dataset evaluation;
 - analytic continuous collision detection;
@@ -359,9 +361,10 @@ the confirmed headline result:
 
 > Extended the pinned OpenPI pi0.5 flow sampler with training-free RTC-style
 > denoised-action VJP guidance; verified bitwise legacy parity, residual
-> direction, latency/memory gates, and a manifest-bound 60-rollout three-method
-> LIBERO-10 pilot. The pilot is reported as exploratory and not as a success-rate
-> improvement.
+> direction, latency/memory gates, and a corrected 300-rollout LIBERO-10
+> three-method evaluation with fresh-environment and four-hash pairing gates.
+> The study found no task-success superiority; action-seam changes are reported
+> only as exploratory process evidence.
 
 Use "evaluated the attested official pi0.5-LIBERO checkpoint," not "trained
 pi0.5" or "deployed on a real robot."
@@ -384,14 +387,17 @@ You should be able to do all of the following without reading a prepared answer:
 8. distinguish artifact consistency, checkpoint attestation, and publisher
    authenticity;
 9. state which code/assets are yours and which are pinned dependencies;
-10. explain why the 40-rollout pilot's unpaired policy RNG is a confound and
-    how explicit keyed sampling noise fixes it in the held-out study;
+10. explain why the measured-age pilot's unpaired policy RNG is a confound and
+    how explicit keyed sampling noise fixes it in the measured-age confirmation;
 11. derive `D_t(x)=x-t v(x,t)` and explain why the OpenPI correction uses a
    minus sign when Euler integration has `dt < 0`;
 12. explain the difference between G0 model-space residual reduction, pilot
     task efficacy, hard projection, and soft VJP guidance;
 13. explain reference-only bootstrap, keyed-noise triplets, Holm correction,
-    and why seam is averaged within episode before comparing methods.
+    and why seam is averaged within episode before comparing methods;
+14. explain why matching sampling noise did not rescue v2 after its policy
+    images diverged, and how corrected-v3's fresh environments and query-0
+    four-hash gate restore the matched comparison.
 
 AI assistance produced substantial implementation and documentation. Your
 defensible ownership comes from being able to reproduce, inspect, modify,

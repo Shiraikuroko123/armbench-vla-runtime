@@ -99,10 +99,13 @@ conditions under shared noise:
 2. hard projected overlap;
 3. soft RTC-style guidance.
 
-Its 60-rollout pilot again shows no task-success advantage at the development
-states, while both conditioning methods reduce the runtime-summary motion seam.
-The result and raw evidence are not pooled with this 40-rollout artifact. A
-new-state, new-noise 300-rollout protocol was frozen before inspecting held-out
-outcomes. Independently ticking inference and control loops, a second model
-family such as SmolVLA or OpenVLA-OFT, and real SO101/Panda evidence remain
-separate generality and deployment stages.
+Its first 60-rollout v2 execution is now rejected because environment reuse
+changed query-0 policy images and actions in 6/20 triplets. It is not pooled
+with this distinct 40-rollout hard-projection artifact. A corrected-v3
+new-state, new-noise matrix subsequently completed 300 rollouts with fresh
+environments and a four-hash query-0 pairing gate. Baseline, hard projection,
+and RTC guidance succeeded on 96/100, 97/100, and 97/100; Holm-adjusted
+`p=1.0`, so it establishes no task-success superiority. Independently ticking
+inference and control loops, a second model family such as SmolVLA or
+OpenVLA-OFT, and real SO101/Panda evidence remain separate generality and
+deployment stages.

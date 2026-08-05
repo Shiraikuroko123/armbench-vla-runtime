@@ -91,7 +91,7 @@ validator regenerates keyed pi0.5 noise hashes, conditioning hashes, the
 cross-query reference chain from a compressed float32 transcript. See the
 [method, result, and claim boundary](docs/PI05_PROJECTED_OVERLAP_PILOT.md).
 
-### RTC-style VJP guidance and three-method pilot
+### RTC-style VJP guidance and corrected held-out study
 
 The [RTC/pi0.5 integration](docs/RTC_PI05_INTEGRATION.md) ports the public
 denoised-action VJP update into OpenPI's opposite `t=1 -> 0` flow convention.
@@ -101,30 +101,51 @@ model RMSE from `0.08147` to `0.02705`. Guided warm wall P95 was `108.06 ms`
 versus `79.56 ms`, and peak JAX bytes in use were `6.43 GiB`. This establishes
 sampler feasibility and correction direction, not task efficacy.
 
-The subsequent exploratory LIBERO-10 pilot completed 20 matched triplets and
-60 rollouts under the same `H=10`, `E=5`, `d=4` scheduler and keyed policy
-noise:
+The first three-method v2 execution completed 60 rollouts, but a later pairing
+audit found query-0 action mismatches in 6/20 triplets. Tasks 3, 8, and 9
+retained visual state when one LIBERO environment was reused across methods.
+The declared state, prompt, sampling key, and sampling noise matched, but the
+two policy images did not. Its success and seam summaries are therefore
+excluded from every method-effect claim; the immutable artifact remains only
+as an audit record. See the
+[pairing audit](docs/research/RTC_OVERLAP_PAIRING_AUDIT_20260805.md).
 
-| Method | Success | Episode-equal motion seam | Episode-equal gripper seam | Sampler diagnostic |
-| --- | ---: | ---: | ---: | ---: |
-| Unconditioned overlap | 20/20 | 0.104452 | 0.058052 | - |
-| Hard projected overlap | 19/20 | 0.083129 | 0.045345 | max hard residual 0 |
-| RTC-guided overlap | 19/20 | 0.084002 | 0.039617 | weighted RMSE 0.024735 |
+The corrected-v3 evaluator creates and closes a fresh environment for every
+rollout and refuses finalization unless query-0 policy-input, response-action,
+sampling-key, and sampling-noise hashes match within every method triplet. Its
+held-out matrix covers 10 LIBERO-10 tasks x 5 initial states x 2 new sampling
+seeds x 3 methods: 300 rollouts and 100 matched triplets.
 
-Both conditioned methods had `0/1/19` wins/losses/ties against unconditioned
-overlap (`p=1.0` before the prespecified two-comparison Holm correction). The
-pilot therefore supports an integration and continuity investigation, not a
-task-success improvement. The independent report first averages within episode;
-the task-block 95% intervals for motion-seam differences are
-`[-0.03204,-0.01262]` for hard projection and `[-0.03030,-0.01140]` for RTC
-guidance. These are descriptive process metrics, not superiority tests.
+| Method | Success (Wilson 95%) | Motion seam mean | Gripper seam mean |
+| --- | ---: | ---: | ---: |
+| Unconditioned overlap | 96/100 (0.960 [0.902, 0.984]) | 0.106729 | 0.053754 |
+| Hard projected overlap | 97/100 (0.970 [0.915, 0.990]) | 0.083089 | 0.055490 |
+| RTC-guided overlap | 97/100 (0.970 [0.915, 0.990]) | 0.087204 | 0.043190 |
 
-The preserved [G0 artifact](evidence/pi05_rtc_guidance_g0_001) and
-[60-rollout raw artifact](evidence/pi05_rtc_overlap_pilot_001/evaluation)
-contain checkpoint identity, sampling/reference hashes, transition transcripts,
-root manifests, and all 60 pilot videos. A separately frozen
-[300-rollout held-out protocol](docs/research/RTC_OVERLAP_PRIMARY_300_PROTOCOL.md)
-uses new initial states and two new sampling seeds; pilot rollouts are excluded.
+Each conditioned method has a `+1` percentage-point success difference, with
+raw and Holm-adjusted exact McNemar `p=1.0`; the study does not support
+task-success superiority. The exploratory motion-seam differences are
+`-0.023640` for hard projection (task-block 95% CI
+`[-0.028187,-0.019207]`) and `-0.019524` for RTC guidance
+(`[-0.023128,-0.016142]`). Seam is a process metric, not a safety or efficacy
+endpoint.
+
+The preserved [G0 artifact](evidence/pi05_rtc_guidance_g0_001),
+[corrected-v3 combined analysis](evidence/pi05_rtc_overlap_primary_v3_300_001/analysis/summary.md),
+[frozen v3 protocol](docs/research/RTC_OVERLAP_PRIMARY_300_V3_PROTOCOL.md), and
+[acceptance guide](docs/RTC_OVERLAP_PRIMARY_V3_ACCEPTANCE.md) bind the current
+evidence to the
+[offline dashboard](reports/pi05_rtc_overlap_primary_v3_300_001/index.html) and
+provide the current evidence chain. From any Windows directory, run:
+
+```powershell
+D:\arm-planning-control-project\project\scripts\rtc_primary_acceptance.cmd
+```
+
+Use `-NoOpen` for a noninteractive validation. The stages are sequential in
+scientific purpose, but a later invariant audit can invalidate an earlier
+comparison; corrected-v3 replaces the flawed v2 execution rather than pooling
+or selectively repairing it.
 
 The [measured-age temporal alignment core](docs/MEASURED_LATENCY_RUNTIME.md)
 removes the dispatcher's dependence on a hidden injected-delay label. It uses
