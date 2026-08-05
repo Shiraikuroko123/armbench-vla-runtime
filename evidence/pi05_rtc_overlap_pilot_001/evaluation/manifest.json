@@ -1,0 +1,351 @@
+{
+  "files": [
+    {
+      "bytes": 3293,
+      "path": "environment.json",
+      "sha256": "beaa21b7a8f9a7fbdc5088dd9c8618f1411dd48782bcbae8ae9c39c0ef7d7d9a"
+    },
+    {
+      "bytes": 59417,
+      "path": "episodes.json",
+      "sha256": "605ca27f03256da594ef0d35d9a792c169dc332249eef602d3c7209782371e47"
+    },
+    {
+      "bytes": 59,
+      "path": "progress.json",
+      "sha256": "b4aa23756006d6a222b5aa226be63b0687665a89651b12e36fd3b82482ee1c28"
+    },
+    {
+      "bytes": 5507333,
+      "path": "queries.json",
+      "sha256": "c3e6327a0248cad79a4ed45c616da95fe0f91277effba8469de8b1521ea47915"
+    },
+    {
+      "bytes": 22457,
+      "path": "resolved_protocol.json",
+      "sha256": "5c913185e58e74406024bd842e76e6dbea77fee7677668eb42b578df619eb1da"
+    },
+    {
+      "bytes": 1485,
+      "path": "summary.json",
+      "sha256": "f04822d92f0982e1c6aa9709c0531f5f3237e4a2062a047c3df3d093b336cdc1"
+    },
+    {
+      "bytes": 776,
+      "path": "summary.md",
+      "sha256": "c50727728947605ee477d15c9cee57dc60ecf4ddeb808db18862630ad6b947c7"
+    },
+    {
+      "bytes": 621445,
+      "path": "transition_descriptor.json",
+      "sha256": "01a9ffcacf5b514157ef4c752e3ff5f51f847fbdd912ae35e0fe1ebf67387e71"
+    },
+    {
+      "bytes": 1940564,
+      "path": "transitions.npz",
+      "sha256": "6b9ec6520bf9d497d079fc119197d7f8df4aadfe9e7b1a7b51bdcc08e379daf9"
+    },
+    {
+      "bytes": 120325,
+      "path": "videos/libero_10__task_00__episode_00__overlap_unconditioned__success.mp4",
+      "sha256": "9748a38c60a1ddc41a0cc60f870c8f215bac5f6c626e6b75e26a73a94e751662"
+    },
+    {
+      "bytes": 120442,
+      "path": "videos/libero_10__task_00__episode_00__projected_overlap__success.mp4",
+      "sha256": "f3adb11fcaf8f21ba0208379679dc72b213842b1587dba1b23e0dad91621e90d"
+    },
+    {
+      "bytes": 121846,
+      "path": "videos/libero_10__task_00__episode_00__rtc_guided_overlap__success.mp4",
+      "sha256": "ab5a0a6b542a06fa074424f6788816d11664ef4a2c65014d245562c5197d77a5"
+    },
+    {
+      "bytes": 138101,
+      "path": "videos/libero_10__task_00__episode_01__overlap_unconditioned__success.mp4",
+      "sha256": "032ec4c31d5afc11acb3c85529aeabfa007be9a4dd54cc4f18cefa995268dedf"
+    },
+    {
+      "bytes": 121516,
+      "path": "videos/libero_10__task_00__episode_01__projected_overlap__success.mp4",
+      "sha256": "28594ea03dcc6fe2f8676694134890709ff716806eb126806edae4bdb3ee2220"
+    },
+    {
+      "bytes": 120154,
+      "path": "videos/libero_10__task_00__episode_01__rtc_guided_overlap__success.mp4",
+      "sha256": "489017f19501fd5a8cb8d6d4f895f3bf83107d19c18a2cd7f410d9418cd92070"
+    },
+    {
+      "bytes": 158154,
+      "path": "videos/libero_10__task_01__episode_00__overlap_unconditioned__success.mp4",
+      "sha256": "cc3fa40ab2751ace6ceeba60798648bbb3900ddf440e3d770313993657e383c0"
+    },
+    {
+      "bytes": 134279,
+      "path": "videos/libero_10__task_01__episode_00__projected_overlap__success.mp4",
+      "sha256": "d5e73c6db30fdc24b08f4f0861d768ef2c4ff2c8fb4849636f932499fc174e50"
+    },
+    {
+      "bytes": 134714,
+      "path": "videos/libero_10__task_01__episode_00__rtc_guided_overlap__success.mp4",
+      "sha256": "c895daec1e49d89756bfb3b4259fb19e77679f17e4fba0947d5571d9a3a377d5"
+    },
+    {
+      "bytes": 124934,
+      "path": "videos/libero_10__task_01__episode_01__overlap_unconditioned__success.mp4",
+      "sha256": "fc8994b8baa55cc5517453e80cf5d3ddc3306d8bfbc04cf1a751c68d11a33c7f"
+    },
+    {
+      "bytes": 126278,
+      "path": "videos/libero_10__task_01__episode_01__projected_overlap__success.mp4",
+      "sha256": "488d5cc4b8be3e1af718e6ccde6750d68400698a4c4d649178889df215afccb1"
+    },
+    {
+      "bytes": 127542,
+      "path": "videos/libero_10__task_01__episode_01__rtc_guided_overlap__success.mp4",
+      "sha256": "ce1b923ce9897ea142e06832915d4cb3f6f19d72114b3e85d5b74d18bef4c1aa"
+    },
+    {
+      "bytes": 108822,
+      "path": "videos/libero_10__task_02__episode_00__overlap_unconditioned__success.mp4",
+      "sha256": "797143586c49866b74d7208ea8fec480f1ffe271f93448db78789f7445f47804"
+    },
+    {
+      "bytes": 108937,
+      "path": "videos/libero_10__task_02__episode_00__projected_overlap__success.mp4",
+      "sha256": "7428c07c2b58f65100e6fc2ef3d6ba7bf535a0308a5758ba3e731f8b93e628d7"
+    },
+    {
+      "bytes": 108205,
+      "path": "videos/libero_10__task_02__episode_00__rtc_guided_overlap__success.mp4",
+      "sha256": "ecc0ca643585ab47d0528f22dae6e80181abc459c810f8cadb5e82e3976d55c8"
+    },
+    {
+      "bytes": 112032,
+      "path": "videos/libero_10__task_02__episode_01__overlap_unconditioned__success.mp4",
+      "sha256": "be7ca235bbec3bf7bb327324fb3629159c7f01fde6922aa87601892060632cda"
+    },
+    {
+      "bytes": 173995,
+      "path": "videos/libero_10__task_02__episode_01__projected_overlap__success.mp4",
+      "sha256": "a561403dd8f802f16452519d62382c84f1ee35a278d52adfc8986a4161a38bfb"
+    },
+    {
+      "bytes": 114528,
+      "path": "videos/libero_10__task_02__episode_01__rtc_guided_overlap__success.mp4",
+      "sha256": "afe88301b3f15c00f134ce61178376c049a0b080ad35f2eadcc9a3607f9383ff"
+    },
+    {
+      "bytes": 120441,
+      "path": "videos/libero_10__task_03__episode_00__overlap_unconditioned__success.mp4",
+      "sha256": "a47eb2cfed44aee7d58954abd5749a43ecfe72ef143688500387316acfae3c16"
+    },
+    {
+      "bytes": 118564,
+      "path": "videos/libero_10__task_03__episode_00__projected_overlap__success.mp4",
+      "sha256": "da8a5edad1233f8176aa1a1a9bac78c925a2e2af2274d6d55346eb624c8149c2"
+    },
+    {
+      "bytes": 121023,
+      "path": "videos/libero_10__task_03__episode_00__rtc_guided_overlap__success.mp4",
+      "sha256": "8bf09911ac36e0d724541fcc949c06933930884665c2b862a42224621b651843"
+    },
+    {
+      "bytes": 120704,
+      "path": "videos/libero_10__task_03__episode_01__overlap_unconditioned__success.mp4",
+      "sha256": "5f1310ae886077992a0f6e996d94cbca5b555d46923fa3cda9649e40e9dbd8ab"
+    },
+    {
+      "bytes": 117677,
+      "path": "videos/libero_10__task_03__episode_01__projected_overlap__success.mp4",
+      "sha256": "8e3e23ad21d4eb72d43ed79e4256e8be2fd91ce0ebc2b38e053864d32e0906f0"
+    },
+    {
+      "bytes": 113268,
+      "path": "videos/libero_10__task_03__episode_01__rtc_guided_overlap__success.mp4",
+      "sha256": "a09c43866b34d3f909079131fc72dfc919132db4d291ab2019a67e7618cdc8e9"
+    },
+    {
+      "bytes": 99494,
+      "path": "videos/libero_10__task_04__episode_00__overlap_unconditioned__success.mp4",
+      "sha256": "67bb5f3e3fbe8d3c229f0f3c94809cc09551ba8e6ec60b444c6b3aa86fbb3ffc"
+    },
+    {
+      "bytes": 96129,
+      "path": "videos/libero_10__task_04__episode_00__projected_overlap__success.mp4",
+      "sha256": "8cae70712bab3ddc06ec6988b671e33751222d61afbf3cce181863ecd29ea1c6"
+    },
+    {
+      "bytes": 140533,
+      "path": "videos/libero_10__task_04__episode_00__rtc_guided_overlap__failure.mp4",
+      "sha256": "8544561f310e96e29e009092c238681e3f07f46e3e3d3ee3cb5d29eaf0abfb0b"
+    },
+    {
+      "bytes": 94617,
+      "path": "videos/libero_10__task_04__episode_01__overlap_unconditioned__success.mp4",
+      "sha256": "56a7e44a771ac051aa62729f243b66dc9c7d91fb2d97517394dcc081e0824120"
+    },
+    {
+      "bytes": 96284,
+      "path": "videos/libero_10__task_04__episode_01__projected_overlap__success.mp4",
+      "sha256": "90ad330ba96756230805c6a7492ca33c9b322516cf6a7b7028c08ee6512242db"
+    },
+    {
+      "bytes": 96460,
+      "path": "videos/libero_10__task_04__episode_01__rtc_guided_overlap__success.mp4",
+      "sha256": "8d82d634cb96d2062ad099b24adc6893d8a150357a335feee008d611fb532d5b"
+    },
+    {
+      "bytes": 64863,
+      "path": "videos/libero_10__task_05__episode_00__overlap_unconditioned__success.mp4",
+      "sha256": "3a8be11881bac2b7f682cfdb3499ef3917e7a3d192df16362f2cc4d01cc3dc77"
+    },
+    {
+      "bytes": 65553,
+      "path": "videos/libero_10__task_05__episode_00__projected_overlap__success.mp4",
+      "sha256": "d64d432a5a8fb9cba3dc1be67ff9460f0e7e6e4aefea793651888b121259559d"
+    },
+    {
+      "bytes": 67042,
+      "path": "videos/libero_10__task_05__episode_00__rtc_guided_overlap__success.mp4",
+      "sha256": "e74ac219fed0a64911c11e6f3b05daeee7ef78bf83684eb9a1add85e0bc9aae9"
+    },
+    {
+      "bytes": 68494,
+      "path": "videos/libero_10__task_05__episode_01__overlap_unconditioned__success.mp4",
+      "sha256": "6ea0b4c005b0112870ee0b164eb4c231f13883eae6c52d36a34437766797ae4d"
+    },
+    {
+      "bytes": 66649,
+      "path": "videos/libero_10__task_05__episode_01__projected_overlap__success.mp4",
+      "sha256": "8bbc7477998b5eabd1fe0121a14317fd943e330fec43e31a000abe70df0031b3"
+    },
+    {
+      "bytes": 70587,
+      "path": "videos/libero_10__task_05__episode_01__rtc_guided_overlap__success.mp4",
+      "sha256": "5347e8ba2ed82796e6218a9af43f6f199f3af7d457f456a70eaafe825c1cff77"
+    },
+    {
+      "bytes": 107210,
+      "path": "videos/libero_10__task_06__episode_00__overlap_unconditioned__success.mp4",
+      "sha256": "8c6320ce1dcf333da972697ebdf74cba9df5e85aa91689d3709b1dc4a0411798"
+    },
+    {
+      "bytes": 110535,
+      "path": "videos/libero_10__task_06__episode_00__projected_overlap__success.mp4",
+      "sha256": "565db6dd320b3f6c547cf0837b533a0f1f6cad064917f58450b2dbf839a5633f"
+    },
+    {
+      "bytes": 154384,
+      "path": "videos/libero_10__task_06__episode_00__rtc_guided_overlap__success.mp4",
+      "sha256": "5f296f288a4c3b57b23d042c938a557d13e39e0c4e145d50cf902d0400bcacc8"
+    },
+    {
+      "bytes": 111994,
+      "path": "videos/libero_10__task_06__episode_01__overlap_unconditioned__success.mp4",
+      "sha256": "87953a3391234a17fa4989b51d28324c3f0431a91e3149d6909d3e2564dc546b"
+    },
+    {
+      "bytes": 114967,
+      "path": "videos/libero_10__task_06__episode_01__projected_overlap__success.mp4",
+      "sha256": "d389ccda4afe5a5e18382a1782ee1c001f5234b3c3a5b472f7d9e383d93e0b97"
+    },
+    {
+      "bytes": 114922,
+      "path": "videos/libero_10__task_06__episode_01__rtc_guided_overlap__success.mp4",
+      "sha256": "c8d96f07ab9281dafa2258c790395264b23e9b0390ae2560a9a8308dd96bb337"
+    },
+    {
+      "bytes": 103774,
+      "path": "videos/libero_10__task_07__episode_00__overlap_unconditioned__success.mp4",
+      "sha256": "a0884b19e4b59a3acebc957fa29d7641c95fe8f9d2353748cb73cbeeff0f7262"
+    },
+    {
+      "bytes": 104016,
+      "path": "videos/libero_10__task_07__episode_00__projected_overlap__success.mp4",
+      "sha256": "667888c0039ad06f00edfc19e6d0b5f8f0e0d5b1a473104559b6bf0b9de3ca3f"
+    },
+    {
+      "bytes": 103682,
+      "path": "videos/libero_10__task_07__episode_00__rtc_guided_overlap__success.mp4",
+      "sha256": "b4a8a9c8be26e43b359c3b3bbb73347e1f86cc689a0dcf3b01887da2ee0ddc99"
+    },
+    {
+      "bytes": 119318,
+      "path": "videos/libero_10__task_07__episode_01__overlap_unconditioned__success.mp4",
+      "sha256": "459c6ce3fa94d6ba687aac63e997a17eb7dd1a25498c729944bb0188ca7fd520"
+    },
+    {
+      "bytes": 136201,
+      "path": "videos/libero_10__task_07__episode_01__projected_overlap__success.mp4",
+      "sha256": "cd2cd68e6426e77806e1efd95a7fa9b486f47990fcbc4066c0eb1fecc36eaf51"
+    },
+    {
+      "bytes": 126539,
+      "path": "videos/libero_10__task_07__episode_01__rtc_guided_overlap__success.mp4",
+      "sha256": "90f1ec68529a236b340fed25642b605f7a5dd5e09e3b470d4a6f63117715a3b5"
+    },
+    {
+      "bytes": 173439,
+      "path": "videos/libero_10__task_08__episode_00__overlap_unconditioned__success.mp4",
+      "sha256": "8207704c48154c3cf4c33399b3c3dbf636b94d3e34f5057219518eb1b3c70298"
+    },
+    {
+      "bytes": 187548,
+      "path": "videos/libero_10__task_08__episode_00__projected_overlap__success.mp4",
+      "sha256": "f8ce293ae4b57f15d6dcf6691ec2c77c02dfac0250e79683595bff24338e6ca9"
+    },
+    {
+      "bytes": 181671,
+      "path": "videos/libero_10__task_08__episode_00__rtc_guided_overlap__success.mp4",
+      "sha256": "bfcddf6185af0b9ab306dc7bee86a115b046cb506c1fcb6f9f15f78ccf76c0b4"
+    },
+    {
+      "bytes": 201888,
+      "path": "videos/libero_10__task_08__episode_01__overlap_unconditioned__success.mp4",
+      "sha256": "987c65c571609f519efc9177f10e1a5cf05930702984707b7ddbed8a9343285b"
+    },
+    {
+      "bytes": 204554,
+      "path": "videos/libero_10__task_08__episode_01__projected_overlap__failure.mp4",
+      "sha256": "540844beafa507c40fe79381919c74f96ba6d288f3bb36b3dd3c14c584767fd9"
+    },
+    {
+      "bytes": 172129,
+      "path": "videos/libero_10__task_08__episode_01__rtc_guided_overlap__success.mp4",
+      "sha256": "04249b41a02f49333f8a09653d10bc02fdc5f3b0900d259672d543b64ce3ef7c"
+    },
+    {
+      "bytes": 119074,
+      "path": "videos/libero_10__task_09__episode_00__overlap_unconditioned__success.mp4",
+      "sha256": "c3be1e5cdb3b3d30fa4852cef4c14e855f0a5f26115de5b864479105bd2c5162"
+    },
+    {
+      "bytes": 120833,
+      "path": "videos/libero_10__task_09__episode_00__projected_overlap__success.mp4",
+      "sha256": "d3b9b4d771a54632f80d3098beace24977f295cf65f0051ccf071ce3f39d4a95"
+    },
+    {
+      "bytes": 122993,
+      "path": "videos/libero_10__task_09__episode_00__rtc_guided_overlap__success.mp4",
+      "sha256": "8bc670427a959cd7d35a496abca6ff664b460c0081fcfe4a0bafb593755987f7"
+    },
+    {
+      "bytes": 119404,
+      "path": "videos/libero_10__task_09__episode_01__overlap_unconditioned__success.mp4",
+      "sha256": "ea6862ac85e1ae99833ec2daf73cdc472d890ce335e4888a14dff7ed1a5412b0"
+    },
+    {
+      "bytes": 124836,
+      "path": "videos/libero_10__task_09__episode_01__projected_overlap__success.mp4",
+      "sha256": "6246108b754cab89816e0ca1fed86310c35d5250708acffc0d57e9714e737ef0"
+    },
+    {
+      "bytes": 119145,
+      "path": "videos/libero_10__task_09__episode_01__rtc_guided_overlap__success.mp4",
+      "sha256": "91e9fe55d36b06c87ea698be7a13522aff314bbc72a3fd0b9a71ce6ed0f53d6b"
+    }
+  ],
+  "files_sha256": "3efd62e58fdb5d8493b7baedeba1e0cc63438bc09a07ac2a0b7924d8bb56d2d8",
+  "schema_version": "armbench.root_manifest.v1"
+}
