@@ -95,6 +95,37 @@ def _artifact(root: pathlib.Path, sampling_seed: int) -> pathlib.Path:
         "schema_version": rtc_overlap_pilot.SCHEMA_VERSION,
         "armbench_commit": FROZEN_ARMBENCH_COMMIT,
         "armbench_status": "",
+        "command": [
+            "/armbench/integrations/openpi/rtc_overlap_pilot.py",
+            "run",
+            "--output-dir",
+            "/armbench_results/pi05_rtc_overlap_primary_v3_seed_%d_001/evaluation"
+            % sampling_seed,
+            "--host",
+            "127.0.0.1",
+            "--port",
+            "8001",
+            "--openpi-root",
+            "/app",
+            "--armbench-root",
+            "/armbench",
+            "--task-suite",
+            "libero_10",
+            "--task-ids",
+            "all",
+            "--episode-indices",
+            "2,3,4,5,6",
+            "--sampling-seed",
+            str(sampling_seed),
+            "--environment-seed",
+            "7",
+            "--video-mode",
+            "failures",
+            "--server-startup-timeout-s",
+            "120",
+            "--inference-timeout-s",
+            "600",
+        ],
         "openpi_commit": FROZEN_OPENPI_EXTENSION_COMMIT,
         "openpi_status": "",
         "source_sha256": source_hashes,
@@ -302,6 +333,10 @@ def test_combines_exact_held_out_matrix_with_frozen_statistics(artifacts) -> Non
         ]
         for source in analysis["sources"]
     )
+    assert all(
+        source["frozen_environment_command_verified"] is True
+        for source in analysis["sources"]
+    )
     assert "pilot_only=true" in analysis["claim_boundary"]
     assert "preserved v2 attempts are excluded" in analysis["claim_boundary"]
     assert (
@@ -474,6 +509,53 @@ def test_rejects_conditioning_or_guidance_on_reference_bootstrap(artifacts) -> N
         analyze_artifacts(roots)
 
 
+def _set_command_option(command, option: str, value: str) -> None:
+    index = command.index(option)
+    command[index + 1] = value
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (
+            "environment_seed",
+            "frozen value mismatch for --environment-seed",
+        ),
+        ("max_task_steps", "must not contain --max-task-steps"),
+        ("video_mode", "frozen value mismatch for --video-mode"),
+        ("sampling_seed", "frozen value mismatch for --sampling-seed"),
+        ("duplicate", "contains duplicate option --host"),
+        ("unknown", "contains unknown option --unknown-primary-option"),
+        ("not_string_list", "must be a nonempty string list"),
+    ],
+)
+def test_environment_command_deviations_fail_closed(
+    artifacts, mutation: str, message: str
+) -> None:
+    roots, _ = artifacts
+    path = roots[0] / "environment.json"
+    environment = json.loads(path.read_text(encoding="utf-8"))
+    command = environment["command"]
+    if mutation == "environment_seed":
+        _set_command_option(command, "--environment-seed", "8")
+    elif mutation == "max_task_steps":
+        command.extend(("--max-task-steps", "520"))
+    elif mutation == "video_mode":
+        _set_command_option(command, "--video-mode", "all")
+    elif mutation == "sampling_seed":
+        _set_command_option(command, "--sampling-seed", str(SAMPLING_SEEDS[1]))
+    elif mutation == "duplicate":
+        command.extend(("--host", "127.0.0.1"))
+    elif mutation == "unknown":
+        command.extend(("--unknown-primary-option", "value"))
+    else:
+        environment["command"] = "not-a-string-list"
+    _write_json(path, environment)
+
+    with pytest.raises(AnalysisError, match=message):
+        analyze_artifacts(roots)
+
+
 @pytest.mark.parametrize(
     ("mutation", "message"),
     [
@@ -494,6 +576,17 @@ def test_rejects_duplicate_missing_mismatched_and_nonfinite_sources(
         protocol = json.loads(protocol_path.read_text(encoding="utf-8"))
         protocol["sampling_seed"] = SAMPLING_SEEDS[0]
         _write_json(protocol_path, protocol)
+        environment_path = roots[1] / "environment.json"
+        environment = json.loads(environment_path.read_text(encoding="utf-8"))
+        command = environment["command"]
+        _set_command_option(command, "--sampling-seed", str(SAMPLING_SEEDS[0]))
+        _set_command_option(
+            command,
+            "--output-dir",
+            "/armbench_results/pi05_rtc_overlap_primary_v3_seed_%d_001/evaluation"
+            % SAMPLING_SEEDS[0],
+        )
+        _write_json(environment_path, environment)
     elif mutation == "missing":
         path = roots[1] / "episodes.json"
         rows = json.loads(path.read_text(encoding="utf-8"))

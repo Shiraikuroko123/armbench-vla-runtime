@@ -33,6 +33,10 @@ TASK_SUITE = "libero_10"
 TASK_IDS = tuple(range(10))
 EPISODE_INDICES = tuple(range(2, 7))
 SAMPLING_SEEDS = (20260806, 20260807)
+RUN_ID_BY_SEED = {
+    seed: "pi05_rtc_overlap_primary_v3_seed_%d_001" % seed
+    for seed in SAMPLING_SEEDS
+}
 ACTION_HORIZON = 10
 EXECUTE_HORIZON = 5
 INFERENCE_DELAY_STEPS = 4
@@ -388,7 +392,69 @@ def _validate_protocol(protocol: Mapping[str, Any]) -> int:
     return sampling_seed
 
 
-def _validate_environment(environment: Mapping[str, Any]) -> Dict[str, Any]:
+def _expected_environment_command_options(sampling_seed: int) -> Dict[str, str]:
+    return {
+        "--output-dir": "/armbench_results/%s/evaluation"
+        % RUN_ID_BY_SEED[sampling_seed],
+        "--host": "127.0.0.1",
+        "--port": "8001",
+        "--openpi-root": "/app",
+        "--armbench-root": "/armbench",
+        "--task-suite": TASK_SUITE,
+        "--task-ids": "all",
+        "--episode-indices": "2,3,4,5,6",
+        "--sampling-seed": str(sampling_seed),
+        "--environment-seed": "7",
+        "--video-mode": "failures",
+        "--server-startup-timeout-s": "120",
+        "--inference-timeout-s": "600",
+    }
+
+
+def _validate_environment_command(value: Any, sampling_seed: int) -> None:
+    label = "environment.command"
+    if not isinstance(value, list) or not value or any(
+        not isinstance(token, str) or not token for token in value
+    ):
+        raise AnalysisError("%s must be a nonempty string list" % label)
+    if value[0] != "/armbench/integrations/openpi/rtc_overlap_pilot.py":
+        raise AnalysisError("%s program identity mismatch" % label)
+    if len(value) < 2 or value[1] != "run":
+        raise AnalysisError("%s must invoke the run command" % label)
+
+    expected = _expected_environment_command_options(sampling_seed)
+    observed: Dict[str, str] = {}
+    index = 2
+    while index < len(value):
+        option = value[index]
+        if not option.startswith("--"):
+            raise AnalysisError("%s contains an unexpected positional token" % label)
+        if option == "--max-task-steps":
+            raise AnalysisError("%s must not contain --max-task-steps" % label)
+        if option not in expected:
+            raise AnalysisError("%s contains unknown option %s" % (label, option))
+        if option in observed:
+            raise AnalysisError("%s contains duplicate option %s" % (label, option))
+        if index + 1 >= len(value) or value[index + 1].startswith("--"):
+            raise AnalysisError("%s option %s has no value" % (label, option))
+        observed[option] = value[index + 1]
+        index += 2
+
+    missing = sorted(set(expected) - set(observed))
+    if missing:
+        raise AnalysisError(
+            "%s is missing frozen options: %s" % (label, ", ".join(missing))
+        )
+    for option, expected_value in expected.items():
+        if observed[option] != expected_value:
+            raise AnalysisError(
+                "%s frozen value mismatch for %s" % (label, option)
+            )
+
+
+def _validate_environment(
+    environment: Mapping[str, Any], sampling_seed: int
+) -> Dict[str, Any]:
     expected = {
         "schema_version": SOURCE_SCHEMA_VERSION,
         "armbench_commit": FROZEN_ARMBENCH_COMMIT,
@@ -399,6 +465,7 @@ def _validate_environment(environment: Mapping[str, Any]) -> Dict[str, Any]:
     for field, value in expected.items():
         if environment.get(field) != value:
             raise AnalysisError("frozen environment identity mismatch: %s" % field)
+    _validate_environment_command(environment.get("command"), sampling_seed)
 
     source_hashes = environment.get("source_sha256")
     if not isinstance(source_hashes, Mapping):
@@ -708,7 +775,7 @@ def _source_evidence(
     }:
         raise AnalysisError("analysis requires a complete 150-rollout artifact")
     sampling_seed = _validate_protocol(protocol)
-    identity = _validate_environment(environment)
+    identity = _validate_environment(environment, sampling_seed)
     identity["video_mode"] = protocol["video_mode"]
     episodes = _validate_episodes(episodes_json)
     seam_by_episode, sampling_keys = _validate_queries(queries_json, episodes)
@@ -786,6 +853,7 @@ def _source_record(source: SourceEvidence) -> Dict[str, Any]:
             "sampling_key_sha256",
             "sampling_noise_sha256",
         ],
+        "frozen_environment_command_verified": True,
         "raw_protocol_role": (
             "immutable corrected-v3 evaluator field; not the held-out analysis designation"
         ),
