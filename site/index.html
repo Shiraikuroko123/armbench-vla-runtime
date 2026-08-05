@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-lang="zh">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#111111">
+    <meta name="description" content="ArmBench：面向 action-chunk VLA 的时序对齐、运行时验证与可审计评测平台。">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="ArmBench | VLA Runtime & Evaluation">
+    <meta property="og:description" content="Measured-age action-chunk alignment, runtime validation, and audit-ready robotics evidence.">
+    <meta property="og:url" content="https://shiraikuroko123.github.io/armbench-vla-runtime/">
+    <meta property="og:image" content="https://shiraikuroko123.github.io/armbench-vla-runtime/assets/og-armbench.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <title>ArmBench | VLA Runtime &amp; Evaluation</title>
+    <link rel="canonical" href="https://shiraikuroko123.github.io/armbench-vla-runtime/">
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">
+      <span data-lang-content="zh">跳到主要内容</span>
+      <span data-lang-content="en">Skip to content</span>
+    </a>
+
+    <header class="site-header" data-header>
+      <div class="header-inner">
+        <a class="brand" href="#top" aria-label="ArmBench home">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>ArmBench</span>
+        </a>
+
+        <nav class="nav-links" id="site-nav" aria-label="Primary navigation">
+          <a href="#method">
+            <span data-lang-content="zh">方法</span><span data-lang-content="en">Method</span>
+          </a>
+          <a href="#evidence">
+            <span data-lang-content="zh">证据</span><span data-lang-content="en">Evidence</span>
+          </a>
+          <a href="#system">
+            <span data-lang-content="zh">系统</span><span data-lang-content="en">System</span>
+          </a>
+          <a href="#scope">
+            <span data-lang-content="zh">边界</span><span data-lang-content="en">Scope</span>
+          </a>
+          <a href="#review">
+            <span data-lang-content="zh">验收</span><span data-lang-content="en">Review</span>
+          </a>
+        </nav>
+
+        <div class="header-actions">
+          <div class="lang-switch" role="group" aria-label="Language">
+            <button type="button" data-set-lang="zh" aria-pressed="true">中</button>
+            <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+          </div>
+          <a class="icon-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime" target="_blank" rel="noreferrer" aria-label="Open ArmBench on GitHub">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3.3-.4 6.8-1.6 6.8-7A5.4 5.4 0 0 0 19.4 4 5 5 0 0 0 19.3.5S18.2.1 15 1.8a13.4 13.4 0 0 0-7 0C4.8.1 3.7.5 3.7.5A5 5 0 0 0 3.6 4a5.4 5.4 0 0 0-1.4 3.7c0 5.4 3.5 6.6 6.8 7A4.8 4.8 0 0 0 8 18v4"/><path d="M8 19c-3 .9-3-1.5-4-2"/></svg>
+          </a>
+          <button class="menu-button" type="button" aria-controls="site-nav" aria-expanded="false" data-menu-button>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <span class="sr-only">Menu</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <video class="hero-video" muted loop playsinline preload="metadata" poster="assets/media/panda-poster.webp" data-autoplay-video>
+          <source src="assets/media/panda-narrow-gate.mp4" type="video/mp4">
+        </video>
+        <div class="hero-shade" aria-hidden="true"></div>
+        <div class="hero-scan" aria-hidden="true"></div>
+
+        <div class="hero-inner">
+          <p class="system-label hero-label">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span data-lang-content="zh">公开研究构建 · 仿真证据</span>
+            <span data-lang-content="en">Public research build · simulation evidence</span>
+          </p>
+          <h1 id="hero-title">ArmBench</h1>
+          <p class="hero-kicker">
+            <span data-lang-content="zh">让动作块在抵达控制器前，先通过时间检验。</span>
+            <span data-lang-content="en">Make action chunks answer for time.</span>
+          </p>
+          <p class="hero-lede">
+            <span data-lang-content="zh">面向 Physical Intelligence 的 π0.5（pi-zero-point-five）VLA 与七自由度 Panda 验证基座，研究推理延迟如何让动作过期，以及运行时如何选择可执行后缀、拒绝坏响应并保存可审计证据。</span>
+            <span data-lang-content="en">A runtime and evaluation platform for Physical Intelligence's π0.5 VLA and a seven-DoF Panda validation base, studying how inference delay makes actions stale and how a supervisor can select, reject, and audit what reaches control.</span>
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#evidence">
+              <span data-lang-content="zh">查看验证结果</span><span data-lang-content="en">Inspect the evidence</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+            <a class="button button-secondary" href="https://github.com/Shiraikuroko123/armbench-vla-runtime" target="_blank" rel="noreferrer">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3.3-.4 6.8-1.6 6.8-7A5.4 5.4 0 0 0 19.4 4 5 5 0 0 0 19.3.5S18.2.1 15 1.8a13.4 13.4 0 0 0-7 0C4.8.1 3.7.5 3.7.5A5 5 0 0 0 3.6 4a5.4 5.4 0 0 0-1.4 3.7c0 5.4 3.5 6.6 6.8 7A4.8 4.8 0 0 0 8 18v4"/><path d="M8 19c-3 .9-3-1.5-4-2"/></svg>
+              GitHub
+            </a>
+          </div>
+        </div>
+
+        <div class="hero-readout" role="group" aria-label="Frozen protocol readout">
+          <div><span>CONTROL</span><strong>50 ms</strong></div>
+          <div><span>CHUNK</span><strong>10 actions</strong></div>
+          <div><span>DEADLINE</span><strong>250 ms</strong></div>
+          <div class="readout-live"><span>SUPERVISOR</span><strong>FAIL-CLOSED</strong></div>
+        </div>
+        <a class="scroll-cue" href="#method" aria-label="Continue to method">
+          <span data-lang-content="zh">问题从响应返回时开始</span>
+          <span data-lang-content="en">The problem begins when the response returns</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+        </a>
+      </section>
+
+      <section class="section section-paper" id="method" aria-labelledby="method-title">
+        <div class="section-inner">
+          <div class="section-heading">
+            <p class="system-label">RUNTIME QUESTION</p>
+            <h2 id="method-title">
+              <span data-lang-content="zh">模型输出是新的，动作却可能已经旧了。</span>
+              <span data-lang-content="en">The response is new. Its first actions may not be.</span>
+            </h2>
+            <p>
+              <span data-lang-content="zh">Action-chunk 策略用一次观测预测未来多步动作。推理期间控制时钟继续前进；如果仍从索引 0 开始执行，控制器会重放属于过去时刻的动作。</span>
+              <span data-lang-content="en">An action-chunk policy predicts multiple future controls from one observation. The control clock keeps moving during inference; starting at index zero can replay commands intended for time that has already elapsed.</span>
+            </p>
+          </div>
+
+          <div class="timeline-lab" data-timeline-lab>
+            <div class="lab-controls">
+              <div>
+                <label for="age-slider">
+                  <span data-lang-content="zh">观测年龄</span><span data-lang-content="en">Observation age</span>
+                </label>
+                <output for="age-slider" data-age-output>240 ms</output>
+              </div>
+              <input id="age-slider" type="range" min="0" max="400" value="240" step="10" aria-describedby="timeline-note" data-age-slider>
+              <div class="tick-labels" aria-hidden="true"><span>0</span><span>100</span><span>200</span><span>300</span><span>400 ms</span></div>
+            </div>
+
+            <div class="timeline-rows" aria-live="polite">
+              <div class="timeline-row baseline-row">
+                <div class="row-label">
+                  <strong><span data-lang-content="zh">原始执行</span><span data-lang-content="en">Naive dispatch</span></strong>
+                  <span><span data-lang-content="zh">仍从 a0 开始</span><span data-lang-content="en">still starts at a0</span></span>
+                </div>
+                <div class="action-track" data-baseline-track></div>
+              </div>
+              <div class="timeline-row aligned-row">
+                <div class="row-label">
+                  <strong><span data-lang-content="zh">时序对齐</span><span data-lang-content="en">Age aligned</span></strong>
+                  <span data-aligned-description></span>
+                </div>
+                <div class="action-track" data-aligned-track></div>
+              </div>
+            </div>
+
+            <div class="decision-strip">
+              <div><span>ROUNDING</span><strong>ceil(age / 50 ms)</strong></div>
+              <div><span>STALE PREFIX</span><strong data-stale-output>5 actions</strong></div>
+              <div><span>ACTION WINDOW</span><strong data-window-output>a5 → a9</strong></div>
+              <div class="decision-state" data-decision-state><span>DECISION</span><strong>EXECUTE SUFFIX</strong></div>
+            </div>
+            <p class="lab-note" id="timeline-note">
+              <span data-lang-content="zh">这是冻结协议决策规则的交互演示，不会在浏览器中运行模型。超过 250 ms，或剩余动作不足 5 步时，调度器进入有界 refresh / fail-closed 路径。</span>
+              <span data-lang-content="en">This is an interactive rendering of the frozen decision rule, not model inference in the browser. Beyond 250 ms, or when fewer than five actions remain, the scheduler enters a bounded refresh / fail-closed path.</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-ink" id="evidence" aria-labelledby="evidence-title">
+        <div class="section-inner">
+          <div class="section-heading section-heading-light">
+            <p class="system-label">VERIFIED EVIDENCE</p>
+            <h2 id="evidence-title">
+              <span data-lang-content="zh">先给匹配实验，再给结论。</span>
+              <span data-lang-content="en">Matched trials first. Claims second.</span>
+            </h2>
+            <p>
+              <span data-lang-content="zh">主结果固定初始状态、响应 jitter 与 π0.5 flow-sampling noise；所有计划 rollout 都保留在 ITT 分母中，并由保存的 manifest 与验证器重新计算。</span>
+              <span data-lang-content="en">The primary study pairs initial state, response jitter, and explicit π0.5 flow-sampling noise. Every planned rollout remains in the ITT denominator and can be recomputed from preserved manifests and validators.</span>
+            </p>
+          </div>
+
+          <article class="primary-result" aria-labelledby="primary-result-title">
+            <div class="result-copy">
+              <p class="result-kicker">HELD-OUT · LIBERO SPATIAL · 120 MATCHED PAIRS</p>
+              <h3 id="primary-result-title">
+                <span data-lang-content="zh">按观测年龄选择动作后缀</span>
+                <span data-lang-content="en">Observation-age suffix selection</span>
+              </h3>
+              <div class="result-delta"><strong>+23.33</strong><span>percentage points</span></div>
+              <p>
+                <span data-lang-content="zh">同一冻结的官方 π0.5-LIBERO checkpoint，不训练、不微调。Baseline 成功 88/120；时序对齐成功 116/120。</span>
+                <span data-lang-content="en">The same frozen official π0.5-LIBERO checkpoint, with no training or fine-tuning. Baseline succeeds in 88/120 trials; age alignment succeeds in 116/120.</span>
+              </p>
+              <dl class="result-stats">
+                <div><dt>Exact McNemar</dt><dd>p = 1.94e-6</dd></div>
+                <div><dt>Wins / losses / ties</dt><dd>32 / 4 / 84</dd></div>
+                <div><dt>Pair bootstrap 95%</dt><dd>[+15.00, +31.67] pp</dd></div>
+                <div><dt>Scored rollouts</dt><dd>240 / 240</dd></div>
+              </dl>
+              <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/pi05_libero_measured_age_confirmatory_001" target="_blank" rel="noreferrer">
+                <span data-lang-content="zh">检查冻结证据</span><span data-lang-content="en">Inspect frozen evidence</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+              </a>
+            </div>
+
+            <div class="success-chart" role="img" aria-label="Success rate comparison: baseline 73.33 percent, aligned 96.67 percent">
+              <div class="chart-scale" aria-hidden="true"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div>
+              <div class="bar-group">
+                <div class="bar-column">
+                  <div class="bar-value">73.33%</div>
+                  <div class="bar-shell"><i class="bar baseline-bar" style="--bar-height: 73.33%"></i></div>
+                  <span>Async baseline</span>
+                </div>
+                <div class="bar-column">
+                  <div class="bar-value">96.67%</div>
+                  <div class="bar-shell"><i class="bar aligned-bar" style="--bar-height: 96.67%"></i></div>
+                  <span>Age aligned</span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <div class="matched-media" role="group" aria-labelledby="matched-pair-title">
+            <div class="media-heading">
+              <h3 id="matched-pair-title">
+                <span data-lang-content="zh">同一初始状态的匹配案例</span>
+                <span data-lang-content="en">A matched initial-state case</span>
+              </h3>
+              <p>
+                <span data-lang-content="zh">Task 0 · Episode 6。两段视频来自正式 confirmatory artifact；循环长度不同，请用控制条逐段检查。</span>
+                <span data-lang-content="en">Task 0 · Episode 6. Both videos are bound to the confirmatory artifact; loop lengths differ, so use the controls for frame-by-frame review.</span>
+              </p>
+            </div>
+            <figure class="video-case failure-case">
+              <video muted loop playsinline controls preload="metadata" poster="assets/media/pi05-baseline-poster.webp">
+                <source src="assets/media/pi05-baseline-failure.mp4" type="video/mp4">
+              </video>
+              <figcaption><span class="case-status">BASELINE · FAILURE</span><span>async_unguarded</span></figcaption>
+            </figure>
+            <figure class="video-case success-case">
+              <video muted loop playsinline controls preload="metadata" poster="assets/media/pi05-aligned-poster.webp">
+                <source src="assets/media/pi05-aligned-success.mp4" type="video/mp4">
+              </video>
+              <figcaption><span class="case-status">ALIGNED · SUCCESS</span><span>latency_aligned</span></figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-paper cross-suite" aria-labelledby="external-title">
+        <div class="section-inner compact-section">
+          <div class="section-heading split-heading">
+            <div>
+              <p class="system-label">EXTERNAL VALIDATION</p>
+              <h2 id="external-title">
+                <span data-lang-content="zh">换任务集，冻结规则不变。</span>
+                <span data-lang-content="en">New suites. Same frozen rule.</span>
+              </h2>
+            </div>
+            <p>
+              <span data-lang-content="zh">Spatial 主结果之后，协议在 Object、Goal 与 LIBERO-10 上预先冻结。300 个 rollout、150 组匹配比较，三项 suite-level 检验均通过 Holm 校正。</span>
+              <span data-lang-content="en">After the Spatial result, the protocol was frozen for Object, Goal, and LIBERO-10. Across 300 rollouts and 150 pairs, all three suite-level tests reject after Holm correction.</span>
+            </p>
+          </div>
+
+          <div class="suite-chart" role="img" aria-label="Cross-suite success comparison">
+            <div class="suite-row">
+              <div class="suite-name"><strong>LIBERO Object</strong><span>50 pairs</span></div>
+              <div class="suite-bars"><i class="suite-baseline" style="--w:50%"><b>50%</b></i><i class="suite-aligned" style="--w:98%"><b>98%</b></i></div>
+              <div class="suite-delta">+48 pp</div>
+            </div>
+            <div class="suite-row">
+              <div class="suite-name"><strong>LIBERO Goal</strong><span>50 pairs</span></div>
+              <div class="suite-bars"><i class="suite-baseline" style="--w:70%"><b>70%</b></i><i class="suite-aligned" style="--w:94%"><b>94%</b></i></div>
+              <div class="suite-delta">+24 pp</div>
+            </div>
+            <div class="suite-row">
+              <div class="suite-name"><strong>LIBERO-10</strong><span>50 pairs</span></div>
+              <div class="suite-bars"><i class="suite-baseline" style="--w:46%"><b>46%</b></i><i class="suite-aligned" style="--w:90%"><b>90%</b></i></div>
+              <div class="suite-delta">+44 pp</div>
+            </div>
+            <div class="chart-legend"><span><i class="legend-baseline"></i>Async baseline</span><span><i class="legend-aligned"></i>Age aligned</span></div>
+          </div>
+          <p class="pooled-result"><strong>83 / 150 → 141 / 150</strong><span><span data-lang-content="zh">汇总行仅作描述，不计算 pooled p-value。</span><span data-lang-content="en">The pooled row is descriptive; no pooled p-value is computed.</span></span></p>
+        </div>
+      </section>
+
+      <section class="section rtc-band" aria-labelledby="rtc-title">
+        <div class="section-inner rtc-inner">
+          <div class="rtc-copy">
+            <p class="system-label">NULL RESULT PRESERVED</p>
+            <h2 id="rtc-title">
+              <span data-lang-content="zh">工程成熟度，也体现在不把 97 写成胜利。</span>
+              <span data-lang-content="en">Maturity also means not turning 97 into a win.</span>
+            </h2>
+            <p>
+              <span data-lang-content="zh">Corrected-v3 重新创建每个环境，并用四个 query-0 哈希检查配对。Hard projection 与 RTC guidance 都是 97/100，但相对 96/100 baseline 的 Holm-adjusted McNemar p=1.0。</span>
+              <span data-lang-content="en">Corrected-v3 creates a fresh environment per rollout and gates pairing on four query-zero hashes. Hard projection and RTC guidance both reach 97/100, but versus the 96/100 baseline the Holm-adjusted McNemar p-value is 1.0.</span>
+            </p>
+            <div class="null-stamp">
+              <span>SUPPORTED CLAIM</span>
+              <strong><span data-lang-content="zh">没有任务成功率优势</span><span data-lang-content="en">No task-success superiority</span></strong>
+            </div>
+          </div>
+          <div class="rtc-bars" role="img" aria-label="RTC corrected-v3 success: baseline 96, hard projection 97, RTC guidance 97 out of 100">
+            <div><span>Unconditioned</span><i style="--value:96%"></i><strong>96/100</strong></div>
+            <div><span>Hard projection</span><i style="--value:97%"></i><strong>97/100</strong></div>
+            <div><span>RTC guidance</span><i style="--value:97%"></i><strong>97/100</strong></div>
+            <small><span data-lang-content="zh">Motion seam 的下降仅为探索性过程证据，不是安全或任务成功主张。</span><span data-lang-content="en">Lower motion seam is exploratory process evidence, not a safety or task-success claim.</span></small>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-white" id="system" aria-labelledby="system-title">
+        <div class="section-inner">
+          <div class="section-heading">
+            <p class="system-label">SYSTEM ARCHITECTURE</p>
+            <h2 id="system-title">
+              <span data-lang-content="zh">一个运行时契约，两条独立验证路径。</span>
+              <span data-lang-content="en">One runtime contract. Two separately validated paths.</span>
+            </h2>
+            <p>
+              <span data-lang-content="zh">共享的是响应验证、时序监督、日志与证据工具；不同的是动作空间、执行环境与可声称的结果。</span>
+              <span data-lang-content="en">Response validation, temporal supervision, telemetry, and evidence tooling are shared. Action spaces, execution environments, and claims are not.</span>
+            </p>
+          </div>
+
+          <div class="pipeline" role="group" aria-label="ArmBench runtime pipeline">
+            <div class="pipeline-node"><span>OBS</span><strong>Observation</strong><small>images · state · language</small></div>
+            <svg viewBox="0 0 64 20" aria-hidden="true"><path d="M2 10h56M50 3l8 7-8 7"/></svg>
+            <div class="pipeline-node"><span>POLICY</span><strong>Policy response</strong><small>action chunk · timestamps</small></div>
+            <svg viewBox="0 0 64 20" aria-hidden="true"><path d="M2 10h56M50 3l8 7-8 7"/></svg>
+            <div class="pipeline-node pipeline-core"><span>CHECK</span><strong>Runtime supervisor</strong><small>age · shape · finite · state</small></div>
+            <svg viewBox="0 0 64 20" aria-hidden="true"><path d="M2 10h56M50 3l8 7-8 7"/></svg>
+            <div class="pipeline-node"><span>TRACE</span><strong>Trace &amp; evidence</strong><small>actions · video · manifest</small></div>
+          </div>
+
+          <div class="system-paths">
+            <article class="system-path official-path">
+              <div class="path-header"><span>PATH A · OFFICIAL CHECKPOINT</span><b>PRIMARY METHOD EVIDENCE</b></div>
+              <h3>Physical Intelligence π0.5 VLA → LIBERO</h3>
+              <p>
+                <span data-lang-content="zh">OpenPI 调用经 attestation 的官方 checkpoint，使用官方 transforms 与 10 步 action horizon，在 LIBERO 闭环仿真中评估时序干预。</span>
+                <span data-lang-content="en">OpenPI serves the attested official checkpoint with its native transforms and ten-action horizon; LIBERO closed-loop simulation evaluates the temporal intervention.</span>
+              </p>
+              <ul>
+                <li>4 LIBERO suites / 40 fixed tasks</li>
+                <li>Paired jitter and explicit sampling noise</li>
+                <li>Frozen protocols, exact tests, bound videos</li>
+              </ul>
+            </article>
+            <article class="system-path panda-path">
+              <div class="path-header"><span>PATH B · LOCAL VALIDATION</span><b>ENGINEERING EVIDENCE</b></div>
+              <div class="panda-media">
+                <video muted loop playsinline controls preload="metadata" poster="assets/media/panda-poster.webp">
+                  <source src="assets/media/panda-narrow-gate.mp4" type="video/mp4">
+                </video>
+              </div>
+              <h3>Seven-DoF Panda → MuJoCo</h3>
+              <p>
+                <span data-lang-content="zh">本地路径验证 RRT-Connect / RRT*、时间参数化、PD / LQR 跟踪、动作约束、碰撞采样检查、响应故障和有界 hold。</span>
+                <span data-lang-content="en">The local path validates RRT-Connect / RRT*, time parameterization, PD / LQR tracking, action limits, sampled collision checks, response faults, and bounded hold behavior.</span>
+              </p>
+            </article>
+          </div>
+
+          <div class="integration-gap">
+            <span class="gap-line" aria-hidden="true"></span>
+            <p><strong>INTEGRATION GAP</strong><span><span data-lang-content="zh">当前没有经过验证的 π0.5 → Panda 动作适配与端到端部署。</span><span data-lang-content="en">There is no verified π0.5 → Panda action adapter or end-to-end deployment yet.</span></span></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section scope-band" id="scope" aria-labelledby="scope-title">
+        <div class="section-inner">
+          <div class="section-heading section-heading-light split-heading">
+            <div>
+              <p class="system-label">CLAIM BOUNDARIES</p>
+              <h2 id="scope-title">
+                <span data-lang-content="zh">网页展示证据，也展示证据到不了的地方。</span>
+                <span data-lang-content="en">The page shows the evidence and where it stops.</span>
+              </h2>
+            </div>
+            <p>
+              <span data-lang-content="zh">这些边界不是免责声明装饰，而是架构的一部分：面试官、复现者和未来协作者可以据此判断下一步实验究竟缺什么。</span>
+              <span data-lang-content="en">These are not decorative disclaimers. They are part of the architecture, telling reviewers and future collaborators exactly what the next experiment must add.</span>
+            </p>
+          </div>
+
+          <div class="scope-grid">
+            <div class="scope-column scope-proven">
+              <h3><span class="scope-icon">✓</span><span data-lang-content="zh">当前已验证</span><span data-lang-content="en">Validated now</span></h3>
+              <ul>
+                <li><span data-lang-content="zh">冻结 π0.5 checkpoint 的 LIBERO 仿真时序结果</span><span data-lang-content="en">LIBERO timing results with a frozen π0.5 checkpoint</span></li>
+                <li><span data-lang-content="zh">匹配随机性、exact test 与 artifact 完整性</span><span data-lang-content="en">Paired randomness, exact tests, and artifact integrity</span></li>
+                <li><span data-lang-content="zh">Panda 本地规划、跟踪、guard 与故障路径</span><span data-lang-content="en">Local Panda planning, tracking, guards, and fault paths</span></li>
+                <li><span data-lang-content="zh">无需 GPU 的离线证据复验</span><span data-lang-content="en">GPU-free offline evidence acceptance</span></li>
+              </ul>
+            </div>
+            <div class="scope-column scope-not-proven">
+              <h3><span class="scope-icon">×</span><span data-lang-content="zh">当前不能声称</span><span data-lang-content="en">Not established</span></h3>
+              <ul>
+                <li><span data-lang-content="zh">真机、硬实时或碰撞安全认证</span><span data-lang-content="en">Real robot, hard real time, or collision-safety certification</span></li>
+                <li><span data-lang-content="zh">π0.5 已控制 Panda，或两条路径结果可以合并</span><span data-lang-content="en">π0.5 controls Panda, or evidence from both paths can be pooled</span></li>
+                <li><span data-lang-content="zh">跨 VLA checkpoint 的普适性</span><span data-lang-content="en">Generality across VLA checkpoints</span></li>
+                <li><span data-lang-content="zh">训练、微调、Isaac Lab 或 ROS2 集成</span><span data-lang-content="en">Training, fine-tuning, Isaac Lab, or ROS2 integration</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-paper" id="review" aria-labelledby="review-title">
+        <div class="section-inner review-inner">
+          <div class="section-heading split-heading">
+            <div>
+              <p class="system-label">REVIEW THE WORK</p>
+              <h2 id="review-title">
+                <span data-lang-content="zh">不用 GPU，也能验收保存的核心证据。</span>
+                <span data-lang-content="en">Review the core evidence without a GPU.</span>
+              </h2>
+            </div>
+            <p>
+              <span data-lang-content="zh">下面两条 Windows 命令验证 artifact、重新计算统计量并重建离线 dashboard；它们不会重新运行模型推理。</span>
+              <span data-lang-content="en">These Windows commands validate artifacts, recompute statistics, and rebuild offline dashboards. They do not rerun policy inference.</span>
+            </p>
+          </div>
+
+          <div class="command-list">
+            <div class="command-row">
+              <div><span>MEASURED-AGE CONFIRMATORY</span><code>.\scripts\measured_age_confirmatory_acceptance.cmd</code></div>
+              <button type="button" class="copy-button" data-copy=".\scripts\measured_age_confirmatory_acceptance.cmd" aria-label="Copy measured-age acceptance command">
+                <svg class="copy-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <svg class="check-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+              </button>
+            </div>
+            <div class="command-row">
+              <div><span>RTC CORRECTED-V3</span><code>.\scripts\rtc_primary_acceptance.cmd</code></div>
+              <button type="button" class="copy-button" data-copy=".\scripts\rtc_primary_acceptance.cmd" aria-label="Copy RTC acceptance command">
+                <svg class="copy-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <svg class="check-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="review-links">
+            <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/RESULTS.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">完整数值记录</span><span data-lang-content="en">Verified results</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+            <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/PROJECT_ARCHITECTURE.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">架构与主张边界</span><span data-lang-content="en">Architecture &amp; claim boundaries</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+            <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/DEBUGGING.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">调试手册</span><span data-lang-content="en">Debugging guide</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+          </div>
+
+          <details class="landscape-details">
+            <summary><span data-lang-content="zh">查看与相关方法的研究定位</span><span data-lang-content="en">View the research-method landscape</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+            <div class="landscape-body">
+              <img src="assets/media/method-landscape.webp" alt="ArmBench compared with RTC, OpenVLA-OFT, DPPO, and HIL-SERL across adaptation locus, learning signal, latency question, and evidence domain" loading="lazy">
+              <p><span data-lang-content="zh">该图用于说明方法差异与仍缺少的投稿级证据，不表示 ArmBench 已发表或达到同等结论范围。</span><span data-lang-content="en">This map separates method choices and publication gaps; it does not imply that ArmBench is peer reviewed or supports the same evidence scope.</span></p>
+            </div>
+          </details>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><strong>ArmBench</strong></div>
+        <p><span data-lang-content="zh">Action-chunk VLA 运行时与评测平台。MIT License。</span><span data-lang-content="en">Runtime and evaluation for action-chunk VLA policies. MIT License.</span></p>
+        <a href="#top"><span data-lang-content="zh">返回顶部</span><span data-lang-content="en">Back to top</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></a>
+      </div>
+    </footer>
+  </body>
+</html>

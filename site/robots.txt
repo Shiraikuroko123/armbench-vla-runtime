@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://shiraikuroko123.github.io/armbench-vla-runtime/sitemap.xml
