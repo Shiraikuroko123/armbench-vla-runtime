@@ -1,0 +1,81 @@
+{
+  "files": [
+    {
+      "bytes": 3397,
+      "path": "environment.json",
+      "sha256": "21b359545bdaa63ed315b6d67df7941555c09dd024866ee6c55da321cc48b087"
+    },
+    {
+      "bytes": 138684,
+      "path": "episodes.json",
+      "sha256": "130d77ef85d3f23cd67ac29693791c03f1ecc9f8309472d296af5b603eafab9b"
+    },
+    {
+      "bytes": 61,
+      "path": "progress.json",
+      "sha256": "881bed4c0cfae0e8a42b28be923f9a6cbb98d47c297c93ff0368494e717b4b22"
+    },
+    {
+      "bytes": 14882335,
+      "path": "queries.json",
+      "sha256": "1529b50dd9923cc4f4c7e65e206c04a5c7cc518d6038f9b113e62a773c78c336"
+    },
+    {
+      "bytes": 53564,
+      "path": "resolved_protocol.json",
+      "sha256": "cb9f512d1a508ce6c88a5e6db50f68fdc9d49b5bdec0d47ff767aa903e829406"
+    },
+    {
+      "bytes": 1451,
+      "path": "summary.json",
+      "sha256": "7e4414820dab9f45af7dd6115aa551c0334da839af78251a1cfc387210597de7"
+    },
+    {
+      "bytes": 774,
+      "path": "summary.md",
+      "sha256": "a1a85db4c79fa2844322b52232f59df2f40be447aa556c9990e612a9e219c8c3"
+    },
+    {
+      "bytes": 1594847,
+      "path": "transition_descriptor.json",
+      "sha256": "78a47f641c05e0f448f116b4d8312a5d6e00325afbaa0725391dc49a825b718d"
+    },
+    {
+      "bytes": 4968786,
+      "path": "transitions.npz",
+      "sha256": "00e2daf5915d7651a09b351ac2471b90be55e9c7c7a31d011fe1bfbfa9937eb6"
+    },
+    {
+      "bytes": 166876,
+      "path": "videos/libero_10__task_04__episode_02__overlap_unconditioned__failure.mp4",
+      "sha256": "8efe3d28bf955940c40ec8ceb53d4f90997d26447f8e63e8567975bf12db60ad"
+    },
+    {
+      "bytes": 161301,
+      "path": "videos/libero_10__task_04__episode_02__rtc_guided_overlap__failure.mp4",
+      "sha256": "4c664689c1fc66d6ceb44591a2399facd82fc278620d6f89e1b7f65c5638508a"
+    },
+    {
+      "bytes": 254009,
+      "path": "videos/libero_10__task_06__episode_05__projected_overlap__failure.mp4",
+      "sha256": "8250b84faffee86496dda8d0063319055b8b13bfb039d4d081785be1e31ec2a6"
+    },
+    {
+      "bytes": 228303,
+      "path": "videos/libero_10__task_08__episode_02__projected_overlap__failure.mp4",
+      "sha256": "6de9734de9fb058a6eb40d9f2ae6dafddc8103d3704d8c2e98f60b74ef596a62"
+    },
+    {
+      "bytes": 215255,
+      "path": "videos/libero_10__task_08__episode_03__overlap_unconditioned__failure.mp4",
+      "sha256": "55fde25a250d86184f4d8b1150c620ee268f55df69e35fb11feab8684dc4ac67"
+    },
+    {
+      "bytes": 242609,
+      "path": "videos/libero_10__task_09__episode_05__rtc_guided_overlap__failure.mp4",
+      "sha256": "29d8e644e26a7cc271a18946ae8e56bbda6ef562e22f87ff728ead88ef5fa7be"
+    }
+  ],
+  "files_sha256": "4dad8349f2410fbb18f1f0b65421e199eacf0f2cb6fe3b621365d5b695cd995c",
+  "schema_version": "armbench.root_manifest.v1"
+}
