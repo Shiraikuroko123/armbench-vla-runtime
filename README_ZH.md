@@ -1,188 +1,127 @@
 [English](README.md) | 简体中文
 
-# ArmBench：面向 VLA 动作块的时序对齐与 RTC 运行时
+# ArmBench
 
-ArmBench 是一个 VLA 部署与评测工程，研究异步推理返回的 action chunk
-在真正开始执行时已经部分过期的问题。项目不训练 pi0.5，而是在模型与
-机器人仿真器之间实现训练无关的运行时调度、动作约束、故障注入、配对实验
-和可复现证据链。
+面向动作块式视觉—语言—动作策略的可复现运行时评测系统。
 
-当前仓库同时保留两条明确分开的路径：
+ArmBench 研究两个部署问题：推理期间逐渐过期的动作块，以及已提交动作与
+新采样动作之间的不连续性。仓库包含基于官方 pi0.5/LIBERO checkpoint 的
+闭环研究，也提供本地 MuJoCo/Panda 运行时，用于协议验证、故障注入和逐动作
+分析。
 
-- Linux/NVIDIA 正式实验路径：运行 Physical Intelligence 官方
-  pi05_libero checkpoint，在 LIBERO 上评测时序对齐、projected overlap
-  和 RTC-style VJP guidance。
-- Windows 本地工程路径：在 MuJoCo Franka Panda 上验证 OpenPI/DROID
-  协议、动作块保护、闭环反馈、碰撞与故障处理。该路径的内置策略明确标记为
-  scripted_non_learned，不能冒充真实 VLA 结果。
+> 项目状态：研究原型。仓库提供官方 pi0.5 checkpoint 的已验证仿真证据，
+> 但不包含 pi0.5 训练、操作系统硬实时保证、碰撞安全认证或真实机器人结果。
 
-两条路径的 observation、action semantics 和实验结论不混用。
+## 问题定义
 
-## 项目解决了什么问题
+动作块式策略根据一次观测预测多个未来控制量。如果推理消耗 d 个控制周期，
+响应到达时，前 d 个动作对应的时间已经过去。仍从索引 0 开始执行，会使
+机器人控制与生成动作时使用的观测发生时序错位。
 
-VLA 通常一次输出一段动作，而不是单步动作。若推理消耗 d 个控制周期，返回
-动作块的前 d 个动作在执行时已经对应过去的观测。直接从索引 0 执行会造成
-时序错位、重复运动甚至任务失败。
+ArmBench 分别评测两类互补方法：
 
-ArmBench 的 latency_aligned dispatcher 会跳过与观测年龄相匹配的过期前缀，
-只执行后面的有效动作，不修改 checkpoint 权重。measured-age 扩展进一步使用
-客户端实际测得的端到端观测年龄，而不是依赖隐藏的注入延迟标签。
+1. 时序对齐：根据观测年龄选择动作块后缀。该方法位于策略外部，不修改
+   checkpoint 权重。
+2. Projected overlap 与 RTC-style guidance：进入 pi0.5 flow sampler，
+   根据控制器已经承诺执行的动作约束新动作块。
 
-项目还研究了第二条、彼此独立的路线：进入 pi0.5 flow sampler 内部，对已经
-承诺的 overlap 动作分别进行 hard projection 或 RTC-style denoised-action
-VJP guidance。该路线研究动作连续性，不应与前缀跳过调度混称为同一种方法。
+两类方法采用不同的调度语义，因此作为独立方法和独立实验进行报告。
 
-## 系统边界
+## 系统架构
 
 ~~~text
-相机图像 + 语言指令 + 机器人状态
-                  |
-                  v
-       官方 pi0.5 / OpenPI server
-                  |
-                  v
-              action chunk
-                  |
-                  v
-观测年龄对齐 / overlap guidance / deadline 与状态检查
-                  |
-                  v
-       LIBERO 或 MuJoCo 机器人执行
-                  |
-                  v
-视频、逐动作记录、统计分析、manifest 与离线 dashboard
+图像 + 语言指令 + 机器人状态
+                 |
+                 v
+        pi0.5 / OpenPI 策略
+                 |
+                 v
+              动作块
+                 |
+                 v
+       时序对齐或 overlap guidance
+                 |
+                 v
+ deadline、状态、运动学与碰撞检查
+                 |
+                 v
+         LIBERO 或 MuJoCo 执行
+                 |
+                 v
+轨迹 + 视频 + 统计分析 + 内容清单
 ~~~
 
-ArmBench 位于策略与执行器之间。pi0/pi0.5 负责生成动作，LIBERO、MuJoCo
-或 Isaac Lab 负责模拟动作产生的物理结果，它们不是互相替代的软件。
+仓库包含两条相互隔离的执行路径：
 
-## 已实现的核心能力
+| 路径 | 用途 | 策略来源 | 执行环境 |
+| --- | --- | --- | --- |
+| 官方 checkpoint 评测 | 闭环方法评测 | 经过 attestation 的 pi05_libero checkpoint | Linux/NVIDIA 上的 LIBERO |
+| 本地运行时验证 | 协议、保护器与故障响应 | OpenPI server 或明确标记的确定性测试夹具 | Windows/CPU 上的 MuJoCo Panda |
 
-- 官方 pi05_libero checkpoint 的容器化评测、checkpoint/source attestation
-  和完整 LIBERO 任务矩阵。
-- 训练无关的 action-chunk 时序对齐、短 chunk 拒绝、deadline 回退和
-  measured-age 调度。
-- pi0.5 flow sampler 内的 hard projected overlap 与 RTC-style VJP guidance，
-  不微调模型权重。
-- 配对随机种子、显式 flow sampling noise、McNemar 检验、bootstrap 区间、
-  Holm 多重比较校正和任务块统计。
-- 只读验证器、SHA-256 manifest、失败关闭规则、视频哈希绑定和可离线重建的
-  可视化 dashboard。
-- MuJoCo Franka Panda 双相机观测、15x8 DROID 动作协议、速度/加速度/关节
-  约束、mesh-edge 检查、动作 backtracking 和 torque PD 执行。
-- OpenPI WebSocket/MessagePack 客户端以及 wrong-shape、nonfinite、
-  disconnect、timeout、冻结相机、状态跳变和 deadline miss 故障注入。
-- 在线 receding-horizon 循环：每轮重新采集真实仿真状态和两路图像，再请求
-  下一段动作。
+两条路径的动作语义和实验结果不会混合统计。
 
-## 当前最重要的实验结果
+## 已实现组件
 
-### 1. corrected-v3 RTC overlap 主实验
+- 训练无关的固定延迟与 measured-age 动作块时序对齐。
+- 固定 pi0.5 flow sampler 内的 hard projected overlap 和 RTC-style
+  denoised-action VJP guidance。
+- 带 checkpoint/source attestation、显式采样噪声和匹配闭环条件的
+  OpenPI 评测流程。
+- 严格的观测/动作契约、有界 WebSocket 推理、deadline latch、状态一致性
+  检查和失败关闭监督器。
+- Panda 关节、速度、加速度、夹爪与采样 mesh-edge 检查，以及动作
+  backtracking。
+- MuJoCo 双相机反馈、力矩控制执行，以及可复现的传感器、传输、状态和
+  延迟故障注入。
+- 只读验证器、内容寻址 manifest、配对统计分析和离线视频 dashboard。
 
-corrected-v3 使用 10 个 LIBERO-10 任务、每任务 5 个初始状态、2 个新采样
-种子和 3 种方法，共 300 个 rollout、100 个匹配 triplet。
+## 已验证研究
 
-| 方法 | 成功率 | motion seam 均值 | gripper seam 均值 |
-| --- | ---: | ---: | ---: |
-| Unconditioned overlap | 96/100 | 0.106729 | 0.053754 |
-| Hard projected overlap | 97/100 | 0.083089 | 0.055490 |
-| RTC-guided overlap | 97/100 | 0.087204 | 0.043190 |
+下表中的每一行都是独立注册或探索性研究；不同协议的结果不合并统计。
 
-两种 conditioned 方法相对 baseline 都只增加 1 个百分点，raw/Holm exact
-McNemar 均为 p=1.0，因此不能宣称任务成功率提升。
+| 研究 | 矩阵 | 主要结果 | 结论范围 |
+| --- | ---: | --- | --- |
+| 确定性时序对齐 | 300 rollouts / 150 pairs | 200 ms 下，异步执行 18/50，对齐执行 50/50；差异 +64 个百分点，bootstrap 95% CI [+50,+76]，Holm 校正 McNemar p=1.40e-9 | 支持确定性注入 LIBERO 延迟下的后缀对齐 |
+| Measured-age 确认实验 | 240 rollouts / 120 pairs | 基线 88/120，对齐 116/120；差异 +23.33 个百分点，pair bootstrap 95% CI [+15.00,+31.67]，McNemar p=1.94e-6 | 支持配对响应抖动和策略噪声条件下的观测年龄对齐 |
+| 跨 suite 验证 | 300 rollouts / 150 pairs | 描述性汇总为异步 83/150、对齐 141/150；Object、Goal、LIBERO-10 三项检验均通过 Holm 校正 | 将确定性延迟证据扩展到三个额外任务 suite |
+| Corrected-v3 RTC overlap | 300 rollouts / 100 triplets | Unconditioned 96/100，hard projection 97/100，RTC 97/100；两项成功率比较的 Holm 校正 p=1.0 | 未证明任务成功率优势；motion seam 结果仅为探索性证据 |
+| Hard-projection pilot | 40 rollouts / 20 pairs | Unconditioned 19/20，projected 18/20；McNemar p=1.0 | 仅支持集成与机制检查 |
 
-探索性的 motion seam 差异为：
+完整 provenance、置信区间、运行时指标和各研究限制见
+[结果记录](docs/RESULTS.md)。
 
-- hard projection：-0.023640，任务块 95% CI
-  [-0.028187, -0.019207]；
-- RTC guidance：-0.019524，任务块 95% CI
-  [-0.023128, -0.016142]。
+### Corrected-v3 配对修复
 
-seam 是过程指标，不是碰撞安全、任务成功率或真实部署有效性的证明。
+最初的 RTC v2 比较在不同方法之间复用了同一个 LIBERO environment。
+后续不变量审计发现，任务 3、8、9 在声明状态、prompt、sampling key 和
+sampling noise 相同的情况下，query-zero 的策略图像和动作仍然不同。因此，
+v2 artifact 仅作为审计记录保留，不进入方法效果估计。
 
-#### 为什么 v2 作废而 v3 有效
+Corrected-v3 为每个 rollout 创建独立 environment，并要求同一方法 triplet
+内四类 query-zero 哈希完全一致：策略输入、响应动作、sampling key 和
+sampling noise。300-rollout v3 矩阵使用 held-out seeds 完整重跑，没有
+合并或修补 v2 结果。
 
-实验阶段在工程目标上是层层递进的，但证据有效性取决于配对不变量。v2 复用
-同一个 LIBERO environment；后续审计发现任务 3、8、9 在 reset 后仍残留不同
-视觉状态。虽然 declared state、prompt、sampling key 和 sampling noise
-相同，三种方法在 query-0 接收到的两幅策略图像及其动作却不相同。
+详细信息见[配对审计](docs/research/RTC_OVERLAP_PAIRING_AUDIT_20260805.md)、
+[修正协议](docs/research/RTC_OVERLAP_PRIMARY_300_V3_PROTOCOL.md)和
+[中文验收指南](docs/RTC_OVERLAP_PRIMARY_V3_ACCEPTANCE_ZH.md)。
 
-这破坏了“唯一变化是被比较方法”的因果前提。v2 不是因为数值与 v3 不一致
-而被删除，而是因为配对设计无效而被排除。corrected-v3 为每个 rollout
-创建并关闭一个新 environment，并在写入根 manifest 前强制核对以下四类
-query-0 哈希：
+## 验收已保存的结果
 
-- policy input；
-- response action；
-- sampling key；
-- sampling noise。
+以下流程验证保存的 artifact 并重新生成本地 dashboard，不会重新执行策略
+推理，因此不需要 GPU。
 
-v3 重新运行完整 held-out 矩阵，没有合并、筛选或修补 v2 结果。详细中文
-验收说明见
-[RTC corrected-v3 验收指南](docs/RTC_OVERLAP_PRIMARY_V3_ACCEPTANCE_ZH.md)。
-
-### 2. pi0.5-LIBERO 确认性时序对齐实验
-
-冻结实验覆盖全部 10 个 LIBERO Spatial 任务、每任务 5 个初始状态、两种
-dispatch mode 和 0/100/200 ms 三档确定性延迟，共 300 个 rollout。
-
-| 延迟 | Async 成功 | Aligned 成功 | 配对差异，bootstrap 95% CI | McNemar raw / Holm |
-| ---: | ---: | ---: | ---: | ---: |
-| 0 ms | 49/50 | 50/50 | +2 点 [0, +6] | 1.000 / 1.000 |
-| 100 ms | 41/50 | 48/50 | +14 点 [+2, +26] | 0.0654 / 0.1309 |
-| 200 ms，主条件 | 18/50 | 50/50 | +64 点 [+50, +76] | 4.66e-10 / 1.40e-9 |
-
-该结论仅支持“在 LIBERO 仿真中，面对确定性注入的 200 ms 延迟，跳过过期
-动作前缀优于从索引 0 执行”。它不是硬实时保证或真机结论。
-
-### 3. measured-age held-out 确认实验
-
-240-rollout held-out 实验将 response jitter 和显式 10x32 pi0.5 flow
-sampling noise 在两种模式间配对。成功率从 88/120 提升到 116/120：
-
-- 配对差异 +23.33 个百分点；
-- pair bootstrap 95% CI [+15.00, +31.67]；
-- 32/4/84 wins/losses/ties；
-- exact McNemar p=1.94e-6；
-- mean policy queries 从 22.75 降到 15.14。
-
-实验仍然采用 blocking inference 和响应后的 simulator catch-up，不代表
-真正独立运行的控制与推理线程。
-
-### 4. 跨 suite 外部验证
-
-冻结同一 checkpoint、200 ms 延迟和五步执行 horizon 后，在 LIBERO Object、
-Goal 和 LIBERO-10 上额外运行 300 个 rollout：
-
-| Suite | Async | Aligned | 配对差异，bootstrap 95% CI | McNemar raw / Holm |
-| --- | ---: | ---: | ---: | ---: |
-| LIBERO Object | 25/50 | 49/50 | +48 点 [+34, +62] | 8.05e-7 / 2.41e-6 |
-| LIBERO Goal | 35/50 | 47/50 | +24 点 [+10, +38] | 0.00418 / 0.00418 |
-| LIBERO-10 | 23/50 | 45/50 | +44 点 [+26, +60] | 2.74e-5 / 5.49e-5 |
-
-三项预先指定的 suite-level 检验都在 Holm 校正后拒绝零假设。不能把该结果
-外推到其他 checkpoint、真实网络抖动或真实机器人。
-
-## 最快的可视化验收
-
-所有正式实验已经保存到仓库或 GitHub Release。验收不需要重新租 GPU、
-训练模型或重跑 rollout。
-
-### RTC corrected-v3
-
-在任意 Windows 目录运行：
+在 Windows 仓库根目录运行：
 
 ~~~powershell
-D:\arm-planning-control-project\project\scripts\rtc_primary_acceptance.cmd
+.\scripts\rtc_primary_acceptance.cmd
+.\scripts\measured_age_confirmatory_acceptance.cmd
+& '..\.venv\Scripts\python.exe' -m integrations.openpi.acceptance_dashboard --open
+& '..\.venv\Scripts\python.exe' -m integrations.openpi.cross_suite_dashboard --open
 ~~~
 
-只验证、不自动打开浏览器：
-
-~~~powershell
-D:\arm-planning-control-project\project\scripts\rtc_primary_acceptance.cmd -NoOpen
-~~~
-
-有效输出应包含：
+两个命令脚本都支持 -NoOpen，用于只验证而不打开浏览器。有效的 RTC 验收
+输出包含：
 
 ~~~text
 valid=true
@@ -192,76 +131,28 @@ failure_videos_verified=10
 tasks=10
 ~~~
 
-生成的 dashboard 位于
-[reports/pi05_rtc_overlap_primary_v3_300_001/index.html](reports/pi05_rtc_overlap_primary_v3_300_001/index.html)。
+生成的页面保存在 reports/，可以完全离线查看。
 
-### 五分钟面试验收
+## 本地安装
 
-~~~powershell
-D:\arm-planning-control-project\project\scripts\interview_acceptance.cmd
-~~~
-
-该入口重新验证正式时序对齐证据及 300 个视频，然后打开 baseline/aligned
-并排 dashboard。
-
-### measured-age 确认实验
+已验证的 Windows 环境使用 Python 3.10.8。虚拟环境和 MuJoCo Menagerie
+位于仓库同级的工作区目录。
 
 ~~~powershell
-D:\arm-planning-control-project\project\scripts\measured_age_confirmatory_acceptance.cmd
+$Workspace = 'D:\arm-planning-control-project'
+Set-Location $Workspace
+
+git clone https://github.com/Shiraikuroko123/armbench-vla-runtime.git project
+git clone --filter=blob:none --no-checkout https://github.com/google-deepmind/mujoco_menagerie.git upstream\mujoco_menagerie
+git -C upstream\mujoco_menagerie sparse-checkout init --cone
+git -C upstream\mujoco_menagerie sparse-checkout set franka_emika_panda
+git -C upstream\mujoco_menagerie checkout 71f066ad0be9cd271f7ed58c030243ef157af9f4
+
+py -3.10 -m venv .venv
+& .\.venv\Scripts\python.exe -m pip install --editable '.\project[test,vla]'
 ~~~
 
-它会验证 271 个根文件、261 个嵌套 evaluation 文件和全部 240 个视频，
-重新计算统计量并生成 120 对视频的离线页面。以上命令都支持 -NoOpen。
-
-## pi0、pi0.5、Isaac Lab 与本项目的区别
-
-| 组件 | 作用 | 本项目是否使用 |
-| --- | --- | --- |
-| pi0 / pi0.5 | 从图像、语言和状态生成 action chunk 的学习式 VLA | 是，正式实验使用官方 pi05_libero checkpoint |
-| OpenPI | 官方模型代码、checkpoint、transforms 与远程协议 | 是，固定版本并验证 |
-| LIBERO | 官方 pi0.5 使用的操作基准 | 是 |
-| MuJoCo | CPU 可运行的刚体仿真器 | 是，本地 Panda 工程路径 |
-| Isaac Gym | NVIDIA 旧版 GPU 仿真/RL 栈 | 否 |
-| Isaac Lab | NVIDIA Omniverse 机器人仿真与训练框架 | 否 |
-| ArmBench | 位于 VLA 与仿真执行器之间的运行时及评测层 | 本仓库 |
-
-没有使用 Isaac Lab 不代表没有使用 VLA。Isaac Lab 适合 GPU 并行 rollout、
-RL 和更大规模动力学实验；当前项目的主要贡献是 VLA 运行时、真实 pi0.5
-闭环评测和证据工程，而不是训练策略。若申请 RL/大规模仿真岗位，Isaac Lab
-或 RL 扩展仍是后续工作。
-
-## 支持的设备
-
-| 层 | 已验证或要求的环境 |
-| --- | --- |
-| 本地 guard benchmark | Windows、Python 3.10.8、Intel i9-12900H、Intel Iris Xe |
-| MuJoCo physics/rendering | CPU + OpenGL，不要求 NVIDIA GPU 或 CUDA |
-| OpenPI 客户端 | Windows 本机，WebSocket + MessagePack |
-| pi0/pi0.5 server | 单独的 Ubuntu/NVIDIA 机器；官方说明推理需要超过 8 GB VRAM |
-| Franka Panda 真机 | 尚未实现 ROS2、libfranka、标定、watchdog 或安全 PLC |
-| 其他机器人本体 | 不能直接即插即用，需要修改 observation/action transform 和 MJCF |
-
-已经保存的 dashboard 与证据验收只需要本地 CPU。只有重新运行官方
-pi0.5 rollout 时才需要 NVIDIA GPU。
-
-## Windows 本地配置
-
-以下命令假定工作区位于 D:\arm-planning-control-project。不要在
-C:\WINDOWS\system32 中使用相对路径寻找虚拟环境。
-
-~~~powershell
-$ArmbenchWorkspace = 'D:\arm-planning-control-project'
-Set-Location $ArmbenchWorkspace
-git clone --filter=blob:none --no-checkout https://github.com/google-deepmind/mujoco_menagerie.git '.\upstream\mujoco_menagerie'
-git -C '.\upstream\mujoco_menagerie' sparse-checkout init --cone
-git -C '.\upstream\mujoco_menagerie' sparse-checkout set franka_emika_panda
-git -C '.\upstream\mujoco_menagerie' checkout 71f066ad0be9cd271f7ed58c030243ef157af9f4
-py -3.10 -m venv '.venv'
-$ArmbenchPython = Join-Path $ArmbenchWorkspace '.venv\Scripts\python.exe'
-& $ArmbenchPython -m pip install --editable '.\project[test,vla]'
-~~~
-
-如果环境已经配置好，可以从任意目录使用绝对路径：
+如果工作区已经存在，可以从任意 PowerShell 目录调用自定位脚本：
 
 ~~~powershell
 & 'D:\arm-planning-control-project\project\scripts\vla_demo.cmd' -CheckOnly
@@ -269,87 +160,91 @@ $ArmbenchPython = Join-Path $ArmbenchWorkspace '.venv\Scripts\python.exe'
 & 'D:\arm-planning-control-project\project\scripts\vla_demo.cmd' -Formal
 ~~~
 
-- CheckOnly：检查依赖、场景、相机、协议、guard 和 artifact；
-- 默认：运行单场景 smoke，不生成视频；
-- Formal：运行两个场景并生成三个 MP4。
-
-运行全部测试：
-
-~~~powershell
-& 'D:\arm-planning-control-project\.venv\Scripts\python.exe' -m pytest -q
-~~~
-
-## 调试与产物
-
-先阅读 [调试指南](docs/DEBUGGING.md)。每次 online run 的关键产物包括：
-
-| 问题 | 查看位置 |
+| 命令 | 行为 |
 | --- | --- |
-| 策略实际收到了什么 | observations 图片、camera hash、VLAObservation.to_openpi_droid |
-| server 是否返回正确 shape | probe.json、per_chunk.csv、OpenPIPolicyClient.infer |
-| 哪个 chunk 超过 deadline | per_chunk.csv |
-| 状态是否在每轮重新采集 | per_chunk.csv 与 NPZ |
-| 哪个动作为什么被修改 | per_action.csv 的 scale、reason、raw/executed action |
-| 预测路径是否通过检查 | ActionChunkGuard.guard 与 predicted_positions |
-| 物理执行是否发生接触 | per_case.csv、MP4 与 actual_positions |
+| -CheckOnly | 验证依赖、场景、相机契约、协议、guard 和已保存 artifact |
+| 默认 | 运行单场景本地 smoke，不生成视频 |
+| -Formal | 运行双场景本地矩阵并生成三个 MP4 |
 
-典型目录：
+本地 reference policy 是确定性测试夹具。MuJoCo 路径只有在连接真实 OpenPI
+server 并保存相应证据后，才能形成学习式策略结论。
+
+## 执行新的官方 checkpoint 实验
+
+重新运行 pi0.5 rollout 需要 Ubuntu、NVIDIA GPU、固定 OpenPI checkout 和
+官方 checkpoint cache。容器工作流、preflight gate、预算控制与验证命令见
+[pi0.5-LIBERO runbook](docs/PI05_LIBERO_STUDY.md)。
+
+查看已有结果 dashboard 不需要上述环境。
+
+## 仓库结构
 
 ~~~text
-results/<run_id>/
-  config.json
-  environment.json
-  overview.png
-  summary.md
-  aggregate.json
-  per_case.csv
-  per_chunk.csv
-  per_action.csv
-  observations/*.png
-  videos/*.mp4
-  <case>.npz
-  run.log
+src/armbench/                 本地规划、控制、MuJoCo 与 VLA 运行时
+integrations/openpi/          官方 checkpoint evaluator 与分析工具
+integrations/openpi/patches/  固定版本的 OpenPI sampler 扩展
+tests/                        单元测试与集成测试
+scripts/                      可复现运行与验收命令
+docs/                         架构、方法、协议和操作文档
+evidence/                     保存的实验 artifact
+reports/                      生成的离线 dashboard
+configs/                      benchmark 与场景配置
 ~~~
 
-正式 evidence 目录是只读证据，不要直接修改其中的 CSV、JSON、manifest
-或视频。调试时使用新的 run ID。
+通过[文档索引](docs/README.md)可以区分当前说明、冻结协议、审计记录和
+历史 runbook。
 
-## 仓库阅读顺序
+## 可复现性设计
 
-1. 本页：理解问题、方法、结果和边界。
-2. [RTC corrected-v3 中文验收](docs/RTC_OVERLAP_PRIMARY_V3_ACCEPTANCE_ZH.md)：
-   理解为什么 v2 作废以及如何一键验证 v3。
-3. [完整结果快照](docs/RESULTS.md)：核对所有 provenance、统计量和限制。
-4. [RTC/pi0.5 集成](docs/RTC_PI05_INTEGRATION.md)：理解 reverse-time flow、
-   VJP 和 scheduler contract。
-5. [调试指南](docs/DEBUGGING.md)：运行本地 MuJoCo/OpenPI 路径。
-6. [英文完整 README](README.md)：查询全部低层命令和历史 artifact。
+正式 artifact 绑定以下信息：
 
-## 结论边界
+- ArmBench 与 OpenPI commit；
+- checkpoint URI 和内容 SHA-256；
+- 完整解析后的协议与实验矩阵；
+- 协议要求的显式策略采样噪声；
+- episode、query 和 action 级记录；
+- 分析输入与派生输出；
+- 必需视频路径及其哈希。
 
-- 项目评测官方 pi0.5 checkpoint，但没有训练或微调 pi0.5。
-- 正式 checkpoint 实验发生在 LIBERO；本地 guard、camera、wire-fault
-  和 replay 的旧 MuJoCo artifact 使用非学习式动作源。
-- 所有结果仍是仿真结果，不是真机实验。
-- blocking inference、注入延迟和 measured-age catch-up 不构成操作系统
-  hard real-time 保证。
-- seam 改善不等于任务成功、安全性或真实部署改善。
-- MuJoCo mesh/interpolation 检查不是解析连续碰撞检测或形式化安全证书。
-- 当前没有 Isaac Lab、RL 训练、ROS2 或真实 Franka 部署。
+验证器对文件缺失、内容变化、重复键、非规范字段和矩阵外数据执行失败关闭。
+这能验证 artifact 完整性和内部一致性，但不等同于上游发布者身份认证或
+物理安全证书。
 
-## 简历表述
+## 环境支持
 
-在本人已经复现实验并理解代码的前提下，可以使用以下中文表述：
+| 能力 | 已验证环境 |
+| --- | --- |
+| Artifact 验证与 dashboard | Windows/CPU |
+| 本地 MuJoCo 运行时 | Windows，CPU + OpenGL；不要求 CUDA |
+| OpenPI 客户端 | Windows，有界 WebSocket/MessagePack transport |
+| 官方 pi0.5 推理 | 独立 Ubuntu/NVIDIA 主机；根据上游说明需要超过 8 GB VRAM |
+| Isaac Gym / Isaac Lab | 未集成 |
+| Franka Panda 真机 | 未集成；没有 ROS2、libfranka、标定、watchdog 或安全 PLC adapter |
 
-> 构建 OpenPI 兼容的 VLA 运行时与可审计 pi0.5-LIBERO 评测系统；实现训练
-> 无关的 measured-age action-chunk 时序对齐，并对 response jitter 与
-> pi0.5 flow sampling noise 进行配对。在冻结的 240-rollout held-out
-> 实验中，将成功率从 88/120 提升到 116/120（+23.3 个百分点，exact
-> McNemar p=1.94e-6；whole-task bootstrap 95% CI [+10.8,+38.3]），同时
-> 将平均 policy query 从 22.75 降到 15.14；通过 checkpoint/source
-> attestation、不可变 manifest、独立 validator 和一键视频 dashboard
-> 保存并验收正式实验。
+支持其他机器人本体需要重新实现观测转换、动作语义、运动学限制以及仿真器或
+硬件 adapter。
 
-应写“评测并集成官方 pi0.5-LIBERO checkpoint”，不能写“训练了 pi0.5”
-或“已部署真实机器人”。这是 VLA runtime/evaluation 项目，不是 VLA
-训练项目。
+## 验证与调试
+
+在仓库根目录运行完整测试：
+
+~~~powershell
+& '..\.venv\Scripts\python.exe' -m pytest -q
+~~~
+
+运行时问题请按照边界顺序使用
+[故障排查指南](docs/DEBUGGING.md)。
+
+## 适用范围
+
+- 官方 checkpoint 结果仅覆盖仿真中的一个 pi0.5-LIBERO checkpoint。
+- 确定性延迟与 measured-age 研究使用 blocking policy call 和响应后的
+  simulator catch-up，不是独立调度的推理与控制线程。
+- Motion seam 是过程指标，不是任务成功率或安全终点。
+- MuJoCo 碰撞检查使用构型采样和边插值，不是解析连续碰撞检测。
+- 运行时限制命令变化率，但不认证加速度、jerk 或真实物理跟踪。
+
+## 许可证与上游软件
+
+ArmBench 使用 MIT License。上游模型、数据集、资产和代码继续适用各自原始
+许可证，详见[第三方声明](THIRD_PARTY_NOTICES.md)。
