@@ -24,7 +24,7 @@ DEFAULT_ANALYSIS_ROOT = (
     PROJECT_ROOT / "evidence" / "pi05_rtc_overlap_pilot_001" / "analysis"
 )
 DEFAULT_OUTPUT = PROJECT_ROOT / "reports" / "pi05_rtc_overlap_pilot_001" / "index.html"
-DASHBOARD_SCHEMA_VERSION = "armbench.pi05_rtc_overlap_dashboard.v1"
+DASHBOARD_SCHEMA_VERSION = "armbench.pi05_rtc_overlap_dashboard.v3"
 METHODS = tuple(rtc_overlap_analysis.METHODS)
 BASELINE = rtc_overlap_analysis.BASELINE
 CANDIDATES = tuple(rtc_overlap_analysis.CANDIDATES)
@@ -35,6 +35,7 @@ METHOD_LABELS = {
 }
 EXPECTED_ANALYSIS_FILES = {"analysis.json", "per_episode.csv", "summary.md"}
 BOOTSTRAP_IDENTITY_FIELDS = (
+    "policy_input_sha256",
     "response_action_sha256",
     "sampling_key_sha256",
     "sampling_noise_sha256",

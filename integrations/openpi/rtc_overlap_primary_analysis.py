@@ -21,7 +21,7 @@ from integrations.openpi import rtc_overlap_analysis as pilot_analysis
 from integrations.openpi import rtc_overlap_pilot
 
 
-ANALYSIS_SCHEMA_VERSION = "armbench.pi05_rtc_overlap_primary_analysis.v1"
+ANALYSIS_SCHEMA_VERSION = "armbench.pi05_rtc_overlap_primary_analysis.v2"
 SOURCE_SCHEMA_VERSION = rtc_overlap_pilot.SCHEMA_VERSION
 METHODS = tuple(rtc_overlap_pilot.V2_OVERLAP_METHODS)
 BASELINE = rtc_overlap_pilot.OVERLAP_UNCONDITIONED
@@ -42,10 +42,10 @@ TOTAL_ROLLOUTS = 300
 TOTAL_TRIPLETS = 100
 BOOTSTRAP_RESAMPLES = 10_000
 BOOTSTRAP_SEED = 20260805
-FROZEN_ARMBENCH_COMMIT = "2aef062256fc3f6257f9f58d68c3f18c07d1b0b8"
+FROZEN_ARMBENCH_COMMIT = "44c358731c5493284b74bb29eefa7d538d0f38dd"
 FROZEN_OPENPI_UPSTREAM_COMMIT = "15a9616a00943ada6c20a0f158e3adb39df2ccac"
 FROZEN_OPENPI_EXTENSION_COMMIT = "54592c7148ba69bf52757385502782f80f2285e0"
-FROZEN_EXTERNAL_PROTOCOL_COMMIT = "655316805de608551870e5d46efb4c05e545eeca"
+FROZEN_EXTERNAL_PROTOCOL_COMMIT = "509f6f4cbcc9e8b02804edf640e565673d4a3855"
 FROZEN_POLICY_CONFIG = "pi05_libero"
 FROZEN_CHECKPOINT = "gs://openpi-assets/checkpoints/pi05_libero"
 FROZEN_CHECKPOINT_CONTENT_SHA256 = (
@@ -216,7 +216,9 @@ def _validate_all_first(
     artifacts: Sequence[pathlib.Path],
 ) -> Tuple[List[pathlib.Path], List[Mapping[str, Any]]]:
     if len(artifacts) != 2:
-        raise AnalysisError("exactly two v2 evaluation artifacts are required")
+        raise AnalysisError(
+            "exactly two corrected v3 evaluation artifacts are required"
+        )
     raw_roots = [pathlib.Path(value) for value in artifacts]
     if any(root.is_symlink() for root in raw_roots):
         raise AnalysisError("source artifacts must not be symbolic links")
@@ -547,6 +549,7 @@ def _validate_queries(
                 "bootstrap",
                 "sampling_key_sha256",
                 "sampling_noise_sha256",
+                "policy_input_sha256",
                 "response_action_sha256",
             )
             + _CONDITION_GUIDANCE_FIELDS
@@ -575,6 +578,7 @@ def _validate_queries(
         noise_hash = _canonical_sha256(
             raw["sampling_noise_sha256"], "%s.sampling_noise_sha256" % label
         )
+        _canonical_sha256(raw["policy_input_sha256"], "%s.policy_input_sha256" % label)
         _canonical_sha256(
             raw["response_action_sha256"], "%s.response_action_sha256" % label
         )
@@ -665,6 +669,7 @@ def _validate_queries(
                 % triplet
             )
         for field, description in (
+            ("policy_input_sha256", "policy input"),
             ("sampling_key_sha256", "sampling key"),
             ("sampling_noise_sha256", "sampling noise"),
             ("response_action_sha256", "response action"),
@@ -775,8 +780,14 @@ def _source_record(source: SourceEvidence) -> Dict[str, Any]:
         "source_schema_version": SOURCE_SCHEMA_VERSION,
         "raw_protocol_pilot_only": True,
         "bootstrap_triplets_bitwise_verified": TRIPLETS_PER_ARTIFACT,
+        "bootstrap_pairing_fields": [
+            "policy_input_sha256",
+            "response_action_sha256",
+            "sampling_key_sha256",
+            "sampling_noise_sha256",
+        ],
         "raw_protocol_role": (
-            "immutable evaluator-schema field; not the held-out analysis designation"
+            "immutable corrected-v3 evaluator field; not the held-out analysis designation"
         ),
         "held_out_role_basis": (
             "external protocol commit %s with disjoint states 2-6 and sampling seeds"
@@ -1155,7 +1166,7 @@ def analyze_artifacts(
     source_records = [_source_record(source) for source in sources]
     analysis = {
         "schema_version": ANALYSIS_SCHEMA_VERSION,
-        "analysis_type": "frozen_held_out_rtc_overlap_primary_300",
+        "analysis_type": "corrected_v3_frozen_held_out_rtc_overlap_primary_300",
         "implementation": _implementation_identity(),
         "sources": source_records,
         "frozen_identity": {
@@ -1222,9 +1233,14 @@ def analyze_artifacts(
             ),
         },
         "protocol_provenance": {
-            "raw_v2_protocol_field": "pilot_only=true",
+            "raw_v3_protocol_field": "pilot_only=true",
             "raw_artifacts_rewritten": False,
             "held_out_primary_design_source": FROZEN_EXTERNAL_PROTOCOL_COMMIT,
+            "corrected_runtime_schema": SOURCE_SCHEMA_VERSION,
+            "rejected_v2_attempts": {
+                "included_in_estimates": False,
+                "status": "preserved but excluded after the query-0 pairing audit",
+            },
             "disjoint_from_development_pilot": {
                 "initial_state_indices": list(EPISODE_INDICES),
                 "sampling_seeds": list(SAMPLING_SEEDS),
@@ -1232,9 +1248,10 @@ def analyze_artifacts(
         },
         "claim_boundary": (
             "Same-checkpoint pi0.5 evidence on ten fixed LIBERO-10 simulation tasks. "
-            "Each immutable raw v2 evaluator protocol retains pilot_only=true; the "
-            "held-out primary role comes from external frozen protocol commit "
-            "655316805de608551870e5d46efb4c05e545eeca and disjoint state/seed cohorts. "
+            "Each immutable corrected-v3 evaluator protocol retains pilot_only=true; "
+            "the held-out primary role comes from external frozen protocol commit "
+            "509f6f4cbcc9e8b02804edf640e565673d4a3855 and disjoint state/seed "
+            "cohorts. The preserved v2 attempts are excluded from every estimate. "
             "It does not establish independent control/inference timing, deadline or "
             "collision safety, cross-policy generalization, or real-hardware efficacy."
         ),
@@ -1248,7 +1265,7 @@ def analyze_artifacts(
 
 def _summary_markdown(analysis: Mapping[str, Any]) -> str:
     lines = [
-        "# pi0.5 RTC overlap held-out primary analysis",
+        "# pi0.5 RTC overlap corrected-v3 held-out primary analysis",
         "",
         "- Matrix: 10 tasks x 5 initial states x 2 sampling seeds x 3 methods (300 rollouts)",
         "- Matched task/state/seed triplets: `100`",

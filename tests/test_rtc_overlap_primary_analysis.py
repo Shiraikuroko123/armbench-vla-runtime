@@ -159,8 +159,14 @@ def _artifact(root: pathlib.Path, sampling_seed: int) -> pathlib.Path:
                 cell.pair_id,
                 query_index,
             )
+            policy_input_identity = "input:%d:%s:%d" % (
+                sampling_seed,
+                cell.pair_id,
+                query_index,
+            )
             if not bootstrap:
                 response_identity += ":" + cell.method
+                policy_input_identity += ":" + cell.method
             queries.append(
                 {
                     **identity,
@@ -168,6 +174,7 @@ def _artifact(root: pathlib.Path, sampling_seed: int) -> pathlib.Path:
                     "bootstrap": bootstrap,
                     "sampling_key_sha256": sampling_key,
                     "sampling_noise_sha256": _digest("noise:" + sampling_key),
+                    "policy_input_sha256": _digest(policy_input_identity),
                     "response_action_sha256": _digest(response_identity),
                     "condition_raw_actions_sha256": None,
                     "condition_model_actions_sha256": None,
@@ -222,6 +229,9 @@ def test_combines_exact_held_out_matrix_with_frozen_statistics(artifacts) -> Non
     assert calls[:2] == [root.resolve() for root in roots]
     assert len(calls) == 4
     assert analysis["schema_version"] == ANALYSIS_SCHEMA_VERSION
+    assert ANALYSIS_SCHEMA_VERSION.endswith(".v2")
+    assert FROZEN_ARMBENCH_COMMIT == "44c358731c5493284b74bb29eefa7d538d0f38dd"
+    assert FROZEN_EXTERNAL_PROTOCOL_COMMIT == "509f6f4cbcc9e8b02804edf640e565673d4a3855"
     assert analysis["cohort"]["matched_triplets"] == 100
     assert analysis["cohort"]["rollouts"] == 300
     assert analysis["cohort"]["sampling_seeds"] == list(SAMPLING_SEEDS)
@@ -275,10 +285,29 @@ def test_combines_exact_held_out_matrix_with_frozen_statistics(artifacts) -> Non
     )
     assert all(source["raw_protocol_pilot_only"] for source in analysis["sources"])
     assert all(
+        source["source_schema_version"].endswith(".v3")
+        for source in analysis["sources"]
+    )
+    assert all(
         source["bootstrap_triplets_bitwise_verified"] == 50
         for source in analysis["sources"]
     )
+    assert all(
+        source["bootstrap_pairing_fields"]
+        == [
+            "policy_input_sha256",
+            "response_action_sha256",
+            "sampling_key_sha256",
+            "sampling_noise_sha256",
+        ]
+        for source in analysis["sources"]
+    )
     assert "pilot_only=true" in analysis["claim_boundary"]
+    assert "preserved v2 attempts are excluded" in analysis["claim_boundary"]
+    assert (
+        analysis["protocol_provenance"]["rejected_v2_attempts"]["included_in_estimates"]
+        is False
+    )
 
 
 def test_transactional_outputs_are_deterministic_and_manifest_bound(
@@ -395,6 +424,30 @@ def test_rejects_real_bootstrap_response_mismatch_with_same_key_and_noise(
     with pytest.raises(
         AnalysisError,
         match="query0 response action mismatch across methods for task 3 episode 2",
+    ):
+        analyze_artifacts(roots)
+
+
+def test_rejects_bootstrap_policy_input_mismatch_with_other_hashes_fixed(
+    artifacts,
+) -> None:
+    roots, _ = artifacts
+    path = roots[0] / "queries.json"
+    rows = json.loads(path.read_text(encoding="utf-8"))
+    target = next(
+        row
+        for row in rows
+        if row["query_index"] == 0
+        and row["task_id"] == 3
+        and row["episode_index"] == 2
+        and row["method"] == RTC
+    )
+    target["policy_input_sha256"] = _digest("stale-policy-image")
+    _write_json(path, rows)
+
+    with pytest.raises(
+        AnalysisError,
+        match="query0 policy input mismatch across methods for task 3 episode 2",
     ):
         analyze_artifacts(roots)
 

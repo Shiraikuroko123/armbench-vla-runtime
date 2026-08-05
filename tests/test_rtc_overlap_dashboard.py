@@ -216,6 +216,9 @@ def _fixture(
                         "method": method,
                         "query_index": 0,
                         "bootstrap": True,
+                        "policy_input_sha256": hashlib.sha256(
+                            (pair_id + "/policy-input").encode("ascii")
+                        ).hexdigest(),
                         "response_action_sha256": hashlib.sha256(
                             (pair_id + "/response").encode("ascii")
                         ).hexdigest(),
@@ -309,6 +312,7 @@ def test_builds_20_triplet_60_video_dashboard_with_relative_links(
     }
     html = output.read_text(encoding="utf-8")
     payload = _payload(html)
+    assert payload["schemaVersion"] == "armbench.pi05_rtc_overlap_dashboard.v3"
     assert len(payload["triplets"]) == 20
     assert sum(len(item["methods"]) for item in payload["triplets"]) == 60
     links = [
@@ -408,6 +412,7 @@ def test_raw_validator_is_first_and_missing_video_fails_closed(
 @pytest.mark.parametrize(
     "field",
     [
+        "policy_input_sha256",
         "response_action_sha256",
         "sampling_key_sha256",
         "sampling_noise_sha256",
