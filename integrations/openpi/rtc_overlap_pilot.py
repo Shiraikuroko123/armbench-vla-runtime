@@ -9,7 +9,6 @@ import hashlib
 import json
 import logging
 import math
-import os
 import pathlib
 import platform
 import re
@@ -59,7 +58,7 @@ from integrations.openpi.serve_policy_attested import (
 )
 
 
-SCHEMA_VERSION = "armbench.pi05_rtc_overlap_pilot.v2"
+SCHEMA_VERSION = "armbench.pi05_rtc_overlap_pilot.v3"
 DEFAULT_CHECKPOINT_CONTENT_SHA256 = (
     "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5"
 )
@@ -156,10 +155,7 @@ def _write_json(path: pathlib.Path, value: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(
-        json.dumps(
-            _json_safe(value), indent=2, sort_keys=True, allow_nan=False
-        )
-        + "\n",
+        json.dumps(_json_safe(value), indent=2, sort_keys=True, allow_nan=False) + "\n",
         encoding="utf-8",
     )
     temporary.replace(path)
@@ -182,9 +178,7 @@ def _sha256_file(path: pathlib.Path) -> str:
     return digest.hexdigest()
 
 
-def _command_output(
-    command: Sequence[str], cwd: Optional[pathlib.Path] = None
-) -> str:
+def _command_output(command: Sequence[str], cwd: Optional[pathlib.Path] = None) -> str:
     completed = subprocess.run(
         list(command),
         cwd=None if cwd is None else str(cwd),
@@ -232,8 +226,7 @@ def _mcnemar_exact_p(wins: int, losses: int) -> float:
     if discordant == 0:
         return 1.0
     tail = sum(
-        math.comb(discordant, index)
-        for index in range(min(wins, losses) + 1)
+        math.comb(discordant, index) for index in range(min(wins, losses) + 1)
     ) / float(2**discordant)
     return min(1.0, 2.0 * tail)
 
@@ -249,21 +242,17 @@ def summarize(
 ) -> Dict[str, Any]:
     by_pair: Dict[str, Dict[str, Mapping[str, Any]]] = {}
     for episode in episodes:
-        by_pair.setdefault(str(episode["pair_id"]), {})[
-            str(episode["method"])
-        ] = episode
+        by_pair.setdefault(str(episode["pair_id"]), {})[str(episode["method"])] = (
+            episode
+        )
     valid_pairs = [
-        pair
-        for pair in by_pair.values()
-        if set(pair) == set(V2_OVERLAP_METHODS)
+        pair for pair in by_pair.values() if set(pair) == set(V2_OVERLAP_METHODS)
     ]
     methods = {}
     for method in V2_OVERLAP_METHODS:
         selected_episodes = [row for row in episodes if row["method"] == method]
         selected_queries = [
-            row
-            for row in queries
-            if row["method"] == method and not row["bootstrap"]
+            row for row in queries if row["method"] == method and not row["bootstrap"]
         ]
         methods[method] = {
             "rollouts": len(selected_episodes),
@@ -326,6 +315,38 @@ def summarize(
         "methods": methods,
         "contrasts_vs_unconditioned": contrasts,
     }
+
+
+def _validate_query_pairing(queries: Sequence[Mapping[str, Any]]) -> None:
+    by_pair: Dict[str, Dict[str, Mapping[str, Any]]] = {}
+    for query in queries:
+        if int(query["query_index"]) != 0:
+            continue
+        pair_id = str(query["pair_id"])
+        method = str(query["method"])
+        methods = by_pair.setdefault(pair_id, {})
+        if method in methods:
+            raise PilotValidationError("duplicate triplet query-0 method")
+        methods[method] = query
+
+    for methods in by_pair.values():
+        if set(methods) != set(V2_OVERLAP_METHODS):
+            raise PilotValidationError("triplet query-0 methods are incomplete")
+        for field in (
+            "policy_input_sha256",
+            "response_action_sha256",
+            "sampling_key_sha256",
+            "sampling_noise_sha256",
+        ):
+            values = [row.get(field) for row in methods.values()]
+            if any(
+                not isinstance(value, str)
+                or re.fullmatch(r"[0-9a-f]{64}", value) is None
+                for value in values
+            ):
+                raise PilotValidationError("triplet query-0 %s is invalid" % field)
+            if len(set(values)) != 1:
+                raise PilotValidationError("triplet query-0 %s values differ" % field)
 
 
 def _summary_markdown(summary: Mapping[str, Any]) -> str:
@@ -399,8 +420,7 @@ def _validate_server_metadata(
         if attestation.get(key) != value:
             raise PilotValidationError("server attestation mismatch: %s" % key)
     extension = _load_json(
-        armbench_root
-        / "integrations/openpi/patches/rtc_guidance_v2.json"
+        armbench_root / "integrations/openpi/patches/rtc_guidance_v2.json"
     )
     if attestation.get("openpi_extension_files") != extension.get(
         "production_source_sha256"
@@ -411,7 +431,10 @@ def _validate_server_metadata(
         raise PilotValidationError("server source hash mismatch")
     if metadata.get(POLICY_SAMPLING_METADATA_FIELD) != policy_sampling_contract():
         raise PilotValidationError("policy sampling contract mismatch")
-    if metadata.get(POLICY_CONDITIONING_METADATA_FIELD) != policy_conditioning_contract():
+    if (
+        metadata.get(POLICY_CONDITIONING_METADATA_FIELD)
+        != policy_conditioning_contract()
+    ):
         raise PilotValidationError("policy conditioning contract mismatch")
     if metadata.get(POLICY_GUIDANCE_METADATA_FIELD) != policy_guidance_contract():
         raise PilotValidationError("policy guidance contract mismatch")
@@ -470,7 +493,10 @@ def execute(args: argparse.Namespace, cells: Sequence[PilotCell]) -> int:
     openpi_root = pathlib.Path(args.openpi_root).resolve()
     armbench_root = pathlib.Path(args.armbench_root).resolve()
     _prepare_output(output)
-    if _command_output(("git", "rev-parse", "HEAD"), openpi_root) != OPENPI_RTC_GUIDANCE_COMMIT:
+    if (
+        _command_output(("git", "rev-parse", "HEAD"), openpi_root)
+        != OPENPI_RTC_GUIDANCE_COMMIT
+    ):
         raise RuntimeError("OpenPI extension commit mismatch")
     if _command_output(("git", "status", "--porcelain"), openpi_root):
         raise RuntimeError("OpenPI extension worktree must be clean")
@@ -536,9 +562,9 @@ def execute(args: argparse.Namespace, cells: Sequence[PilotCell]) -> int:
             task = task_suite.get_task(task_id)
             description = str(task.language)
             initial_states = task_suite.get_task_init_states(task_id)
-            environment = _make_libero_environment(task, args.environment_seed)
-            try:
-                for cell in task_cells:
+            for cell in task_cells:
+                environment = _make_libero_environment(task, args.environment_seed)
+                try:
                     environment.seed(args.environment_seed)
 
                     def sampling_builder(query_index: int, cell: PilotCell = cell):
@@ -586,7 +612,9 @@ def execute(args: argparse.Namespace, cells: Sequence[PilotCell]) -> int:
                     )
                     if write_video:
                         if not result.replay_frames:
-                            raise RuntimeError("video was required but no frames were captured")
+                            raise RuntimeError(
+                                "video was required but no frames were captured"
+                            )
                         video_path = "videos/%s__%s.mp4" % (
                             re.sub(r"[^A-Za-z0-9_.-]+", "_", cell.episode_id),
                             "success" if result.success else "failure",
@@ -606,7 +634,9 @@ def execute(args: argparse.Namespace, cells: Sequence[PilotCell]) -> int:
                     }
                     episodes.append(episode)
                     if len(result.query_records) != len(result.transition_records) + 1:
-                        raise RuntimeError("reference bootstrap and transition counts diverged")
+                        raise RuntimeError(
+                            "reference bootstrap and transition counts diverged"
+                        )
                     for record in result.query_records:
                         queries.append(
                             {
@@ -642,11 +672,12 @@ def execute(args: argparse.Namespace, cells: Sequence[PilotCell]) -> int:
                             "runtime failure in %s: %s"
                             % (cell.episode_id, result.failure_message)
                         )
-            finally:
-                environment.close()
+                finally:
+                    environment.close()
     finally:
         client.close()
 
+    _validate_query_pairing(queries)
     archive_path = output / "transitions.npz"
     write_transition_archive(archive_path, transitions)
     adapter_source = "integrations/openpi/libero_runtime.py"
@@ -683,9 +714,7 @@ def execute(args: argparse.Namespace, cells: Sequence[PilotCell]) -> int:
     )
     summary = summarize(episodes, queries)
     _write_json(output / "summary.json", summary)
-    (output / "summary.md").write_text(
-        _summary_markdown(summary), encoding="utf-8"
-    )
+    (output / "summary.md").write_text(_summary_markdown(summary), encoding="utf-8")
     _write_json(
         output / "progress.json",
         {"planned": len(cells), "completed": len(episodes), "complete": True},
@@ -740,7 +769,9 @@ def validate_artifact(output: pathlib.Path) -> Dict[str, Any]:
         for episode in episodes:
             video_path = episode.get("video_path")
             if not isinstance(video_path, str) or not (output / video_path).is_file():
-                raise PilotValidationError("all-video protocol omitted an episode video")
+                raise PilotValidationError(
+                    "all-video protocol omitted an episode video"
+                )
 
     queries_by_episode: Dict[str, List[Mapping[str, Any]]] = {}
     for query in queries:
@@ -751,14 +782,31 @@ def validate_artifact(output: pathlib.Path) -> Dict[str, Any]:
             raise PilotValidationError("query indices are not contiguous")
         if not selected or selected[0]["bootstrap"] is not True:
             raise PilotValidationError("every episode requires one bootstrap query")
-        if selected[0]["executed_steps"] != 0 or selected[0]["decision"] != "bootstrap_reference_only":
-            raise PilotValidationError("bootstrap query must only establish a reference")
-        if any(row["executed_steps"] != episode["execute_horizon"] for row in selected[1:-1]):
+        if (
+            selected[0]["executed_steps"] != 0
+            or selected[0]["decision"] != "bootstrap_reference_only"
+        ):
+            raise PilotValidationError(
+                "bootstrap query must only establish a reference"
+            )
+        if any(
+            row["executed_steps"] != episode["execute_horizon"]
+            for row in selected[1:-1]
+        ):
             raise PilotValidationError("nonfinal query did not advance exactly E steps")
         for row in selected:
-            if not row.get("sampling_key_sha256") or not row.get("sampling_noise_sha256"):
+            if (
+                not isinstance(row.get("policy_input_sha256"), str)
+                or re.fullmatch(r"[0-9a-f]{64}", row["policy_input_sha256"]) is None
+            ):
+                raise PilotValidationError("query omitted canonical policy input audit")
+            if not row.get("sampling_key_sha256") or not row.get(
+                "sampling_noise_sha256"
+            ):
                 raise PilotValidationError("scored query omitted sampling audit")
-            conditioned = episode["method"] == PROJECTED_OVERLAP and not row["bootstrap"]
+            conditioned = (
+                episode["method"] == PROJECTED_OVERLAP and not row["bootstrap"]
+            )
             condition_fields = (
                 "condition_raw_actions_sha256",
                 "condition_model_actions_sha256",
@@ -767,11 +815,15 @@ def validate_artifact(output: pathlib.Path) -> Dict[str, Any]:
             )
             if conditioned:
                 if any(row.get(field) is None for field in condition_fields):
-                    raise PilotValidationError("projected query omitted conditioning audit")
+                    raise PilotValidationError(
+                        "projected query omitted conditioning audit"
+                    )
                 if float(row["max_model_residual"]) >= 1e-6:
                     raise PilotValidationError("projected query residual failed")
             elif any(row.get(field) is not None for field in condition_fields):
-                raise PilotValidationError("unconditioned query contains conditioning audit")
+                raise PilotValidationError(
+                    "unconditioned query contains conditioning audit"
+                )
             guided = episode["method"] == RTC_GUIDED_OVERLAP and not row["bootstrap"]
             guidance_fields = (
                 "guidance_raw_actions_sha256",
@@ -788,6 +840,7 @@ def validate_artifact(output: pathlib.Path) -> Dict[str, Any]:
             elif any(row.get(field) is not None for field in guidance_fields):
                 raise PilotValidationError("nonguided query contains guidance audit")
 
+    _validate_query_pairing(queries)
     by_pair_and_query: Dict[Tuple[str, int], Dict[str, Mapping[str, Any]]] = {}
     for query in queries:
         by_pair_and_query.setdefault(
@@ -796,7 +849,9 @@ def validate_artifact(output: pathlib.Path) -> Dict[str, Any]:
     for methods in by_pair_and_query.values():
         if set(methods) == set(V2_OVERLAP_METHODS):
             if len({row["sampling_key_sha256"] for row in methods.values()}) != 1:
-                raise PilotValidationError("triplet methods used different sampling keys")
+                raise PilotValidationError(
+                    "triplet methods used different sampling keys"
+                )
     recomputed = summarize(episodes, queries)
     if summary != recomputed:
         raise PilotValidationError("pilot summary is not reproducible")
@@ -828,7 +883,9 @@ def _parse_selection(value: str, upper: int, name: str) -> List[int]:
         try:
             number = int(token)
         except ValueError as exc:
-            raise ValueError("%s must be comma-separated integers or all" % name) from exc
+            raise ValueError(
+                "%s must be comma-separated integers or all" % name
+            ) from exc
         if number < 0 or number >= upper or number in result:
             raise ValueError("%s contains an invalid or duplicate value" % name)
         result.append(number)
@@ -838,7 +895,9 @@ def _parse_selection(value: str, upper: int, name: str) -> List[int]:
 
 
 def _add_matrix_args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--task-suite", choices=tuple(SUITE_TASK_COUNTS), default="libero_10")
+    parser.add_argument(
+        "--task-suite", choices=tuple(SUITE_TASK_COUNTS), default="libero_10"
+    )
     parser.add_argument("--task-ids", default="all")
     parser.add_argument("--episode-indices", default="0,1")
     parser.add_argument("--execute-horizon", type=int, default=5)
@@ -860,7 +919,9 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--sampling-seed", type=int, default=20260805)
     run.add_argument("--environment-seed", type=int, default=7)
     run.add_argument("--max-task-steps", type=int)
-    run.add_argument("--video-mode", choices=("none", "failures", "all"), default="failures")
+    run.add_argument(
+        "--video-mode", choices=("none", "failures", "all"), default="failures"
+    )
     run.add_argument("--server-startup-timeout-s", type=float, default=1200.0)
     run.add_argument("--inference-timeout-s", type=float, default=600.0)
     validate = commands.add_parser("validate", allow_abbrev=False)
@@ -873,9 +934,7 @@ def _resolve_cells(args: argparse.Namespace) -> List[PilotCell]:
         raise ValueError("the frozen pilot requires H=10, E=5, d=4")
     return build_cells(
         args.task_suite,
-        _parse_selection(
-            args.task_ids, SUITE_TASK_COUNTS[args.task_suite], "task_ids"
-        ),
+        _parse_selection(args.task_ids, SUITE_TASK_COUNTS[args.task_suite], "task_ids"),
         _parse_selection(args.episode_indices, 50, "episode_indices"),
         execute_horizon=args.execute_horizon,
         inference_delay_steps=args.inference_delay_steps,
@@ -908,7 +967,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         parser.error("port must be within [1, 65535]")
     if args.max_task_steps is not None and args.max_task_steps <= 0:
         parser.error("max-task-steps must be positive")
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
+    )
     return execute(args, cells)
 
 

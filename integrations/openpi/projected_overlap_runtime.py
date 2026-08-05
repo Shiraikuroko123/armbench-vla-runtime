@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import dataclasses
+import hashlib
 import math
 import time
 from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
@@ -60,6 +61,72 @@ class OverlapRuntimeError(ValueError):
     pass
 
 
+def _update_policy_input_digest(
+    digest: Any,
+    name: str,
+    dtype: str,
+    shape: Sequence[int],
+    payload: bytes,
+) -> None:
+    for value in (
+        name.encode("utf-8"),
+        dtype.encode("ascii"),
+        ",".join(str(dimension) for dimension in shape).encode("ascii"),
+        payload,
+    ):
+        digest.update(len(value).to_bytes(8, byteorder="big", signed=False))
+        digest.update(value)
+
+
+def canonical_policy_input_sha256(request: Mapping[str, Any]) -> str:
+    """Hash the exact canonical pi0.5 LIBERO model inputs."""
+
+    if not isinstance(request, Mapping):
+        raise OverlapRuntimeError("policy request must be a mapping")
+    digest = hashlib.sha256()
+    digest.update(b"armbench.pi05.libero.policy_input.v1\0")
+    for name in ("observation/image", "observation/wrist_image"):
+        value = request.get(name)
+        if not isinstance(value, np.ndarray):
+            raise OverlapRuntimeError("%s must be a numpy array" % name)
+        if value.shape != (224, 224, 3) or value.dtype != np.dtype(np.uint8):
+            raise OverlapRuntimeError(
+                "%s must have shape (224, 224, 3) and dtype uint8" % name
+            )
+        canonical = np.ascontiguousarray(value)
+        _update_policy_input_digest(
+            digest, name, "uint8", canonical.shape, canonical.tobytes(order="C")
+        )
+
+    state = request.get("observation/state")
+    if not isinstance(state, np.ndarray):
+        raise OverlapRuntimeError("observation/state must be a numpy array")
+    if state.shape != (8,) or state.dtype != np.dtype(np.float64):
+        raise OverlapRuntimeError(
+            "observation/state must have shape (8,) and dtype float64"
+        )
+    if not np.all(np.isfinite(state)):
+        raise OverlapRuntimeError("observation/state must contain only finite values")
+    canonical_state = np.asarray(state, dtype="<f8", order="C")
+    _update_policy_input_digest(
+        digest,
+        "observation/state",
+        "float64-le",
+        canonical_state.shape,
+        canonical_state.tobytes(order="C"),
+    )
+
+    prompt = request.get("prompt")
+    if not isinstance(prompt, str):
+        raise OverlapRuntimeError("prompt must be text")
+    try:
+        prompt_bytes = prompt.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise OverlapRuntimeError("prompt must be valid UTF-8 text") from exc
+    _update_policy_input_digest(digest, "prompt", "utf-8", (), prompt_bytes)
+    return digest.hexdigest()
+
+
 @dataclasses.dataclass(frozen=True)
 class OverlapRuntimeConfig:
     method: str
@@ -86,7 +153,10 @@ class OverlapRuntimeConfig:
         ):
             if type(value) is not int or value <= 0:
                 raise ValueError("%s must be a positive integer" % name)
-        if type(self.inference_delay_steps) is not int or self.inference_delay_steps < 0:
+        if (
+            type(self.inference_delay_steps) is not int
+            or self.inference_delay_steps < 0
+        ):
             raise ValueError("inference_delay_steps must be a nonnegative integer")
         if type(self.num_steps_wait) is not int or self.num_steps_wait < 0:
             raise ValueError("num_steps_wait must be a nonnegative integer")
@@ -96,7 +166,10 @@ class OverlapRuntimeConfig:
             raise ValueError("execute_horizon must not exceed action_horizon")
         if self.action_horizon != 10:
             raise ValueError("pi0.5 LIBERO overlap requires action_horizon=10")
-        if not math.isfinite(self.max_condition_residual) or self.max_condition_residual <= 0:
+        if (
+            not math.isfinite(self.max_condition_residual)
+            or self.max_condition_residual <= 0
+        ):
             raise ValueError("max_condition_residual must be finite and positive")
         if self.guidance_schedule not in ("linear", "exp", "ones", "zeros"):
             raise ValueError("unsupported guidance_schedule")
@@ -120,6 +193,7 @@ class OverlapQueryRecord:
     inference_latency_ms: float
     policy_inference_latency_ms: Optional[float]
     server_inference_latency_ms: Optional[float]
+    policy_input_sha256: str
     response_action_sha256: str
     next_reference_sha256: str
     sampling_key_sha256: Optional[str]
@@ -276,8 +350,7 @@ def _validate_guidance_trace(
         "schedule": config.guidance_schedule,
         "max_guidance_weight": config.max_guidance_weight,
         "guidance_active": bool(
-            np.any(control["guidance_weights"])
-            and config.max_guidance_weight > 0.0
+            np.any(control["guidance_weights"]) and config.max_guidance_weight > 0.0
         ),
         "guided_steps": int(np.count_nonzero(control["guidance_weights"])),
         "raw_actions_sha256": control["raw_actions_sha256"],
@@ -375,7 +448,9 @@ def run_overlap_episode(
         environment.reset()
         observation = environment.set_init_state(np.array(initial_state, copy=True))
         if not isinstance(observation, Mapping):
-            raise TypeError("environment.set_init_state must return an observation mapping")
+            raise TypeError(
+                "environment.set_init_state must return an observation mapping"
+            )
         for _ in range(config.num_steps_wait):
             observation, done = _environment_step(environment, LIBERO_DUMMY_ACTION)
             environment_steps += 1
@@ -396,6 +471,7 @@ def run_overlap_episode(
         failure_stage = "observation_build"
         try:
             request = request_builder(observation, task_description, config.resize_size)
+            policy_input_sha256 = canonical_policy_input_sha256(request)
             sampling_control = (
                 None
                 if sampling_control_builder is None
@@ -559,6 +635,7 @@ def run_overlap_episode(
                 inference_latency_ms=inference_latency_ms,
                 policy_inference_latency_ms=policy_ms,
                 server_inference_latency_ms=server_ms,
+                policy_input_sha256=policy_input_sha256,
                 response_action_sha256=canonical_action_sha256(response_actions),
                 next_reference_sha256=canonical_action_sha256(next_reference),
                 sampling_key_sha256=sampling_key,

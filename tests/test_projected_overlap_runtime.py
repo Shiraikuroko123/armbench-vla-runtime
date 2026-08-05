@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from integrations.openpi.projected_overlap_runtime import (
     OVERLAP_UNCONDITIONED,
     PROJECTED_OVERLAP,
     RTC_GUIDED_OVERLAP,
     OverlapRuntimeConfig,
+    OverlapRuntimeError,
+    canonical_policy_input_sha256,
     run_overlap_episode,
 )
 from integrations.openpi.serve_policy_attested import (
@@ -85,9 +88,7 @@ class IndexedPolicy:
                 "schedule": guidance["schedule"],
                 "max_guidance_weight": guidance["max_guidance_weight"],
                 "guidance_active": True,
-                "guided_steps": int(
-                    np.count_nonzero(guidance["guidance_weights"])
-                ),
+                "guided_steps": int(np.count_nonzero(guidance["guidance_weights"])),
                 "raw_actions_sha256": guidance["raw_actions_sha256"],
                 "model_actions_sha256": "b" * 64,
                 "weights_sha256": guidance["weights_sha256"],
@@ -104,7 +105,7 @@ def _config(method):
         inference_delay_steps=4,
         max_task_steps=10,
         num_steps_wait=0,
-        resize_size=4,
+        resize_size=224,
     )
 
 
@@ -115,16 +116,75 @@ def _v2_config(method):
         inference_delay_steps=4,
         max_task_steps=10,
         num_steps_wait=0,
-        resize_size=4,
+        resize_size=224,
         bootstrap_reference_only=True,
     )
 
 
+def _policy_request():
+    return {
+        "observation/image": np.zeros((224, 224, 3), dtype=np.uint8),
+        "observation/wrist_image": np.ones((224, 224, 3), dtype=np.uint8),
+        "observation/state": np.arange(8, dtype=np.float64),
+        "prompt": "pick up the black bowl",
+    }
+
+
+def test_policy_input_digest_is_stable_and_covers_every_model_input() -> None:
+    request = _policy_request()
+    expected = canonical_policy_input_sha256(request)
+    assert (
+        canonical_policy_input_sha256(
+            {
+                key: value.copy() if isinstance(value, np.ndarray) else value
+                for key, value in request.items()
+            }
+        )
+        == expected
+    )
+
+    mutations = []
+    for key in ("observation/image", "observation/wrist_image"):
+        changed = _policy_request()
+        changed[key][0, 0, 0] += 1
+        mutations.append(changed)
+    changed = _policy_request()
+    changed["observation/state"][0] += 1.0
+    mutations.append(changed)
+    changed = _policy_request()
+    changed["prompt"] += " now"
+    mutations.append(changed)
+
+    assert all(canonical_policy_input_sha256(value) != expected for value in mutations)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    (
+        ("observation/image", np.zeros((223, 224, 3), dtype=np.uint8)),
+        ("observation/wrist_image", np.zeros((224, 224, 3), dtype=np.float32)),
+        ("observation/state", np.zeros(7, dtype=np.float64)),
+        (
+            "observation/state",
+            np.asarray([0.0] * 7 + [np.nan], dtype=np.float64),
+        ),
+        ("prompt", b"not text"),
+    ),
+)
+def test_policy_input_digest_rejects_noncanonical_inputs(field, value) -> None:
+    request = _policy_request()
+    request[field] = value
+
+    with pytest.raises(OverlapRuntimeError):
+        canonical_policy_input_sha256(request)
+
+
 def test_unconditioned_overlap_advances_exactly_e_steps_per_query() -> None:
     environment = RecordingEnvironment()
+    policy = IndexedPolicy()
     result = run_overlap_episode(
         environment,
-        IndexedPolicy(),
+        policy,
         np.array([0.0]),
         "task",
         _config(OVERLAP_UNCONDITIONED),
@@ -138,6 +198,9 @@ def test_unconditioned_overlap_advances_exactly_e_steps_per_query() -> None:
     assert result.query_records[1].old_prefix_steps == 4
     assert result.query_records[1].new_suffix_steps == 1
     assert result.query_records[1].decision == "accepted_unconditioned_overlap"
+    assert [record.policy_input_sha256 for record in result.query_records] == [
+        canonical_policy_input_sha256(request) for request in policy.requests
+    ]
 
 
 def test_projected_overlap_conditions_shifted_reference_after_bootstrap() -> None:
