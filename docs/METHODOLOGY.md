@@ -2,17 +2,20 @@
 
 ## Document scope
 
-ArmBench contains two independent evidence paths. Official pi0.5-LIBERO studies
-evaluate temporal alignment and sampler-internal overlap methods with an
-attested checkpoint. The local MuJoCo/DROID path evaluates protocol contracts,
-runtime guards, deterministic faults, and Panda physics with either a remote
-OpenPI server or explicitly labeled non-learned fixtures.
+ArmBench contains two independent evidence paths. Official studies use an
+attested checkpoint for Physical Intelligence's `pi0.5` VLA to evaluate
+temporal alignment and sampler-internal overlap in LIBERO. The local
+MuJoCo/DROID path evaluates protocol contracts, runtime guards, deterministic
+faults, and Panda physics with either a remote OpenPI server or explicitly
+labeled non-learned fixtures.
 
 This document specifies the local MuJoCo/DROID methodology and the shared
 artifact model. Official-checkpoint protocols and outcomes are documented in
 [Results](RESULTS.md), [Measured-age temporal alignment](MEASURED_LATENCY_RUNTIME.md),
 and [RTC-guided pi0.5 integration](RTC_PI05_INTEGRATION.md). Conclusions are not
 transferred between paths without a registered cross-path experiment.
+The component relationship and public claim boundary are summarized in
+[Architecture and claim boundaries](PROJECT_ARCHITECTURE.md).
 
 ## Local runtime validation question
 

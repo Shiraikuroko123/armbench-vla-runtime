@@ -6,6 +6,10 @@ checkpoint studies, exploratory sampler studies, local deterministic runtime
 tests, and historical planner results are reported separately and are not
 pooled.
 
+Model terminology and the separation between the Physical Intelligence
+`pi0.5` VLA path and the local seven-DoF Panda path are defined in
+[Architecture and claim boundaries](PROJECT_ARCHITECTURE.md).
+
 Fields named `safe` or `physical_safe` refer to registered simulation
 predicates defined by the corresponding protocol. They are not physical-safety
 certification.

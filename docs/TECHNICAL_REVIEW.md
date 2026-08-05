@@ -8,7 +8,10 @@ technical reviewers who need to trace a result from its system assumption to
 code, runtime records, and validation output.
 
 For commands and installation issues, use [Troubleshooting](DEBUGGING.md). For
-complete numerical results and provenance, use [Results](RESULTS.md).
+complete numerical results and provenance, use [Results](RESULTS.md). Review
+[Architecture and claim boundaries](PROJECT_ARCHITECTURE.md) before treating
+the local Panda path and the Physical Intelligence `pi0.5` VLA path as one
+system claim.
 
 ## System summary
 
