@@ -22,6 +22,7 @@ OPENPI_COMMIT = "15a9616a00943ada6c20a0f158e3adb39df2ccac"
 OPENPI_PROJECTED_CONDITIONING_COMMIT = (
     "2c8e61d5fbfde4b670ae428ef4b8440d35c1c7fd"
 )
+OPENPI_RTC_GUIDANCE_COMMIT = "54592c7148ba69bf52757385502782f80f2285e0"
 DEFAULT_POLICY_CONFIG = "pi05_libero"
 DEFAULT_CHECKPOINT = "gs://openpi-assets/checkpoints/pi05_libero"
 POLICY_SAMPLING_SCHEMA_VERSION = "armbench.policy_sampling.v1"
@@ -41,6 +42,15 @@ POLICY_CONDITIONING_RESPONSE_FIELD = "armbench_policy_conditioning"
 POLICY_CONDITIONING_METADATA_FIELD = "armbench_policy_conditioning_contract"
 POLICY_CONDITIONING_METHOD = "projected_flow_inpainting"
 OPENPI_INTERNAL_CONDITIONING_FIELD = "policy_conditioning"
+POLICY_GUIDANCE_SCHEMA_VERSION = "armbench.policy_guidance.v1"
+POLICY_GUIDANCE_TRACE_SCHEMA_VERSION = "armbench.policy_guidance_trace.v1"
+POLICY_GUIDANCE_REQUEST_FIELD = "armbench_policy_guidance"
+POLICY_GUIDANCE_RESPONSE_FIELD = "armbench_policy_guidance"
+POLICY_GUIDANCE_METADATA_FIELD = "armbench_policy_guidance_contract"
+POLICY_GUIDANCE_METHOD = "rtc_pseudoinverse_guidance"
+POLICY_GUIDANCE_SCHEDULES = ("linear", "exp", "ones", "zeros")
+OPENPI_INTERNAL_GUIDANCE_FIELD = "policy_guidance"
+DEFAULT_MAX_GUIDANCE_WEIGHT = 5.0
 PI05_ACTION_HORIZON = 10
 PI05_MODEL_ACTION_DIM = 32
 PI05_RAW_ACTION_DIM = 7
@@ -108,6 +118,28 @@ def policy_conditioning_contract(
         "mask_shape": [int(action_horizon)],
         "mask_dtype": "bool",
         "mask_semantics": "contiguous committed prefix",
+    }
+
+
+def policy_guidance_contract(
+    action_horizon: int = PI05_ACTION_HORIZON,
+    raw_action_dim: int = PI05_RAW_ACTION_DIM,
+    model_action_dim: int = PI05_MODEL_ACTION_DIM,
+) -> Dict[str, Any]:
+    return {
+        "schema_version": POLICY_GUIDANCE_SCHEMA_VERSION,
+        "trace_schema_version": POLICY_GUIDANCE_TRACE_SCHEMA_VERSION,
+        "request_field": POLICY_GUIDANCE_REQUEST_FIELD,
+        "response_field": POLICY_GUIDANCE_RESPONSE_FIELD,
+        "method": POLICY_GUIDANCE_METHOD,
+        "raw_action_shape": [int(action_horizon), int(raw_action_dim)],
+        "model_action_shape": [int(action_horizon), int(model_action_dim)],
+        "actions_dtype": "little-endian float32",
+        "weights_shape": [int(action_horizon)],
+        "weights_dtype": "little-endian float32",
+        "weight_source": "server_recomputed_from_inference_delay_execute_horizon_schedule",
+        "schedules": list(POLICY_GUIDANCE_SCHEDULES),
+        "maximum_guidance_weight": DEFAULT_MAX_GUIDANCE_WEIGHT,
     }
 
 
@@ -226,6 +258,63 @@ def policy_conditioning_mask_sha256(mask: np.ndarray) -> str:
     return hashlib.sha256(np.asarray(canonical, dtype="u1").tobytes(order="C")).hexdigest()
 
 
+def policy_guidance_weights_sha256(weights: np.ndarray) -> str:
+    canonical = np.asarray(weights, dtype="<f4", order="C")
+    if canonical.ndim != 1:
+        raise ValueError("guidance weights must be a one-dimensional array")
+    return hashlib.sha256(canonical.tobytes(order="C")).hexdigest()
+
+
+def _policy_guidance_weights(
+    inference_delay: int,
+    execute_horizon: int,
+    action_horizon: int,
+    schedule: str,
+) -> np.ndarray:
+    if type(inference_delay) is not int or inference_delay < 0:
+        raise ValueError("guidance inference_delay must be a nonnegative integer")
+    if type(execute_horizon) is not int or execute_horizon <= 0:
+        raise ValueError("guidance execute_horizon must be a positive integer")
+    if inference_delay > execute_horizon or execute_horizon > action_horizon:
+        raise ValueError("guidance horizons are inconsistent")
+    if schedule not in POLICY_GUIDANCE_SCHEDULES:
+        raise ValueError("unsupported guidance schedule")
+    end = action_horizon - execute_horizon
+    start = min(inference_delay, end)
+    index = np.arange(action_horizon, dtype=np.float64)
+    if schedule == "ones":
+        weights = np.ones(action_horizon, dtype=np.float64)
+    elif schedule == "zeros":
+        weights = (index < start).astype(np.float64)
+    else:
+        weights = np.clip(
+            (start - 1 - index) / (end - start + 1) + 1.0,
+            0.0,
+            1.0,
+        )
+        if schedule == "exp":
+            weights = weights * np.expm1(weights) / np.expm1(1.0)
+    weights = np.where(index >= end, 0.0, weights)
+    return np.asarray(weights, dtype="<f4", order="C")
+
+
+def _canonical_guidance_actions(
+    actions: Any,
+    *,
+    action_horizon: int,
+    raw_action_dim: int,
+) -> np.ndarray:
+    try:
+        canonical = np.asarray(actions, dtype="<f4", order="C")
+    except (TypeError, ValueError) as exc:
+        raise ValueError("guidance actions must be numeric") from exc
+    if canonical.shape != (action_horizon, raw_action_dim):
+        raise ValueError("guidance actions do not match the raw action shape")
+    if not np.all(np.isfinite(canonical)):
+        raise ValueError("guidance actions must contain only finite values")
+    return np.array(canonical, dtype="<f4", order="C", copy=True)
+
+
 def _canonical_conditioning_arrays(
     actions: Any,
     mask: Any,
@@ -283,6 +372,53 @@ def build_policy_conditioning_control(
         "condition_mask": canonical_mask,
         "raw_actions_sha256": policy_conditioning_actions_sha256(canonical_actions),
         "mask_sha256": policy_conditioning_mask_sha256(canonical_mask),
+    }
+
+
+def build_policy_guidance_control(
+    actions: Any,
+    *,
+    inference_delay: int,
+    execute_horizon: int,
+    schedule: str = "exp",
+    max_guidance_weight: float = DEFAULT_MAX_GUIDANCE_WEIGHT,
+    action_horizon: int = PI05_ACTION_HORIZON,
+    raw_action_dim: int = PI05_RAW_ACTION_DIM,
+) -> Dict[str, Any]:
+    canonical_actions = _canonical_guidance_actions(
+        actions,
+        action_horizon=action_horizon,
+        raw_action_dim=raw_action_dim,
+    )
+    weights = _policy_guidance_weights(
+        inference_delay,
+        execute_horizon,
+        action_horizon,
+        schedule,
+    )
+    try:
+        maximum = float(max_guidance_weight)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("max_guidance_weight must be numeric") from exc
+    if (
+        not np.isfinite(maximum)
+        or maximum < 0.0
+        or maximum > DEFAULT_MAX_GUIDANCE_WEIGHT
+    ):
+        raise ValueError("max_guidance_weight must be within the server limit")
+    return {
+        "schema_version": POLICY_GUIDANCE_SCHEMA_VERSION,
+        "method": POLICY_GUIDANCE_METHOD,
+        "inference_delay": inference_delay,
+        "execute_horizon": execute_horizon,
+        "schedule": schedule,
+        "max_guidance_weight": maximum,
+        "guidance_actions": canonical_actions,
+        "guidance_weights": weights,
+        "raw_actions_sha256": policy_conditioning_actions_sha256(
+            canonical_actions
+        ),
+        "weights_sha256": policy_guidance_weights_sha256(weights),
     }
 
 
@@ -344,6 +480,85 @@ def _validate_policy_conditioning_control(
     }
 
 
+def _validate_policy_guidance_control(
+    value: Any,
+    *,
+    action_horizon: int,
+    raw_action_dim: int,
+) -> Dict[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ValueError("policy guidance control must be an object")
+    expected_fields = {
+        "schema_version",
+        "method",
+        "inference_delay",
+        "execute_horizon",
+        "schedule",
+        "max_guidance_weight",
+        "guidance_actions",
+        "guidance_weights",
+        "raw_actions_sha256",
+        "weights_sha256",
+    }
+    if set(value) != expected_fields:
+        raise ValueError("policy guidance control fields do not match the contract")
+    if value.get("schema_version") != POLICY_GUIDANCE_SCHEMA_VERSION:
+        raise ValueError("policy guidance schema_version mismatch")
+    if value.get("method") != POLICY_GUIDANCE_METHOD:
+        raise ValueError("unsupported policy guidance method")
+    delay = value.get("inference_delay")
+    execute = value.get("execute_horizon")
+    schedule = value.get("schedule")
+    expected_weights = _policy_guidance_weights(
+        delay,
+        execute,
+        action_horizon,
+        schedule,
+    )
+    try:
+        supplied_weights = np.asarray(
+            value.get("guidance_weights"), dtype="<f4", order="C"
+        )
+        maximum = float(value.get("max_guidance_weight"))
+    except (TypeError, ValueError) as exc:
+        raise ValueError("policy guidance numeric fields are invalid") from exc
+    if supplied_weights.shape != (action_horizon,):
+        raise ValueError("policy guidance weights shape is invalid")
+    if not np.all(np.isfinite(supplied_weights)):
+        raise ValueError("policy guidance weights must contain only finite values")
+    if not np.array_equal(supplied_weights, expected_weights):
+        raise ValueError("policy guidance weights were not server-derived")
+    if (
+        not np.isfinite(maximum)
+        or maximum < 0.0
+        or maximum > DEFAULT_MAX_GUIDANCE_WEIGHT
+    ):
+        raise ValueError("policy guidance max_guidance_weight exceeds the server limit")
+    actions = _canonical_guidance_actions(
+        value.get("guidance_actions"),
+        action_horizon=action_horizon,
+        raw_action_dim=raw_action_dim,
+    )
+    actions_sha256 = policy_conditioning_actions_sha256(actions)
+    weights_sha256 = policy_guidance_weights_sha256(expected_weights)
+    if value.get("raw_actions_sha256") != actions_sha256:
+        raise ValueError("policy guidance raw_actions_sha256 mismatch")
+    if value.get("weights_sha256") != weights_sha256:
+        raise ValueError("policy guidance weights_sha256 mismatch")
+    return {
+        "schema_version": POLICY_GUIDANCE_SCHEMA_VERSION,
+        "method": POLICY_GUIDANCE_METHOD,
+        "inference_delay": delay,
+        "execute_horizon": execute,
+        "schedule": schedule,
+        "max_guidance_weight": maximum,
+        "guidance_actions": actions,
+        "guidance_weights": expected_weights,
+        "raw_actions_sha256": actions_sha256,
+        "weights_sha256": weights_sha256,
+    }
+
+
 def _validate_policy_sampling_control(value: Any) -> Dict[str, Any]:
     if not isinstance(value, Mapping):
         raise ValueError("policy sampling control must be an object")
@@ -381,7 +596,7 @@ def _validate_policy_sampling_control(value: Any) -> Dict[str, Any]:
 
 
 class KeyedPolicySamplingWrapper:
-    """Inject keyed noise and optional committed actions with auditable traces."""
+    """Inject keyed noise and mutually exclusive action guidance controls."""
 
     def __init__(
         self,
@@ -403,7 +618,10 @@ class KeyedPolicySamplingWrapper:
     def infer(self, observation: Mapping[str, Any]) -> Mapping[str, Any]:
         has_sampling = POLICY_SAMPLING_REQUEST_FIELD in observation
         has_conditioning = POLICY_CONDITIONING_REQUEST_FIELD in observation
-        if not has_sampling and not has_conditioning:
+        has_guidance = POLICY_GUIDANCE_REQUEST_FIELD in observation
+        if has_conditioning and has_guidance:
+            raise ValueError("projected conditioning and RTC guidance are mutually exclusive")
+        if not has_sampling and not has_conditioning and not has_guidance:
             return self._policy.infer(observation)
         clean_observation = dict(observation)
         kwargs: Dict[str, Any] = {}
@@ -429,6 +647,19 @@ class KeyedPolicySamplingWrapper:
             )
             kwargs["condition_actions"] = conditioning_control["condition_actions"]
             kwargs["condition_mask"] = conditioning_control["condition_mask"]
+        guidance_control = None
+        if has_guidance:
+            guidance_control = _validate_policy_guidance_control(
+                clean_observation.pop(POLICY_GUIDANCE_REQUEST_FIELD),
+                action_horizon=self._action_horizon,
+                raw_action_dim=self._raw_action_dim,
+            )
+            kwargs["guidance_actions"] = guidance_control["guidance_actions"]
+            kwargs["guidance_weights"] = guidance_control["guidance_weights"]
+            kwargs["guidance_schedule"] = guidance_control["schedule"]
+            kwargs["max_guidance_weight"] = guidance_control[
+                "max_guidance_weight"
+            ]
 
         response = self._policy.infer(clean_observation, **kwargs)
         if not isinstance(response, Mapping):
@@ -475,6 +706,76 @@ class KeyedPolicySamplingWrapper:
                 "model_actions_sha256": model_actions_sha256,
                 "mask_sha256": conditioning_control["mask_sha256"],
                 "max_model_residual": float(residual),
+            }
+        if guidance_control is not None:
+            if POLICY_GUIDANCE_RESPONSE_FIELD in output:
+                raise ValueError(
+                    "policy response already contains reserved guidance audit field"
+                )
+            internal = output.pop(OPENPI_INTERNAL_GUIDANCE_FIELD, None)
+            if not isinstance(internal, Mapping):
+                raise ValueError("policy response omitted its internal guidance audit")
+            if internal.get("schema_version") != "armbench.openpi_guidance.v1":
+                raise ValueError("policy guidance audit schema mismatch")
+            if internal.get("method") != POLICY_GUIDANCE_METHOD:
+                raise ValueError("policy guidance audit method mismatch")
+            if (
+                internal.get("raw_actions_sha256")
+                != guidance_control["raw_actions_sha256"]
+            ):
+                raise ValueError("policy guidance audit raw action hash mismatch")
+            if (
+                internal.get("weights_sha256")
+                != guidance_control["weights_sha256"]
+            ):
+                raise ValueError("policy guidance audit weights hash mismatch")
+            if internal.get("schedule") != guidance_control["schedule"]:
+                raise ValueError("policy guidance audit schedule mismatch")
+            if (
+                internal.get("max_guidance_weight")
+                != guidance_control["max_guidance_weight"]
+            ):
+                raise ValueError("policy guidance audit maximum mismatch")
+            guided_steps = int(np.count_nonzero(guidance_control["guidance_weights"]))
+            if internal.get("guided_steps") != guided_steps:
+                raise ValueError("policy guidance audit guided step count mismatch")
+            guidance_active = (
+                guided_steps > 0
+                and guidance_control["max_guidance_weight"] > 0.0
+            )
+            if internal.get("guidance_active") is not guidance_active:
+                raise ValueError("policy guidance audit active flag mismatch")
+            model_actions_sha256 = internal.get("model_actions_sha256")
+            if (
+                not isinstance(model_actions_sha256, str)
+                or not _SHA256.fullmatch(model_actions_sha256)
+            ):
+                raise ValueError("policy guidance audit model action hash is invalid")
+            max_residual = internal.get("max_weighted_model_residual")
+            rmse = internal.get("weighted_model_rmse")
+            if (
+                not isinstance(max_residual, (int, float))
+                or not np.isfinite(max_residual)
+                or max_residual < 0
+                or not isinstance(rmse, (int, float))
+                or not np.isfinite(rmse)
+                or rmse < 0
+            ):
+                raise ValueError("policy guidance audit residual is invalid")
+            output[POLICY_GUIDANCE_RESPONSE_FIELD] = {
+                "schema_version": POLICY_GUIDANCE_TRACE_SCHEMA_VERSION,
+                "method": POLICY_GUIDANCE_METHOD,
+                "inference_delay": guidance_control["inference_delay"],
+                "execute_horizon": guidance_control["execute_horizon"],
+                "schedule": guidance_control["schedule"],
+                "max_guidance_weight": guidance_control["max_guidance_weight"],
+                "guidance_active": guidance_active,
+                "guided_steps": guided_steps,
+                "raw_actions_sha256": guidance_control["raw_actions_sha256"],
+                "model_actions_sha256": model_actions_sha256,
+                "weights_sha256": guidance_control["weights_sha256"],
+                "max_weighted_model_residual": float(max_residual),
+                "weighted_model_rmse": float(rmse),
             }
         return output
 
@@ -613,7 +914,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--policy-config", default=DEFAULT_POLICY_CONFIG)
     parser.add_argument("--checkpoint", default=DEFAULT_CHECKPOINT)
     parser.add_argument("--openpi-root", default="/app")
-    parser.add_argument("--expected-openpi-commit", default=OPENPI_COMMIT)
+    parser.add_argument("--expected-openpi-commit", default=OPENPI_RTC_GUIDANCE_COMMIT)
     parser.add_argument("--expected-openpi-base-commit", default=OPENPI_COMMIT)
     parser.add_argument("--attestation-output", required=True)
     parser.add_argument("--host", default="0.0.0.0")
@@ -686,6 +987,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         action_horizon, model_action_dim
     )
     metadata[POLICY_CONDITIONING_METADATA_FIELD] = policy_conditioning_contract(
+        action_horizon, PI05_RAW_ACTION_DIM, model_action_dim
+    )
+    metadata[POLICY_GUIDANCE_METADATA_FIELD] = policy_guidance_contract(
         action_horizon, PI05_RAW_ACTION_DIM, model_action_dim
     )
     served_policy = KeyedPolicySamplingWrapper(

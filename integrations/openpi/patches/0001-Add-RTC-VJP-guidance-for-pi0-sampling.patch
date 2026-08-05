@@ -1,0 +1,533 @@
+From 54592c7148ba69bf52757385502782f80f2285e0 Mon Sep 17 00:00:00 2001
+From: Shiraikuroko123 <1911057162@qq.com>
+Date: Wed, 5 Aug 2026 09:57:10 +0800
+Subject: [PATCH] Add RTC VJP guidance for pi0 sampling
+
+---
+ src/openpi/models/pi0.py                   |  74 ++++++++++++
+ src/openpi/models/pi0_conditioning_test.py |  85 ++++++++++++++
+ src/openpi/policies/conditioning_test.py   |  92 +++++++++++++++
+ src/openpi/policies/policy.py              | 129 +++++++++++++++++----
+ 4 files changed, 360 insertions(+), 20 deletions(-)
+
+diff --git a/src/openpi/models/pi0.py b/src/openpi/models/pi0.py
+index b82b252..6250b15 100644
+--- a/src/openpi/models/pi0.py
++++ b/src/openpi/models/pi0.py
+@@ -21,6 +21,35 @@ def _project_flow_condition(x_t, initial_noise, condition_actions, condition_mas
+     return jnp.where(condition_mask[..., None], known_t, x_t)
+ 
+ 
++def _reverse_rtc_guidance_gain(time, max_guidance_weight):
++    time = jnp.asarray(time)
++    denominator = time * (1.0 - time)
++    safe_denominator = jnp.maximum(denominator, jnp.finfo(time.dtype).tiny)
++    numerator = time**2 + (1.0 - time) ** 2
++    return jnp.minimum(numerator / safe_denominator, max_guidance_weight)
++
++
++def _rtc_guided_velocity(
++    velocity_fn,
++    x_t,
++    time,
++    guidance_actions,
++    guidance_weights,
++    max_guidance_weight,
++):
++    """Apply official RTC's VJP correction under OpenPI's reverse clock."""
++
++    def denoiser(candidate):
++        velocity = velocity_fn(candidate)
++        return candidate - time * velocity, velocity
++
++    predicted_actions, pullback, velocity = jax.vjp(denoiser, x_t, has_aux=True)
++    error = (guidance_actions - predicted_actions) * guidance_weights[..., None]
++    correction = pullback(error)[0]
++    gain = _reverse_rtc_guidance_gain(time, max_guidance_weight)
++    return velocity - gain * correction
++
++
+ def make_attn_mask(input_mask, mask_ar):
+     """Adapted from big_vision.
+ 
+@@ -228,6 +257,9 @@ class Pi0(_model.BaseModel):
+         noise: at.Float[at.Array, "b ah ad"] | None = None,
+         condition_actions: at.Float[at.Array, "b ah ad"] | None = None,
+         condition_mask: at.Bool[at.Array, "b ah"] | None = None,
++        guidance_actions: at.Float[at.Array, "b ah ad"] | None = None,
++        guidance_weights: at.Float[at.Array, "b ah"] | None = None,
++        max_guidance_weight: float = 5.0,
+     ) -> _model.Actions:
+         observation = _model.preprocess_observation(None, observation, train=False)
+         # note that we use the convention more common in diffusion literature, where t=1 is noise and t=0 is the target
+@@ -247,6 +279,18 @@ class Pi0(_model.BaseModel):
+                 raise ValueError("condition_mask must have shape (batch, action_horizon)")
+             if condition_mask.dtype != jnp.bool_:
+                 raise ValueError("condition_mask must have boolean dtype")
++        guidance_enabled = guidance_actions is not None
++        if guidance_enabled != (guidance_weights is not None):
++            raise ValueError("guidance_actions and guidance_weights must be provided together")
++        if conditioning_enabled and guidance_enabled:
++            raise ValueError("projected conditioning and RTC guidance are mutually exclusive")
++        if guidance_enabled:
++            if guidance_actions.shape != noise.shape:
++                raise ValueError("guidance_actions must match the sampler noise shape")
++            if guidance_weights.shape != noise.shape[:2]:
++                raise ValueError("guidance_weights must have shape (batch, action_horizon)")
++            if not jnp.issubdtype(guidance_weights.dtype, jnp.floating):
++                raise ValueError("guidance_weights must have floating dtype")
+ 
+         # first fill KV cache with a forward pass of the prefix
+         prefix_tokens, prefix_mask, prefix_ar_mask = self.embed_prefix(observation)
+@@ -258,6 +302,36 @@ class Pi0(_model.BaseModel):
+             x_t, time = carry
+             if conditioning_enabled:
+                 x_t = _project_flow_condition(x_t, noise, condition_actions, condition_mask, time)
++            if guidance_enabled:
++
++                def velocity_fn(candidate):
++                    suffix_tokens, suffix_mask, suffix_ar_mask, adarms_cond = self.embed_suffix(
++                        observation, candidate, jnp.broadcast_to(time, batch_size)
++                    )
++                    suffix_attn_mask = make_attn_mask(suffix_mask, suffix_ar_mask)
++                    prefix_to_suffix_mask = einops.repeat(prefix_mask, "b p -> b s p", s=suffix_tokens.shape[1])
++                    full_attn_mask = jnp.concatenate([prefix_to_suffix_mask, suffix_attn_mask], axis=-1)
++                    positions = jnp.sum(prefix_mask, axis=-1)[:, None] + jnp.cumsum(suffix_mask, axis=-1) - 1
++                    (prefix_out, suffix_out), _ = self.PaliGemma.llm(
++                        [None, suffix_tokens],
++                        mask=full_attn_mask,
++                        positions=positions,
++                        kv_cache=kv_cache,
++                        adarms_cond=[None, adarms_cond],
++                    )
++                    assert prefix_out is None
++                    return self.action_out_proj(suffix_out[:, -self.action_horizon :])
++
++                v_t = _rtc_guided_velocity(
++                    velocity_fn,
++                    x_t,
++                    time,
++                    guidance_actions,
++                    guidance_weights,
++                    max_guidance_weight,
++                )
++                return x_t + dt * v_t, time + dt
++
+             suffix_tokens, suffix_mask, suffix_ar_mask, adarms_cond = self.embed_suffix(
+                 observation, x_t, jnp.broadcast_to(time, batch_size)
+             )
+diff --git a/src/openpi/models/pi0_conditioning_test.py b/src/openpi/models/pi0_conditioning_test.py
+index 06283aa..68c201b 100644
+--- a/src/openpi/models/pi0_conditioning_test.py
++++ b/src/openpi/models/pi0_conditioning_test.py
+@@ -2,6 +2,8 @@ import jax.numpy as jnp
+ import numpy as np
+ 
+ from openpi.models.pi0 import _project_flow_condition
++from openpi.models.pi0 import _reverse_rtc_guidance_gain
++from openpi.models.pi0 import _rtc_guided_velocity
+ 
+ 
+ def test_projected_flow_path_endpoints_are_exact():
+@@ -16,3 +18,86 @@ def test_projected_flow_path_endpoints_are_exact():
+     np.testing.assert_array_equal(np.asarray(at_noise[:, :2]), np.asarray(noise[:, :2]))
+     np.testing.assert_array_equal(np.asarray(at_action[:, :2]), np.asarray(actions[:, :2]))
+     np.testing.assert_array_equal(np.asarray(at_action[:, 2:]), np.asarray(state[:, 2:]))
++
++
++def test_reverse_rtc_guidance_gain_is_finite_at_openpi_first_step():
++    times = jnp.array([0.0, 1e-8, 0.5, 1.0 - 1e-8, 1.0], dtype=jnp.float32)
++    gains = _reverse_rtc_guidance_gain(times, 5.0)
++
++    assert np.all(np.isfinite(np.asarray(gains)))
++    np.testing.assert_array_equal(np.asarray(gains)[[0, 1, 3, 4]], 5.0)
++    assert float(gains[2]) == 2.0
++
++
++def test_rtc_vjp_matches_linear_denoiser_adjoint_and_reverse_sign():
++    matrix = jnp.array(
++        [
++            [0.20, -0.10, 0.00, 0.05],
++            [0.30, 0.10, -0.20, 0.00],
++            [0.00, 0.15, -0.10, 0.20],
++            [-0.05, 0.00, 0.10, 0.25],
++        ],
++        dtype=jnp.float32,
++    )
++    state = jnp.array([[[0.2, -0.4], [0.6, 0.8]]], dtype=jnp.float32)
++    reference = jnp.array([[[-0.3, 0.1], [0.2, -0.5]]], dtype=jnp.float32)
++    weights = jnp.array([[1.0, 0.25]], dtype=jnp.float32)
++    time = jnp.array(0.7, dtype=jnp.float32)
++
++    def velocity(candidate):
++        flat = candidate.reshape(1, -1)
++        return (flat @ matrix.T).reshape(candidate.shape)
++
++    actual = _rtc_guided_velocity(
++        velocity,
++        state,
++        time,
++        reference,
++        weights,
++        5.0,
++    )
++    raw_velocity = velocity(state)
++    predicted = state - time * raw_velocity
++    error = ((reference - predicted) * weights[..., None]).reshape(-1)
++    jacobian = jnp.eye(4, dtype=jnp.float32) - time * matrix
++    correction = (jacobian.T @ error).reshape(state.shape)
++    expected = raw_velocity - _reverse_rtc_guidance_gain(time, 5.0) * correction
++
++    np.testing.assert_allclose(np.asarray(actual), np.asarray(expected), rtol=1e-6, atol=1e-6)
++
++
++def test_rtc_reverse_sign_moves_euler_step_toward_reference():
++    state = jnp.zeros((1, 2, 2), dtype=jnp.float32)
++    reference = jnp.ones_like(state)
++    weights = jnp.array([[1.0, 0.5]], dtype=jnp.float32)
++
++    guided_velocity = _rtc_guided_velocity(
++        jnp.zeros_like,
++        state,
++        jnp.array(1.0, dtype=jnp.float32),
++        reference,
++        weights,
++        5.0,
++    )
++    next_state = state - 0.1 * guided_velocity
++
++    assert np.linalg.norm(np.asarray(reference - next_state)) < np.linalg.norm(np.asarray(reference - state))
++
++
++def test_rtc_zero_weights_return_exact_raw_velocity():
++    state = jnp.arange(8, dtype=jnp.float32).reshape(1, 2, 4) / 7.0
++
++    def velocity(candidate):
++        return 0.3 * candidate - 0.2
++
++    raw_velocity = velocity(state)
++    guided_velocity = _rtc_guided_velocity(
++        velocity,
++        state,
++        jnp.array(0.6, dtype=jnp.float32),
++        jnp.full_like(state, 4.0),
++        jnp.zeros((1, 2), dtype=jnp.float32),
++        5.0,
++    )
++
++    np.testing.assert_array_equal(np.asarray(guided_velocity), np.asarray(raw_velocity))
+diff --git a/src/openpi/policies/conditioning_test.py b/src/openpi/policies/conditioning_test.py
+index 5d72743..b15d547 100644
+--- a/src/openpi/policies/conditioning_test.py
++++ b/src/openpi/policies/conditioning_test.py
+@@ -42,6 +42,8 @@ def _make_policy():
+         calls.append(kwargs)
+         if "condition_actions" in kwargs:
+             return kwargs["condition_actions"]
++        if "guidance_actions" in kwargs:
++            return kwargs["guidance_actions"] + 0.25
+         return np.zeros((1, 3, 4), dtype=np.float32)
+ 
+     policy._input_transform = input_transform
+@@ -81,6 +83,66 @@ def test_no_condition_preserves_the_legacy_sampler_call():
+     assert "policy_conditioning" not in result
+ 
+ 
++def test_guidance_actions_follow_input_transforms_and_have_independent_audit():
++    policy, calls = _make_policy()
++    raw_actions = np.arange(6, dtype=np.float32).reshape(3, 2)
++    weights = np.array([1.0, 0.4, 0.0], dtype=np.float32)
++
++    result = policy.infer(
++        {"state": np.array([1.0, 2.0], dtype=np.float32)},
++        guidance_actions=raw_actions,
++        guidance_weights=weights,
++        guidance_schedule="exp",
++        max_guidance_weight=4.0,
++    )
++
++    model_actions = np.asarray(calls[0]["guidance_actions"])
++    np.testing.assert_array_equal(model_actions[0, :, :2], raw_actions * 2.0)
++    np.testing.assert_array_equal(model_actions[0, :, 2:], 0.0)
++    np.testing.assert_array_equal(np.asarray(calls[0]["guidance_weights"])[0], weights)
++    assert calls[0]["max_guidance_weight"] == 4.0
++    np.testing.assert_array_equal(result["actions"], raw_actions + 0.125)
++    assert "policy_conditioning" not in result
++    audit = result["policy_guidance"]
++    assert audit["method"] == "rtc_pseudoinverse_guidance"
++    assert audit["schedule"] == "exp"
++    assert audit["guidance_active"] is True
++    assert audit["guided_steps"] == 2
++    assert audit["max_weighted_model_residual"] == 0.25
++    assert len(audit["weights_sha256"]) == 64
++
++
++def test_zero_guidance_weights_preserve_legacy_sampler_call_and_emit_audit():
++    policy, calls = _make_policy()
++    actions = np.ones((3, 2), dtype=np.float32)
++
++    result = policy.infer(
++        {"state": np.array([1.0, 2.0], dtype=np.float32)},
++        guidance_actions=actions,
++        guidance_weights=np.zeros(3, dtype=np.float32),
++    )
++
++    assert calls == [{}]
++    assert result["policy_guidance"]["guidance_active"] is False
++    assert "policy_conditioning" not in result
++
++
++def test_projected_conditioning_and_rtc_guidance_are_mutually_exclusive():
++    policy, calls = _make_policy()
++    actions = np.zeros((3, 2), dtype=np.float32)
++
++    with pytest.raises(ValueError, match="mutually exclusive"):
++        policy.infer(
++            {"state": np.array([1.0, 2.0], dtype=np.float32)},
++            condition_actions=actions,
++            condition_mask=np.array([True, False, False]),
++            guidance_actions=actions,
++            guidance_weights=np.array([1.0, 0.0, 0.0], dtype=np.float32),
++        )
++
++    assert calls == []
++
++
+ @pytest.mark.parametrize(
+     ("actions", "mask", "message"),
+     [
+@@ -103,3 +165,33 @@ def test_malformed_conditioning_fails_before_sampling(actions, mask, message):
+         )
+ 
+     assert calls == []
++
++
++@pytest.mark.parametrize(
++    ("actions", "weights", "kwargs", "message"),
++    [
++        (np.zeros((3, 2)), None, {}, "provided together"),
++        (np.zeros((2, 2)), np.zeros(3), {}, "action_horizon"),
++        (np.zeros((3, 5)), np.zeros(3), {}, "raw_action_dim"),
++        (np.full((3, 2), np.nan), np.zeros(3), {}, "finite"),
++        (np.zeros((3, 2)), np.zeros(2), {}, "shape"),
++        (np.zeros((3, 2)), np.array([1.0, 0.2, 0.4]), {}, "nonincreasing"),
++        (np.zeros((3, 2)), np.array([1.0, -0.1, 0.0]), {}, "within"),
++        (np.zeros((3, 2)), np.array([1.0, np.nan, 0.0]), {}, "finite"),
++        (np.zeros((3, 2)), np.zeros(3), {"guidance_schedule": "bad"}, "schedule"),
++        (np.zeros((3, 2)), np.zeros(3), {"guidance_schedule": []}, "schedule"),
++        (np.zeros((3, 2)), np.zeros(3), {"max_guidance_weight": -1.0}, "nonnegative"),
++    ],
++)
++def test_malformed_guidance_fails_before_sampling(actions, weights, kwargs, message):
++    policy, calls = _make_policy()
++
++    with pytest.raises(ValueError, match=message):
++        policy.infer(
++            {"state": np.array([1.0, 2.0], dtype=np.float32)},
++            guidance_actions=actions,
++            guidance_weights=weights,
++            **kwargs,
++        )
++
++    assert calls == []
+diff --git a/src/openpi/policies/policy.py b/src/openpi/policies/policy.py
+index e3fe332..769a2af 100644
+--- a/src/openpi/policies/policy.py
++++ b/src/openpi/policies/policy.py
+@@ -23,6 +23,9 @@ BasePolicy: TypeAlias = _base_policy.BasePolicy
+ 
+ CONDITIONING_SCHEMA_VERSION = "armbench.openpi_conditioning.v1"
+ CONDITIONING_METHOD = "projected_flow_inpainting"
++GUIDANCE_SCHEMA_VERSION = "armbench.openpi_guidance.v1"
++GUIDANCE_METHOD = "rtc_pseudoinverse_guidance"
++GUIDANCE_SCHEDULES = frozenset(("linear", "exp", "ones", "zeros"))
+ 
+ 
+ def _array_sha256(value: np.ndarray, dtype: str) -> str:
+@@ -62,6 +65,52 @@ def _validate_conditioning(
+     return np.array(actions, copy=True, order="C"), np.array(mask, copy=True, order="C")
+ 
+ 
++def _validate_guidance(
++    guidance_actions: np.ndarray | None,
++    guidance_weights: np.ndarray | None,
++    *,
++    action_horizon: int,
++    model_action_dim: int,
++    guidance_schedule: str,
++    max_guidance_weight: float,
++) -> tuple[np.ndarray, np.ndarray, str, float] | None:
++    requested = guidance_actions is not None or guidance_weights is not None
++    if not requested:
++        return None
++    if guidance_actions is None or guidance_weights is None:
++        raise ValueError("guidance_actions and guidance_weights must be provided together")
++    try:
++        actions = np.asarray(guidance_actions, dtype=np.float32, order="C")
++        weights = np.asarray(guidance_weights, dtype=np.float32, order="C")
++        maximum = float(max_guidance_weight)
++    except (TypeError, ValueError) as exc:
++        raise ValueError("RTC guidance inputs must be numeric") from exc
++    if actions.ndim != 2 or actions.shape[0] != action_horizon:
++        raise ValueError("guidance_actions must have shape (action_horizon, raw_action_dim)")
++    if actions.shape[1] <= 0 or actions.shape[1] > model_action_dim:
++        raise ValueError("guidance_actions raw_action_dim is invalid")
++    if not np.all(np.isfinite(actions)):
++        raise ValueError("guidance_actions must contain only finite values")
++    if weights.shape != (action_horizon,):
++        raise ValueError("guidance_weights must have shape (action_horizon,)")
++    if not np.all(np.isfinite(weights)):
++        raise ValueError("guidance_weights must contain only finite values")
++    if np.any(weights < 0.0) or np.any(weights > 1.0):
++        raise ValueError("guidance_weights must lie within [0, 1]")
++    if np.any(np.diff(weights) > 0.0):
++        raise ValueError("guidance_weights must be nonincreasing")
++    if not isinstance(guidance_schedule, str) or guidance_schedule not in GUIDANCE_SCHEDULES:
++        raise ValueError("unsupported guidance_schedule")
++    if not np.isfinite(maximum) or maximum < 0.0:
++        raise ValueError("max_guidance_weight must be finite and nonnegative")
++    return (
++        np.array(actions, copy=True, order="C"),
++        np.array(weights, copy=True, order="C"),
++        guidance_schedule,
++        maximum,
++    )
++
++
+ class Policy(BasePolicy):
+     def __init__(
+         self,
+@@ -113,6 +162,10 @@ class Policy(BasePolicy):
+         noise: np.ndarray | None = None,
+         condition_actions: np.ndarray | None = None,
+         condition_mask: np.ndarray | None = None,
++        guidance_actions: np.ndarray | None = None,
++        guidance_weights: np.ndarray | None = None,
++        guidance_schedule: str = "exp",
++        max_guidance_weight: float = 5.0,
+     ) -> dict:  # type: ignore[misc]
+         conditioning = _validate_conditioning(
+             condition_actions,
+@@ -120,29 +173,41 @@ class Policy(BasePolicy):
+             action_horizon=self._model.action_horizon,
+             model_action_dim=self._model.action_dim,
+         )
+-        if conditioning is not None and self._is_pytorch_model:
+-            raise ValueError("projected flow conditioning is only supported by the JAX pi0 sampler")
+-        if conditioning is not None and "actions" in obs:
+-            raise ValueError("observation actions are reserved when conditioning is requested")
++        guidance = _validate_guidance(
++            guidance_actions,
++            guidance_weights,
++            action_horizon=self._model.action_horizon,
++            model_action_dim=self._model.action_dim,
++            guidance_schedule=guidance_schedule,
++            max_guidance_weight=max_guidance_weight,
++        )
++        if conditioning is not None and guidance is not None:
++            raise ValueError("projected conditioning and RTC guidance are mutually exclusive")
++        reference_requested = conditioning is not None or guidance is not None
++        if reference_requested and self._is_pytorch_model:
++            raise ValueError("action conditioning is only supported by the JAX pi0 sampler")
++        if reference_requested and "actions" in obs:
++            raise ValueError("observation actions are reserved when action conditioning is requested")
+ 
+         # Make a copy since transformations may modify the inputs in place.
+         inputs = jax.tree.map(lambda x: x, obs)
+-        if conditioning is not None:
+-            inputs["actions"] = conditioning[0]
++        if reference_requested:
++            inputs["actions"] = conditioning[0] if conditioning is not None else guidance[0]
+         inputs = self._input_transform(inputs)
+-        model_condition_actions = None
+-        if conditioning is not None:
++        model_reference_actions = None
++        if reference_requested:
+             if "actions" not in inputs:
+-                raise ValueError("input transforms dropped condition_actions")
+-            model_condition_actions = np.asarray(inputs.pop("actions"), dtype=np.float32, order="C")
++                raise ValueError("input transforms dropped reference actions")
++            model_reference_actions = np.asarray(inputs.pop("actions"), dtype=np.float32, order="C")
+             expected_shape = (self._model.action_horizon, self._model.action_dim)
+-            if model_condition_actions.shape != expected_shape:
+-                raise ValueError("transformed condition_actions do not match the model action shape")
+-            if not np.all(np.isfinite(model_condition_actions)):
+-                raise ValueError("transformed condition_actions must contain only finite values")
+-            raw_action_dim = conditioning[0].shape[1]
+-            if raw_action_dim < self._model.action_dim and np.any(model_condition_actions[:, raw_action_dim:] != 0):
+-                raise ValueError("transformed condition_actions must use zero-valued padded dimensions")
++            if model_reference_actions.shape != expected_shape:
++                raise ValueError("transformed reference actions do not match the model action shape")
++            if not np.all(np.isfinite(model_reference_actions)):
++                raise ValueError("transformed reference actions must contain only finite values")
++            raw_actions = conditioning[0] if conditioning is not None else guidance[0]
++            raw_action_dim = raw_actions.shape[1]
++            if raw_action_dim < self._model.action_dim and np.any(model_reference_actions[:, raw_action_dim:] != 0):
++                raise ValueError("transformed reference actions must use zero-valued padded dimensions")
+         if not self._is_pytorch_model:
+             # Make a batch and convert to jax.Array.
+             inputs = jax.tree.map(lambda x: jnp.asarray(x)[np.newaxis, ...], inputs)
+@@ -161,8 +226,13 @@ class Policy(BasePolicy):
+                 noise = noise[None, ...]  # Make it (1, action_horizon, action_dim)
+             sample_kwargs["noise"] = noise
+         if conditioning is not None:
+-            sample_kwargs["condition_actions"] = jnp.asarray(model_condition_actions)[None, ...]
++            sample_kwargs["condition_actions"] = jnp.asarray(model_reference_actions)[None, ...]
+             sample_kwargs["condition_mask"] = jnp.asarray(conditioning[1])[None, ...]
++        guidance_active = guidance is not None and bool(np.any(guidance[1])) and guidance[3] > 0.0
++        if guidance_active:
++            sample_kwargs["guidance_actions"] = jnp.asarray(model_reference_actions)[None, ...]
++            sample_kwargs["guidance_weights"] = jnp.asarray(guidance[1])[None, ...]
++            sample_kwargs["max_guidance_weight"] = guidance[3]
+ 
+         observation = _model.Observation.from_dict(inputs)
+         start_time = time.monotonic()
+@@ -180,7 +250,7 @@ class Policy(BasePolicy):
+         if conditioning is not None:
+             selected = conditioning[1]
+             residual = (
+-                float(np.max(np.abs(outputs["actions"][selected] - model_condition_actions[selected])))
++                float(np.max(np.abs(outputs["actions"][selected] - model_reference_actions[selected])))
+                 if np.any(selected)
+                 else 0.0
+             )
+@@ -189,16 +259,35 @@ class Policy(BasePolicy):
+                 "method": CONDITIONING_METHOD,
+                 "conditioned_prefix_steps": int(np.count_nonzero(selected)),
+                 "raw_actions_sha256": _array_sha256(conditioning[0], "<f4"),
+-                "model_actions_sha256": _array_sha256(model_condition_actions, "<f4"),
++                "model_actions_sha256": _array_sha256(model_reference_actions, "<f4"),
+                 "mask_sha256": _array_sha256(selected, "u1"),
+                 "max_model_residual": residual,
+             }
++        guidance_audit = None
++        if guidance is not None:
++            weighted_error = (outputs["actions"] - model_reference_actions) * guidance[1][:, None]
++            denominator = max(float(np.sum(guidance[1])) * self._model.action_dim, 1.0)
++            guidance_audit = {
++                "schema_version": GUIDANCE_SCHEMA_VERSION,
++                "method": GUIDANCE_METHOD,
++                "schedule": guidance[2],
++                "max_guidance_weight": guidance[3],
++                "guidance_active": guidance_active,
++                "guided_steps": int(np.count_nonzero(guidance[1])),
++                "raw_actions_sha256": _array_sha256(guidance[0], "<f4"),
++                "model_actions_sha256": _array_sha256(model_reference_actions, "<f4"),
++                "weights_sha256": _array_sha256(guidance[1], "<f4"),
++                "max_weighted_model_residual": float(np.max(np.abs(weighted_error))),
++                "weighted_model_rmse": float(np.sqrt(np.sum(weighted_error**2) / denominator)),
++            }
+         outputs = self._output_transform(outputs)
+         outputs["policy_timing"] = {
+             "infer_ms": model_time * 1000,
+         }
+         if conditioning_audit is not None:
+             outputs["policy_conditioning"] = conditioning_audit
++        if guidance_audit is not None:
++            outputs["policy_guidance"] = guidance_audit
+         return outputs
+ 
+     @property
+-- 
+2.49.0.windows.1
+

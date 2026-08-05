@@ -1,0 +1,31 @@
+{
+  "schema_version": "armbench.openpi_extension_manifest.v2",
+  "upstream_repository": "https://github.com/Physical-Intelligence/openpi.git",
+  "upstream_base_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+  "extension_parent_commit": "2c8e61d5fbfde4b670ae428ef4b8440d35c1c7fd",
+  "extension_commit": "54592c7148ba69bf52757385502782f80f2285e0",
+  "rtc_reference_repository": "https://github.com/Physical-Intelligence/real-time-chunking-kinetix.git",
+  "rtc_reference_commit": "9296f31d62d5bfeb5779dcb2f9bcf71ca37f448b",
+  "method": "rtc_pseudoinverse_guidance",
+  "openpi_time_convention": "t=1 noise to t=0 action",
+  "denoiser": "x_t - t * v_openpi",
+  "velocity_correction_sign": "negative",
+  "default_schedule": "exp",
+  "default_max_guidance_weight": 5.0,
+  "patch": {
+    "path": "0001-Add-RTC-VJP-guidance-for-pi0-sampling.patch",
+    "bytes": 24801,
+    "sha256": "9420e183d179cfdeeb34fb763bb3196d1bd0ffdb26423d5d1076f1d9447b9c9c"
+  },
+  "production_source_sha256": {
+    "src/openpi/models/pi0.py": "67e3f4ee547906b558ab3de52cf87f5ab9a7c6a9952ec095b6f7cb14dadc86a6",
+    "src/openpi/policies/policy.py": "d06673434255ec202fd23ec9cb900757d909ca5766637635ce223775204e4bc7"
+  },
+  "raw_action_shape": [10, 7],
+  "model_action_shape": [10, 32],
+  "guidance_weights_shape": [10],
+  "openpi_tests": [
+    "src/openpi/models/pi0_conditioning_test.py",
+    "src/openpi/policies/conditioning_test.py"
+  ]
+}

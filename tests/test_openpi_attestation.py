@@ -103,6 +103,30 @@ class _RecordingPolicy:
                 ),
                 "max_model_residual": 0.0,
             }
+        if "guidance_actions" in kwargs:
+            guidance_actions = kwargs["guidance_actions"]
+            guidance_weights = kwargs["guidance_weights"]
+            weighted_error = guidance_weights[:, None] * 0.25
+            result[attested.OPENPI_INTERNAL_GUIDANCE_FIELD] = {
+                "schema_version": "armbench.openpi_guidance.v1",
+                "method": attested.POLICY_GUIDANCE_METHOD,
+                "schedule": kwargs["guidance_schedule"],
+                "max_guidance_weight": kwargs["max_guidance_weight"],
+                "guidance_active": bool(
+                    np.any(guidance_weights)
+                    and kwargs["max_guidance_weight"] > 0.0
+                ),
+                "guided_steps": int(np.count_nonzero(guidance_weights)),
+                "raw_actions_sha256": attested.policy_conditioning_actions_sha256(
+                    guidance_actions
+                ),
+                "model_actions_sha256": "b" * 64,
+                "weights_sha256": attested.policy_guidance_weights_sha256(
+                    guidance_weights
+                ),
+                "max_weighted_model_residual": float(np.max(weighted_error)),
+                "weighted_model_rmse": float(np.sqrt(np.mean(weighted_error**2))),
+            }
         return result
 
 
@@ -306,3 +330,164 @@ def test_conditioning_contract_exposes_raw_and_model_spaces() -> None:
     assert contract["raw_action_shape"] == [10, 7]
     assert contract["model_action_shape"] == [10, 32]
     assert contract["method"] == "projected_flow_inpainting"
+
+
+def test_guidance_wrapper_recomputes_weights_and_publishes_independent_audit() -> None:
+    policy = _RecordingPolicy()
+    wrapper = attested.KeyedPolicySamplingWrapper(policy)
+    actions = np.arange(70, dtype=np.float32).reshape(10, 7) / 100.0
+    control = attested.build_policy_guidance_control(
+        actions,
+        inference_delay=4,
+        execute_horizon=5,
+        schedule="exp",
+    )
+    observation = {
+        "state": np.arange(8, dtype=np.float32),
+        attested.POLICY_GUIDANCE_REQUEST_FIELD: control,
+    }
+
+    response = wrapper.infer(observation)
+
+    clean_observation, kwargs = policy.calls[0]
+    assert clean_observation == {"state": observation["state"]}
+    np.testing.assert_array_equal(kwargs["guidance_actions"], actions)
+    np.testing.assert_array_equal(
+        kwargs["guidance_weights"],
+        attested._policy_guidance_weights(4, 5, 10, "exp"),
+    )
+    assert kwargs["guidance_schedule"] == "exp"
+    assert kwargs["max_guidance_weight"] == 5.0
+    trace = response[attested.POLICY_GUIDANCE_RESPONSE_FIELD]
+    assert trace == {
+        "schema_version": attested.POLICY_GUIDANCE_TRACE_SCHEMA_VERSION,
+        "method": attested.POLICY_GUIDANCE_METHOD,
+        "inference_delay": 4,
+        "execute_horizon": 5,
+        "schedule": "exp",
+        "max_guidance_weight": 5.0,
+        "guidance_active": True,
+        "guided_steps": 5,
+        "raw_actions_sha256": control["raw_actions_sha256"],
+        "model_actions_sha256": "b" * 64,
+        "weights_sha256": control["weights_sha256"],
+        "max_weighted_model_residual": 0.25,
+        "weighted_model_rmse": pytest.approx(
+            float(
+                np.sqrt(
+                    np.mean(
+                        (
+                            np.asarray(control["guidance_weights"])[:, None]
+                            * 0.25
+                        )
+                        ** 2
+                    )
+                )
+            )
+        ),
+    }
+    assert attested.OPENPI_INTERNAL_GUIDANCE_FIELD not in response
+    assert attested.POLICY_GUIDANCE_REQUEST_FIELD in observation
+
+
+def test_sampling_and_guidance_controls_share_one_policy_call() -> None:
+    policy = _RecordingPolicy()
+    wrapper = attested.KeyedPolicySamplingWrapper(policy)
+    sampling = attested.build_policy_sampling_control(
+        attested.POLICY_SAMPLING_SCORED_NAMESPACE,
+        17,
+        ["libero_object", 3, 5, 10],
+        2,
+    )
+    guidance = attested.build_policy_guidance_control(
+        np.zeros((10, 7), dtype=np.float32),
+        inference_delay=4,
+        execute_horizon=5,
+    )
+
+    response = wrapper.infer(
+        {
+            attested.POLICY_SAMPLING_REQUEST_FIELD: sampling,
+            attested.POLICY_GUIDANCE_REQUEST_FIELD: guidance,
+        }
+    )
+
+    assert len(policy.calls) == 1
+    assert set(policy.calls[0][1]) == {
+        "noise",
+        "guidance_actions",
+        "guidance_weights",
+        "guidance_schedule",
+        "max_guidance_weight",
+    }
+    assert attested.POLICY_SAMPLING_RESPONSE_FIELD in response
+    assert attested.POLICY_GUIDANCE_RESPONSE_FIELD in response
+
+
+def test_hard_conditioning_and_soft_guidance_controls_are_mutually_exclusive() -> None:
+    policy = _RecordingPolicy()
+    wrapper = attested.KeyedPolicySamplingWrapper(policy)
+    actions = np.zeros((10, 7), dtype=np.float32)
+    conditioning = attested.build_policy_conditioning_control(
+        actions,
+        inference_delay=4,
+        execute_horizon=5,
+    )
+    guidance = attested.build_policy_guidance_control(
+        actions,
+        inference_delay=4,
+        execute_horizon=5,
+    )
+
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        wrapper.infer(
+            {
+                attested.POLICY_CONDITIONING_REQUEST_FIELD: conditioning,
+                attested.POLICY_GUIDANCE_REQUEST_FIELD: guidance,
+            }
+        )
+
+    assert policy.calls == []
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        lambda control: control.update(raw_actions_sha256="0" * 64),
+        lambda control: control.update(weights_sha256="0" * 64),
+        lambda control: control.update(method="projected_flow_inpainting"),
+        lambda control: control.update(inference_delay=6),
+        lambda control: control.update(schedule="bad"),
+        lambda control: control.update(max_guidance_weight=5.1),
+        lambda control: control.update(
+            guidance_weights=np.ones(10, dtype=np.float32)
+        ),
+        lambda control: control.update(unexpected=True),
+    ],
+)
+def test_guidance_wrapper_rejects_malformed_or_client_forged_controls(
+    mutation,
+) -> None:
+    policy = _RecordingPolicy()
+    wrapper = attested.KeyedPolicySamplingWrapper(policy)
+    control = attested.build_policy_guidance_control(
+        np.zeros((10, 7), dtype=np.float32),
+        inference_delay=4,
+        execute_horizon=5,
+    )
+    mutation(control)
+
+    with pytest.raises(ValueError, match="guidance"):
+        wrapper.infer({attested.POLICY_GUIDANCE_REQUEST_FIELD: control})
+
+    assert policy.calls == []
+
+
+def test_guidance_contract_exposes_server_derived_model_space_contract() -> None:
+    contract = attested.policy_guidance_contract()
+
+    assert contract["raw_action_shape"] == [10, 7]
+    assert contract["model_action_shape"] == [10, 32]
+    assert contract["weights_shape"] == [10]
+    assert contract["method"] == "rtc_pseudoinverse_guidance"
+    assert contract["weight_source"].startswith("server_recomputed")
