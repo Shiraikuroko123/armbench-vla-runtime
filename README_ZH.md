@@ -173,7 +173,7 @@ server 并保存相应证据后，才能形成学习式策略结论。
 
 重新运行 pi0.5 rollout 需要 Ubuntu、NVIDIA GPU、固定 OpenPI checkout 和
 官方 checkpoint cache。容器工作流、preflight gate、预算控制与验证命令见
-[pi0.5-LIBERO runbook](docs/PI05_LIBERO_STUDY.md)。
+[OpenPI/LIBERO 操作手册](docs/OPENPI_LIBERO_OPERATIONS.md)。
 
 查看已有结果 dashboard 不需要上述环境。
 

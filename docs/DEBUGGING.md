@@ -1,21 +1,21 @@
-# Debugging ArmBench VLA Runtime
+# ArmBench troubleshooting guide
 
-Debug this project as five separate boundaries:
+Diagnose failures across five explicit boundaries:
 
 ```text
 MuJoCo observation -> OpenPI request -> action chunk -> supervisor/guard -> physics
 ```
 
-Do not tune the planner when the camera is wrong, and do not tune the controller
-when the server returned a malformed action. Find the first boundary whose
-contract is false.
+Start with the first boundary whose contract fails. Downstream planner,
+controller, or physics changes cannot correct an invalid observation or policy
+response.
 
-## 1. Recover from the PowerShell path error
+## 1. Verify repository and environment paths
 
-The command `..\.venv\Scripts\python.exe` only works when PowerShell is already
-inside `D:\arm-planning-control-project\project`. Your earlier terminal was in
-`C:\WINDOWS\system32`, so `..` pointed to `C:\WINDOWS`, where no environment
-exists.
+The relative command `..\.venv\Scripts\python.exe` works only when
+PowerShell is inside `D:\arm-planning-control-project\project`. From
+`C:\WINDOWS\system32`, the same relative path resolves under
+`C:\WINDOWS` and cannot locate the workspace environment.
 
 Run the self-locating check from any directory:
 
@@ -35,7 +35,7 @@ Set-Location $ArmbenchProject
 
 Expected: MuJoCo `3.11.0` and no import error.
 
-## 2. Run the smallest contract tests
+## 2. Run focused contract tests
 
 ```powershell
 & $ArmbenchPython -m pytest tests\test_vla.py -q
@@ -50,11 +50,11 @@ The tests cover:
 4. collision-fault intervention and safe predicted positions;
 5. stale-chunk hold and deadline latch/reset behavior;
 6. policy/contract failure conversion to a latched runtime hold;
-7. a complete artifact with honest `scripted_non_learned` provenance.
+7. a complete artifact with explicit `scripted_non_learned` provenance.
 
-If these fail, do not start a formal run.
+Formal runs require this test group to pass.
 
-## 3. Create a cheap end-to-end artifact
+## 3. Run a minimal end-to-end diagnostic
 
 ```powershell
 & $ArmbenchPython -m armbench vla-guard-run --quick `
@@ -110,7 +110,7 @@ five-key request without printing image arrays:
 
 For a loopback artifact, `server_payload_matches=true` proves the reconstructed
 MessagePack bytes hash to the same value observed by the local server. A remote
-artifact has no server-side hash unless you preserve one separately.
+artifact has no server-side hash unless one is preserved separately.
 Use online `per_action.csv` to distinguish the checked 15-action tail from the
 prefix that was actually sent to physics. Filter `executed=True`, then inspect
 `raw_action`, `guarded_action`, `reason`, `scale`, `q_before`, and `q_after`.
@@ -263,7 +263,7 @@ Set breakpoints in `vla/policy.py: OpenPIPolicyClient.infer`. Verify:
 - `source == "openpi_remote"`;
 - `inference_latency_ms` measures the client call;
 - action age from observation capture is not greater than the configured
-  deadline unless you expect fallback.
+  deadline unless fallback is expected.
 
 An unreachable server raises `ConnectionError`; a stalled WebSocket handshake
 or inference raises `TimeoutError`. Both leave no output directory. Set
@@ -423,7 +423,7 @@ Action-level reasons have these meanings:
 
 Call `guard.reset(previous_joint_velocity=measured_velocity)` only after explicit
 resynchronization, or `guard.reset()` for a stationary new episode. Do not clear
-the latch merely because a later server reply is fast.
+the latch solely because a later server reply is fast.
 
 ## 7. Separate predicted safety from physical safety
 
@@ -484,7 +484,7 @@ listed above, and press F5. Enter a new run directory name when prompted.
 |---|---|
 | What is the OpenPI data contract? | `vla/types.py` |
 | How is the OpenPI protocol called? | `vla/policy.py: BoundedOpenPIBackend` |
-| How can I debug the wire path locally? | `vla/loopback.py` |
+| Local wire-path diagnostic | `vla/loopback.py` |
 | How are MuJoCo observations built? | `vla/observation.py` |
 | Why was an observation rejected? | `vla/observation_guard.py` |
 | Why was an action changed? | `vla/guard.py: ActionChunkGuard.guard` |
@@ -499,8 +499,9 @@ listed above, and press F5. Enter a new run directory name when prompted.
 
 ### `..\.venv\Scripts\python.exe` is not recognized
 
-Your current directory is wrong. Use the absolute `$ArmbenchPython` shown in
-section 1 or run `scripts\vla_demo.cmd`.
+The relative path was resolved from the wrong directory. Use the absolute
+`$ArmbenchPython` value from section 1 or run
+`scripts\vla_demo.cmd`.
 
 ### OpenPI client import fails
 
@@ -520,8 +521,9 @@ Do not copy only `scene.xml`; it references included XML and mesh assets.
 ### OpenGL or camera test fails
 
 Update the graphics driver, close programs consuming graphics contexts, and run
-only `test_mujoco_builder_captures_nonblank_droid_observation`. A portfolio
-video should not be claimed until both cameras pass the color/visibility test.
+only `test_mujoco_builder_captures_nonblank_droid_observation`. Generated
+videos are valid review artifacts only after both cameras pass the registered
+color and visibility checks.
 
 ### Result directory already exists
 

@@ -1,12 +1,26 @@
-# Methodology and claim boundaries
+# Evaluation methodology and system boundaries
 
-## VLA runtime question
+## Document scope
 
-The primary VLA experiment asks a systems question: can a training-free runtime
-layer reject stale or kinematically unsafe DROID action chunks while preserving
-a known-safe chunk stream? It does not ask whether pi0.5 solves the synthetic
-task. The tracked experiment uses deterministic non-learned action sources so
-that faults and expected outcomes are controlled.
+ArmBench contains two independent evidence paths. Official pi0.5-LIBERO studies
+evaluate temporal alignment and sampler-internal overlap methods with an
+attested checkpoint. The local MuJoCo/DROID path evaluates protocol contracts,
+runtime guards, deterministic faults, and Panda physics with either a remote
+OpenPI server or explicitly labeled non-learned fixtures.
+
+This document specifies the local MuJoCo/DROID methodology and the shared
+artifact model. Official-checkpoint protocols and outcomes are documented in
+[Results](RESULTS.md), [Measured-age temporal alignment](MEASURED_LATENCY_RUNTIME.md),
+and [RTC-guided pi0.5 integration](RTC_PI05_INTEGRATION.md). Conclusions are not
+transferred between paths without a registered cross-path experiment.
+
+## Local runtime validation question
+
+The local experiment asks whether a runtime layer can reject stale or
+kinematically infeasible DROID action chunks while leaving a registered
+positive-control stream unchanged. Deterministic non-learned action sources
+make fault conditions and expected responses reproducible; they do not measure
+pi0.5 task competence.
 
 The policy/runtime boundary is compatible with OpenPI commit
 `15a9616a00943ada6c20a0f158e3adb39df2ccac` and model config `pi05_droid`:
@@ -65,7 +79,7 @@ This is not implemented as a normalized fraction multiplied by each hardware
 limit. That alternative would incorrectly amplify a DROID command by roughly
 the Panda velocity limit.
 
-## Runtime assurance algorithm
+## Runtime validation pipeline
 
 For a chunk captured at time `t_obs` and received at `t_recv`, end-to-end age is
 `1000 * (t_recv - t_obs)` milliseconds. A chunk older than 200 ms is replaced by
@@ -315,7 +329,7 @@ maximum change of any joint between checks is no greater than 0.05 rad.
 
 This is a resolution-bounded discrete check. Although mesh contact is more
 faithful than the legacy capsule skeleton, it is not analytic continuous
-collision detection and must not be described as a swept-volume guarantee.
+collision detection and does not provide a swept-volume guarantee.
 
 ## Planner comparison
 
@@ -433,16 +447,19 @@ Version 0.1 used a standard-DH NumPy model and decoupled joint dynamics. Its
 kinematic frame does not match the official Menagerie Panda: measured hand
 position differences were approximately 0.588 m at the benchmark start and
 0.440 m at the goal. Those results remain useful for testing the independent
-planner/control code but are historical algorithm results only. They must not
-be cited as Panda mesh geometry, rigid-body simulation, or real-robot evidence.
+planner/control code but are historical algorithm results. They are not
+evidence for Panda mesh geometry, rigid-body simulation, or real-robot
+behavior.
 
-## Unimplemented scope
+## Current limitations
 
-There is no real robot adapter, ROS2 node, `libfranka` integration, emergency
-stop, safety PLC, or hardware-in-the-loop result. Environments are spherical,
-and there is no tracked real pi0/pi0.5 checkpoint rollout. The current jitter is
-a deterministic injected schedule; dropped, partially stale, or semantically
-corrupted frames remain outside the exact-replay guard. OS-level hard real-time
-scheduling, arbitrary workcell meshes, jerk constraints,
-dynamics-level acceleration guarantees, uncertainty calibration, cross-model
-comparison, and real-Panda experiments are future work.
+The repository has no real-robot adapter, ROS2 node, `libfranka` integration,
+emergency-stop interface, safety PLC, or hardware-in-the-loop result.
+Official-checkpoint evidence covers one pi0.5-LIBERO model family in simulation.
+The local fault schedule is deterministic; partially stale or semantically
+corrupted frames remain outside the exact-replay detector.
+
+OS-level hard-real-time scheduling, arbitrary workcell meshes, analytic
+continuous collision detection, jerk constraints, dynamics-level acceleration
+guarantees, uncertainty calibration, cross-model evaluation, and real-Panda
+experiments remain outside the implemented scope.

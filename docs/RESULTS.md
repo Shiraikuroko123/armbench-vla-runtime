@@ -1,4 +1,14 @@
-# Verified result snapshots
+# Verified results
+
+This document is the current numerical record for ArmBench. Each section binds
+an outcome to its protocol, source identity, and evidence artifact. Official
+checkpoint studies, exploratory sampler studies, local deterministic runtime
+tests, and historical planner results are reported separately and are not
+pooled.
+
+Fields named `safe` or `physical_safe` refer to registered simulation
+predicates defined by the corresponding protocol. They are not physical-safety
+certification.
 
 ## pi0.5 RTC guidance G0
 
@@ -29,7 +39,7 @@ direction. A fixed observation cannot establish closed-loop task efficacy. The
 complete report and validator are in
 [`evidence/pi05_rtc_guidance_g0_001`](../evidence/pi05_rtc_guidance_g0_001/README.md).
 
-## Rejected v2 pi0.5 RTC overlap execution
+## RTC overlap v2: invalidated comparison
 
 The original 60-rollout three-method artifact remains immutable, but it is not
 valid matched-effect evidence. A post-run invariant audit found query-0 action
@@ -237,8 +247,9 @@ The run environment marked Git dirty only because the pre-existing untracked
 | narrow gate | 0.5 | 5 | 39 | yes | yes | 0.00330 | 0.00202 |
 | narrow gate | 0.5 | 15 | 13 | yes | yes | 0.00288 | 0.00283 |
 
-All 12/12 episodes were physically safe and task-successful, with no runtime
-fallback, deadline, or state-mismatch event in the zero-latency matrix. Horizon
+All 12/12 episodes satisfied the registered simulation safety and task-success
+predicates, with no runtime fallback, deadline, or state-mismatch event in the
+zero-latency matrix. Horizon
 1 recaptured state and both cameras after every action and had the lowest RMSE;
 horizon 15 reduced query count by roughly 14-15x. This is a responsiveness-cost
 comparison, not evidence that a learned VLA solved the task.
@@ -441,8 +452,9 @@ deadline schedules had seven total 240 ms chunks. The first miss in each guarded
 episode latched hold, giving zero contact and task failure rather than an unsafe
 resume.
 
-All 6/6 guarded cases were physically safe. Guard P95 ranged from 5.36 to 7.96
-ms per case; the maximum was 7.959 ms in the narrow-gate collision fault. These
+All 6/6 guarded cases satisfied the registered simulation safety predicate.
+Guard P95 ranged from 5.36 to 7.96 ms per case; the maximum was 7.959 ms in the
+narrow-gate collision fault. These
 timings are from the fixed Intel host and include sampled MuJoCo mesh-edge
 checks, not remote policy inference.
 

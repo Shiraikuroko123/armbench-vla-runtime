@@ -90,7 +90,7 @@ def _mujoco_validate(config_path: Path) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="armbench",
-        description="VLA action runtime assurance and Panda physics benchmark",
+        description="VLA action-chunk runtime evaluation and Panda physics benchmarks",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -168,7 +168,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     vla_guard = subparsers.add_parser(
         "vla-guard-run",
-        help="benchmark OpenPI-compatible action chunks with runtime assurance",
+        help="evaluate OpenPI-compatible action chunks with runtime validation",
     )
     vla_guard.add_argument(
         "--config", type=Path, default=Path("configs/vla_guard_benchmark.json")

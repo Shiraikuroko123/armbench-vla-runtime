@@ -1,6 +1,6 @@
 # pi0.5 projected-overlap pilot
 
-## Question
+## Research question
 
 This exploratory study asks whether hard projected flow conditioning improves
 closed-loop pi0.5 execution when both methods use the same fixed-width overlap
@@ -84,7 +84,7 @@ Validate from the repository root:
   evidence\pi05_projected_overlap_pilot_001
 ```
 
-## Research decision
+## Disposition
 
 This pilot does not justify a 300-rollout confirmation of the same hard
 projection. The useful finding is a mechanism split: exact prefix enforcement

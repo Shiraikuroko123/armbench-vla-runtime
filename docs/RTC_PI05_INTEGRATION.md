@@ -31,8 +31,8 @@ RTC overlap scheduling:
 After each overlap query, ArmBench shifts `new[E:H]` to the front of a
 zero-padded `H`-step reference. Query zero only samples an unexecuted reference;
 query one uses the same initial observation. This reference-only bootstrap is
-shared by all compared methods. Relabeling the earlier suffix-selection result
-as RTC would therefore be methodologically wrong.
+shared by all compared methods. Treating the earlier suffix-selection result as
+RTC would conflate two distinct scheduler contracts.
 
 ## Reverse-time OpenPI mapping
 

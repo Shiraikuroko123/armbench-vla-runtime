@@ -24,9 +24,9 @@ literature status was checked separately before freezing the labels below.
 The ArmBench row is grounded in the repository's frozen evidence and claim
 boundaries:
 
-- `README.md`, sections "Cross-suite external validation", "Confirmatory
-  pi0.5 result", and "Claim boundaries";
-- `docs/RESULTS.md`, verified pi0.5-LIBERO result snapshots;
+- `README.md`, sections "Validated studies", "Reproducibility model", and
+  "Scope";
+- `docs/RESULTS.md`, verified pi0.5-LIBERO results and provenance;
 - `docs/PI05_ALIGNMENT_CONFIRMATORY_FREEZE.md`;
 - `docs/PI05_CROSS_SUITE_EXTERNAL_VALIDATION_FREEZE.md`;
 - `docs/PI05_MEASURED_AGE_CONFIRMATORY_FREEZE.md` and the separately labeled

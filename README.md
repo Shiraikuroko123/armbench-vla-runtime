@@ -187,7 +187,7 @@ OpenPI server before making a learned-policy claim for the MuJoCo path.
 New pi0.5 rollouts require Ubuntu, an NVIDIA GPU, the pinned OpenPI checkout,
 and the official checkpoint cache. The container workflow, preflight gates,
 budget controls, and validation commands are documented in the
-[pi0.5-LIBERO runbook](docs/PI05_LIBERO_STUDY.md).
+[OpenPI/LIBERO operations guide](docs/OPENPI_LIBERO_OPERATIONS.md).
 
 The existing result dashboards can be inspected without that environment.
 

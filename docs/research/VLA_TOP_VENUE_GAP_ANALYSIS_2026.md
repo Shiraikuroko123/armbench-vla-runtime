@@ -1,4 +1,4 @@
-# VLA top-venue engineering gap analysis
+# Engineering gap analysis for a VLA systems paper
 
 Status checked: 2026-08-05. This is a targeted engineering review, not a claim
 of exhaustive coverage. Formal proceedings and journal records are separated
@@ -8,39 +8,40 @@ from arXiv-only work. The reproducible metadata catalog is
 
 ![ArmBench method position and research gap](figures/armbench_vla_method_gap.png)
 
-## Bottom line
+## Assessment
 
-ArmBench is now a credible systems and evaluation project, but it is not yet a
-top-conference method paper. Its strongest evidence is unusually disciplined
-for a portfolio project: an attested official pi0.5 checkpoint, paired LIBERO
-conditions, frozen protocols, exact paired tests, multiplicity correction,
-bootstrap intervals, complete videos, and manifest-bound artifacts. The
-training-free temporal dispatcher also produced a large effect that persisted
-across a separately frozen three-suite validation under deterministic 200 ms
-delay.
+ArmBench is an independently auditable systems and evaluation study; it is not
+yet a top-conference method paper. The evidence package includes an attested
+official pi0.5 checkpoint, paired LIBERO conditions, frozen protocols, exact
+paired tests, multiplicity correction, bootstrap intervals, complete videos,
+and manifest-bound artifacts. The training-free temporal dispatcher produced a
+large effect that persisted across a separately frozen three-suite validation
+under deterministic 200 ms delay.
 
-The scientific gap is not simply "no RL." The closest formal comparator is RTC
-(NeurIPS 2025), which changes flow-policy inference itself by freezing already
-committed actions and inpainting a continuation. ArmBench now has both a
-completed held-out 120-pair measured-age confirmation and a clean pi0.5
-sampler extension for both hard committed-prefix projection and soft
-denoised-action VJP guidance. The measured-age
-successor pairs explicit pi0.5 flow-sampling noise, improves success by 23.33
-points, and remains positive under task-cluster sensitivity analyses. A
-corrected-v3 300-rollout RTC comparison found 96/100 baseline success and
+The remaining scientific gap is broader than the absence of reinforcement
+learning. The closest formal comparator is RTC (NeurIPS 2025), which modifies
+flow-policy inference by freezing committed actions and inpainting a
+continuation. ArmBench includes a held-out 120-pair measured-age confirmation
+and pi0.5 sampler extensions for hard committed-prefix projection and soft
+denoised-action VJP guidance. The measured-age study pairs explicit pi0.5
+flow-sampling noise, improves success by 23.33 points, and remains positive
+under task-cluster sensitivity analyses.
+
+The corrected-v3 300-rollout RTC comparison found 96/100 baseline success and
 97/100 for both hard projection and RTC guidance, with Holm-adjusted `p=1.0`.
-It shows exploratory motion-seam decreases but no task-success superiority.
-ArmBench therefore still cannot claim RTC-guidance efficacy, multi-model
-generality, true concurrent control, or real-robot validity.
+It provides exploratory motion-seam evidence but no task-success superiority.
+Current evidence therefore does not establish RTC-guidance efficacy,
+cross-policy generality, independently scheduled control, or real-robot
+validity.
 
-The next defensible project thesis is:
+The next research question is:
 
 > Under independently ticking inference and control, when does sampler-internal
 > committed-action guidance improve temporal continuity without sacrificing
 > task progress?
 
-That question is closer to the project's demonstrated strength than adding a
-small PPO run that does not address stale actions.
+That question follows directly from the demonstrated runtime mechanism; a
+small PPO experiment would address a different problem.
 
 ## Retrieval and evidence classes
 
@@ -66,7 +67,7 @@ The table below freezes both publication status and public-code state to the
 2026-08-05 access date. A repository HEAD is provenance for this audit, not a
 claim that the authors designated that commit as a paper release.
 
-| Work | Status on access date | Official code snapshot | What is actually runnable |
+| Work | Status on access date | Official code snapshot | Available implementation surface |
 | --- | --- | --- | --- |
 | RTC | NeurIPS 2025 formal paper ([venue](https://neurips.cc/virtual/2025/poster/117747)) | [Kinetix repository at `9296f31`](https://github.com/Physical-Intelligence/real-time-chunking-kinetix/commit/9296f31d62d5bfeb5779dcb2f9bcf71ca37f448b) | Public code reproduces the Kinetix route and supplies roughly 60 GiB of expert assets; it does not expose the paper's real-robot pi0.5 stack as a drop-in ArmBench server |
 | OpenVLA-OFT | RSS 2025 formal paper ([proceedings](https://www.roboticsproceedings.org/rss21/p017.html)) | [official repository at `e4287e9`](https://github.com/moojink/openvla-oft/commit/e4287e94541f459edc4feabc4e181f537cd569a8) | Pretrained checkpoints and native LIBERO evaluation are public; inference needs about 16 GB VRAM, while the documented training recipes need about 25-62 GB per GPU and the paper recipe used up to 8 A100s |
@@ -82,29 +83,29 @@ OpenVLA-OFT is the more practical second model family because its four LIBERO
 checkpoints and evaluator are public, but it tests cross-model portability, not
 policy-internal RTC inpainting.
 
-## What the strongest systems actually add
+## Capabilities established by comparison systems
 
 | Route | Main intervention | Training / equipment burden | What ArmBench should learn from it |
 | --- | --- | --- | --- |
 | RT-2, CoRL 2023 | Co-fine-tunes vision-language and robot-action data into a generalist VLA | Large, closed training stack and robot data | Establishes the model class, but is not a practical personal-project baseline |
-| OpenVLA, CoRL 2024 | Open 7B VLA and reproducible adaptation path | Substantial GPU fine-tuning, public checkpoints | Best route to a second model family and cross-model runtime evidence |
+| OpenVLA, CoRL 2024 | Open 7B VLA and reproducible adaptation path | Substantial GPU fine-tuning, public checkpoints | Candidate second model family for cross-model runtime evidence |
 | OpenVLA-OFT, RSS 2025 | Parallel continuous action generation and action chunking with optimized supervised fine-tuning | Offline training plus simulation and real ALOHA evaluation | Demonstrates that decoding and training changes must be separated from runtime-only gains |
 | FAST, RSS 2025 | Compresses continuous robot actions into efficient tokens | Tokenizer and VLA training | Relevant to serving cost and horizon design, not by itself a stale-response solution |
 | ConRFT, RSS 2025 | Reinforced VLA fine-tuning through a consistency-policy route | Offline/online adaptation and intervention data | A serious RL comparison, far beyond a decorative PPO baseline |
-| DPPO, ICLR 2025 | Policy-gradient fine-tuning for diffusion policies | RL fine-tuning on simulated continuous-control and robot-learning tasks; the paper also reports zero-shot hardware deployment | Useful only if the research question becomes reward-driven policy improvement |
-| HIL-SERL, Science Robotics 2025 | Real-world online RL supported by demonstrations and human corrections | Real robot, human supervision, and online RL | Shows why real-world RL evidence is expensive and why a toy simulation run is not equivalent |
+| DPPO, ICLR 2025 | Policy-gradient fine-tuning for diffusion policies | RL fine-tuning on simulated continuous-control and robot-learning tasks; the paper also reports zero-shot hardware deployment | Relevant when the research question includes reward-driven policy improvement |
+| HIL-SERL, Science Robotics 2025 | Real-world online RL supported by demonstrations and human corrections | Real robot, human supervision, and online RL | Establishes the training and hardware evidence expected for real-world RL claims |
 | RTC, NeurIPS 2025 | Freezes committed flow-policy actions and inpaints a consistent continuation at inference time | Requires access inside the flow-policy sampling process; includes real-robot evidence | Closest direct comparator and the present method-quality target |
 | VLASH, arXiv 2025 | Rolls the robot state forward with the previous action chunk, then fine-tunes with state/action offsets for asynchronous execution | Public pi0/pi0.5 training code advertises LoRA below 12 GB, but matched LIBERO artifacts are not released | Directly targets stale state, but is an arXiv-only learned comparison rather than a training-free drop-in |
 | FutureRTC, arXiv 2026 | Anticipatory conditioning and learned execution-time context | Learned prediction/adaptation modules | Raises the bar beyond time-only prefix selection; preprint evidence must be treated cautiously |
 | Action ControlNet, arXiv 2026 | Lightweight delay-aware adapter for smooth asynchronous handoff | Parameter-efficient adapter training | A useful learned-adapter control, but not training-free; preprint only as of the access date |
 
-## Where ArmBench is already strong
+## Current engineering strengths
 
 ArmBench should be presented as a runtime reliability and evidence-engineering
 project, not as a newly trained policy:
 
-- It evaluates the pinned official `pi05_libero` checkpoint rather than a mock
-  policy for its formal LIBERO claims.
+- It evaluates the pinned official `pi05_libero` checkpoint rather than a test
+  fixture for its formal LIBERO claims.
 - It preserves the training-free intervention boundary: the VLA checkpoint is
   frozen, and only action dispatch changes.
 - The deterministic Spatial study and separately frozen Object, Goal, and
@@ -117,12 +118,12 @@ project, not as a newly trained policy:
   cross-checked by separate repository validators. Runtime failures remain in
   intention-to-test counts.
 
-This is enough for a strong graduate-level portfolio project because an
-interviewer can run the validator, inspect a matched video pair, recompute the
-statistics, and trace the action-selection code. It is not enough for a top
-paper because the current causal intervention is still narrow.
+These properties make the study independently reviewable: a reviewer can run
+the validators, inspect a matched video pair, recompute the statistics, and
+trace the action-selection code. They do not close the publication gap because
+the current causal intervention remains narrow.
 
-The portfolio evidence itself is traceable to repository history:
+The evidence lineage is traceable to repository history:
 
 - frozen confirmatory evidence: `632c043f6d8b44450f15d50571f4e686ad20d08a`,
   followed by validated release documentation at `b0c6b39b21cc59dec843117a06db86ea0260d365`;
@@ -135,10 +136,9 @@ The portfolio evidence itself is traceable to repository history:
 - held-out measured-age protocol and scored run:
   `12070625cd6f46186282317262065d015c8fbe27`.
 
-Those commits are present on the configured `origin/main`, but the repository
-returned HTTP 404 to an unauthenticated link check on the access date. An
-interviewer cannot audit them until the repository or a release is made public,
-or access is granted. Local hashes alone are not public provenance.
+These commits are present on the configured `origin/main`. Repository access
+and validated release archives provide the review surface; local commit hashes
+alone are not independently retrievable provenance.
 
 ArmBench has no formal paper or arXiv preprint. These are released engineering
 and experimental artifacts, not a publication record.
@@ -171,8 +171,9 @@ ArmBench assumes that action `k` is the appropriate command after roughly `k`
 control periods. RTC instead operates inside flow inference and constructs a
 continuation consistent with already committed actions. VLASH and FutureRTC add
 future-state information. The present websocket API returns only a completed
-chunk, so an honest RTC baseline requires an OpenPI server/model extension; it
-cannot be recreated by renaming an external array slice.
+chunk, so a methodologically valid RTC baseline requires an OpenPI server/model
+extension. Renaming an external array slice would not implement the same
+method.
 
 ### 3. One VLA checkpoint versus method generality
 
@@ -197,21 +198,18 @@ pi0.5 end-effector actions through joint, velocity, acceleration, and continuous
 collision constraints. ArmBench has these ingredients in its separate MuJoCo
 Panda path, but the two evidence paths are not yet one causal experiment.
 
-## Why adding RL now would not automatically improve the project
+## Role of reinforcement learning
 
-DPPO, ConRFT, and HIL-SERL make explicit policy-learning claims supported by
-substantive training and task evaluation; HIL-SERL additionally provides
-real-hardware evidence. Running PPO for a few hours on a toy reward would add a
-framework name while weakening the central story: it would not explain stale
-action chunks, would not be comparable to the frozen pi0.5 result, and would
-introduce reward-design, environment-step, initialization, and training-seed
-confounds. It would also turn the clean question "does dispatch alignment fix
-an old action?" into the different question "did policy optimization learn a
-better policy?"
+DPPO, ConRFT, and HIL-SERL make policy-learning claims supported by substantive
+training and task evaluation; HIL-SERL additionally provides real-hardware
+evidence. A small PPO experiment would not be a valid control for the current
+runtime method: it would address policy optimization, introduce reward,
+environment-step, initialization, and training-seed variables, and would not be
+comparable to the frozen pi0.5 intervention.
 
 RL becomes justified only after choosing a different research question, such
 as learning recovery after a fail-closed intervention or adapting a compact
-latency predictor. At that point the minimum credible comparison includes
+latency predictor. At that point the minimum informative comparison includes
 behavior cloning or supervised adaptation, multiple training seeds, learning
 curves, matched environment steps, and a no-adaptation runtime control.
 
@@ -220,7 +218,7 @@ curves, matched environment steps, and a no-adaptation runtime control.
 ### Stage A: non-oracle measured-age pilot (completed)
 
 Freeze a new schema and run one minimal, explicitly exploratory pi0.5-LIBERO
-pilot. The smallest useful design is 10 Spatial tasks x 2 fixed initial states
+pilot. The minimal registered design is 10 Spatial tasks x 2 fixed initial states
 x 2 modes (`async_unguarded` and measured-age `latency_aligned`), for 20 paired
 groups and 40 scored rollouts. Before randomizing a scored condition, run three
 attested, unscored warm-up queries with the same checkpoint and tensor shapes.
@@ -240,7 +238,7 @@ difference with bootstrap 95% interval [+10,+45], 5/0/15 aligned wins/losses/
 ties, and exact two-sided McNemar `p=0.0625`. Mean policy queries fell from
 24.6 to 15.9. Both modes recorded one approximately 251 ms deadline/horizon
 event; the aligned mode executed its registered hold-refresh path once. This is
-a credible mechanism signal and systems artifact, not a confirmatory efficacy
+a mechanism signal and systems artifact, not a confirmatory efficacy
 claim. In particular, keyed jitter was paired but the legacy server's mutable
 policy-sampling RNG was not. The artifact remains valid for what it recorded;
 the unpaired latent policy noise is a design limitation, not a corrupt-file
@@ -372,8 +370,7 @@ survives real scheduling and sensor timestamps.
 
 ## Acceptance bar for future claims
 
-The next public result should not be called complete until all of the following
-are true:
+The next public result should satisfy all of the following acceptance criteria:
 
 - old deterministic evidence still validates byte-for-byte under its original
   schema;

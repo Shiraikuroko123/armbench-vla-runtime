@@ -129,7 +129,7 @@ result = run_episode(
 `latency_steps` must be zero in this path. Combining hidden fixed steps with a
 measured estimate is rejected as an ambiguous protocol.
 
-## What to inspect while debugging
+## Runtime diagnostics
 
 Set breakpoints in this order:
 
@@ -162,7 +162,7 @@ The indexed-action test is the fastest debugger: at 120 ms age, 50 ms period,
 and ceil rounding, the runtime advances two completed controller ticks but
 starts execution at action index three.
 
-## Warm-up requirement for a pi0.5 pilot
+## Warm-up protocol
 
 The preserved external evaluation has 8,431 query records. Normal client P95
 latency is approximately 82-83 ms, while the maximum in each suite is about
