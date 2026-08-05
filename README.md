@@ -1,10 +1,14 @@
-# ArmBench: Training-Free Temporal Alignment for VLA Action Chunks
+# ArmBench: Temporal Alignment and RTC-Guided VLA Action Runtime
 
 ArmBench is a VLA runtime and evaluation project centered on a deployment
 failure mode: asynchronous inference can return an action chunk whose leading
 actions are already stale when execution begins. The training-free
 `latency_aligned` dispatcher skips the delay-matched action prefix and executes
 the following suffix without modifying the VLA.
+
+A second, separately evaluated research path reaches inside the pinned pi0.5
+flow sampler. It compares unconditioned overlap, hard projected inpainting, and
+RTC-style denoised-action VJP guidance without changing checkpoint weights.
 
 The repository contains two deliberately separate execution paths. The formal
 Linux/NVIDIA path evaluates Physical Intelligence's official `pi05_libero`
@@ -87,12 +91,40 @@ validator regenerates keyed pi0.5 noise hashes, conditioning hashes, the
 cross-query reference chain from a compressed float32 transcript. See the
 [method, result, and claim boundary](docs/PI05_PROJECTED_OVERLAP_PILOT.md).
 
-The first [RTC/pi0.5 integration stage](docs/RTC_PI05_INTEGRATION.md) now
-reproduces the official RTC overlap scheduler and prefix-weight contract in a
-tested reference module. It also implements a distinctly named hard projected
-flow-inpainting ablation under OpenPI's reverse-time convention. This is
-sampler-integration groundwork, not evidence that RTC has already run on
-pi0.5.
+### RTC-style VJP guidance and three-method pilot
+
+The [RTC/pi0.5 integration](docs/RTC_PI05_INTEGRATION.md) ports the public
+denoised-action VJP update into OpenPI's opposite `t=1 -> 0` flow convention.
+On the attested official checkpoint, a 20-query fixed-observation G0 gate kept
+zero guidance bitwise identical to the legacy sampler and reduced weighted
+model RMSE from `0.08147` to `0.02705`. Guided warm wall P95 was `108.06 ms`
+versus `79.56 ms`, and peak JAX bytes in use were `6.43 GiB`. This establishes
+sampler feasibility and correction direction, not task efficacy.
+
+The subsequent exploratory LIBERO-10 pilot completed 20 matched triplets and
+60 rollouts under the same `H=10`, `E=5`, `d=4` scheduler and keyed policy
+noise:
+
+| Method | Success | Episode-equal motion seam | Episode-equal gripper seam | Sampler diagnostic |
+| --- | ---: | ---: | ---: | ---: |
+| Unconditioned overlap | 20/20 | 0.104452 | 0.058052 | - |
+| Hard projected overlap | 19/20 | 0.083129 | 0.045345 | max hard residual 0 |
+| RTC-guided overlap | 19/20 | 0.084002 | 0.039617 | weighted RMSE 0.024735 |
+
+Both conditioned methods had `0/1/19` wins/losses/ties against unconditioned
+overlap (`p=1.0` before the prespecified two-comparison Holm correction). The
+pilot therefore supports an integration and continuity investigation, not a
+task-success improvement. The independent report first averages within episode;
+the task-block 95% intervals for motion-seam differences are
+`[-0.03204,-0.01262]` for hard projection and `[-0.03030,-0.01140]` for RTC
+guidance. These are descriptive process metrics, not superiority tests.
+
+The preserved [G0 artifact](evidence/pi05_rtc_guidance_g0_001) and
+[60-rollout raw artifact](evidence/pi05_rtc_overlap_pilot_001/evaluation)
+contain checkpoint identity, sampling/reference hashes, transition transcripts,
+root manifests, and all 60 pilot videos. A separately frozen
+[300-rollout held-out protocol](docs/research/RTC_OVERLAP_PRIMARY_300_PROTOCOL.md)
+uses new initial states and two new sampling seeds; pilot rollouts are excluded.
 
 The [measured-age temporal alignment core](docs/MEASURED_LATENCY_RUNTIME.md)
 removes the dispatcher's dependence on a hidden injected-delay label. It uses

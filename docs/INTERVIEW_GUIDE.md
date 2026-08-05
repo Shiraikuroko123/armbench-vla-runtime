@@ -8,6 +8,12 @@ robotics software** roles. It demonstrates that you can connect a policy API to
 robot observations/actions, reason about asynchronous execution, preserve
 provenance, inject failures, and verify behavior in physics.
 
+The policy-internal RTC extension also makes it relevant to **VLA inference and
+runtime-method** roles: it requires understanding the pi0.5 flow sampler,
+reverse-time integration, normalization/padding, VJP guidance, and matched
+closed-loop evaluation. It remains a runtime-method project rather than a new
+foundation-model architecture.
+
 It is only a supporting project for **VLA model architecture, pretraining, or
 fine-tuning research** roles. There is no learned model training, dataset
 pipeline, or representation ablation. It now includes an attested official
@@ -30,6 +36,13 @@ and manifests are preserved and independently validated. The result is
 simulation-only and does not claim pi0.5 training, concurrent hard real-time
 execution, or certified safety.
 
+Separately, I ported RTC-style denoised-action VJP guidance into the pinned
+pi0.5 sampler. A 20-query G0 gate established bitwise zero-guidance parity,
+residual direction, 108.06 ms guided wall P95, and 6.43 GiB peak JAX memory. A
+60-rollout three-method pilot reduced action seams but did not improve task
+success, so I report it as an exploratory method result rather than an efficacy
+win.
+
 ## What you actually built
 
 - The `latency_aligned` pi0.5-LIBERO dispatch mode, horizon preflight, strict
@@ -46,6 +59,11 @@ execution, or certified safety.
   bootstrap, exact McNemar/Holm tests, and descriptive task-level tables.
 - A fail-closed cross-suite analyzer and offline dashboard binding three source
   manifests, 150 matched pairs, 30 task rows, and 300 playable videos.
+- A reverse-time OpenPI RTC extension using `jax.vjp`, explicit sampling noise,
+  attested sampler/source identity, and a fixed-observation latency/memory gate.
+- A reference-only-bootstrap three-method overlap evaluator with Latin order,
+  shared noise, exact transition transcripts, episode-equal seam analysis, and
+  a disjoint held-out protocol.
 - The Panda camera/proprioception adapter and visible task target.
 - A pre-inference observation guard for blank images, nonmonotonic capture
   sequence/time, and exact camera replay during measured robot motion.
@@ -283,14 +301,13 @@ validation. The present guard is research simulation code, not safety-rated.
 
 ### What would you do next with a GPU budget?
 
-First run `pi05_droid` on a remote RTX 4090 and store an honest probe artifact.
-Then replay the same recorded requests against each preserved checkpoint server
-to separate model-output differences from camera/state differences. Only after
-that should `vla-openpi-run` use a small query budget for closed-loop comparison
-of pi0, pi0.5, and the non-learned baseline under paired horizons, seeds, jitter,
-and fault injection. Because these synthetic scenes are out of DROID's
-training distribution, task claims would require adaptation or an appropriate
-benchmark such as LIBERO, plus confidence intervals and failure taxonomy.
+First complete the frozen 300-rollout RTC overlap matrix on held-out LIBERO-10
+states and noise seeds, then preserve and independently analyze both artifacts.
+The next systems experiment should separate inference and control into
+independently ticking loops and measure observation/action age rather than
+blocking and injecting a fixed delay. After that, repeat a reduced matrix with
+a second open VLA checkpoint. A simulator port or RL run is useful only when it
+tests one of those scientific gaps.
 
 ## How to live-debug it in an interview
 
@@ -310,6 +327,8 @@ IDs.
 Do not claim:
 
 - pi0/pi0.5 checkpoint results without real probe and closed-loop artifacts;
+- RTC task-success improvement from the fixed-observation G0 or 60-rollout
+  exploratory pilot;
 - a specific checkpoint identity without the matching GPU server launch log;
 - model training, fine-tuning, or DROID/LIBERO dataset evaluation;
 - analytic continuous collision detection;
@@ -335,6 +354,15 @@ auditability.
 > rollouts and videos with checkpoint/source attestation, immutable manifests,
 > independent validators, and one-command paired visual acceptance.
 
+For a VLA inference/runtime role, add a separate sentence rather than changing
+the confirmed headline result:
+
+> Extended the pinned OpenPI pi0.5 flow sampler with training-free RTC-style
+> denoised-action VJP guidance; verified bitwise legacy parity, residual
+> direction, latency/memory gates, and a manifest-bound 60-rollout three-method
+> LIBERO-10 pilot. The pilot is reported as exploratory and not as a success-rate
+> improvement.
+
 Use "evaluated the attested official pi0.5-LIBERO checkpoint," not "trained
 pi0.5" or "deployed on a real robot."
 
@@ -357,7 +385,13 @@ You should be able to do all of the following without reading a prepared answer:
    authenticity;
 9. state which code/assets are yours and which are pinned dependencies;
 10. explain why the 40-rollout pilot's unpaired policy RNG is a confound and
-    how explicit keyed sampling noise fixes it in the held-out study.
+    how explicit keyed sampling noise fixes it in the held-out study;
+11. derive `D_t(x)=x-t v(x,t)` and explain why the OpenPI correction uses a
+   minus sign when Euler integration has `dt < 0`;
+12. explain the difference between G0 model-space residual reduction, pilot
+    task efficacy, hard projection, and soft VJP guidance;
+13. explain reference-only bootstrap, keyed-noise triplets, Holm correction,
+    and why seam is averaged within episode before comparing methods.
 
 AI assistance produced substantial implementation and documentation. Your
 defensible ownership comes from being able to reproduce, inspect, modify,

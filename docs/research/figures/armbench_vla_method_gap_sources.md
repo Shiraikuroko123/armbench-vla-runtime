@@ -32,7 +32,11 @@ boundaries:
 - `docs/PI05_MEASURED_AGE_CONFIRMATORY_FREEZE.md` and the separately labeled
   exploratory measured-age pilot evidence;
 - `docs/PI05_PROJECTED_OVERLAP_PILOT.md` and its independently validated
-  40-rollout hard-projection evidence.
+  40-rollout hard-projection evidence;
+- `docs/RTC_PI05_INTEGRATION.md`, the fixed-observation RTC guidance G0, and
+  the manifest-protected 60-rollout three-method pilot;
+- `docs/research/RTC_OVERLAP_PRIMARY_300_PROTOCOL.md`, which records the
+  disjoint held-out comparison without treating its pending outcome as evidence.
 
 The row combines the 300-rollout Spatial study and the separately frozen
 300-rollout Object/Goal/LIBERO-10 external-validation family. The figure does
@@ -42,7 +46,12 @@ successor protocol pairs both jitter and explicit pi0.5 sampling noise. The
 figure does not call ArmBench a paper, preprint, real-robot deployment, RL
 method, or VLA training method. The hard-projection pilot is shown as completed
 engineering evidence, not as an efficacy win: it reduced motion seam but did
-not improve paired task success.
+not improve paired task success. The subsequent VJP-guidance pilot is likewise
+shown as completed engineering evidence, not as an efficacy win: the sampler
+passed its direction/latency/memory gate, but the 60-rollout pilot did not
+improve paired task success. The figure therefore labels a powered held-out RTC
+efficacy test, independent inference/control clocks, a second checkpoint, and
+hardware as remaining gaps.
 
 ## Comparison works
 

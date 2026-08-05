@@ -23,11 +23,13 @@ The scientific gap is not simply "no RL." The closest formal comparator is RTC
 (NeurIPS 2025), which changes flow-policy inference itself by freezing already
 committed actions and inpainting a continuation. ArmBench now has both a
 completed held-out 120-pair measured-age confirmation and a clean pi0.5
-sampler extension for hard committed-prefix projection. The measured-age
+sampler extension for both hard committed-prefix projection and soft
+denoised-action VJP guidance. The measured-age
 successor pairs explicit pi0.5 flow-sampling noise, improves success by 23.33
-points, and remains positive under task-cluster sensitivity analyses. The new
-hard-projection pilot improves motion continuity but not task success. ArmBench
-therefore still cannot claim RTC soft/VJP-guidance efficacy, multi-model
+points, and remains positive under task-cluster sensitivity analyses. The hard
+projection and three-method RTC pilots improve motion continuity but do not
+show a task-success benefit. ArmBench therefore still cannot claim RTC-guidance
+efficacy, multi-model
 generality, true concurrent control, or real-robot validity.
 
 The next defensible project thesis is:
@@ -321,12 +323,28 @@ independent float32 transcript. The project must therefore not promote hard
 projection as RTC or scale this exact ablation as though efficacy were already
 established.
 
-The remaining direct-method gap is now narrower and more specific: implement
-RTC's VJP/pseudoinverse guidance with soft prefix weights, compare it against
-both hard projection and unconditioned overlap under the same keyed noise, and
-then replace blocking simulator catch-up with independently ticking inference
-and control loops. The existing suffix-selection rollouts remain a different
-baseline because they advance `d + E` rather than exactly `E` steps per query.
+The soft-guidance implementation is now complete. OpenPI extension commit
+`54592c7148ba69bf52757385502782f80f2285e0` applies the denoised-action VJP
+correction inside pi0.5's reverse-time Euler loop. The attested G0 artifact
+established bitwise zero-guidance parity, a weighted model-residual ratio of
+`0.3320`, guided warm wall P95 of `108.06 ms`, 6.43 GiB peak JAX bytes in use,
+and exact repeatability under explicit noise.
+
+ArmBench commit `2aef062256fc3f6257f9f58d68c3f18c07d1b0b8` then added a
+reference-only-bootstrap, three-method evaluator. Its 20-triplet/60-rollout
+LIBERO-10 pilot used the same initial state and keyed policy noise within each
+triplet. Unconditioned overlap succeeded on 20/20 rollouts; hard projection and
+RTC guidance each succeeded on 19/20, each with 0/1/19 wins/losses/ties and raw
+exact McNemar `p=1.0`. Both conditioned methods reduced the runtime-summary
+motion seam, but this exploratory pilot does not establish efficacy.
+
+The remaining direct-method gap is now a powered, disjoint confirmation rather
+than another sampler implementation. A frozen 300-rollout protocol uses five
+new initial states, two new sampling seeds, and all three methods. After that,
+the next causal gap is to replace blocking simulation with independently
+ticking inference and control loops. The existing suffix-selection rollouts
+remain a different baseline because they advance `d + E` rather than exactly
+`E` steps per query.
 
 ### Stage C: cross-model and cross-simulator validity
 

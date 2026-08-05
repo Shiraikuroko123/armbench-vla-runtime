@@ -2,92 +2,157 @@
 
 ## Status
 
-Stage B0 is implemented as a tested reference contract, not as a completed
-pi0.5 RTC result. `integrations/openpi/realtime_chunking.py` now reproduces the
-public RTC evaluator's overlap scheduler and prefix-attention weights from
-official commit `9296f31d62d5bfeb5779dcb2f9bcf71ca37f448b`. It also supplies a
-hard projected flow-inpainting reference under OpenPI's reverse-time
-convention. No current evidence artifact used these functions.
+ArmBench now contains a policy-internal RTC-style VJP guidance path for the
+official `pi05_libero` checkpoint. The integration changes the pinned OpenPI
+flow sampler without fine-tuning pi0.5. A fixed-observation G0 gate passed, and
+a separate LIBERO-10 three-method pilot completed 60/60 closed-loop rollouts.
 
-## The scheduler difference that matters
+These stages establish sampler integration, correction direction, latency,
+memory, auditability, and a small simulation pilot. They do not establish full
+equivalence to the RTC paper, task-success improvement, independently ticking
+inference and control, cross-model generality, or real-robot performance.
+
+## Scheduler contract
 
 For action horizon `H=10`, fixed execute horizon `E=5`, and inference delay
-`d=4`, the existing measured-age dispatcher and RTC do not advance the same
-number of simulation steps:
+`d=4`, suffix selection and RTC overlap do not advance the same number of
+simulation steps:
 
 ```text
-current suffix selection:
+measured-age suffix selection:
   catch up for d steps, then execute new[d:d+E]  -> d+E total steps
 
 RTC overlap scheduling:
   execute old[0:d], then execute new[d:E]        -> E total steps
 ```
 
-Afterward RTC shifts `new[E:H]` to the front of a zero-padded `H`-step
-reference chunk. A same-checkpoint RTC comparison therefore needs a new
-overlap evaluator; relabeling the existing suffix-selection result would be
-methodologically wrong.
+After each overlap query, ArmBench shifts `new[E:H]` to the front of a
+zero-padded `H`-step reference. Query zero only samples an unexecuted reference;
+query one uses the same initial observation. This reference-only bootstrap is
+shared by all compared methods. Relabeling the earlier suffix-selection result
+as RTC would therefore be methodologically wrong.
 
-## Model-side target
+## Reverse-time OpenPI mapping
 
-The pinned OpenPI snapshot is
-`15a9616a00943ada6c20a0f158e3adb39df2ccac`. Its pi0.5 sampler is in
-`src/openpi/models/pi0.py::Pi0.sample_actions` and integrates from `t=1` noise
-to `t=0` actions. `pi05_libero` uses model-space shape `10 x 32`, while LIBERO
-exposes raw `10 x 7` actions after output transforms.
+The public RTC reference integrates from noise to action in the opposite time
+direction from the pinned OpenPI sampler. With OpenPI time `t=1` at noise and
+`t=0` at action, the implemented denoised-action estimate and guidance update
+are:
 
-The next extension must carry raw reference actions through the normal LIBERO
-input transforms so normalization and 25 padded dimensions exactly match
-training. It must then pass model-space reference actions, a hard committed
-prefix mask, and RTC guidance weights into the flow sampler. The server must
-attest the OpenPI extension commit and hash every condition/mask used in scored
-queries.
+```text
+D_t(x) = x - t * v_openpi(x, t)
+error = weights * (reference - D_t(x))
+correction = J_D(x)^T * error
+v_guided = v_openpi - gain(t) * correction
 
-Two sampler methods must remain distinctly named:
+gain(t) = min((t^2 + (1-t)^2) / (t(1-t)), 5)
+```
 
-- `projected_flow_inpainting`: project hard committed slots onto
-  `x_t = t * noise + (1 - t) * condition` before and after each Euler step;
-- `rtc_pseudoinverse_guidance`: use the RTC denoised-action VJP correction and
-  time-dependent guidance weight.
+The correction uses a minus sign because OpenPI's Euler step has `dt < 0`.
+Endpoint gain is explicitly capped, avoiding division by zero at `t=1`.
+`jax.vjp` computes the required transpose-Jacobian product over the batched
+`1 x 10 x 32` model action. A JVP would compute a different operation.
 
-The first is a low-cost ablation and can guarantee zero final residual on hard
-slots. It is not the RTC paper's pseudoinverse guidance method.
+Raw LIBERO references follow the policy's normal input transforms:
+`10 x 7` raw actions are normalized and padded to `10 x 32`; dimensions 7-31
+remain zero. The server derives guidance weights from the attested `H/E/d`
+contract and rejects hard projection combined with soft guidance.
 
-## Acceptance gates before rollouts
+The three evaluator methods remain distinct:
 
-1. An empty condition and zero RTC weights are numerically identical to the
-   official sampler under the same explicit noise.
-2. Raw `10 x 7` reference actions become normalized/padded `10 x 32` model
-   actions; padded dimensions are zero.
-3. Hard projected slots have final residual below `1e-6`.
-4. Nonfinite values, wrong dimensions, nonprefix hard masks, `d > E`, and
-   `E > H` fail before JIT or policy inference.
-5. An indexed fake policy proves exact execution order
-   `old[:d] + new[d:E]` and a fixed `E` environment steps per query.
-6. Peak GPU memory, warm inference P50/P95, and conditioning residual pass a
-   20-query gate before any task-success pilot.
+- `overlap_unconditioned`: same scheduler and reference bootstrap, no sampler
+  conditioning;
+- `projected_overlap`: hard projection of committed slots before and after
+  every Euler step;
+- `rtc_guided_overlap`: soft RTC-style denoised-action VJP guidance.
 
-## Proposed evidence ladder
+Hard projection is an ablation with exact conditioned-slot residual. It is not
+the RTC guidance method.
 
-| Stage | Matrix | Purpose |
+## Frozen identities
+
+- RTC public reference: `9296f31d62d5bfeb5779dcb2f9bcf71ca37f448b`
+- OpenPI upstream base: `15a9616a00943ada6c20a0f158e3adb39df2ccac`
+- OpenPI RTC extension: `54592c7148ba69bf52757385502782f80f2285e0`
+- ArmBench G0 evidence commit: `7ed75a9`
+- ArmBench three-method evaluator commit: `2aef062`
+- Checkpoint content SHA-256:
+  `9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5`
+
+## Completed G0 gate
+
+The preserved
+[`pi05_rtc_guidance_g0_001`](../evidence/pi05_rtc_guidance_g0_001/README.md)
+artifact uses one fixed observation, one explicit sampling-noise tensor, and
+20 warm queries per measured path.
+
+| Gate | Measured result |
+| --- | ---: |
+| Zero-weight legacy parity | bitwise exact |
+| Baseline weighted model RMSE | 0.0814669 |
+| Guided weighted model RMSE | 0.0270451 |
+| Guided / baseline residual | 0.3320 |
+| Baseline warm wall P95 | 79.5584 ms |
+| Guided warm wall P95 | 108.0617 ms |
+| Warm wall P95 ratio | 1.3583x |
+| Peak JAX bytes in use | 6,906,793,216 (6.43 GiB) |
+
+Baseline and guided outputs were exactly repeatable under explicit noise. G0
+proves that the extension runs on the claimed checkpoint and moves the weighted
+model residual in the intended direction within the frozen latency and memory
+gates. It is not a closed-loop task result.
+
+## Completed three-method pilot
+
+The exploratory pilot used all ten LIBERO-10 tasks, initial-state indices
+`0,1`, and all three methods: 20 matched triplets and 60 rollouts at
+`H=10`, `E=5`, `d=4`. Method order used a three-way Latin rotation, and every
+triplet shared explicit keyed pi0.5 sampling noise. The raw artifact contains
+60 manifest-protected H.264 videos and a float32 transition transcript.
+
+| Method | Success | Episode-equal motion seam | Episode-equal gripper seam | Diagnostic |
+| --- | ---: | ---: | ---: | ---: |
+| Unconditioned overlap | 20/20 | 0.104452 | 0.058052 | - |
+| Hard projected overlap | 19/20 | 0.083129 | 0.045345 | max hard residual 0 |
+| RTC-guided overlap | 19/20 | 0.084002 | 0.039617 | weighted model RMSE 0.024735 |
+
+Both conditioned methods had `0/1/19` wins/losses/ties against unconditioned
+overlap, with raw exact McNemar `p=1.0`. The pilot therefore does not support a
+task-success improvement. The seam values above come from the independent
+report, which aggregates query-level records first within episode. Task-block
+95% motion-seam intervals exclude zero in the negative direction for both
+methods, while the gripper intervals cross zero. Seam remains an exploratory
+process metric.
+
+Validate the immutable raw artifact locally:
+
+```powershell
+& '..\.venv\Scripts\python.exe' -m integrations.openpi.rtc_overlap_pilot validate `
+  evidence\pi05_rtc_overlap_pilot_001\evaluation
+```
+
+## Evidence ladder
+
+| Stage | Matrix | Status and purpose |
 | --- | --- | --- |
-| G0 | 20 warm queries per sampler method | Compilation, memory, latency, residual, and no-condition parity |
-| Pilot | 10 tasks x 2 states x 3 methods at `d=4` | Detect integration failures without an efficacy claim |
-| Primary | 10 tasks x 5 states x 3 noise keys x 2 methods | Suffix selection versus RTC-style continuation |
-| Secondary | 10 tasks x 5 states x `d in {0,2}` x 2 methods | Delay sensitivity |
-| Ablation | 10 tasks x 5 states with projected inpainting | Separate hard projection from RTC guidance |
+| G0 | 20 fixed-observation warm queries | Passed: parity, direction, latency, memory, determinism |
+| Pilot | 10 tasks x 2 states x 3 methods | Completed: integration pilot, no efficacy claim |
+| Held-out primary | 10 tasks x 5 states x 2 noise seeds x 3 methods | 300-rollout protocol frozen separately; outcome pending |
+| Runtime extension | independent inference/control clocks | Pending |
+| Generalization | second VLA and hardware | Pending |
 
-The primary comparison should use one prespecified exact paired test. Task
-clusters, condition order, motion discontinuity, acceleration jump, gripper
-mismatch, condition residual, inference latency, and deadline misses remain
-prespecified secondary analyses.
+The held-out protocol is
+[`RTC_OVERLAP_PRIMARY_300_PROTOCOL.md`](research/RTC_OVERLAP_PRIMARY_300_PROTOCOL.md).
+The 60 pilot rollouts are excluded from its 300-rollout matrix.
 
 ## Remaining gap
 
-This reference layer closes an implementation ambiguity, not the publication
-gap. A credible Stage B result still requires a clean OpenPI extension commit,
-policy-internal JAX execution on the official checkpoint, an overlap scheduler
-inside closed-loop LIBERO, fresh frozen protocols, and new evidence. True
-measured-wall RTC later also needs independently ticking inference and control;
-using response arrival time to condition the same completed inference would be
-causally impossible.
+The implementation now reaches inside a real pi0.5 flow sampler and has
+checkpoint-backed closed-loop evidence. The remaining publication gap is no
+longer "implement VJP guidance." It is to establish a powered held-out effect,
+then test causal asynchronous execution with independently ticking inference
+and control, a second policy family, broader perturbations, and hardware.
+
+The present LIBERO evaluator blocks on each policy response and injects a fixed
+four-step overlap delay. It is suitable for matched method analysis, but it is
+not a hard real-time system or a deadline guarantee.

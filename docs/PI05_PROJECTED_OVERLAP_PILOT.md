@@ -91,14 +91,18 @@ projection. The useful finding is a mechanism split: exact prefix enforcement
 improves translational/rotational handoff continuity but does not preserve or
 improve task progress by itself.
 
-The next direct comparison should implement RTC's soft VJP/pseudoinverse
-guidance and evaluate three adjacent conditions under shared noise:
+That direct comparison is now implemented. The separate
+[RTC integration report](RTC_PI05_INTEGRATION.md) evaluates three adjacent
+conditions under shared noise:
 
 1. unconditioned overlap;
 2. hard projected overlap;
 3. soft RTC-style guidance.
 
-Only after that method comparison should the project spend a larger rollout
-budget. Independently ticking inference and control loops, a second model
+Its 60-rollout pilot again shows no task-success advantage at the development
+states, while both conditioning methods reduce the runtime-summary motion seam.
+The result and raw evidence are not pooled with this 40-rollout artifact. A
+new-state, new-noise 300-rollout protocol was frozen before inspecting held-out
+outcomes. Independently ticking inference and control loops, a second model
 family such as SmolVLA or OpenVLA-OFT, and real SO101/Panda evidence remain
 separate generality and deployment stages.

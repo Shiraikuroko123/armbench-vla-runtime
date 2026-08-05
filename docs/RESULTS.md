@@ -1,5 +1,84 @@
 # Verified result snapshots
 
+## pi0.5 RTC guidance G0
+
+### Provenance and protocol
+
+- Evidence ID: `pi05_rtc_guidance_g0_001`
+- ArmBench evidence commit: `7ed75a9`
+- OpenPI upstream / extension:
+  `15a9616a00943ada6c20a0f158e3adb39df2ccac` /
+  `54592c7148ba69bf52757385502782f80f2285e0`
+- RTC reference commit: `9296f31d62d5bfeb5779dcb2f9bcf71ca37f448b`
+- Policy/checkpoint: official `pi05_libero`
+- Matrix: one fixed observation and explicit sampling-noise tensor, 20 warm
+  queries per measured path
+
+### Outcomes
+
+| Measure | Baseline | RTC guided | Result |
+|---|---:|---:|---:|
+| Weighted model RMSE | 0.0814669 | 0.0270451 | residual ratio 0.3320 |
+| Warm wall P95 | 79.5584 ms | 108.0617 ms | 1.3583x |
+| Exact repeatability | yes | yes | explicit noise |
+| Zero-weight parity | - | - | bitwise exact |
+| Peak JAX bytes in use | - | 6.43 GiB | below 23 GiB gate |
+
+This establishes model-side integration feasibility and the correction
+direction. A fixed observation cannot establish closed-loop task efficacy. The
+complete report and validator are in
+[`evidence/pi05_rtc_guidance_g0_001`](../evidence/pi05_rtc_guidance_g0_001/README.md).
+
+## Exploratory pi0.5 RTC overlap pilot
+
+### Provenance and protocol
+
+- Evidence ID: `pi05_rtc_overlap_pilot_001`
+- Evaluator commit: `2aef062256fc3f6257f9f58d68c3f18c07d1b0b8`
+- Evidence commit: `282d3e2`
+- Policy/checkpoint: official `pi05_libero`, content SHA-256
+  `9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5`
+- Matrix: 10 LIBERO-10 tasks x 2 initial states x 3 methods, 60 rollouts
+- Scheduler: `H=10`, `E=5`, injected overlap delay `d=4`
+- Pairing: reference-only bootstrap, three-way Latin order, identical keyed
+  `10 x 32` pi0.5 sampling noise within every method triplet
+- Evidence: 60/60 rollouts, 60 videos, 20 complete triplets, float32 transition
+  archive and cross-query reference hashes
+
+### Outcomes
+
+| Method | Success (Wilson 95%) | Mean queries | Episode-equal motion seam | Episode-equal gripper seam | Scored transitions |
+|---|---:|---:|---:|---:|---:|
+| Unconditioned overlap | 20/20 [0.839,1.000] | 50.70 | 0.104452 | 0.058052 | 994 |
+| Hard projected overlap | 19/20 [0.764,0.991] | 52.95 | 0.083129 | 0.045345 | 1,039 |
+| RTC-guided overlap | 19/20 [0.764,0.991] | 53.65 | 0.084002 | 0.039617 | 1,053 |
+
+Each conditioned method had zero wins, one loss, and 19 ties against
+unconditioned overlap; each raw exact McNemar p-value is `1.0`. The runtime
+summary's query-pooled seam means are preserved in the raw artifact but are not
+used above. The independent analysis first averages within episode. Relative
+to unconditioned overlap, task-block bootstrap 95% intervals for mean motion
+seam differences are `[-0.032036,-0.012622]` for hard projection and
+`[-0.030301,-0.011399]` for RTC guidance. Corresponding gripper intervals cross
+zero. These intervals are descriptive and receive no superiority p-value.
+
+Hard projection's maximum conditioned model residual was zero. RTC guidance's
+mean weighted model RMSE was `0.024735`; both are implementation diagnostics,
+not efficacy outcomes.
+
+The raw artifact passed its local root-manifest, keyed-noise, conditioning,
+guidance, reference-chain, and transition-archive validator. All 60 videos
+decode as H.264 `224x224` at 10 fps (15,322 total frames). The downloaded cloud
+tarball SHA-256 is
+`0397944996316aa15d2e304cd2085dea095e0ab9bfcf513b07f7f221fa5f18f6`.
+
+This pilot does not support a task-success improvement. It is simulation-only,
+small, and blocking; it does not prove true concurrent RTC, deadline safety,
+cross-model generality, or real-robot performance. The raw evidence is in
+[`evidence/pi05_rtc_overlap_pilot_001/evaluation`](../evidence/pi05_rtc_overlap_pilot_001/evaluation),
+and the disjoint held-out study is frozen in
+[`RTC_OVERLAP_PRIMARY_300_PROTOCOL.md`](research/RTC_OVERLAP_PRIMARY_300_PROTOCOL.md).
+
 ## pi0.5-LIBERO held-out measured-age confirmation
 
 ### Provenance and protocol

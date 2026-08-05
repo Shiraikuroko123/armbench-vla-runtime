@@ -258,7 +258,7 @@ def _draw_gap_panel(ax) -> None:
         ax,
         x + 0.018,
         0.838,
-        "Strong systems evidence,\nhard-projection pilot complete",
+        "Strong systems evidence,\nVJP guidance pilot complete",
         size=12.0,
         weight="bold",
         va="top",
@@ -269,7 +269,7 @@ def _draw_gap_panel(ax) -> None:
         0.770,
         (
             "Frozen official pi0.5 checkpoint",
-            "Policy-internal hard prefix projection",
+            "Policy-internal hard + VJP conditioning",
             "Frozen protocols + matched conditions",
             "Exact transition transcript + videos",
             "Source/checkpoint/video attestation",
@@ -285,10 +285,10 @@ def _draw_gap_panel(ax) -> None:
         0.449,
         (
             "Independent inference / control clocks",
-            "Same-checkpoint soft/VJP RTC guidance",
+            "Powered held-out RTC efficacy test",
             "More than one VLA checkpoint",
             "Real-robot closed-loop validation",
-            "Task efficacy beyond hard projection",
+            "Task efficacy beyond a small pilot",
         ),
         "#8b3d44",
     )
