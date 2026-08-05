@@ -17,6 +17,7 @@ import numpy as np
 RTC_REFERENCE_COMMIT = "9296f31d62d5bfeb5779dcb2f9bcf71ca37f448b"
 PrefixSchedule = Literal["linear", "exp", "ones", "zeros"]
 VelocityFunction = Callable[[np.ndarray, float], np.ndarray]
+DenoiserVjpFunction = Callable[[np.ndarray, float, np.ndarray], np.ndarray]
 
 
 class RealtimeChunkingError(ValueError):
@@ -281,5 +282,223 @@ def projected_flow_inpainting(
             state, noise, condition, mask, next_time
         )
         time = next_time
+    output = state[0] if unbatched else state
+    return np.array(output, dtype=np.float64, order="C", copy=True)
+
+
+def reverse_rtc_guidance_gain(
+    time: float,
+    *,
+    max_guidance_weight: float = 5.0,
+) -> float:
+    """Return RTC's gain under OpenPI's t=1 noise to t=0 action clock.
+
+    The algebraic interior form is symmetric under ``t = 1 - s``:
+    ``(t**2 + (1-t)**2) / (t * (1-t))``. Evaluating that expression
+    directly at OpenPI's first step (t=1) is undefined, so the endpoint
+    limits are explicitly capped.
+    """
+
+    try:
+        scalar_time = float(time)
+        maximum = float(max_guidance_weight)
+    except (TypeError, ValueError) as exc:
+        raise RealtimeChunkingError(
+            "time and max_guidance_weight must be numeric scalars"
+        ) from exc
+    if not np.isfinite(scalar_time) or not 0.0 <= scalar_time <= 1.0:
+        raise RealtimeChunkingError("time must be finite and within [0, 1]")
+    if not np.isfinite(maximum) or maximum < 0.0:
+        raise RealtimeChunkingError(
+            "max_guidance_weight must be finite and nonnegative"
+        )
+    if maximum == 0.0:
+        return 0.0
+    denominator = scalar_time * (1.0 - scalar_time)
+    if denominator == 0.0:
+        return maximum
+    numerator = scalar_time**2 + (1.0 - scalar_time) ** 2
+    return min(numerator / denominator, maximum)
+
+
+def _finite_difference_vjp(
+    function: Callable[[np.ndarray], np.ndarray],
+    value: np.ndarray,
+    cotangent: np.ndarray,
+    *,
+    epsilon: float,
+) -> np.ndarray:
+    """Compute a small-problem VJP oracle using central differences."""
+
+    result = np.empty_like(value, dtype=np.float64)
+    for flat_index in range(value.size):
+        positive = value.copy()
+        negative = value.copy()
+        positive.flat[flat_index] += epsilon
+        negative.flat[flat_index] -= epsilon
+        directional = (function(positive) - function(negative)) / (2.0 * epsilon)
+        result.flat[flat_index] = np.sum(directional * cotangent)
+    return result
+
+
+def _batched_guidance_inputs(
+    initial_noise: object,
+    reference_actions: object,
+    guidance_weights: object,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, bool]:
+    try:
+        noise = np.asarray(initial_noise, dtype=np.float64)
+        reference = np.asarray(reference_actions, dtype=np.float64)
+        weights = np.asarray(guidance_weights, dtype=np.float64)
+    except (TypeError, ValueError) as exc:
+        raise RealtimeChunkingError(
+            "noise, reference actions, and guidance weights must be numeric arrays"
+        ) from exc
+    unbatched = noise.ndim == 2
+    if unbatched:
+        noise = noise[None, ...]
+        reference = reference[None, ...]
+        if weights.ndim == 1:
+            weights = weights[None, ...]
+    if noise.ndim != 3 or reference.shape != noise.shape:
+        raise RealtimeChunkingError(
+            "noise and reference actions must share shape (batch, horizon, action_dim)"
+        )
+    if min(noise.shape) <= 0:
+        raise RealtimeChunkingError("guidance input dimensions must be nonempty")
+    if weights.shape != noise.shape[:2]:
+        raise RealtimeChunkingError(
+            "guidance_weights must have shape (batch, horizon)"
+        )
+    if not (
+        np.all(np.isfinite(noise))
+        and np.all(np.isfinite(reference))
+        and np.all(np.isfinite(weights))
+    ):
+        raise RealtimeChunkingError("guidance inputs must contain only finite values")
+    if np.any(weights < 0.0) or np.any(weights > 1.0):
+        raise RealtimeChunkingError("guidance_weights must lie within [0, 1]")
+    if np.any(np.diff(weights, axis=1) > 0.0):
+        raise RealtimeChunkingError("guidance_weights must be nonincreasing")
+    return (
+        np.array(noise, dtype=np.float64, order="C", copy=True),
+        np.array(reference, dtype=np.float64, order="C", copy=True),
+        np.array(weights, dtype=np.float64, order="C", copy=True),
+        unbatched,
+    )
+
+
+def rtc_pseudoinverse_guidance_reverse(
+    initial_noise: object,
+    reference_actions: object,
+    guidance_weights: object,
+    velocity: VelocityFunction,
+    *,
+    num_steps: int = 10,
+    max_guidance_weight: float = 5.0,
+    denoiser_vjp: DenoiserVjpFunction | None = None,
+    finite_difference_epsilon: float = 1e-6,
+) -> np.ndarray:
+    """Audit-only RTC VJP sampler under OpenPI's reverse-time convention.
+
+    This mirrors official RTC's denoised-action correction after the time
+    change ``t = 1 - s``. It uses ``D_t(x) = x - t*v(x,t)`` and subtracts
+    ``gain * J_D.T @ error`` from OpenPI's velocity because ``dt < 0``.
+    The finite-difference fallback is intentionally slow and exists as an
+    implementation-independent oracle for the model-side JAX VJP.
+    """
+
+    steps = _positive_integer(num_steps, "num_steps")
+    if not callable(velocity):
+        raise RealtimeChunkingError("velocity must be callable")
+    if denoiser_vjp is not None and not callable(denoiser_vjp):
+        raise RealtimeChunkingError("denoiser_vjp must be callable")
+    try:
+        epsilon = float(finite_difference_epsilon)
+    except (TypeError, ValueError) as exc:
+        raise RealtimeChunkingError(
+            "finite_difference_epsilon must be a numeric scalar"
+        ) from exc
+    if not np.isfinite(epsilon) or epsilon <= 0.0:
+        raise RealtimeChunkingError(
+            "finite_difference_epsilon must be finite and positive"
+        )
+
+    noise, reference, weights, unbatched = _batched_guidance_inputs(
+        initial_noise, reference_actions, guidance_weights
+    )
+    reverse_rtc_guidance_gain(0.5, max_guidance_weight=max_guidance_weight)
+    maximum = float(max_guidance_weight)
+
+    state = noise.copy()
+    time = 1.0
+    dt = -1.0 / steps
+    guidance_enabled = bool(np.any(weights)) and maximum != 0.0
+    for step_index in range(steps):
+        raw_velocity = np.asarray(velocity(state.copy(), time), dtype=np.float64)
+        if raw_velocity.shape != state.shape:
+            raise RealtimeChunkingError(
+                "velocity output shape does not match sampler state"
+            )
+        if not np.all(np.isfinite(raw_velocity)):
+            raise RealtimeChunkingError(
+                "velocity output must contain only finite values"
+            )
+        guided_velocity = raw_velocity.copy()
+        if guidance_enabled:
+            gain = reverse_rtc_guidance_gain(
+                time, max_guidance_weight=maximum
+            )
+            for batch_index in range(state.shape[0]):
+                sample_state = state[batch_index]
+                sample_velocity = raw_velocity[batch_index]
+
+                def denoiser(value: np.ndarray) -> np.ndarray:
+                    candidate = state.copy()
+                    candidate[batch_index] = value
+                    candidate_velocity = np.asarray(
+                        velocity(candidate, time), dtype=np.float64
+                    )
+                    if candidate_velocity.shape != state.shape:
+                        raise RealtimeChunkingError(
+                            "velocity output shape does not match sampler state"
+                        )
+                    if not np.all(np.isfinite(candidate_velocity)):
+                        raise RealtimeChunkingError(
+                            "velocity output must contain only finite values"
+                        )
+                    return value - time * candidate_velocity[batch_index]
+
+                predicted_action = sample_state - time * sample_velocity
+                error = (reference[batch_index] - predicted_action) * weights[
+                    batch_index, :, None
+                ]
+                if denoiser_vjp is None:
+                    correction = _finite_difference_vjp(
+                        denoiser,
+                        sample_state,
+                        error,
+                        epsilon=epsilon,
+                    )
+                else:
+                    correction = np.asarray(
+                        denoiser_vjp(sample_state.copy(), time, error.copy()),
+                        dtype=np.float64,
+                    )
+                if correction.shape != sample_state.shape:
+                    raise RealtimeChunkingError(
+                        "denoiser_vjp output shape does not match one action chunk"
+                    )
+                if not np.all(np.isfinite(correction)):
+                    raise RealtimeChunkingError(
+                        "denoiser_vjp output must contain only finite values"
+                    )
+                guided_velocity[batch_index] = sample_velocity - gain * correction
+
+        state = state + dt * guided_velocity
+        if not np.all(np.isfinite(state)):
+            raise RealtimeChunkingError("guided sampler produced nonfinite state")
+        time = 0.0 if step_index == steps - 1 else max(0.0, time + dt)
+
     output = state[0] if unbatched else state
     return np.array(output, dtype=np.float64, order="C", copy=True)
