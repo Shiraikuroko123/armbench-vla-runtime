@@ -1,3 +1,5 @@
+[English](README.md) | [简体中文](README_ZH.md)
+
 # ArmBench: Temporal Alignment and RTC-Guided VLA Action Runtime
 
 ArmBench is a VLA runtime and evaluation project centered on a deployment
