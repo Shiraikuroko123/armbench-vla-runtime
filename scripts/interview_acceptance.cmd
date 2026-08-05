@@ -1,4 +1,3 @@
 @echo off
-setlocal
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0interview_acceptance.ps1" %*
+call "%~dp0alignment_acceptance.cmd" %*
 exit /b %ERRORLEVEL%

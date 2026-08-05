@@ -22,7 +22,7 @@ to match later results.
 | [Results](RESULTS.md) | Current | Verified outcomes, provenance, statistics, and study-specific limitations |
 | [Evaluation methodology](METHODOLOGY.md) | Current | Runtime contracts, metrics, experimental design, and claim scope |
 | [Troubleshooting](DEBUGGING.md) | Operational | Boundary-oriented diagnosis for installation, protocol, runtime, and artifacts |
-| [Technical review guide](INTERVIEW_GUIDE.md) | Operational | Architecture walkthrough, review questions, and maintainer readiness checks |
+| [Technical review guide](TECHNICAL_REVIEW.md) | Operational | Architecture walkthrough, review questions, and maintainer readiness checks |
 
 ## Runtime methods
 
@@ -39,7 +39,7 @@ to match later results.
 | --- | --- | --- |
 | [RTC corrected-v3 acceptance](RTC_OVERLAP_PRIMARY_V3_ACCEPTANCE.md) | Operational | Validate two raw v3 artifacts, rebuild the combined analysis, and open the dashboard |
 | [RTC corrected-v3 acceptance — 中文](RTC_OVERLAP_PRIMARY_V3_ACCEPTANCE_ZH.md) | Operational | Corrected-v3 中文验收与结果边界 |
-| [Temporal-alignment evidence walkthrough](INTERVIEW_ACCEPTANCE.md) | Operational | Validate the deterministic alignment artifact and inspect a matched video pair |
+| [Temporal-alignment evidence acceptance — 中文](ALIGNMENT_ACCEPTANCE_ZH.md) | Operational | 验证确定性时序对齐 artifact 并检查匹配视频 |
 
 ## Frozen protocols and audits
 

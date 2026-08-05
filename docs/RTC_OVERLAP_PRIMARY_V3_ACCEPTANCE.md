@@ -1,11 +1,12 @@
 [English](RTC_OVERLAP_PRIMARY_V3_ACCEPTANCE.md) | [简体中文](RTC_OVERLAP_PRIMARY_V3_ACCEPTANCE_ZH.md)
 
-# RTC overlap corrected-v3 acceptance
+# RTC overlap corrected-v3: evidence acceptance
 
-## Why the stages do not pool automatically
+## Evidence lineage
 
-The RTC work followed a staged engineering ladder, but later stages do not
-automatically validate every earlier comparison:
+The RTC implementation progressed through staged integration and evaluation.
+Each stage retains its own validity status; later execution does not
+retroactively validate an earlier comparison:
 
 | Stage | Purpose | Current status |
 | --- | --- | --- |
@@ -16,9 +17,9 @@ automatically validate every earlier comparison:
 | Corrected-v3 smoke | Fresh-environment and four-hash pairing gate | Passed; excluded from outcomes |
 | Corrected-v3 held-out primary | 100 matched triplets, 300 rollouts | Complete and current |
 
-The v2 attempts were not rejected because their numerical outcomes differed
-from v3. They were rejected because the causal comparison was invalid: reusing
-one LIBERO environment changed the two policy images for tasks 3, 8, and 9.
+The v2 attempts were excluded because their causal comparison was invalid, not
+because their numerical outcomes differed from v3. Reusing one LIBERO
+environment changed the two policy images for tasks 3, 8, and 9.
 Sampling keys and noise still matched, but query-0 inputs and actions did not.
 The [pairing audit](research/RTC_OVERLAP_PAIRING_AUDIT_20260805.md) preserves
 the detection, reproduction, and remediation.
@@ -28,7 +29,7 @@ requires identical query-0 policy-input, response-action, sampling-key, and
 sampling-noise hashes across the three methods before finalization. Any mismatch
 invalidates the artifact.
 
-## Current result
+## Validated result
 
 | Method | Success | Motion seam mean | Gripper seam mean |
 | --- | ---: | ---: | ---: |
@@ -45,7 +46,7 @@ The motion-seam differences are exploratory process evidence only:
 - RTC guidance: `-0.019524`, task-block 95% CI
   `[-0.023128,-0.016142]`.
 
-## One-command acceptance
+## Acceptance command
 
 From any Windows directory:
 
@@ -75,7 +76,7 @@ tasks=10
 The generated dashboard is
 [`reports/pi05_rtc_overlap_primary_v3_300_001/index.html`](../reports/pi05_rtc_overlap_primary_v3_300_001/index.html).
 
-## Claim boundary
+## Scope
 
 This is same-checkpoint pi0.5 evidence on ten fixed LIBERO-10 simulation tasks.
 It does not establish independent control/inference timing, hard deadlines,

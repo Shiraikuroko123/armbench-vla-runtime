@@ -1,10 +1,11 @@
 [English](RTC_OVERLAP_PRIMARY_V3_ACCEPTANCE.md) | 简体中文
 
-# RTC overlap corrected-v3 中文验收
+# RTC overlap corrected-v3：证据验收
 
-## 为什么各阶段不能自动合并
+## 证据沿革
 
-RTC 工作按照逐级工程路线推进，但后续阶段不能自动证明所有早期比较都有效：
+RTC 实现经过分阶段集成与评测。每个阶段保留独立的有效性状态，后续实验不会
+追溯性地证明早期比较有效：
 
 | 阶段 | 目的 | 当前状态 |
 | --- | --- | --- |
@@ -15,8 +16,8 @@ RTC 工作按照逐级工程路线推进，但后续阶段不能自动证明所�
 | corrected-v3 smoke | 新 environment 与四哈希配对 gate | 已通过；不计入正式结果 |
 | corrected-v3 held-out primary | 100 个匹配 triplet、300 个 rollout | 已完成，是当前正式结果 |
 
-v2 不是因为数值与 v3 不同而被否定。它被否定是因为因果比较无效：三种方法
-复用同一个 LIBERO environment，导致任务 3、8、9 的两幅 policy image
+v2 因因果比较无效而被排除，并非因为数值与 v3 不同。三种方法复用同一个
+LIBERO environment，导致任务 3、8、9 的两幅 policy image
 发生变化。sampling key 和 sampling noise 仍然相同，但 query-0 的输入与
 动作已经不同。
 
@@ -34,7 +35,7 @@ corrected-v3 为每一个 rollout 单独创建并关闭 environment。在 finali
 任意一项不匹配都会使 artifact 验收失败。v3 是对修正协议的完整重跑，不会
 合并或选择性修补 v2 数据。
 
-## 当前结果
+## 已验证结果
 
 | 方法 | 成功率 | motion seam 均值 | gripper seam 均值 |
 | --- | ---: | ---: | ---: |
@@ -54,7 +55,7 @@ motion seam 差异只能作为探索性过程证据：
 
 不能把上述 seam 结果写成碰撞安全、任务成功率或真实部署提升。
 
-## 一键验收
+## 验收命令
 
 在任意 Windows 目录运行：
 
@@ -89,21 +90,18 @@ tasks=10
 生成的离线 dashboard 位于
 [reports/pi05_rtc_overlap_primary_v3_300_001/index.html](../reports/pi05_rtc_overlap_primary_v3_300_001/index.html)。
 
-## 验收时如何解释
+## 审计说明
 
-可以这样向面试官说明：
+实施顺序为固定观测 sampler gate、闭环三方法比较和配对不变量审计。审计
+发现 v2 复用 environment，使部分任务的 query-0 图像与动作不再匹配。
+原 artifact 因此仅作为审计记录保留，其方法效果结论被排除。
 
-> 我先完成固定观测的 sampler gate，再进行闭环三方法比较。后续不变量审计
-> 发现 v2 复用 environment，使部分任务的 query-0 图像和动作不再匹配。
-> 因此我保留原 artifact 作为审计记录，但排除其方法效果结论。修正后的 v3
-> 为每个 rollout 创建新 environment，并用四类哈希强制配对，随后在新
-> held-out seeds 上完整重跑 300 个 rollout。结果没有证明成功率提升，只
-> 显示探索性的 motion seam 降低。
+修正后的 v3 为每个 rollout 创建独立 environment，使用四类哈希强制配对，
+并在新的 held-out seeds 上完整重跑 300 个 rollout。结果没有证明成功率
+提升，只提供探索性的 motion seam 降低证据。这属于实验设计修复，不是对
+冲突数值的选择性处理。
 
-这种处理不是“实验结果冲突”，而是发现实验设计缺陷后撤回无效比较并重新
-执行。保留负结果和审计轨迹比选择性报告更符合可复现研究要求。
-
-## 结论边界
+## 适用范围
 
 这是同一个 pi0.5 checkpoint 在 10 个固定 LIBERO-10 仿真任务上的证据。
 它不能证明：

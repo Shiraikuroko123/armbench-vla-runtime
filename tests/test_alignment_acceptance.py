@@ -6,7 +6,7 @@ import pathlib
 
 import pytest
 
-import integrations.openpi.interview_acceptance as acceptance
+import integrations.openpi.alignment_acceptance as acceptance
 
 
 def _write_csv(path: pathlib.Path, rows):
@@ -119,7 +119,7 @@ def _fixture(tmp_path: pathlib.Path):
     return run_root, analysis_root
 
 
-def test_builds_five_minute_report_from_validated_sources(
+def test_builds_review_report_from_validated_sources(
     tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     run_root, analysis_root = _fixture(tmp_path)
@@ -138,7 +138,7 @@ def test_builds_five_minute_report_from_validated_sources(
 
     monkeypatch.setattr(acceptance, "build_dashboard", validated_dashboard)
 
-    report = acceptance.build_interview_acceptance(
+    report = acceptance.build_alignment_acceptance(
         run_root, analysis_root, output
     )
 
@@ -178,7 +178,7 @@ def test_rejects_analysis_attestation_identity_mismatch(
     )
 
     with pytest.raises(ValueError, match="checkpoint_content_sha256"):
-        acceptance.build_interview_acceptance(
+        acceptance.build_alignment_acceptance(
             run_root, analysis_root, tmp_path / "index.html"
         )
 
@@ -192,7 +192,7 @@ def test_cli_no_open_does_not_launch_browser(
         "demo": {"dashboard_uri": "file:///validated/index.html"},
     }
     monkeypatch.setattr(
-        acceptance, "build_interview_acceptance", lambda *_args: report
+        acceptance, "build_alignment_acceptance", lambda *_args: report
     )
     monkeypatch.setattr(
         acceptance.webbrowser,
