@@ -74,3 +74,15 @@ one method diagram, quantitative comparison, code/paper links, and limitations.
 ArmBench adopts that evidence order but replaces the conventional academic
 paper template with a runtime-observatory interface suited to its timing and
 verification contribution.
+
+Research pages reviewed:
+
+- [OpenVLA](https://openvla.github.io/)
+- [Open X-Embodiment / RT-X](https://robotics-transformer-x.github.io/)
+- [Diffusion Policy](https://diffusion-policy.cs.columbia.edu/)
+- [Mobile ALOHA](https://mobile-aloha.github.io/)
+- [Octo](https://octo-models.github.io/)
+- [3D Diffusion Policy](https://3d-diffusion-policy.github.io/)
+- [Physical Intelligence pi0.5](https://www.pi.website/blog/pi05)
+
+No template code or third-party page assets were copied into ArmBench.
