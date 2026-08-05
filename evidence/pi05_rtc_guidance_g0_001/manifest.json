@@ -1,0 +1,15 @@
+{
+  "schema_version": "armbench.pi05_rtc_guidance_g0_evidence.v1",
+  "armbench_execution_commit": "cbb5230677f9a16a1dfa052bfe088a447fbcbc14",
+  "openpi_extension_commit": "54592c7148ba69bf52757385502782f80f2285e0",
+  "rtc_reference_commit": "9296f31d62d5bfeb5779dcb2f9bcf71ca37f448b",
+  "report": {
+    "path": "report.json",
+    "bytes": 4238,
+    "sha256": "790f46ed25f405e0ba840a6fd768719678bc25b528e7e61b639fe6f36b11f86b"
+  },
+  "extension_manifest": {
+    "path": "integrations/openpi/patches/rtc_guidance_v2.json",
+    "sha256": "1fe6ce675e5afd2e6027f231b8825344807df864bf6d79bd29a65bbf2d74d072"
+  }
+}

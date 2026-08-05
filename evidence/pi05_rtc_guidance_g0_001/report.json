@@ -1,0 +1,125 @@
+{
+  "action_sha256": {
+    "baseline": "b4a32898adc5f6714db5e5e14b3e026c3c3fe0c45f9f98d99017cf479e2ebf9a",
+    "guided": "7de6bd88f43dc34160ce78de004b0a546b17d18f26d38b4b041301aad51b672b"
+  },
+  "compile_wall_ms": {
+    "active_guidance": 14760.827734004124,
+    "baseline": 18623.760050002602,
+    "zero_maximum_reference_variant": 76.68946600460913,
+    "zero_weight_policy_variant": 78.80418399872724
+  },
+  "contract": {
+    "execute_horizon": 5,
+    "explicit_noise_sha256": "eef61acd9bc520c4967353a3572d7742d814ea579ae674cdb77fee10cc75e13b",
+    "inference_delay": 4,
+    "max_guidance_weight": 5.0,
+    "model_action_shape": [
+      10,
+      32
+    ],
+    "raw_action_shape": [
+      10,
+      7
+    ],
+    "reference_actions_sha256": "a8fc24fa2762b473c279761814f3922f31de46f49931c72ae4a743a05c4ea26a",
+    "schedule": "exp",
+    "weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.1887703388929367,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "weights_sha256": "d6cb1633a0d1dff033903159d3b371ab4f57c65f2ed3616d209d9e5f74eabb51"
+  },
+  "created_at_utc": "2026-08-05T02:15:47.054801+00:00",
+  "device_memory": {
+    "bytes_in_use": 6706868224,
+    "bytes_limit": 38346080256,
+    "peak_bytes_in_use": 6906793216
+  },
+  "gates": {
+    "baseline_exact_repeatability": true,
+    "baseline_weighted_model_rmse": 0.08146693464931816,
+    "finite_guided_actions": true,
+    "guided_exact_repeatability": true,
+    "guided_weighted_model_rmse": 0.027045061684954307,
+    "latency_gate": true,
+    "max_peak_device_bytes": 24696061952,
+    "max_warm_wall_p95_ms": 200.0,
+    "max_warm_wall_p95_ratio": 3.0,
+    "memory_gate": true,
+    "warm_wall_p95_ms": 108.06169669704104,
+    "warm_wall_p95_ratio": 1.3582690670226483,
+    "weighted_model_residual_ratio": 0.3319759335658355,
+    "weighted_model_residual_reduction": true,
+    "zero_weight_exact_parity": true
+  },
+  "guidance_audit": {
+    "guidance_active": true,
+    "guided_steps": 5,
+    "max_guidance_weight": 5.0,
+    "max_weighted_model_residual": 0.22606320679187775,
+    "method": "rtc_pseudoinverse_guidance",
+    "model_actions_sha256": "6875649a580b2c8d171f57526c6b8a6d00a742762ae2b8072da3eaa26674198d",
+    "raw_actions_sha256": "a8fc24fa2762b473c279761814f3922f31de46f49931c72ae4a743a05c4ea26a",
+    "schedule": "exp",
+    "schema_version": "armbench.openpi_guidance.v1",
+    "weighted_model_rmse": 0.027045061684954307,
+    "weights_sha256": "d6cb1633a0d1dff033903159d3b371ab4f57c65f2ed3616d209d9e5f74eabb51"
+  },
+  "identity": {
+    "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+    "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+    "checkpoint_file_count": 16,
+    "checkpoint_total_bytes": 12439085481,
+    "gate_source_canonical_sha256": "89d648e945d4df2f531ed7d79f735e96ddf303561ba469729fee1f6b3c68d8d0",
+    "openpi_commit": "54592c7148ba69bf52757385502782f80f2285e0",
+    "openpi_status": "",
+    "policy_config": "pi05_libero",
+    "rtc_reference_commit": "9296f31d62d5bfeb5779dcb2f9bcf71ca37f448b",
+    "source_sha256": {
+      "src/openpi/models/pi0.py": "e9c3edef1df6db6b7892e58328155380d2a21c335190b846134f1b033e09c3fe",
+      "src/openpi/policies/policy.py": "d06673434255ec202fd23ec9cb900757d909ca5766637635ce223775204e4bc7"
+    }
+  },
+  "method": "rtc_pseudoinverse_guidance",
+  "passed": true,
+  "schema_version": "armbench.pi05_rtc_guidance_g0.v1",
+  "warm_latency": {
+    "baseline_policy_dispatch": {
+      "count": 20,
+      "max_ms": 58.65872999856947,
+      "mean_ms": 54.617159050758346,
+      "p50_ms": 54.365095998946344,
+      "p95_ms": 54.94122705276823
+    },
+    "baseline_wall": {
+      "count": 20,
+      "max_ms": 83.74971999728587,
+      "mean_ms": 76.60814999981085,
+      "p50_ms": 76.13552299881121,
+      "p95_ms": 79.55838745110668
+    },
+    "guided_policy_dispatch": {
+      "count": 20,
+      "max_ms": 71.75403400469804,
+      "mean_ms": 70.29553510037658,
+      "p50_ms": 70.13786200332106,
+      "p95_ms": 70.63510974767269
+    },
+    "guided_wall": {
+      "count": 20,
+      "max_ms": 109.3693090006127,
+      "mean_ms": 105.23702055033937,
+      "p50_ms": 104.73454450038844,
+      "p95_ms": 108.06169669704104
+    }
+  }
+}
