@@ -1,0 +1,17 @@
+{
+  "files": {
+    "analysis.json": {
+      "bytes": 84640,
+      "sha256": "5a47e36cfe3d089cf7bcdca0b9f9d0f012ab22ad64066b39f9dce68bfb284a6f"
+    },
+    "per_episode.csv": {
+      "bytes": 8021,
+      "sha256": "37e81cc8a1eb47e61268a0d4f555cb625433de46bf107875986db6af501cc0a5"
+    },
+    "summary.md": {
+      "bytes": 1259,
+      "sha256": "70015e7d3dd0da0772779464e3f8ceb8cd074a22d102a659d8bb1d00538e42a1"
+    }
+  },
+  "schema_version": "armbench.pi05_rtc_overlap_analysis.v1"
+}
