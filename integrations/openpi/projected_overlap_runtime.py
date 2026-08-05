@@ -33,7 +33,12 @@ from integrations.openpi.serve_policy_attested import (
     POLICY_SAMPLING_REQUEST_FIELD,
     POLICY_SAMPLING_RESPONSE_FIELD,
     POLICY_SAMPLING_SCHEMA_VERSION,
+    POLICY_GUIDANCE_METHOD,
+    POLICY_GUIDANCE_REQUEST_FIELD,
+    POLICY_GUIDANCE_RESPONSE_FIELD,
+    POLICY_GUIDANCE_TRACE_SCHEMA_VERSION,
     build_policy_conditioning_control,
+    build_policy_guidance_control,
     policy_sampling_noise,
     policy_sampling_noise_sha256,
 )
@@ -41,7 +46,13 @@ from integrations.openpi.serve_policy_attested import (
 
 OVERLAP_UNCONDITIONED = "overlap_unconditioned"
 PROJECTED_OVERLAP = "projected_overlap"
+RTC_GUIDED_OVERLAP = "rtc_guided_overlap"
 VALID_OVERLAP_METHODS = (OVERLAP_UNCONDITIONED, PROJECTED_OVERLAP)
+V2_OVERLAP_METHODS = (
+    OVERLAP_UNCONDITIONED,
+    PROJECTED_OVERLAP,
+    RTC_GUIDED_OVERLAP,
+)
 SamplingControlBuilder = Callable[[int], Mapping[str, Any]]
 
 
@@ -60,9 +71,12 @@ class OverlapRuntimeConfig:
     resize_size: int = 224
     record_video: bool = False
     max_condition_residual: float = 1e-6
+    guidance_schedule: str = "exp"
+    max_guidance_weight: float = 5.0
+    bootstrap_reference_only: bool = False
 
     def __post_init__(self) -> None:
-        if self.method not in VALID_OVERLAP_METHODS:
+        if self.method not in V2_OVERLAP_METHODS:
             raise ValueError("unsupported overlap method")
         for name, value in (
             ("execute_horizon", self.execute_horizon),
@@ -84,6 +98,16 @@ class OverlapRuntimeConfig:
             raise ValueError("pi0.5 LIBERO overlap requires action_horizon=10")
         if not math.isfinite(self.max_condition_residual) or self.max_condition_residual <= 0:
             raise ValueError("max_condition_residual must be finite and positive")
+        if self.guidance_schedule not in ("linear", "exp", "ones", "zeros"):
+            raise ValueError("unsupported guidance_schedule")
+        if (
+            not math.isfinite(self.max_guidance_weight)
+            or self.max_guidance_weight < 0.0
+            or self.max_guidance_weight > 5.0
+        ):
+            raise ValueError("max_guidance_weight must be finite and within [0, 5]")
+        if type(self.bootstrap_reference_only) is not bool:
+            raise ValueError("bootstrap_reference_only must be boolean")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -104,6 +128,11 @@ class OverlapQueryRecord:
     condition_model_actions_sha256: Optional[str]
     condition_mask_sha256: Optional[str]
     max_model_residual: Optional[float]
+    guidance_raw_actions_sha256: Optional[str]
+    guidance_model_actions_sha256: Optional[str]
+    guidance_weights_sha256: Optional[str]
+    max_weighted_model_residual: Optional[float]
+    weighted_model_rmse: Optional[float]
     old_prefix_steps: int
     new_suffix_steps: int
     executed_steps: int
@@ -221,6 +250,66 @@ def _validate_conditioning_trace(
     )
 
 
+def _validate_guidance_trace(
+    response: Mapping[str, Any],
+    control: Optional[Mapping[str, Any]],
+    config: OverlapRuntimeConfig,
+) -> Tuple[
+    Optional[str],
+    Optional[str],
+    Optional[str],
+    Optional[float],
+    Optional[float],
+]:
+    if control is None:
+        if POLICY_GUIDANCE_RESPONSE_FIELD in response:
+            raise OverlapRuntimeError("unexpected policy guidance trace")
+        return None, None, None, None, None
+    trace = response.get(POLICY_GUIDANCE_RESPONSE_FIELD)
+    if not isinstance(trace, Mapping):
+        raise OverlapRuntimeError("policy guidance trace is missing")
+    expected_fixed = {
+        "schema_version": POLICY_GUIDANCE_TRACE_SCHEMA_VERSION,
+        "method": POLICY_GUIDANCE_METHOD,
+        "inference_delay": config.inference_delay_steps,
+        "execute_horizon": config.execute_horizon,
+        "schedule": config.guidance_schedule,
+        "max_guidance_weight": config.max_guidance_weight,
+        "guidance_active": bool(
+            np.any(control["guidance_weights"])
+            and config.max_guidance_weight > 0.0
+        ),
+        "guided_steps": int(np.count_nonzero(control["guidance_weights"])),
+        "raw_actions_sha256": control["raw_actions_sha256"],
+        "weights_sha256": control["weights_sha256"],
+    }
+    for key, value in expected_fixed.items():
+        if trace.get(key) != value:
+            raise OverlapRuntimeError("policy guidance trace mismatch: %s" % key)
+    model_hash = trace.get("model_actions_sha256")
+    if not isinstance(model_hash, str) or len(model_hash) != 64:
+        raise OverlapRuntimeError("model guidance hash is invalid")
+    try:
+        max_residual = float(trace["max_weighted_model_residual"])
+        rmse = float(trace["weighted_model_rmse"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise OverlapRuntimeError("guidance residual is invalid") from exc
+    if (
+        not math.isfinite(max_residual)
+        or max_residual < 0.0
+        or not math.isfinite(rmse)
+        or rmse < 0.0
+    ):
+        raise OverlapRuntimeError("guidance residual is invalid")
+    return (
+        str(control["raw_actions_sha256"]),
+        model_hash,
+        str(control["weights_sha256"]),
+        max_residual,
+        rmse,
+    )
+
+
 def _seam_metrics(
     reference: Optional[np.ndarray],
     response: np.ndarray,
@@ -324,6 +413,18 @@ def run_overlap_episode(
                     raw_action_dim=LIBERO_ACTION_DIM,
                 )
                 request[POLICY_CONDITIONING_REQUEST_FIELD] = condition_control
+            guidance_control = None
+            if not bootstrap and config.method == RTC_GUIDED_OVERLAP:
+                guidance_control = build_policy_guidance_control(
+                    reference,
+                    inference_delay=config.inference_delay_steps,
+                    execute_horizon=config.execute_horizon,
+                    schedule=config.guidance_schedule,
+                    max_guidance_weight=config.max_guidance_weight,
+                    action_horizon=config.action_horizon,
+                    raw_action_dim=LIBERO_ACTION_DIM,
+                )
+                request[POLICY_GUIDANCE_REQUEST_FIELD] = guidance_control
 
             failure_stage = "policy_inference"
             started = clock()
@@ -349,10 +450,23 @@ def run_overlap_episode(
                 condition_mask_hash,
                 condition_residual,
             ) = _validate_conditioning_trace(response, condition_control, config)
+            (
+                guidance_raw_hash,
+                guidance_model_hash,
+                guidance_weights_hash,
+                guidance_max_residual,
+                guidance_rmse,
+            ) = _validate_guidance_trace(response, guidance_control, config)
             policy_ms = response_timing_ms(response, "policy_timing")
             server_ms = response_timing_ms(response, "server_timing")
 
-            if bootstrap:
+            if bootstrap and config.bootstrap_reference_only:
+                old_prefix = np.empty((0, LIBERO_ACTION_DIM), dtype=np.float32)
+                new_suffix = np.empty((0, LIBERO_ACTION_DIM), dtype=np.float32)
+                next_reference = np.array(
+                    response_actions, dtype=np.float32, order="C", copy=True
+                )
+            elif bootstrap:
                 old_prefix = np.empty((0, LIBERO_ACTION_DIM), dtype=np.float32)
                 new_suffix = response_actions[: config.execute_horizon]
                 next_reference = np.concatenate(
@@ -423,17 +537,18 @@ def run_overlap_episode(
                 failure=exc,
             )
 
-        transition_records.append(
-            build_action_chunk_transition(
-                reference,
-                response_actions,
-                next_reference,
-                inference_delay=config.inference_delay_steps,
-                execute_horizon=config.execute_horizon,
-                executed_old=executed_old,
-                executed_new=executed_new,
+        if not (bootstrap and config.bootstrap_reference_only):
+            transition_records.append(
+                build_action_chunk_transition(
+                    reference,
+                    response_actions,
+                    next_reference,
+                    inference_delay=config.inference_delay_steps,
+                    execute_horizon=config.execute_horizon,
+                    executed_old=executed_old,
+                    executed_new=executed_new,
+                )
             )
-        )
         query_records.append(
             OverlapQueryRecord(
                 query_index=query_index,
@@ -452,23 +567,34 @@ def run_overlap_episode(
                 condition_model_actions_sha256=condition_model_hash,
                 condition_mask_sha256=condition_mask_hash,
                 max_model_residual=condition_residual,
+                guidance_raw_actions_sha256=guidance_raw_hash,
+                guidance_model_actions_sha256=guidance_model_hash,
+                guidance_weights_sha256=guidance_weights_hash,
+                max_weighted_model_residual=guidance_max_residual,
+                weighted_model_rmse=guidance_rmse,
                 old_prefix_steps=executed_old,
                 new_suffix_steps=executed_new,
                 executed_steps=executed_old + executed_new,
                 seam_motion_l2=seam_motion,
                 seam_gripper_abs=seam_gripper,
                 decision=(
-                    "bootstrap_unconditioned"
+                    "bootstrap_reference_only"
+                    if bootstrap and config.bootstrap_reference_only
+                    else "bootstrap_unconditioned"
                     if bootstrap
                     else (
                         "accepted_projected_overlap"
                         if config.method == PROJECTED_OVERLAP
-                        else "accepted_unconditioned_overlap"
+                        else (
+                            "accepted_rtc_guided_overlap"
+                            if config.method == RTC_GUIDED_OVERLAP
+                            else "accepted_unconditioned_overlap"
+                        )
                     )
                 ),
             )
         )
-        if not bootstrap and config.method == PROJECTED_OVERLAP:
+        if not bootstrap and config.method in (PROJECTED_OVERLAP, RTC_GUIDED_OVERLAP):
             conditioned_queries += 1
         reference = np.array(next_reference, dtype="<f4", order="C", copy=True)
         if done:

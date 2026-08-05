@@ -139,3 +139,59 @@ def test_transition_rejects_new_suffix_before_old_prefix_finishes() -> None:
             executed_old=2,
             executed_new=1,
         )
+
+
+def test_transition_validator_accepts_reference_only_bootstrap_seed(tmp_path) -> None:
+    bootstrap = np.arange(70, dtype=np.float32).reshape(10, 7)
+    response = bootstrap + 100.0
+    transition = build_action_chunk_transition(
+        bootstrap,
+        response,
+        _next_reference(response),
+        inference_delay=4,
+        execute_horizon=5,
+        executed_old=4,
+        executed_new=1,
+    )
+    descriptor = {
+        "schema_version": ARCHIVE_SCHEMA_VERSION,
+        "scheduler": {
+            "action_horizon": 10,
+            "action_dim": 7,
+            "execute_horizon": 5,
+            "inference_delay": 4,
+        },
+        "rows": [
+            {
+                "episode_id": "e",
+                "pair_id": "p",
+                "method": "rtc_guided_overlap",
+                "query_index": 1,
+            }
+        ],
+    }
+    query = {
+        **descriptor["rows"][0],
+        "bootstrap": False,
+        "executed_steps": 5,
+        "old_prefix_steps": 4,
+        "new_suffix_steps": 1,
+        "response_action_sha256": canonical_action_sha256(response),
+        "next_reference_sha256": canonical_action_sha256(_next_reference(response)),
+    }
+    path = tmp_path / "transitions.npz"
+    write_transition_archive(path, [transition])
+    arrays = load_transition_archive(path)
+
+    report = validate_transition_arrays(
+        descriptor,
+        arrays,
+        [query],
+        bootstrap_response_sha256_by_episode={
+            "e": canonical_action_sha256(bootstrap)
+        },
+    )
+
+    assert report["valid"] is True
+    with pytest.raises(ActionChunkTransitionError, match="reference-only bootstrap"):
+        validate_transition_arrays(descriptor, arrays, [query])

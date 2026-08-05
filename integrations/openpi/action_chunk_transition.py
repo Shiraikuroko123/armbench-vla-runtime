@@ -217,6 +217,8 @@ def validate_transition_arrays(
     descriptor: Mapping[str, Any],
     arrays: Mapping[str, np.ndarray],
     queries: Sequence[Mapping[str, Any]],
+    *,
+    bootstrap_response_sha256_by_episode: Optional[Mapping[str, str]] = None,
 ) -> Dict[str, Any]:
     """Recompute scheduler equations and cross-query reference chains."""
 
@@ -294,9 +296,19 @@ def validate_transition_arrays(
             scheduled = response[:execute]
             expected_source = np.full(length, SOURCE_NEW_SUFFIX, dtype=np.uint8)
         else:
-            if not has_previous or episode_id not in previous_by_episode:
+            if not has_previous:
                 raise ActionChunkTransitionError("nonbootstrap transition lacks its reference chain")
-            if not np.array_equal(previous, previous_by_episode[episode_id]):
+            if episode_id not in previous_by_episode:
+                bootstrap_hash = (
+                    None
+                    if bootstrap_response_sha256_by_episode is None
+                    else bootstrap_response_sha256_by_episode.get(episode_id)
+                )
+                if canonical_action_sha256(previous) != bootstrap_hash:
+                    raise ActionChunkTransitionError(
+                        "nonbootstrap transition lacks its reference-only bootstrap"
+                    )
+            elif not np.array_equal(previous, previous_by_episode[episode_id]):
                 raise ActionChunkTransitionError("cross-query reference chain mismatch")
             scheduled = np.concatenate((previous[:delay], response[delay:execute]), axis=0)
             expected_source = np.concatenate(
