@@ -1,0 +1,51 @@
+{
+  "files": [
+    {
+      "bytes": 3379,
+      "path": "environment.json",
+      "sha256": "8a78c79a1bc4d9ebac964ee42ca8049e0674e4fbd052223b59ea51017f6a841d"
+    },
+    {
+      "bytes": 8206,
+      "path": "episodes.json",
+      "sha256": "9c9dbf6b591cb7765308d2344c5cc7840c3953265d259119a116fa0f94151e28"
+    },
+    {
+      "bytes": 57,
+      "path": "progress.json",
+      "sha256": "c2b580549dd407250bc5df65945b349fafdb51524fcf6d64879d5533deab9366"
+    },
+    {
+      "bytes": 1141290,
+      "path": "queries.json",
+      "sha256": "2fa313bea936d541dcbb580b12fa7f9235b39ca356da0d3512be5c2c858c62a8"
+    },
+    {
+      "bytes": 4788,
+      "path": "resolved_protocol.json",
+      "sha256": "368df530d21e847de849fed00cd26f214e3a828a40a70d6b5205517c94c2af54"
+    },
+    {
+      "bytes": 1496,
+      "path": "summary.json",
+      "sha256": "a19184a1f8bb8bb3c47bfd5c2ba206878ea0e0ee32f818b4069335ec7a895d7c"
+    },
+    {
+      "bytes": 765,
+      "path": "summary.md",
+      "sha256": "974ae4022c83aed9cce743630716d9740d403821e90ee027cd14e3dff399b416"
+    },
+    {
+      "bytes": 123673,
+      "path": "transition_descriptor.json",
+      "sha256": "3dedf5df0dca0647cc0c3d1bb1b0895847a6fc27864df9a1e47d565a35810f32"
+    },
+    {
+      "bytes": 385330,
+      "path": "transitions.npz",
+      "sha256": "40e6263390bdc77d64c439ebc544dd8995eaa62816eddd5ae97182de0a28a333"
+    }
+  ],
+  "files_sha256": "58d47dbcf62fe6c2b9d48de0389d15459c55982e90d62c6787e6e58a0ca99cb9",
+  "schema_version": "armbench.root_manifest.v1"
+}
