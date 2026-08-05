@@ -1,0 +1,71 @@
+{
+  "files": [
+    {
+      "bytes": 3397,
+      "path": "environment.json",
+      "sha256": "91e5be4b0c88e2e6869781c0d1fed80f7bf5810fbdcf49c888d6882c1da02ca7"
+    },
+    {
+      "bytes": 138571,
+      "path": "episodes.json",
+      "sha256": "5233e2b0391ac8257250989a359834f6132c5cf151a13fd1e71dc7bc5b22e9d7"
+    },
+    {
+      "bytes": 61,
+      "path": "progress.json",
+      "sha256": "881bed4c0cfae0e8a42b28be923f9a6cbb98d47c297c93ff0368494e717b4b22"
+    },
+    {
+      "bytes": 14907891,
+      "path": "queries.json",
+      "sha256": "83bb45553a0ace21fc0bca3d406bf2f7746ee9dfd016a82383e535367afaf1fc"
+    },
+    {
+      "bytes": 53564,
+      "path": "resolved_protocol.json",
+      "sha256": "7fef67fa0192f2eb5de721c33680386104114f46f549eb7e4f30c46bd16f3ccc"
+    },
+    {
+      "bytes": 1485,
+      "path": "summary.json",
+      "sha256": "135d5799ebad2e556ed7e0f6f183d52dcf24ef457fc0927c6a54e7f3f8b7a0f6"
+    },
+    {
+      "bytes": 774,
+      "path": "summary.md",
+      "sha256": "0b6bb5498a7411b222e2d55634004c48ee007eb7a75c742edc3a747748236c0c"
+    },
+    {
+      "bytes": 1596777,
+      "path": "transition_descriptor.json",
+      "sha256": "60fbaa535c60fc24e05cefa51f340db0c0dae071ce9373cbbf4894efe3efea6a"
+    },
+    {
+      "bytes": 4969231,
+      "path": "transitions.npz",
+      "sha256": "10f905c854306c6e951c65350517711958b0bb16a563e10873d36cf98ccfcf89"
+    },
+    {
+      "bytes": 283982,
+      "path": "videos/libero_10__task_02__episode_06__projected_overlap__failure.mp4",
+      "sha256": "0ab4e9c6e8e36047177d6857aede0fd076e7b09400ec9e1a211bfd04a31e68f1"
+    },
+    {
+      "bytes": 297794,
+      "path": "videos/libero_10__task_02__episode_06__rtc_guided_overlap__failure.mp4",
+      "sha256": "b47f2fcc0fa4fb3082c3a3210b217919dc10d735ec05cb50f274fce32c71fdd1"
+    },
+    {
+      "bytes": 221295,
+      "path": "videos/libero_10__task_08__episode_02__overlap_unconditioned__failure.mp4",
+      "sha256": "f0b54a5e89cf850313cc594a7318ee3a34b7c609e1ef7c2435cdfd34647800da"
+    },
+    {
+      "bytes": 225557,
+      "path": "videos/libero_10__task_08__episode_06__overlap_unconditioned__failure.mp4",
+      "sha256": "4a9e15c00381000099341094bebed8f7caff000df343028b8f28fe5d7b4b1f7a"
+    }
+  ],
+  "files_sha256": "78d043dcec1ab4dd8a636a9c0bf309da7c8b01b6a457a689b9a2beab3206e16c",
+  "schema_version": "armbench.root_manifest.v1"
+}

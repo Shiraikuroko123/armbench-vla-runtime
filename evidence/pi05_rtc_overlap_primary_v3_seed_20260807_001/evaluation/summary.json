@@ -1,0 +1,53 @@
+{
+  "complete_triplets": 50,
+  "contrasts_vs_unconditioned": {
+    "projected_overlap": {
+      "losses": 1,
+      "mcnemar_exact_p": 1.0,
+      "success_rate_difference": 0.020000000000000018,
+      "ties": 47,
+      "wins": 2
+    },
+    "rtc_guided_overlap": {
+      "losses": 1,
+      "mcnemar_exact_p": 1.0,
+      "success_rate_difference": 0.020000000000000018,
+      "ties": 47,
+      "wins": 2
+    }
+  },
+  "methods": {
+    "overlap_unconditioned": {
+      "max_model_residual": null,
+      "mean_policy_queries": 53.42,
+      "mean_seam_gripper_abs": 0.062199929933064044,
+      "mean_seam_motion_l2": 0.1071490113657552,
+      "mean_weighted_model_rmse": null,
+      "rollouts": 50,
+      "success_rate": 0.96,
+      "successes": 48
+    },
+    "projected_overlap": {
+      "max_model_residual": 0.0,
+      "mean_policy_queries": 54.12,
+      "mean_seam_gripper_abs": 0.068981604224228,
+      "mean_seam_motion_l2": 0.08402682571368242,
+      "mean_weighted_model_rmse": null,
+      "rollouts": 50,
+      "success_rate": 0.98,
+      "successes": 49
+    },
+    "rtc_guided_overlap": {
+      "max_model_residual": null,
+      "mean_policy_queries": 54.14,
+      "mean_seam_gripper_abs": 0.043562326074140074,
+      "mean_seam_motion_l2": 0.08758573415631335,
+      "mean_weighted_model_rmse": 0.026524476548535823,
+      "rollouts": 50,
+      "success_rate": 0.98,
+      "successes": 49
+    }
+  },
+  "pilot_only": true,
+  "schema_version": "armbench.pi05_rtc_overlap_pilot.v3"
+}
