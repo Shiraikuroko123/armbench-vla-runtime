@@ -1,0 +1,31 @@
+{
+  "files": [
+    {
+      "path": "audit_arrays.npz",
+      "sha256": "ffe81f64ac048b07104e5d07218b4ef8a2ed065450fd5472cb14ede3cde97296",
+      "size_bytes": 2355
+    },
+    {
+      "path": "provider/manifest.json",
+      "sha256": "f1f78e6b2a14d08d2690c336a0ab1f1e0bfe629d018d04615f89d45f1fc53876",
+      "size_bytes": 498
+    },
+    {
+      "path": "provider/provider.json",
+      "sha256": "942307f9cdead19a3b7d785f0c942ddcdb8a849605ff04a099033f01bfbfaa6e",
+      "size_bytes": 1809
+    },
+    {
+      "path": "provider/responses.npz",
+      "sha256": "74b97fec412d68ceb52c12aec7d6c59ac3569233fb0079ef85201e716aa45782",
+      "size_bytes": 239
+    },
+    {
+      "path": "summary.json",
+      "sha256": "61bd51a18e159140c2c9f432be5a140720112b1dc686df5292948a432db08031",
+      "size_bytes": 3061
+    }
+  ],
+  "inventory_sha256": "41bd52c99a645ff26c47c1d992e0d5fc9c889fa6e69ca6967388caf9e8673812",
+  "schema_version": "armbench.provider_contract_audit_manifest.v1"
+}

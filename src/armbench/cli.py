@@ -43,6 +43,11 @@ from armbench.vla.pi05_braking_repair import (
     execute_pi05_braking_comparison,
     validate_pi05_braking_comparison,
 )
+from armbench.vla.provider_contract import (
+    run_provider_contract_audit,
+    validate_frozen_provider_bundle,
+    validate_provider_contract_audit,
+)
 from armbench.vla.benchmark import (
     execute_openpi_probe,
     execute_vla_guard_benchmark,
@@ -206,6 +211,21 @@ def build_parser() -> argparse.ArgumentParser:
         "vla-panda-adapter-smoke",
         help="verify the CPU-only LIBERO Cartesian to Panda guard bridge",
     )
+    provider_audit = subparsers.add_parser(
+        "vla-provider-audit",
+        help="audit a CPU-only second-provider ABI and semantic gate",
+    )
+    provider_audit.add_argument("--output-directory", type=Path, required=True)
+    provider_audit_validate = subparsers.add_parser(
+        "vla-provider-audit-validate",
+        help="replay and validate a provider-contract audit artifact",
+    )
+    provider_audit_validate.add_argument("directory", type=Path)
+    provider_bundle_validate = subparsers.add_parser(
+        "vla-provider-bundle-validate",
+        help="validate one frozen action-provider bundle",
+    )
+    provider_bundle_validate.add_argument("directory", type=Path)
 
     archive_replay = subparsers.add_parser(
         "vla-panda-archive-replay",
@@ -842,6 +862,20 @@ def main(arguments: list[str] | None = None) -> int:
         report = run_cartesian_adapter_smoke()
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0 if bool(report["passed"]) else 1
+    if args.command == "vla-provider-audit":
+        output = run_provider_contract_audit(args.output_directory)
+        result = validate_provider_contract_audit(output)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-provider-audit-validate":
+        result = validate_provider_contract_audit(args.directory)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0
+    if args.command == "vla-provider-bundle-validate":
+        result = validate_frozen_provider_bundle(args.directory)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0
     if args.command == "vla-panda-archive-replay":
         output = execute_pi05_archive_replay(
             args.source_directory,

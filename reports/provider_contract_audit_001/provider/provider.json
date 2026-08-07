@@ -1,0 +1,52 @@
+{
+  "identity": {
+    "checkpoint_executed_during_capture": false,
+    "checkpoint_executed_this_run": false,
+    "checkpoint_identity_status": "declared_unverified",
+    "checkpoint_reference": "not_loaded_cpu_contract_fixture",
+    "checkpoint_sha256": null,
+    "implementation_repository": "https://github.com/moojink/openvla-oft",
+    "implementation_revision": "e4287e94541f459edc4feabc4e181f537cd569a8",
+    "model_family": "OpenVLA-OFT",
+    "provider_id": "openvla_oft_libero_contract_fixture",
+    "response_origin": "synthetic_contract_fixture"
+  },
+  "responses": [
+    {
+      "array_key": "response_0000",
+      "inference_latency_ms": 37.0,
+      "observation_sequence_id": 0,
+      "observation_sha256": "590b5bcbde44e5d56274a561dfb1a7aeba643df5db64ca7aa08476aa0519b589",
+      "response_sha256": "cbaf5d19d689076842fc8ee7a1c432d30090035f7f17c7db2b57e5b653826fd9",
+      "shape": [
+        6,
+        7
+      ]
+    }
+  ],
+  "schema_version": "armbench.frozen_action_provider.v1",
+  "scope": "frozen_provider_contract_without_checkpoint_inference",
+  "semantics": {
+    "action_dim": 7,
+    "action_order": [
+      "dx",
+      "dy",
+      "dz",
+      "dax",
+      "day",
+      "daz",
+      "gripper"
+    ],
+    "action_space_id": "libero.ee_delta_pose_gripper.v1",
+    "control_period_s": 0.05,
+    "controller_semantics_id": "libero-f78abd68.robosuite-1.4.1.osc-pose.v1",
+    "coordinate_frame": "base",
+    "gripper_convention": "minus_one_open_plus_one_closed",
+    "normalized_max": 1.0,
+    "normalized_min": -1.0,
+    "rotation_delta_scale_rad": 0.5,
+    "rotation_representation": "axis_angle_delta",
+    "translation_delta_scale_m": 0.05
+  },
+  "semantics_sha256": "de840e2d38dba6c5fb86e886f49d3c3203dbdaf88f8b20981fd6d87605a1b169"
+}

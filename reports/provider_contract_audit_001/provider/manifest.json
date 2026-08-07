@@ -1,0 +1,16 @@
+{
+  "files": [
+    {
+      "path": "provider.json",
+      "sha256": "942307f9cdead19a3b7d785f0c942ddcdb8a849605ff04a099033f01bfbfaa6e",
+      "size_bytes": 1809
+    },
+    {
+      "path": "responses.npz",
+      "sha256": "74b97fec412d68ceb52c12aec7d6c59ac3569233fb0079ef85201e716aa45782",
+      "size_bytes": 239
+    }
+  ],
+  "inventory_sha256": "b4ee3dce3a430f26cdd3def44679ef29a8c2c763ec28310a21ad4a9f4b47a528",
+  "schema_version": "armbench.frozen_action_provider_manifest.v1"
+}
