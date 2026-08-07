@@ -8,14 +8,17 @@ import time
 import numpy as np
 import pytest
 
+import armbench.vla.provider_contract as provider_contract
 from armbench.mujoco_sim import MuJoCoPanda
 from armbench.vla.async_worker import LatestPolicyWorker
 from armbench.vla.cartesian_adapter import PandaCartesianActionAdapter
 from armbench.vla.provider_contract import (
+    ActionSemantics,
     AdaptedActionChunkPolicy,
     FrozenResponseProvider,
     FrozenResponseRecord,
     ProviderContractError,
+    ProviderIdentity,
     SemanticCompatibilityError,
     _fixture_identity,
     _fixture_observation,
@@ -64,6 +67,23 @@ def test_semantic_gate_rejects_same_width_but_different_meaning(
         require_semantic_compatibility(candidate, expected)
 
 
+def test_json_contract_rejects_coercible_types_and_unknown_fields() -> None:
+    semantics = libero_cartesian_semantics().to_dict()
+    semantics["action_dim"] = 7.0
+    with pytest.raises(ProviderContractError, match="semantics"):
+        ActionSemantics.from_dict(semantics)
+
+    identity = _fixture_identity().to_dict()
+    identity["checkpoint_executed_this_run"] = ""
+    with pytest.raises(ProviderContractError, match="identity"):
+        ProviderIdentity.from_dict(identity)
+
+    identity = _fixture_identity().to_dict()
+    identity["undeclared_claim"] = False
+    with pytest.raises(ProviderContractError, match="identity"):
+        ProviderIdentity.from_dict(identity)
+
+
 def _write_bundle(path: Path) -> tuple[Path, object]:
     observation = _fixture_observation()
     actions = np.zeros((3, 7), dtype=float)
@@ -102,6 +122,7 @@ def test_frozen_provider_is_bound_to_observation_and_exhausts(
     wrong = replace(observation, prompt="different prompt")
     with pytest.raises(ProviderContractError, match="observation hash"):
         provider.infer_raw(wrong)
+    assert provider.infer_raw(observation).observation_sequence_id == 0
 
 
 def test_manifest_detects_frozen_response_tamper(tmp_path: Path) -> None:
@@ -156,3 +177,21 @@ def test_provider_audit_is_self_validating_and_claim_bounded(
     assert result["semantic_mismatch_rejections"] == 5
     assert result["adapted_shape"] == [6, 8]
     assert not any(summary["claims"].values())
+
+
+def test_provider_audit_rejects_resigned_summary_provenance_tamper(
+    tmp_path: Path,
+) -> None:
+    output = run_provider_contract_audit(tmp_path / "audit")
+    summary_path = output / "summary.json"
+    summary = json.loads(summary_path.read_text("utf-8"))
+    summary["provider"]["identity"]["model_family"] = "unverified-model"
+    summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    provider_contract._write_manifest(
+        output,
+        schema=provider_contract.PROVIDER_AUDIT_MANIFEST_SCHEMA,
+        recursive=True,
+    )
+
+    with pytest.raises(ProviderContractError, match="provenance"):
+        validate_provider_contract_audit(output)

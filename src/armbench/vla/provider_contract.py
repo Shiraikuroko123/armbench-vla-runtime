@@ -37,6 +37,48 @@ _HEX_40 = re.compile(r"^[0-9a-f]{40}$")
 _HEX_64 = re.compile(r"^[0-9a-f]{64}$")
 
 
+def _json_string(value: object) -> str:
+    if type(value) is not str:
+        raise TypeError("expected a JSON string")
+    return value
+
+
+def _json_optional_string(value: object) -> str | None:
+    if value is None:
+        return None
+    return _json_string(value)
+
+
+def _json_bool(value: object) -> bool:
+    if type(value) is not bool:
+        raise TypeError("expected a JSON boolean")
+    return value
+
+
+def _json_int(value: object) -> int:
+    if type(value) is not int:
+        raise TypeError("expected a JSON integer")
+    return value
+
+
+def _json_number(value: object) -> float:
+    if type(value) not in {int, float}:
+        raise TypeError("expected a JSON number")
+    return float(value)
+
+
+def _json_string_tuple(value: object) -> tuple[str, ...]:
+    if not isinstance(value, list):
+        raise TypeError("expected a JSON string array")
+    return tuple(_json_string(item) for item in value)
+
+
+def _json_int_tuple(value: object) -> tuple[int, ...]:
+    if not isinstance(value, list):
+        raise TypeError("expected a JSON integer array")
+    return tuple(_json_int(item) for item in value)
+
+
 class ProviderContractError(ValueError):
     """Raised when provider identity, semantics, or frozen bytes are invalid."""
 
@@ -134,7 +176,10 @@ class ActionSemantics:
             or self.action_dim <= 0
             or len(self.action_order) != self.action_dim
             or len(set(self.action_order)) != self.action_dim
-            or any(not isinstance(item, str) or not item.strip() for item in self.action_order)
+            or any(
+                not isinstance(item, str) or not item.strip()
+                for item in self.action_order
+            )
             or any(not isinstance(item, str) or not item.strip() for item in strings)
             or not np.all(np.isfinite(numeric))
             or self.control_period_s <= 0.0
@@ -152,24 +197,46 @@ class ActionSemantics:
     @classmethod
     def from_dict(cls, value: Mapping[str, object]) -> "ActionSemantics":
         try:
+            _require(
+                set(value)
+                == {
+                    "action_space_id",
+                    "action_dim",
+                    "action_order",
+                    "control_period_s",
+                    "coordinate_frame",
+                    "normalized_min",
+                    "normalized_max",
+                    "translation_delta_scale_m",
+                    "rotation_representation",
+                    "rotation_delta_scale_rad",
+                    "gripper_convention",
+                    "controller_semantics_id",
+                },
+                "action semantics document fields are invalid",
+            )
             return cls(
-                action_space_id=str(value["action_space_id"]),
-                action_dim=int(value["action_dim"]),
-                action_order=tuple(str(item) for item in value["action_order"]),
-                control_period_s=float(value["control_period_s"]),
-                coordinate_frame=str(value["coordinate_frame"]),
-                normalized_min=float(value["normalized_min"]),
-                normalized_max=float(value["normalized_max"]),
-                translation_delta_scale_m=float(
+                action_space_id=_json_string(value["action_space_id"]),
+                action_dim=_json_int(value["action_dim"]),
+                action_order=_json_string_tuple(value["action_order"]),
+                control_period_s=_json_number(value["control_period_s"]),
+                coordinate_frame=_json_string(value["coordinate_frame"]),
+                normalized_min=_json_number(value["normalized_min"]),
+                normalized_max=_json_number(value["normalized_max"]),
+                translation_delta_scale_m=_json_number(
                     value["translation_delta_scale_m"]
                 ),
-                rotation_representation=str(value["rotation_representation"]),
-                rotation_delta_scale_rad=float(value["rotation_delta_scale_rad"]),
-                gripper_convention=str(value["gripper_convention"]),
-                controller_semantics_id=str(value["controller_semantics_id"]),
+                rotation_representation=_json_string(value["rotation_representation"]),
+                rotation_delta_scale_rad=_json_number(
+                    value["rotation_delta_scale_rad"]
+                ),
+                gripper_convention=_json_string(value["gripper_convention"]),
+                controller_semantics_id=_json_string(value["controller_semantics_id"]),
             )
         except (KeyError, TypeError, ValueError) as error:
-            raise ProviderContractError("action semantics document is invalid") from error
+            raise ProviderContractError(
+                "action semantics document is invalid"
+            ) from error
 
     @property
     def semantic_sha256(self) -> str:
@@ -267,34 +334,48 @@ class ProviderIdentity:
     @classmethod
     def from_dict(cls, value: Mapping[str, object]) -> "ProviderIdentity":
         try:
+            _require(
+                set(value)
+                == {
+                    "provider_id",
+                    "model_family",
+                    "implementation_repository",
+                    "implementation_revision",
+                    "checkpoint_reference",
+                    "checkpoint_sha256",
+                    "checkpoint_identity_status",
+                    "response_origin",
+                    "checkpoint_executed_during_capture",
+                    "checkpoint_executed_this_run",
+                },
+                "provider identity document fields are invalid",
+            )
             return cls(
-                provider_id=str(value["provider_id"]),
-                model_family=str(value["model_family"]),
-                implementation_repository=str(value["implementation_repository"]),
-                implementation_revision=str(value["implementation_revision"]),
-                checkpoint_reference=(
-                    None
-                    if value.get("checkpoint_reference") is None
-                    else str(value["checkpoint_reference"])
+                provider_id=_json_string(value["provider_id"]),
+                model_family=_json_string(value["model_family"]),
+                implementation_repository=_json_string(
+                    value["implementation_repository"]
                 ),
-                checkpoint_sha256=(
-                    None
-                    if value.get("checkpoint_sha256") is None
-                    else str(value["checkpoint_sha256"])
+                implementation_revision=_json_string(value["implementation_revision"]),
+                checkpoint_reference=_json_optional_string(
+                    value["checkpoint_reference"]
                 ),
-                checkpoint_identity_status=str(
+                checkpoint_sha256=_json_optional_string(value["checkpoint_sha256"]),
+                checkpoint_identity_status=_json_string(
                     value["checkpoint_identity_status"]
                 ),
-                response_origin=str(value["response_origin"]),
-                checkpoint_executed_during_capture=bool(
+                response_origin=_json_string(value["response_origin"]),
+                checkpoint_executed_during_capture=_json_bool(
                     value["checkpoint_executed_during_capture"]
                 ),
-                checkpoint_executed_this_run=bool(
+                checkpoint_executed_this_run=_json_bool(
                     value["checkpoint_executed_this_run"]
                 ),
             )
         except (KeyError, TypeError, ValueError) as error:
-            raise ProviderContractError("provider identity document is invalid") from error
+            raise ProviderContractError(
+                "provider identity document is invalid"
+            ) from error
 
 
 @dataclass(frozen=True)
@@ -366,7 +447,9 @@ class FrozenResponseRecord:
         object.__setattr__(self, "actions", copied)
 
 
-def _inventory(root: Path, *, exclude_root_manifest: bool = False) -> list[dict[str, object]]:
+def _inventory(
+    root: Path, *, exclude_root_manifest: bool = False
+) -> list[dict[str, object]]:
     records: list[dict[str, object]] = []
     for path in sorted(item for item in root.rglob("*") if item.is_file()):
         relative = path.relative_to(root).as_posix()
@@ -383,14 +466,18 @@ def _inventory(root: Path, *, exclude_root_manifest: bool = False) -> list[dict[
 
 
 def _write_manifest(root: Path, *, schema: str, recursive: bool) -> None:
-    files = _inventory(root, exclude_root_manifest=True) if recursive else [
-        {
-            "path": name,
-            "size_bytes": (root / name).stat().st_size,
-            "sha256": _sha256_file(root / name),
-        }
-        for name in ("provider.json", "responses.npz")
-    ]
+    files = (
+        _inventory(root, exclude_root_manifest=True)
+        if recursive
+        else [
+            {
+                "path": name,
+                "size_bytes": (root / name).stat().st_size,
+                "sha256": _sha256_file(root / name),
+            }
+            for name in ("provider.json", "responses.npz")
+        ]
+    )
     manifest = {
         "schema_version": schema,
         "files": files,
@@ -406,22 +493,32 @@ def _validate_manifest(root: Path, *, schema: str, recursive: bool) -> None:
     try:
         manifest = json.loads((root / "manifest.json").read_text("utf-8"))
     except (OSError, json.JSONDecodeError) as error:
-        raise ProviderContractError("provider manifest is missing or invalid") from error
+        raise ProviderContractError(
+            "provider manifest is missing or invalid"
+        ) from error
     _require(
         isinstance(manifest, Mapping) and manifest.get("schema_version") == schema,
         "provider manifest schema mismatch",
     )
+    _require(
+        set(manifest) == {"schema_version", "files", "inventory_sha256"},
+        "provider manifest fields are invalid",
+    )
     files = manifest.get("files")
     _require(isinstance(files, list), "provider manifest file list is invalid")
-    expected = _inventory(root, exclude_root_manifest=True) if recursive else [
-        {
-            "path": name,
-            "size_bytes": (root / name).stat().st_size,
-            "sha256": _sha256_file(root / name),
-        }
-        for name in ("provider.json", "responses.npz")
-        if (root / name).is_file()
-    ]
+    expected = (
+        _inventory(root, exclude_root_manifest=True)
+        if recursive
+        else [
+            {
+                "path": name,
+                "size_bytes": (root / name).stat().st_size,
+                "sha256": _sha256_file(root / name),
+            }
+            for name in ("provider.json", "responses.npz")
+            if (root / name).is_file()
+        ]
+    )
     _require(files == expected, "provider manifest file inventory mismatch")
     _require(
         manifest.get("inventory_sha256")
@@ -503,6 +600,18 @@ def validate_frozen_provider_bundle(directory: Path) -> dict[str, object]:
         == "frozen_provider_contract_without_checkpoint_inference",
         "provider descriptor schema/scope mismatch",
     )
+    _require(
+        set(descriptor)
+        == {
+            "schema_version",
+            "scope",
+            "identity",
+            "semantics",
+            "semantics_sha256",
+            "responses",
+        },
+        "provider descriptor fields are invalid",
+    )
     identity_raw = descriptor.get("identity")
     semantics_raw = descriptor.get("semantics")
     _require(
@@ -523,14 +632,28 @@ def validate_frozen_provider_bundle(directory: Path) -> dict[str, object]:
     try:
         archive = np.load(root / "responses.npz", allow_pickle=False)
     except Exception as error:
-        raise ProviderContractError("provider response archive cannot be loaded") from error
+        raise ProviderContractError(
+            "provider response archive cannot be loaded"
+        ) from error
     records: list[FrozenResponseRecord] = []
     try:
         declared_keys: set[str] = set()
         sequence_ids: set[int] = set()
         for row in response_rows:
             _require(isinstance(row, Mapping), "provider response row is invalid")
-            key = str(row.get("array_key", ""))
+            _require(
+                set(row)
+                == {
+                    "array_key",
+                    "observation_sequence_id",
+                    "observation_sha256",
+                    "inference_latency_ms",
+                    "shape",
+                    "response_sha256",
+                },
+                "provider response row fields are invalid",
+            )
+            key = _json_string(row["array_key"])
             _require(
                 re.fullmatch(r"response_[0-9]{4}", key) is not None,
                 "provider response array key is invalid",
@@ -538,13 +661,18 @@ def validate_frozen_provider_bundle(directory: Path) -> dict[str, object]:
             _require(key not in declared_keys, "provider response key is duplicated")
             declared_keys.add(key)
             try:
-                sequence_id = int(row["observation_sequence_id"])
-                latency_ms = float(row["inference_latency_ms"])
-                shape = tuple(int(value) for value in row["shape"])
+                sequence_id = _json_int(row["observation_sequence_id"])
+                latency_ms = _json_number(row["inference_latency_ms"])
+                shape = _json_int_tuple(row["shape"])
                 actions = np.asarray(archive[key], dtype=float)
             except (KeyError, TypeError, ValueError) as error:
-                raise ProviderContractError("provider response row is malformed") from error
-            _require(sequence_id not in sequence_ids, "provider response sequence is duplicated")
+                raise ProviderContractError(
+                    "provider response row is malformed"
+                ) from error
+            _require(
+                sequence_id not in sequence_ids,
+                "provider response sequence is duplicated",
+            )
             sequence_ids.add(sequence_id)
             _require(
                 actions.shape == shape
@@ -556,14 +684,12 @@ def validate_frozen_provider_bundle(directory: Path) -> dict[str, object]:
                 row.get("response_sha256") == canonical_action_sha256(actions),
                 "provider response action hash mismatch",
             )
-            observation_sha = row.get("observation_sha256")
+            observation_sha = _json_optional_string(row["observation_sha256"])
             record = FrozenResponseRecord(
                 observation_sequence_id=sequence_id,
                 actions=actions,
                 inference_latency_ms=latency_ms,
-                observation_sha256=(
-                    None if observation_sha is None else str(observation_sha)
-                ),
+                observation_sha256=observation_sha,
             )
             records.append(record)
         _require(set(archive.files) == declared_keys, "provider archive keys mismatch")
@@ -638,27 +764,23 @@ class FrozenResponseProvider:
         if self._index >= len(self._records):
             raise RuntimeError("frozen provider responses exhausted")
         record = self._records[self._index]
-        self._index += 1
         if record.observation_sequence_id != observation.sequence_id:
             raise ProviderContractError(
                 "frozen response sequence does not match observation"
             )
         if (
             record.observation_sha256 is not None
-            and record.observation_sha256
-            != canonical_observation_sha256(observation)
+            and record.observation_sha256 != canonical_observation_sha256(observation)
         ):
             raise ProviderContractError(
                 "frozen response observation hash does not match"
             )
+        self._index += 1
         response_sha = canonical_action_sha256(record.actions)
         return RawActionChunk(
             actions=record.actions,
             semantics=self.semantics,
-            source=(
-                f"frozen:{self.identity.provider_id}:"
-                f"{response_sha[:12]}"
-            ),
+            source=(f"frozen:{self.identity.provider_id}:{response_sha[:12]}"),
             observation_sequence_id=observation.sequence_id,
             inference_latency_ms=record.inference_latency_ms,
             received_at_s=(
@@ -773,6 +895,24 @@ def _mismatch_cases(semantics: ActionSemantics) -> dict[str, ActionSemantics]:
     }
 
 
+def _audit_claims() -> dict[str, bool]:
+    return {
+        "openvla_oft_checkpoint_executed": False,
+        "checkpoint_response_captured": False,
+        "cross_model_task_success_measured": False,
+        "gpu_latency_measured": False,
+        "official_lerobot_runtime_used": False,
+    }
+
+
+def _audit_limitations() -> list[str]:
+    return [
+        "The OpenVLA-OFT-named response is a synthetic ABI fixture, not model output.",
+        "The run validates provider metadata, exact action semantics, and adapter integration only.",
+        "No cross-model task-success, generalization, or GPU-latency claim is supported.",
+    ]
+
+
 def run_provider_contract_audit(directory: Path) -> Path:
     """Create a self-validating CPU-only second-provider contract artifact."""
 
@@ -830,18 +970,8 @@ def run_provider_contract_audit(directory: Path) -> Path:
         "adapted_action_sha256": canonical_action_sha256(chunk.actions),
         "semantic_mismatch_cases": mismatch_rejections,
         "semantic_mismatch_rejections": len(mismatch_rejections),
-        "claims": {
-            "openvla_oft_checkpoint_executed": False,
-            "checkpoint_response_captured": False,
-            "cross_model_task_success_measured": False,
-            "gpu_latency_measured": False,
-            "official_lerobot_runtime_used": False,
-        },
-        "limitations": [
-            "The OpenVLA-OFT-named response is a synthetic ABI fixture, not model output.",
-            "The run validates provider metadata, exact action semantics, and adapter integration only.",
-            "No cross-model task-success, generalization, or GPU-latency claim is supported.",
-        ],
+        "claims": _audit_claims(),
+        "limitations": _audit_limitations(),
     }
     (root / "summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n",
@@ -871,9 +1001,26 @@ def validate_provider_contract_audit(directory: Path) -> dict[str, object]:
     _require(
         isinstance(summary, Mapping)
         and summary.get("schema_version") == PROVIDER_AUDIT_SCHEMA
-        and summary.get("scope")
-        == "cpu_only_provider_abi_semantic_gate_and_adapter",
+        and summary.get("scope") == "cpu_only_provider_abi_semantic_gate_and_adapter",
         "provider audit summary schema/scope mismatch",
+    )
+    _require(
+        set(summary)
+        == {
+            "schema_version",
+            "scope",
+            "provider",
+            "observation_sha256",
+            "raw_response_sha256",
+            "raw_shape",
+            "adapted_shape",
+            "adapted_action_sha256",
+            "semantic_mismatch_cases",
+            "semantic_mismatch_rejections",
+            "claims",
+            "limitations",
+        },
+        "provider audit summary fields are invalid",
     )
     validate_frozen_provider_bundle(root / "provider")
     try:
@@ -889,7 +1036,9 @@ def validate_provider_contract_audit(directory: Path) -> dict[str, object]:
             "raw_actions",
             "adapted_actions",
         }
-        _require(set(archive.files) == expected_keys, "provider audit array keys mismatch")
+        _require(
+            set(archive.files) == expected_keys, "provider audit array keys mismatch"
+        )
         observation = VLAObservation(
             exterior_image=archive["exterior_image"],
             wrist_image=archive["wrist_image"],
@@ -904,13 +1053,11 @@ def validate_provider_contract_audit(directory: Path) -> dict[str, object]:
     finally:
         archive.close()
     _require(
-        summary.get("observation_sha256")
-        == canonical_observation_sha256(observation),
+        summary.get("observation_sha256") == canonical_observation_sha256(observation),
         "provider audit observation hash mismatch",
     )
     _require(
-        summary.get("raw_response_sha256")
-        == canonical_action_sha256(raw_actions),
+        summary.get("raw_response_sha256") == canonical_action_sha256(raw_actions),
         "provider audit raw response hash mismatch",
     )
     provider = FrozenResponseProvider.from_directory(root / "provider")
@@ -922,6 +1069,15 @@ def validate_provider_contract_audit(directory: Path) -> dict[str, object]:
     )
     replayed = policy.infer(observation)
     _require(
+        summary.get("provider") == policy.provenance,
+        "provider audit provider provenance mismatch",
+    )
+    _require(
+        summary.get("raw_shape") == list(raw_actions.shape)
+        and summary.get("adapted_shape") == list(replayed.actions.shape),
+        "provider audit action shapes mismatch",
+    )
+    _require(
         np.array_equal(replayed.actions, stored_adapted),
         "provider audit adapted actions are not reproducible",
     )
@@ -931,20 +1087,22 @@ def validate_provider_contract_audit(directory: Path) -> dict[str, object]:
         "provider audit adapted action hash mismatch",
     )
     mismatches = _mismatch_cases(provider.semantics)
-    rejected = 0
-    for candidate in mismatches.values():
+    mismatch_rejections: dict[str, str] = {}
+    for label, candidate in mismatches.items():
         try:
             require_semantic_compatibility(candidate, provider.semantics)
-        except SemanticCompatibilityError:
-            rejected += 1
+        except SemanticCompatibilityError as error:
+            mismatch_rejections[label] = str(error)
     _require(
-        rejected == len(mismatches)
-        == int(summary.get("semantic_mismatch_rejections", -1)),
+        mismatch_rejections == summary.get("semantic_mismatch_cases")
+        and len(mismatch_rejections)
+        == len(mismatches)
+        == summary.get("semantic_mismatch_rejections"),
         "provider audit semantic rejection count mismatch",
     )
-    claims = summary.get("claims")
     _require(
-        isinstance(claims, Mapping) and not any(bool(value) for value in claims.values()),
+        summary.get("claims") == _audit_claims()
+        and summary.get("limitations") == _audit_limitations(),
         "provider audit claim boundary is invalid",
     )
     return {
@@ -952,7 +1110,7 @@ def validate_provider_contract_audit(directory: Path) -> dict[str, object]:
         "directory": str(root),
         "provider_id": provider.identity.provider_id,
         "model_family": provider.identity.model_family,
-        "semantic_mismatch_rejections": rejected,
+        "semantic_mismatch_rejections": len(mismatch_rejections),
         "raw_shape": list(raw_actions.shape),
         "adapted_shape": list(replayed.actions.shape),
         "checkpoint_executed_this_run": False,
@@ -962,6 +1120,7 @@ def validate_provider_contract_audit(directory: Path) -> dict[str, object]:
             "observation_response_binding",
             "semantic_fail_closed_matrix",
             "deterministic_adapter_replay",
+            "summary_fields_recomputed",
             "explicit_claim_boundary",
         ],
     }
