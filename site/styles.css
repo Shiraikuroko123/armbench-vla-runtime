@@ -272,7 +272,7 @@ html[data-lang="en"] [data-lang-content="zh"] {
 }
 
 .header-repo {
-  min-height: 40px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   padding-inline: 14px;
@@ -1691,7 +1691,7 @@ input[type="range"] {
 .review-links {
   margin-top: 28px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   border-top: 1px solid var(--line-strong);
   border-bottom: 1px solid var(--line-strong);
 }
@@ -2128,12 +2128,12 @@ input[type="range"] {
     bottom: calc(100% + 1px);
     left: 0;
     display: block;
-    font-size: 9px;
+    font-size: 10px;
   }
 
   .hero-boundary {
     bottom: 14px;
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .artifact-grid a {
@@ -2275,8 +2275,8 @@ input[type="range"] {
   }
 
   .action-cell {
-    height: 40px;
-    font-size: 8px;
+    height: 44px;
+    font-size: 9px;
   }
 
   .decision-readout {

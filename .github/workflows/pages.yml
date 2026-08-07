@@ -30,6 +30,11 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Validate static site
+        run: |
+          node --check site/app.js
+          npx --yes html-validate@10.10.0 site/index.html
+
       - name: Upload static site
         uses: actions/upload-pages-artifact@v3
         with:

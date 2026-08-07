@@ -36,8 +36,8 @@
         "dateModified": "2026-08-07"
       }
     </script>
-    <link rel="stylesheet" href="styles.css?v=20260807-3">
-    <script src="app.js?v=20260807-3" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260807-4">
+    <script src="app.js?v=20260807-4" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">
@@ -107,7 +107,7 @@
       <section class="artifact-dock" aria-label="Project artifacts">
         <div class="shell artifact-grid">
           <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime" target="_blank" rel="noreferrer"><span class="artifact-key">CODE</span><strong><span data-lang-content="zh">源代码与验证器</span><span data-lang-content="en">Source and validators</span></strong></a>
-          <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence" target="_blank" rel="noreferrer"><span class="artifact-key">EVIDENCE</span><strong><span data-lang-content="zh">清单、视频与哈希</span><span data-lang-content="en">Manifests, videos, hashes</span></strong></a>
+          <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/EVIDENCE_CATALOG.md" target="_blank" rel="noreferrer"><span class="artifact-key">EVIDENCE</span><strong><span data-lang-content="zh">分类、清单与哈希</span><span data-lang-content="en">Catalog, manifests, hashes</span></strong></a>
           <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/RESULTS.md" target="_blank" rel="noreferrer"><span class="artifact-key">RESULTS</span><strong><span data-lang-content="zh">协议与统计复算</span><span data-lang-content="en">Protocol and statistics</span></strong></a>
           <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/DEBUGGING.md" target="_blank" rel="noreferrer"><span class="artifact-key">RUN</span><strong><span data-lang-content="zh">本地调试路径</span><span data-lang-content="en">Local debugging path</span></strong></a>
         </div>
@@ -269,16 +269,17 @@
         <div class="shell">
           <div class="section-heading reveal">
             <h2 id="review-title"><span data-lang-content="zh">面试官可以在没有 GPU 的电脑上验收。</span><span data-lang-content="en">A reviewer can verify the core work without a GPU.</span></h2>
-            <p><span data-lang-content="zh">两条命令验证 artifact、重新计算统计量并生成离线 dashboard。它们不会重新运行模型推理，也不会伪装成重新训练。</span><span data-lang-content="en">Two commands validate artifacts, recompute statistics, and build offline dashboards. They do not rerun inference or pretend to retrain a model.</span></p>
+            <p><span data-lang-content="zh">三条命令核对完整证据目录，并验证 artifact、重新计算统计量和生成离线 dashboard。它们不会重新运行模型推理，也不会伪装成重新训练。</span><span data-lang-content="en">Three commands check the complete evidence catalog, validate artifacts, recompute statistics, and build offline dashboards. They do not rerun inference or pretend to retrain a model.</span></p>
           </div>
           <div class="review-console reveal">
             <div class="command-stack">
-              <div class="command-row"><div><span>MEASURED-AGE CONFIRMATORY</span><code>.\scripts\measured_age_confirmatory_acceptance.cmd</code></div><button type="button" class="copy-button" data-copy=".\scripts\measured_age_confirmatory_acceptance.cmd">COPY</button></div>
-              <div class="command-row"><div><span>RTC CORRECTED-V3</span><code>.\scripts\rtc_primary_acceptance.cmd</code></div><button type="button" class="copy-button" data-copy=".\scripts\rtc_primary_acceptance.cmd">COPY</button></div>
+              <div class="command-row"><div><span>EVIDENCE CATALOG</span><code tabindex="0">python scripts/build_evidence_catalog.py --check</code></div><button type="button" class="copy-button" data-copy="python scripts/build_evidence_catalog.py --check">COPY</button></div>
+              <div class="command-row"><div><span>MEASURED-AGE CONFIRMATORY</span><code tabindex="0">.\scripts\measured_age_confirmatory_acceptance.cmd</code></div><button type="button" class="copy-button" data-copy=".\scripts\measured_age_confirmatory_acceptance.cmd">COPY</button></div>
+              <div class="command-row"><div><span>RTC CORRECTED-V3</span><code tabindex="0">.\scripts\rtc_primary_acceptance.cmd</code></div><button type="button" class="copy-button" data-copy=".\scripts\rtc_primary_acceptance.cmd">COPY</button></div>
             </div>
             <div class="review-path"><span>REVIEW PATH</span><ol><li><span data-lang-content="zh">运行 acceptance command</span><span data-lang-content="en">Run an acceptance command</span></li><li><span data-lang-content="zh">查看生成的统计与视频</span><span data-lang-content="en">Inspect generated statistics and videos</span></li><li><span data-lang-content="zh">沿 manifest 追溯任意 rollout</span><span data-lang-content="en">Trace any rollout through its manifest</span></li></ol></div>
           </div>
-          <div class="review-links"><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/RESULTS.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">完整数值记录</span><span data-lang-content="en">Verified results</span><span aria-hidden="true">↗</span></a><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/PROJECT_ARCHITECTURE.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">架构与主张边界</span><span data-lang-content="en">Architecture and boundaries</span><span aria-hidden="true">↗</span></a><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/DEBUGGING.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">调试手册</span><span data-lang-content="en">Debugging guide</span><span aria-hidden="true">↗</span></a></div>
+          <div class="review-links"><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/EVIDENCE_CATALOG.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">证据目录</span><span data-lang-content="en">Evidence catalog</span><span aria-hidden="true">↗</span></a><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/RESULTS.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">完整数值记录</span><span data-lang-content="en">Verified results</span><span aria-hidden="true">↗</span></a><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/PROJECT_ARCHITECTURE.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">架构与主张边界</span><span data-lang-content="en">Architecture and boundaries</span><span aria-hidden="true">↗</span></a><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/DEBUGGING.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">调试手册</span><span data-lang-content="en">Debugging guide</span><span aria-hidden="true">↗</span></a></div>
         </div>
       </section>
     </main>

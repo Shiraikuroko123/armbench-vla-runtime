@@ -56,7 +56,8 @@ There are no gradients, decorative orbs, neon circuitry, or stock imagery.
 
 ## Core Components
 
-- **Artifact dock:** direct entry to code, evidence, results, and debugging.
+- **Artifact dock:** direct entry to code, the generated evidence catalog,
+  results, and debugging.
 - **Study tabs:** measured-age primary, cross-suite extension, RTC null result.
 - **Matched player:** aligned square videos, one play state, restart, progress,
   and speed control. The seven-second clip holds its final frame on the shared
@@ -104,6 +105,7 @@ the first viewport without horizontal overflow.
   Escape, or an outside click.
 - All state-changing controls are native buttons, ranges, or selects.
 - Focus uses a visible two-pixel signal-yellow outline.
+- Horizontally scrollable command text is keyboard focusable.
 - Semantic landmarks, one `h1`, sequential headings, captions, alt text,
   accessible tab relationships, and a skip link are required.
 - Content remains visible when JavaScript or reveal animation is unavailable.

@@ -19,8 +19,8 @@ role. The page helps a robotics reviewer answer three questions quickly:
   LIBERO simulation, plus a separately validated seven-DoF Panda in MuJoCo.
 - **Proof:** authentic Panda rollout footage, a matched π0.5-LIBERO qualitative
   pair, exact paired statistics, and immutable evidence artifacts.
-- **Artifacts:** source, evidence, result protocol, debugging guide, acceptance
-  commands, license, and third-party notices.
+- **Artifacts:** source, generated evidence catalog, result protocol, debugging
+  guide, acceptance commands, license, and third-party notices.
 - **Status:** simulation-only, no training or fine-tuning, updated 2026-08-07.
 
 ## Audience
@@ -62,7 +62,7 @@ layer of support for the measured-age result.
 6. Two independent testbeds and their unclosed integration gap.
 7. Scripted non-learned fault artifacts with direct provenance links.
 8. Established and unsupported claim boundaries.
-9. GPU-free reviewer acceptance commands.
+9. GPU-free catalog, measured-age, and RTC acceptance commands.
 
 ## Verified Claims
 
@@ -93,6 +93,8 @@ The site is dependency-free HTML, CSS, and JavaScript deployed with GitHub
 Pages. It is bilingual, keyboard accessible, responsive from 320 px upward,
 and usable with reduced motion or data saving enabled. No analytics, remote
 fonts, generated robot imagery, or third-party runtime assets are loaded.
+The deployment workflow checks JavaScript syntax and validates the HTML before
+publishing.
 
 The structure was informed by OpenVLA, Open X-Embodiment / RT-X, Diffusion
 Policy, Mobile ALOHA, Octo, 3D Diffusion Policy, and Physical Intelligence's
