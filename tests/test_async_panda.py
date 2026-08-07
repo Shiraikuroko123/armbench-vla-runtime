@@ -93,6 +93,7 @@ def test_wall_clock_panda_loop_executes_stale_suffix_off_policy_thread() -> None
     assert result.accepted_responses > 0
     assert result.physical_safe
     assert result.abrupt_stop_violations == 0
+    assert result.repair_selection_deadline_exceedances == 0
 
     accepted = [
         event
@@ -105,6 +106,7 @@ def test_wall_clock_panda_loop_executes_stale_suffix_off_policy_thread() -> None
     ]
     assert accepted
     assert prepared
+    assert all("selection_deadline_exceeded" in event for event in prepared)
     assert all(int(event["action_offset"]) > 0 for event in accepted)
     assert all(int(event["base_action_index"]) > 0 for event in prepared)
 
@@ -189,6 +191,9 @@ def test_async_benchmark_writes_recomputable_manifest_artifact(
     assert summary["scripted_policy"] is True
     assert summary["panda_closed_loop_executed"] is True
     assert summary["hard_realtime_claim"] is False
+    assert (
+        summary["overall"]["repair_selection_deadline_exceedances"] >= 0
+    )
     assert provenance["matrix"]["runtime_clearance_source"] == (
         "planning_clearance"
     )

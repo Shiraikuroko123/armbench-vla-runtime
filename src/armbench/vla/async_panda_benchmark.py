@@ -42,9 +42,9 @@ from armbench.vla.pi05_archive_replay import (
 )
 
 
-ARTIFACT_SCHEMA = "armbench.async_panda_closed_loop.v1"
-SUMMARY_SCHEMA = "armbench.async_panda_closed_loop_summary.v1"
-PROVENANCE_SCHEMA = "armbench.async_panda_closed_loop_provenance.v1"
+ARTIFACT_SCHEMA = "armbench.async_panda_closed_loop.v2"
+SUMMARY_SCHEMA = "armbench.async_panda_closed_loop_summary.v2"
+PROVENANCE_SCHEMA = "armbench.async_panda_closed_loop_provenance.v2"
 TRACE_SCHEMA = "armbench.async_panda_trace.v1"
 SCOPE = "scripted_async_vla_runtime_mujoco_closed_loop"
 
@@ -167,6 +167,7 @@ CSV_FIELDS = (
     "planned_intervention_steps",
     "braking_boundaries",
     "abrupt_stop_violations",
+    "repair_selection_deadline_exceedances",
     "unsafe_prepared_plans",
     "p95_policy_latency_ms",
     "max_policy_latency_ms",
@@ -206,6 +207,7 @@ INTEGER_FIELDS = frozenset(
         "planned_intervention_steps",
         "braking_boundaries",
         "abrupt_stop_violations",
+        "repair_selection_deadline_exceedances",
         "unsafe_prepared_plans",
         "torque_saturation_count",
         "obstacle_contact_steps",
@@ -478,6 +480,9 @@ def _case_row(
         "planned_intervention_steps": metrics["planned_intervention_steps"],
         "braking_boundaries": metrics["braking_boundaries"],
         "abrupt_stop_violations": metrics["abrupt_stop_violations"],
+        "repair_selection_deadline_exceedances": metrics[
+            "repair_selection_deadline_exceedances"
+        ],
         "unsafe_prepared_plans": metrics["unsafe_prepared_plans"],
         "p95_policy_latency_ms": metrics["p95_policy_latency_ms"],
         "max_policy_latency_ms": metrics["max_policy_latency_ms"],
@@ -521,6 +526,10 @@ def _aggregate(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
         ),
         "abrupt_stop_violations": sum(
             int(row["abrupt_stop_violations"]) for row in rows
+        ),
+        "repair_selection_deadline_exceedances": sum(
+            int(row["repair_selection_deadline_exceedances"])
+            for row in rows
         ),
         "obstacle_contact_steps": sum(
             int(row["obstacle_contact_steps"]) for row in rows
@@ -583,14 +592,15 @@ def _summary_markdown(summary: Mapping[str, Any]) -> str:
         "Camera/state acquisition uses a latest-only worker; response age includes",
         "sensor acquisition and policy inference.",
         "",
-        "| Mode | Cases | Target reached | Physically safe | Hold rate | Abrupt stops | Contacts |",
-        "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| Mode | Cases | Target reached | Physically safe | Hold rate | Abrupt stops | Repair budget misses | Contacts |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for mode, values in summary["by_mode"].items():
         lines.append(
             f"| {mode} | {values['cases']} | {values['target_reached_cases']} | "
             f"{values['physical_safe_cases']} | {values['mean_hold_rate']:.3f} | "
             f"{values['abrupt_stop_violations']} | "
+            f"{values['repair_selection_deadline_exceedances']} | "
             f"{values['obstacle_contact_steps']} |"
         )
     lines.extend(
@@ -1043,6 +1053,10 @@ def _validate_case_trace(
         "scaled_plan_count": sum(float(event["selected_scale"]) < 1.0 for event in plans),
         "planned_intervention_steps": sum(
             int(event["intervention_steps"]) for event in plans
+        ),
+        "repair_selection_deadline_exceedances": sum(
+            bool(event["selection_deadline_exceeded"])
+            for event in plans
         ),
         "unsafe_prepared_plans": sum(not event["safe_after_guard"] for event in plans)
         + sum(

@@ -131,8 +131,10 @@ The validator does more than verify hashes. It reloads every NPZ and recomputes
 tracking error, final error, tick jitter, latency percentiles, contact counts,
 and safe-success flags. It independently recounts stale action switches,
 accepted/rejected responses, holds, braking commands, interventions, and
-acceleration violations from `events.jsonl`. Re-signing a modified CSV is
-therefore insufficient to make a false metric pass.
+acceleration violations from `events.jsonl`. It also recounts braking-repair
+selection-budget exceedances; a software budget is not reported as a hard
+deadline. Re-signing a modified CSV is therefore insufficient to make a false
+metric pass.
 
 ## Debugging order
 

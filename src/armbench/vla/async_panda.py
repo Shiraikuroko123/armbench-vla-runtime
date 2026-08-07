@@ -476,6 +476,7 @@ class _PreparedPlan:
     selected_scale: float
     intervention_steps: int
     repair_latency_ms: float
+    selection_deadline_exceeded: bool
     state_mismatch_rad: float
     response_age_ms: float
     terminal_brake_steps: int
@@ -510,6 +511,7 @@ class AsyncPandaEpisodeResult:
     planned_intervention_steps: int
     braking_boundaries: int
     abrupt_stop_violations: int
+    repair_selection_deadline_exceedances: int
     unsafe_prepared_plans: int
     torque_saturation_count: int
     obstacle_contact_steps: int
@@ -598,6 +600,9 @@ class AsyncPandaEpisodeResult:
             "planned_intervention_steps": self.planned_intervention_steps,
             "braking_boundaries": self.braking_boundaries,
             "abrupt_stop_violations": self.abrupt_stop_violations,
+            "repair_selection_deadline_exceedances": (
+                self.repair_selection_deadline_exceedances
+            ),
             "unsafe_prepared_plans": self.unsafe_prepared_plans,
             "mean_policy_latency_ms": _mean(self.policy_latencies_ms),
             "p95_policy_latency_ms": _percentile(
@@ -735,6 +740,7 @@ def _prepare_plan(
             selected_scale=1.0,
             intervention_steps=0,
             repair_latency_ms=0.0,
+            selection_deadline_exceeded=False,
             state_mismatch_rad=mismatch,
             response_age_ms=response_age_ms,
             terminal_brake_steps=0,
@@ -763,6 +769,7 @@ def _prepare_plan(
             selected_scale=min(scales) if scales else 0.0,
             intervention_steps=result.intervention_steps,
             repair_latency_ms=result.guard_latency_ms,
+            selection_deadline_exceeded=False,
             state_mismatch_rad=result.state_mismatch_rad,
             response_age_ms=response_age_ms,
             terminal_brake_steps=0,
@@ -797,6 +804,7 @@ def _prepare_plan(
         selected_scale=result.selected_scale,
         intervention_steps=result.intervention_steps,
         repair_latency_ms=result.repair_latency_ms,
+        selection_deadline_exceeded=result.selection_deadline_exceeded,
         state_mismatch_rad=result.state_mismatch_rad,
         response_age_ms=response_age_ms,
         terminal_brake_steps=result.terminal_brake_steps,
@@ -994,6 +1002,7 @@ def run_async_panda_episode(
     planned_intervention_steps = 0
     braking_boundaries = 0
     abrupt_stop_violations = 0
+    repair_selection_deadline_exceedances = 0
     unsafe_prepared_plans = 0
     previous_boundary_velocity = np.zeros(7, dtype=float)
     next_action_boundary = 0.0
@@ -1034,10 +1043,14 @@ def run_async_panda_episode(
     def record_plan(plan: _PreparedPlan, elapsed_s: float) -> None:
         nonlocal scaled_plan_count
         nonlocal planned_intervention_steps
+        nonlocal repair_selection_deadline_exceedances
         nonlocal unsafe_prepared_plans
         repair_latencies.append(plan.repair_latency_ms)
         scaled_plan_count += int(plan.selected_scale < 1.0)
         planned_intervention_steps += plan.intervention_steps
+        repair_selection_deadline_exceedances += int(
+            plan.selection_deadline_exceeded
+        )
         unsafe_prepared_plans += int(not plan.safe_after_guard)
         events.append(
             {
@@ -1052,6 +1065,9 @@ def run_async_panda_episode(
                 "selected_scale": plan.selected_scale,
                 "intervention_steps": plan.intervention_steps,
                 "repair_latency_ms": plan.repair_latency_ms,
+                "selection_deadline_exceeded": (
+                    plan.selection_deadline_exceeded
+                ),
                 "state_mismatch_rad": plan.state_mismatch_rad,
                 "response_age_ms": plan.response_age_ms,
                 "terminal_brake_steps": plan.terminal_brake_steps,
@@ -1625,6 +1641,9 @@ def run_async_panda_episode(
         planned_intervention_steps=planned_intervention_steps,
         braking_boundaries=braking_boundaries,
         abrupt_stop_violations=abrupt_stop_violations,
+        repair_selection_deadline_exceedances=(
+            repair_selection_deadline_exceedances
+        ),
         unsafe_prepared_plans=unsafe_prepared_plans,
         torque_saturation_count=torque_saturation_count,
         obstacle_contact_steps=sum(obstacle_trace),
