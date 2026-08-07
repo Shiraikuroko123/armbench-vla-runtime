@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 import hashlib
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -41,6 +42,78 @@ _EPISODE_FILES = {
     "summary.json",
     "manifest.json",
 }
+_MANIFEST_FIELDS = {"schema_version", "files", "inventory_sha256"}
+_MANIFEST_FILE_FIELDS = {"path", "size_bytes", "sha256"}
+_METADATA_FIELDS = {
+    "schema_version",
+    "scope",
+    "episode_id",
+    "source",
+    "frame_count",
+    "lerobot_style_interface",
+    "runtime_action_semantics",
+    "runtime_action_semantics_sha256",
+    "watchdog_config",
+    "claims",
+}
+_INTERFACE_FIELDS = {
+    "add_frame_keys",
+    "official_lerobot_dataset_storage",
+    "official_lerobot_runtime_validated",
+}
+_CLAIM_FIELDS = {
+    "official_lerobot_package_used",
+    "official_lerobot_dataset_validated",
+    "physical_robot_connected",
+    "hardware_estop_integrated",
+    "hard_realtime_guarantee",
+    "robot_safety_certification",
+    "learned_policy_checkpoint_executed",
+}
+_WATCHDOG_CONFIG_FIELDS = {
+    "max_observation_age_s",
+    "max_action_age_s",
+    "heartbeat_timeout_s",
+    "fallback_gripper_position",
+    "action_semantics_id",
+    "action_semantics_sha256",
+}
+_FRAME_FIELDS = {
+    "schema_version",
+    "frame_index",
+    "command_sequence_id",
+    "observation_sequence_id",
+    "captured_at_s",
+    "issued_at_s",
+    "evaluated_at_s",
+    "watchdog_gripper_position",
+    "reset_before",
+    "reset_at_s",
+    "task",
+    "input_action_semantics_id",
+    "input_action_semantics_sha256",
+    "watchdog_decision",
+    "hashes",
+}
+_FRAME_HASH_FIELDS = {
+    "exterior_image_sha256",
+    "wrist_image_sha256",
+    "state_sha256",
+    "requested_action_sha256",
+    "dispatched_action_sha256",
+    "task_sha256",
+}
+_SUMMARY_FIELDS = {
+    "schema_version",
+    "episode_id",
+    "frames",
+    "executed_commands",
+    "held_commands",
+    "reset_events",
+    "reason_counts",
+    "watchdog_metrics",
+    "deterministic_replay_required",
+}
 
 
 class LeRobotEpisodeError(ValueError):
@@ -60,6 +133,61 @@ def _canonical_json(value: object) -> bytes:
         ensure_ascii=True,
         allow_nan=False,
     ).encode("ascii")
+
+
+def _strict_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON field: {key}")
+        result[key] = value
+    return result
+
+
+def _reject_json_constant(value: str) -> None:
+    raise ValueError(f"non-standard JSON constant: {value}")
+
+
+def _strict_json_loads(value: str) -> Any:
+    return json.loads(
+        value,
+        object_pairs_hook=_strict_object,
+        parse_constant=_reject_json_constant,
+    )
+
+
+def _has_exact_fields(value: object, fields: set[str]) -> bool:
+    return isinstance(value, Mapping) and set(value) == fields
+
+
+def _is_sha256(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and all(character in "0123456789abcdef" for character in value)
+    )
+
+
+def _is_json_float(value: object) -> bool:
+    return type(value) is float and math.isfinite(value)
+
+
+def _runtime_float(value: object, label: str) -> float:
+    if isinstance(value, (bool, np.bool_)) or not isinstance(
+        value, (int, float, np.integer, np.floating)
+    ):
+        raise ValueError(f"{label} must be a finite number")
+    result = float(value)
+    if not math.isfinite(result):
+        raise ValueError(f"{label} must be a finite number")
+    return result
+
+
+def _json_exact(left: object, right: object) -> bool:
+    try:
+        return _canonical_json(left) == _canonical_json(right)
+    except (TypeError, ValueError):
+        return False
 
 
 def _sha256_file(path: Path) -> str:
@@ -102,14 +230,27 @@ def _validate_manifest(root: Path) -> str:
         "LeRobot-style episode file set is invalid",
     )
     try:
-        manifest = json.loads((root / "manifest.json").read_text("utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
+        manifest = _strict_json_loads(
+            (root / "manifest.json").read_text("utf-8")
+        )
+    except (OSError, TypeError, ValueError) as error:
         raise LeRobotEpisodeError("episode manifest is invalid") from error
     _require(
-        isinstance(manifest, Mapping)
-        and manifest.get("schema_version") == LEROBOT_MANIFEST_SCHEMA,
+        _has_exact_fields(manifest, _MANIFEST_FIELDS)
+        and manifest["schema_version"] == LEROBOT_MANIFEST_SCHEMA
+        and isinstance(manifest["files"], list)
+        and _is_sha256(manifest["inventory_sha256"]),
         "episode manifest schema mismatch",
     )
+    for entry in manifest["files"]:
+        _require(
+            _has_exact_fields(entry, _MANIFEST_FILE_FIELDS)
+            and isinstance(entry["path"], str)
+            and type(entry["size_bytes"]) is int
+            and entry["size_bytes"] >= 0
+            and _is_sha256(entry["sha256"]),
+            "episode manifest entry schema mismatch",
+        )
     expected = [
         {
             "path": path.name,
@@ -119,10 +260,13 @@ def _validate_manifest(root: Path) -> str:
         for path in sorted(root.iterdir())
         if path.is_file() and path.name != "manifest.json"
     ]
-    _require(manifest.get("files") == expected, "episode manifest inventory mismatch")
+    _require(
+        _json_exact(manifest["files"], expected),
+        "episode manifest inventory mismatch",
+    )
     inventory_sha = hashlib.sha256(_canonical_json(expected)).hexdigest()
     _require(
-        manifest.get("inventory_sha256") == inventory_sha,
+        manifest["inventory_sha256"] == inventory_sha,
         "episode manifest inventory hash mismatch",
     )
     return inventory_sha
@@ -130,8 +274,8 @@ def _validate_manifest(root: Path) -> str:
 
 def _json(path: Path) -> dict[str, Any]:
     try:
-        value = json.loads(path.read_text("utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
+        value = _strict_json_loads(path.read_text("utf-8"))
+    except (OSError, TypeError, ValueError) as error:
         raise LeRobotEpisodeError(f"invalid JSON: {path.name}") from error
     _require(isinstance(value, dict), f"{path.name} must contain an object")
     return value
@@ -142,13 +286,13 @@ def _jsonl(path: Path) -> list[dict[str, Any]]:
     try:
         with path.open("r", encoding="utf-8") as handle:
             for line_number, line in enumerate(handle, start=1):
-                value = json.loads(line)
+                value = _strict_json_loads(line)
                 _require(
                     isinstance(value, dict),
                     f"frames.jsonl line {line_number} is not an object",
                 )
                 rows.append(value)
-    except (OSError, json.JSONDecodeError) as error:
+    except (OSError, TypeError, ValueError) as error:
         raise LeRobotEpisodeError("frames.jsonl is invalid") from error
     _require(bool(rows), "frames.jsonl contains no frames")
     return rows
@@ -178,7 +322,12 @@ class LeRobotEpisodeRecorder:
         source: str,
         watchdog_config: CommandWatchdogConfig = CommandWatchdogConfig(),
     ) -> None:
-        if not episode_id.strip() or not source.strip():
+        if (
+            not isinstance(episode_id, str)
+            or not episode_id.strip()
+            or not isinstance(source, str)
+            or not source.strip()
+        ):
             raise ValueError("episode ID and source must be nonempty")
         self.episode_id = episode_id
         self.source = source
@@ -204,23 +353,58 @@ class LeRobotEpisodeRecorder:
         action_semantics_id: str = PANDA_RUNTIME_ACTION_SPACE_ID,
         action_semantics_sha256: str = PANDA_RUNTIME_ACTION_SEMANTICS_SHA256,
     ) -> WatchdogDecision:
-        action = np.asarray(requested_action, dtype=float)
-        if action.shape != (8,) or not np.all(np.isfinite(action)):
-            raise ValueError("episode requested action must be a finite 8-vector")
+        raw_action = np.asarray(requested_action)
+        if raw_action.dtype.kind not in {"i", "u", "f"}:
+            raise ValueError(
+                "episode requested action must be a finite numeric 8-vector"
+            )
+        action = np.asarray(raw_action, dtype=float)
+        if (
+            action.shape != (8,)
+            or not np.all(np.isfinite(action))
+            or not 0.0 <= action[7] <= 1.0
+        ):
+            raise ValueError(
+                "episode requested action must be a finite numeric 8-vector "
+                "with gripper in [0, 1]"
+            )
+        if type(reset_before) is not bool:
+            raise ValueError("reset_before must be a boolean")
+        if type(command_sequence_id) is not int or command_sequence_id < 0:
+            raise ValueError("command_sequence_id must be a nonnegative integer")
+        if type(observation.sequence_id) is not int:
+            raise ValueError("observation sequence ID must be an integer")
+        if not isinstance(action_semantics_id, str) or not isinstance(
+            action_semantics_sha256, str
+        ):
+            raise ValueError("input action semantics identity must be strings")
+        captured_at = _runtime_float(
+            observation.captured_at_s, "observation captured_at_s"
+        )
+        issued_at = _runtime_float(issued_at_s, "issued_at_s")
+        evaluated_at = _runtime_float(evaluated_at_s, "evaluated_at_s")
+        gripper_position = _runtime_float(
+            observation.gripper_position[0], "observation gripper"
+        )
+        if not 0.0 <= gripper_position <= 1.0:
+            raise ValueError("observation gripper must be in [0, 1]")
         if reset_before:
             if reset_at_s is None:
                 raise ValueError("reset_at_s is required when reset_before is true")
-            self.watchdog.reset(evaluated_at_s=reset_at_s)
+            reset_at = _runtime_float(reset_at_s, "reset_at_s")
+            self.watchdog.reset(evaluated_at_s=reset_at)
         elif reset_at_s is not None:
             raise ValueError("reset_at_s requires reset_before")
+        else:
+            reset_at = None
         decision = self.watchdog.evaluate(
             action,
             command_sequence_id=command_sequence_id,
             observation_sequence_id=observation.sequence_id,
-            captured_at_s=observation.captured_at_s,
-            issued_at_s=issued_at_s,
-            evaluated_at_s=evaluated_at_s,
-            gripper_position=float(observation.gripper_position[0]),
+            captured_at_s=captured_at,
+            issued_at_s=issued_at,
+            evaluated_at_s=evaluated_at,
+            gripper_position=gripper_position,
             action_semantics_id=action_semantics_id,
             action_semantics_sha256=action_semantics_sha256,
         )
@@ -237,10 +421,10 @@ class LeRobotEpisodeRecorder:
                 observation=observation,
                 requested_action=copied,
                 command_sequence_id=command_sequence_id,
-                issued_at_s=float(issued_at_s),
-                evaluated_at_s=float(evaluated_at_s),
-                reset_before=bool(reset_before),
-                reset_at_s=(None if reset_at_s is None else float(reset_at_s)),
+                issued_at_s=issued_at,
+                evaluated_at_s=evaluated_at,
+                reset_before=reset_before,
+                reset_at_s=reset_at,
                 input_action_semantics_id=action_semantics_id,
                 input_action_semantics_sha256=action_semantics_sha256,
                 decision=decision,
@@ -335,7 +519,7 @@ class LeRobotEpisodeRecorder:
                     "frame_index": frame_index,
                     "command_sequence_id": record.command_sequence_id,
                     "observation_sequence_id": observation.sequence_id,
-                    "captured_at_s": observation.captured_at_s,
+                    "captured_at_s": float(observation.captured_at_s),
                     "issued_at_s": record.issued_at_s,
                     "evaluated_at_s": record.evaluated_at_s,
                     "watchdog_gripper_position": float(
@@ -497,6 +681,22 @@ def _validate_array_contract(arrays: Mapping[str, np.ndarray], count: int) -> No
         )),
         "episode numeric arrays contain non-finite values",
     )
+    _require(
+        np.all((0.0 <= arrays["states"][:, 7]) & (arrays["states"][:, 7] <= 1.0))
+        and np.all(
+            (0.0 <= arrays["requested_actions"][:, 7])
+            & (arrays["requested_actions"][:, 7] <= 1.0)
+        )
+        and np.all(
+            (0.0 <= arrays["dispatched_actions"][:, 7])
+            & (arrays["dispatched_actions"][:, 7] <= 1.0)
+        )
+        and np.all(
+            (0.0 <= arrays["watchdog_gripper_positions"])
+            & (arrays["watchdog_gripper_positions"] <= 1.0)
+        ),
+        "episode normalized gripper values are invalid",
+    )
     command_ids = arrays["command_sequence_ids"]
     observation_ids = arrays["observation_sequence_ids"]
     captured = arrays["captured_at_s"]
@@ -520,15 +720,18 @@ def _validate_array_contract(arrays: Mapping[str, np.ndarray], count: int) -> No
 
 
 def _config_from_metadata(value: object) -> CommandWatchdogConfig:
-    _require(isinstance(value, Mapping), "watchdog configuration is invalid")
+    _require(
+        _has_exact_fields(value, _WATCHDOG_CONFIG_FIELDS),
+        "watchdog configuration is invalid",
+    )
     try:
         return CommandWatchdogConfig(
-            max_observation_age_s=float(value["max_observation_age_s"]),
-            max_action_age_s=float(value["max_action_age_s"]),
-            heartbeat_timeout_s=float(value["heartbeat_timeout_s"]),
-            fallback_gripper_position=float(value["fallback_gripper_position"]),
-            action_semantics_id=str(value["action_semantics_id"]),
-            action_semantics_sha256=str(value["action_semantics_sha256"]),
+            max_observation_age_s=value["max_observation_age_s"],
+            max_action_age_s=value["max_action_age_s"],
+            heartbeat_timeout_s=value["heartbeat_timeout_s"],
+            fallback_gripper_position=value["fallback_gripper_position"],
+            action_semantics_id=value["action_semantics_id"],
+            action_semantics_sha256=value["action_semantics_sha256"],
         )
     except (KeyError, TypeError, ValueError) as error:
         raise LeRobotEpisodeError("watchdog configuration is invalid") from error
@@ -543,43 +746,55 @@ def validate_lerobot_episode(directory: Path) -> dict[str, object]:
     summary = _json(root / "summary.json")
     rows = _jsonl(root / "frames.jsonl")
     _require(
-        metadata.get("schema_version") == LEROBOT_EPISODE_SCHEMA
-        and metadata.get("scope")
+        _has_exact_fields(metadata, _METADATA_FIELDS)
+        and metadata["schema_version"] == LEROBOT_EPISODE_SCHEMA
+        and metadata["scope"]
         == "cpu_only_lerobot_style_frame_and_actuator_boundary",
         "episode metadata schema/scope mismatch",
     )
     _require(
-        summary.get("schema_version") == LEROBOT_SUMMARY_SCHEMA,
+        _has_exact_fields(summary, _SUMMARY_FIELDS)
+        and summary["schema_version"] == LEROBOT_SUMMARY_SCHEMA,
         "episode summary schema mismatch",
+    )
+    _require(
+        isinstance(metadata["episode_id"], str)
+        and bool(metadata["episode_id"].strip())
+        and isinstance(metadata["source"], str)
+        and bool(metadata["source"].strip())
+        and type(metadata["frame_count"]) is int,
+        "episode metadata identity/count is invalid",
     )
     count = len(rows)
     _require(
-        metadata.get("frame_count") == count
-        and summary.get("frames") == count,
+        metadata["frame_count"] == count
+        and type(summary["frames"]) is int
+        and summary["frames"] == count,
         "episode frame count mismatch",
     )
-    interface = metadata.get("lerobot_style_interface")
+    interface = metadata["lerobot_style_interface"]
     _require(
-        isinstance(interface, Mapping)
-        and interface.get("add_frame_keys") == list(LEROBOT_STYLE_FRAME_KEYS)
-        and interface.get("official_lerobot_dataset_storage") is False
-        and interface.get("official_lerobot_runtime_validated") is False,
+        _has_exact_fields(interface, _INTERFACE_FIELDS)
+        and interface["add_frame_keys"] == list(LEROBOT_STYLE_FRAME_KEYS)
+        and interface["official_lerobot_dataset_storage"] is False
+        and interface["official_lerobot_runtime_validated"] is False,
         "LeRobot-style interface claim is invalid",
     )
     _require(
-        metadata.get("runtime_action_semantics") == runtime_action_semantics()
-        and metadata.get("runtime_action_semantics_sha256")
+        _json_exact(
+            metadata["runtime_action_semantics"], runtime_action_semantics()
+        )
+        and metadata["runtime_action_semantics_sha256"]
         == PANDA_RUNTIME_ACTION_SEMANTICS_SHA256,
         "runtime action semantics mismatch",
     )
-    claims = metadata.get("claims")
+    claims = metadata["claims"]
     _require(
-        isinstance(claims, Mapping)
-        and bool(claims)
-        and not any(bool(value) for value in claims.values()),
+        _has_exact_fields(claims, _CLAIM_FIELDS)
+        and all(value is False for value in claims.values()),
         "episode claim boundary is invalid",
     )
-    config = _config_from_metadata(metadata.get("watchdog_config"))
+    config = _config_from_metadata(metadata["watchdog_config"])
     arrays = _load_arrays(root)
     _validate_array_contract(arrays, count)
     watchdog = ActuatorCommandWatchdog(config)
@@ -589,8 +804,28 @@ def validate_lerobot_episode(directory: Path) -> dict[str, object]:
     reset_events = 0
     for index, row in enumerate(rows):
         _require(
-            row.get("schema_version") == LEROBOT_FRAME_SCHEMA
-            and row.get("frame_index") == index,
+            _has_exact_fields(row, _FRAME_FIELDS)
+            and row["schema_version"] == LEROBOT_FRAME_SCHEMA
+            and type(row["frame_index"]) is int
+            and row["frame_index"] == index
+            and type(row["command_sequence_id"]) is int
+            and type(row["observation_sequence_id"]) is int
+            and _is_json_float(row["captured_at_s"])
+            and _is_json_float(row["issued_at_s"])
+            and _is_json_float(row["evaluated_at_s"])
+            and _is_json_float(row["watchdog_gripper_position"])
+            and type(row["reset_before"]) is bool
+            and (
+                row["reset_at_s"] is None
+                or _is_json_float(row["reset_at_s"])
+            )
+            and isinstance(row["task"], str)
+            and bool(row["task"].strip())
+            and isinstance(row["input_action_semantics_id"], str)
+            and isinstance(row["input_action_semantics_sha256"], str)
+            and isinstance(row["watchdog_decision"], Mapping)
+            and _has_exact_fields(row["hashes"], _FRAME_HASH_FIELDS)
+            and all(_is_sha256(value) for value in row["hashes"].values()),
             f"frame {index} schema/index mismatch",
         )
         command_id = int(arrays["command_sequence_ids"][index])
@@ -602,26 +837,25 @@ def validate_lerobot_episode(directory: Path) -> dict[str, object]:
         reset_at = float(arrays["reset_at_s"][index])
         watchdog_gripper = float(arrays["watchdog_gripper_positions"][index])
         _require(
-            row.get("command_sequence_id") == command_id
-            and row.get("observation_sequence_id") == observation_id
-            and row.get("captured_at_s") == captured
-            and row.get("issued_at_s") == issued
-            and row.get("evaluated_at_s") == evaluated
-            and row.get("watchdog_gripper_position") == watchdog_gripper
-            and row.get("reset_before") is reset_before,
+            row["command_sequence_id"] == command_id
+            and row["observation_sequence_id"] == observation_id
+            and row["captured_at_s"] == captured
+            and row["issued_at_s"] == issued
+            and row["evaluated_at_s"] == evaluated
+            and row["watchdog_gripper_position"] == watchdog_gripper
+            and row["reset_before"] is reset_before,
             f"frame {index} scalar/array mismatch",
         )
         if reset_before:
-            _require(row.get("reset_at_s") == reset_at, f"frame {index} reset mismatch")
+            _require(row["reset_at_s"] == reset_at, f"frame {index} reset mismatch")
             watchdog.reset(evaluated_at_s=reset_at)
             reset_events += 1
         else:
             _require(
-                row.get("reset_at_s") is None and reset_at == -1.0,
+                row["reset_at_s"] is None and reset_at == -1.0,
                 f"frame {index} unexpected reset",
             )
-        task = row.get("task")
-        _require(isinstance(task, str) and task.strip(), f"frame {index} task invalid")
+        task = row["task"]
         state = arrays["states"][index]
         observation = VLAObservation(
             exterior_image=arrays["exterior_images"][index],
@@ -632,8 +866,8 @@ def validate_lerobot_episode(directory: Path) -> dict[str, object]:
             sequence_id=observation_id,
             captured_at_s=captured,
         )
-        semantics_id = str(row.get("input_action_semantics_id", ""))
-        semantics_sha = str(row.get("input_action_semantics_sha256", ""))
+        semantics_id = row["input_action_semantics_id"]
+        semantics_sha = row["input_action_semantics_sha256"]
         decision = watchdog.evaluate(
             arrays["requested_actions"][index],
             command_sequence_id=command_id,
@@ -650,7 +884,7 @@ def validate_lerobot_episode(directory: Path) -> dict[str, object]:
             f"frame {index} LeRobot/watchdog gripper mismatch",
         )
         _require(
-            row.get("watchdog_decision") == decision.to_dict(),
+            _json_exact(row["watchdog_decision"], decision.to_dict()),
             f"frame {index} watchdog decision is not reproducible",
         )
         _require(
@@ -688,12 +922,15 @@ def validate_lerobot_episode(directory: Path) -> dict[str, object]:
             ),
             "task_sha256": _text_sha256(task),
         }
-        _require(row.get("hashes") == hashes, f"frame {index} content hash mismatch")
+        _require(
+            _json_exact(row["hashes"], hashes),
+            f"frame {index} content hash mismatch",
+        )
         replayed_decisions.append(decision)
         reason_counts[decision.reason] += 1
     expected_summary = {
         "schema_version": LEROBOT_SUMMARY_SCHEMA,
-        "episode_id": str(metadata["episode_id"]),
+        "episode_id": metadata["episode_id"],
         "frames": count,
         "executed_commands": sum(
             decision.status == "execute" for decision in replayed_decisions
@@ -706,7 +943,10 @@ def validate_lerobot_episode(directory: Path) -> dict[str, object]:
         "watchdog_metrics": watchdog.metrics(),
         "deterministic_replay_required": True,
     }
-    _require(summary == expected_summary, "episode summary is not reproducible")
+    _require(
+        _json_exact(summary, expected_summary),
+        "episode summary is not reproducible",
+    )
     return {
         "valid": True,
         "directory": str(root),

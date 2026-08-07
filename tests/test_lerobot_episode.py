@@ -89,6 +89,83 @@ def test_resigned_sequence_tamper_is_rejected_before_replay(
         validate_lerobot_episode(output)
 
 
+def test_resigned_deleted_claim_is_rejected(tmp_path: Path) -> None:
+    output = run_lerobot_episode_smoke(tmp_path / "episode")
+    metadata_path = output / "metadata.json"
+    metadata = json.loads(metadata_path.read_text("utf-8"))
+    del metadata["claims"]["physical_robot_connected"]
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+    _write_manifest(output)
+
+    with pytest.raises(LeRobotEpisodeError, match="claim boundary"):
+        validate_lerobot_episode(output)
+
+
+def test_resigned_unknown_metadata_field_is_rejected(tmp_path: Path) -> None:
+    output = run_lerobot_episode_smoke(tmp_path / "episode")
+    metadata_path = output / "metadata.json"
+    metadata = json.loads(metadata_path.read_text("utf-8"))
+    metadata["unverified_runtime"] = True
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+    _write_manifest(output)
+
+    with pytest.raises(LeRobotEpisodeError, match="metadata schema"):
+        validate_lerobot_episode(output)
+
+
+def test_resigned_unknown_frame_field_is_rejected(tmp_path: Path) -> None:
+    output = run_lerobot_episode_smoke(tmp_path / "episode")
+    frames_path = output / "frames.jsonl"
+    rows = [json.loads(line) for line in frames_path.read_text("utf-8").splitlines()]
+    rows[0]["policy_checkpoint_executed"] = True
+    frames_path.write_text(
+        "\n".join(json.dumps(row, sort_keys=True) for row in rows) + "\n",
+        encoding="utf-8",
+    )
+    _write_manifest(output)
+
+    with pytest.raises(LeRobotEpisodeError, match="schema/index"):
+        validate_lerobot_episode(output)
+
+
+def test_resigned_string_frame_timestamp_is_rejected(tmp_path: Path) -> None:
+    output = run_lerobot_episode_smoke(tmp_path / "episode")
+    frames_path = output / "frames.jsonl"
+    rows = [json.loads(line) for line in frames_path.read_text("utf-8").splitlines()]
+    rows[0]["captured_at_s"] = str(rows[0]["captured_at_s"])
+    frames_path.write_text(
+        "\n".join(json.dumps(row, sort_keys=True) for row in rows) + "\n",
+        encoding="utf-8",
+    )
+    _write_manifest(output)
+
+    with pytest.raises(LeRobotEpisodeError, match="schema/index"):
+        validate_lerobot_episode(output)
+
+
+def test_resigned_string_watchdog_config_is_rejected(tmp_path: Path) -> None:
+    output = run_lerobot_episode_smoke(tmp_path / "episode")
+    metadata_path = output / "metadata.json"
+    metadata = json.loads(metadata_path.read_text("utf-8"))
+    metadata["watchdog_config"]["max_action_age_s"] = "0.1"
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+    _write_manifest(output)
+
+    with pytest.raises(LeRobotEpisodeError, match="watchdog configuration"):
+        validate_lerobot_episode(output)
+
+
+def test_manifest_unknown_field_is_rejected(tmp_path: Path) -> None:
+    output = run_lerobot_episode_smoke(tmp_path / "episode")
+    manifest_path = output / "manifest.json"
+    manifest = json.loads(manifest_path.read_text("utf-8"))
+    manifest["trusted"] = True
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(LeRobotEpisodeError, match="manifest schema"):
+        validate_lerobot_episode(output)
+
+
 def test_smoke_refuses_to_overwrite_existing_episode(tmp_path: Path) -> None:
     output = run_lerobot_episode_smoke(tmp_path / "episode")
 

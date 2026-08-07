@@ -77,13 +77,47 @@ def test_frame_adapter_rejects_wrong_semantics_hash() -> None:
 
 
 @pytest.mark.parametrize(
-    "action",
-    [np.zeros(7), np.zeros((1, 8)), np.full(8, np.nan)],
+    "changes",
+    [
+        {"expected_action_semantics_id": "forged.panda.action.v1"},
+        {"expected_action_semantics_sha256": "0" * 64},
+    ],
 )
-def test_frame_adapter_rejects_invalid_actions(action: np.ndarray) -> None:
+def test_frame_adapter_cannot_register_forged_semantics(
+    changes: dict[str, str]
+) -> None:
+    with pytest.raises(ValueError, match="unregistered"):
+        LeRobotFrameAdapter(**changes)
+
+
+@pytest.mark.parametrize(
+    "action",
+    [
+        np.zeros(7),
+        np.zeros((1, 8)),
+        np.full(8, np.nan),
+        np.array([0.0] * 7 + [1.01]),
+        ["0.0"] * 7 + ["0.5"],
+        [False] * 7 + [True],
+    ],
+)
+def test_frame_adapter_rejects_invalid_actions(action: object) -> None:
     with pytest.raises(ValueError, match="finite 8-vector"):
         LeRobotFrameAdapter().to_frame(
             replace(_fixture_observation(), sequence_id=2),
-            action,
+            action,  # type: ignore[arg-type]
+            action_semantics_id=PANDA_RUNTIME_ACTION_SEMANTICS_ID,
+        )
+
+
+def test_frame_adapter_rejects_out_of_range_observation_gripper() -> None:
+    observation = replace(
+        _fixture_observation(), gripper_position=np.array([1.01])
+    )
+
+    with pytest.raises(ValueError, match="observation gripper"):
+        LeRobotFrameAdapter().to_frame(
+            observation,
+            np.zeros(8),
             action_semantics_id=PANDA_RUNTIME_ACTION_SEMANTICS_ID,
         )

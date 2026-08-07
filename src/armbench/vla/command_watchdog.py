@@ -64,10 +64,17 @@ def runtime_action_semantics() -> dict[str, object]:
 
 def _readonly_action(value: ArrayLike) -> FloatArray | None:
     try:
-        action = np.asarray(value, dtype=float)
+        raw = np.asarray(value)
+        if raw.dtype.kind not in {"i", "u", "f"}:
+            return None
+        action = np.asarray(raw, dtype=float)
     except (TypeError, ValueError):
         return None
-    if action.shape != (DROID_ACTION_DIM,) or not np.all(np.isfinite(action)):
+    if (
+        action.shape != (DROID_ACTION_DIM,)
+        or not np.all(np.isfinite(action))
+        or not 0.0 <= action[7] <= 1.0
+    ):
         return None
     result = action.copy()
     result.flags.writeable = False
@@ -86,10 +93,11 @@ def _optional_int(value: object) -> int | None:
 
 
 def _optional_finite(value: object) -> float | None:
-    try:
-        result = float(value)
-    except (TypeError, ValueError):
+    if isinstance(value, (bool, np.bool_)) or not isinstance(
+        value, (int, float, np.integer, np.floating)
+    ):
         return None
+    result = float(value)
     return result if math.isfinite(result) else None
 
 
@@ -103,26 +111,38 @@ class CommandWatchdogConfig:
     action_semantics_sha256: str = PANDA_RUNTIME_ACTION_SEMANTICS_SHA256
 
     def __post_init__(self) -> None:
-        timing = np.asarray(
-            [
+        timing_values = [
+            _optional_finite(value)
+            for value in (
                 self.max_observation_age_s,
                 self.max_action_age_s,
                 self.heartbeat_timeout_s,
                 self.fallback_gripper_position,
+            )
+        ]
+        if any(value is None for value in timing_values):
+            raise ValueError("command watchdog configuration is invalid")
+        timing = np.asarray(
+            [
+                float(value)
+                for value in timing_values
             ],
             dtype=float,
         )
         if (
-            not np.all(np.isfinite(timing))
-            or self.max_observation_age_s < 0.0
-            or self.max_action_age_s < 0.0
-            or self.heartbeat_timeout_s <= 0.0
-            or not 0.0 <= self.fallback_gripper_position <= 1.0
+            timing[0] < 0.0
+            or timing[1] < 0.0
+            or timing[2] <= 0.0
+            or not 0.0 <= timing[3] <= 1.0
             or self.action_semantics_id != PANDA_RUNTIME_ACTION_SPACE_ID
             or self.action_semantics_sha256
             != PANDA_RUNTIME_ACTION_SEMANTICS_SHA256
         ):
             raise ValueError("command watchdog configuration is invalid")
+        object.__setattr__(self, "max_observation_age_s", float(timing[0]))
+        object.__setattr__(self, "max_action_age_s", float(timing[1]))
+        object.__setattr__(self, "heartbeat_timeout_s", float(timing[2]))
+        object.__setattr__(self, "fallback_gripper_position", float(timing[3]))
 
     def to_dict(self) -> dict[str, object]:
         return {

@@ -47,10 +47,12 @@ class LeRobotFrameAdapter:
 
     def __post_init__(self) -> None:
         if (
-            not self.expected_action_semantics_id.strip()
-            or len(self.expected_action_semantics_sha256) != 64
+            self.expected_action_semantics_id
+            != PANDA_RUNTIME_ACTION_SEMANTICS_ID
+            or self.expected_action_semantics_sha256
+            != PANDA_RUNTIME_ACTION_SEMANTICS_SHA256
         ):
-            raise ValueError("expected action semantics identity is invalid")
+            raise ValueError("unregistered Panda action semantics identity")
 
     def to_frame(
         self,
@@ -71,15 +73,28 @@ class LeRobotFrameAdapter:
                 f"{self.expected_action_semantics_sha256}, got "
                 f"{action_semantics_id!r}/{action_semantics_sha256}"
             )
-        command = np.asarray(action, dtype=np.float32)
-        if command.shape != (DROID_ACTION_DIM,) or not np.all(
-            np.isfinite(command)
+        raw = np.asarray(action)
+        if raw.dtype.kind not in {"i", "u", "f"}:
+            raise ValueError(
+                "LeRobot frame action must be a finite 8-vector of numeric values"
+            )
+        command = np.asarray(raw, dtype=np.float32)
+        if (
+            command.shape != (DROID_ACTION_DIM,)
+            or not np.all(np.isfinite(command))
+            or not 0.0 <= command[7] <= 1.0
         ):
-            raise ValueError("LeRobot frame action must be a finite 8-vector")
+            raise ValueError(
+                "LeRobot frame action must be a finite 8-vector of numeric values "
+                "with gripper in [0, 1]"
+            )
+        state = observation.state.astype(np.float32, copy=True)
+        if not 0.0 <= state[7] <= 1.0:
+            raise ValueError("LeRobot observation gripper must be in [0, 1]")
         return {
             "observation.images.exterior": observation.exterior_image.copy(),
             "observation.images.wrist": observation.wrist_image.copy(),
-            "observation.state": observation.state.astype(np.float32, copy=True),
+            "observation.state": state,
             "action": command.copy(),
             "task": observation.prompt,
         }

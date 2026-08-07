@@ -77,6 +77,9 @@ def test_valid_decision_is_json_serializable_and_deterministically_recomputed() 
         np.zeros(7),
         np.zeros((1, 8)),
         np.array([0.0] * 7 + [float("nan")]),
+        np.array([0.0] * 7 + [1.01]),
+        ["0.0"] * 7 + ["0.6"],
+        [False] * 7 + [True],
         "not-an-action",
     ],
 )
@@ -148,13 +151,39 @@ def test_observation_sequence_cannot_regress() -> None:
     ],
 )
 def test_timestamp_envelope_is_fail_closed(
-    changes: dict[str, float], reason: str
+    changes: dict[str, object], reason: str
 ) -> None:
     decision = _evaluate(ActuatorCommandWatchdog(), **changes)
 
     assert decision.reason == reason
     assert decision.latched
     json.dumps(decision.to_dict(), allow_nan=False)
+
+
+@pytest.mark.parametrize("timestamp", ["10.0", True])
+def test_timestamp_strings_and_booleans_are_rejected(timestamp: object) -> None:
+    decision = _evaluate(
+        ActuatorCommandWatchdog(), captured_at_s=timestamp  # type: ignore[arg-type]
+    )
+
+    assert decision.reason == "invalid_timestamp"
+    assert decision.latched
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("max_observation_age_s", "0.4"),
+        ("max_action_age_s", True),
+        ("heartbeat_timeout_s", "0.2"),
+        ("fallback_gripper_position", False),
+    ],
+)
+def test_watchdog_config_rejects_coerced_numeric_types(
+    field: str, value: object
+) -> None:
+    with pytest.raises(ValueError, match="configuration"):
+        CommandWatchdogConfig(**{field: value})  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(
