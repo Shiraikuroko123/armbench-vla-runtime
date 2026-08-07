@@ -153,6 +153,7 @@ class MuJoCoPanda:
         )
         if np.any(self.body_ids < 0):
             raise ValueError("Menagerie Panda body mapping is incomplete")
+        self.hand_body_id = int(self.body_ids[-1])
         self.robot_geom_ids = frozenset(
             int(geom_id)
             for geom_id, body_id in enumerate(model.geom_bodyid)
@@ -297,7 +298,36 @@ class MuJoCoPanda:
         return self._fk_data.xpos[self.body_ids].copy()
 
     def hand_position(self, q: ArrayLike) -> FloatArray:
-        return self.forward_points(q)[-1].copy()
+        position, _ = self.hand_pose(q)
+        return position
+
+    def hand_pose(self, q: ArrayLike) -> tuple[FloatArray, FloatArray]:
+        """Return the Panda hand-body position and rotation in the world frame."""
+
+        self.set_configuration(self._fk_data, q)
+        position = self._fk_data.xpos[self.hand_body_id].copy()
+        rotation = self._fk_data.xmat[self.hand_body_id].reshape(3, 3).copy()
+        return position, rotation
+
+    def hand_jacobian(self, q: ArrayLike) -> FloatArray:
+        """Return a world-frame 6x7 geometric Jacobian for the hand body."""
+
+        self.set_configuration(self._fk_data, q)
+        jacobian_position = np.zeros((3, self.model.nv), dtype=float)
+        jacobian_rotation = np.zeros((3, self.model.nv), dtype=float)
+        mujoco.mj_jacBody(
+            self.model,
+            self._fk_data,
+            jacobian_position,
+            jacobian_rotation,
+            self.hand_body_id,
+        )
+        return np.vstack(
+            (
+                jacobian_position[:, self.arm_dof_addresses],
+                jacobian_rotation[:, self.arm_dof_addresses],
+            )
+        )
 
     def body_name_for_geom(self, geom_id: int) -> str:
         body_id = int(self.model.geom_bodyid[geom_id])

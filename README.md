@@ -117,6 +117,18 @@ on a separate worker while the control side continues to tick:
 This is component-level scripted evidence, not a new `pi0.5` task-success
 result. See [non-blocking runtime harness](docs/ASYNC_RUNTIME.md).
 
+The CPU-only Cartesian adapter smoke maps a scripted LIBERO-style `H x 7`
+end-effector chunk through the MuJoCo Panda hand Jacobian and the existing
+joint-space guard:
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m armbench vla-panda-adapter-smoke
+```
+
+This closes a component-level action-semantics boundary. It does not run
+`pi0.5` or establish an end-to-end deployment. See
+[LIBERO-to-Panda Cartesian adapter](docs/PANDA_CARTESIAN_ADAPTER.md).
+
 ## Review preserved evidence
 
 These commands validate stored artifacts and rebuild offline dashboards. They

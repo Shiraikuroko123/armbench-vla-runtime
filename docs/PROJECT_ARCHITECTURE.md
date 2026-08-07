@@ -92,17 +92,26 @@ simulator-catch-up evaluator used by the completed `pi0.5` studies.
 | RTC-style sampler extension | 300 matched triplets: 96/100 baseline, 97/100 hard projection, 97/100 RTC | No task-success superiority; seam metrics are exploratory |
 | Panda runtime | Protocol/guard/fault traces in local MuJoCo | Not official `pi0.5` policy efficacy or physical safety proof |
 | Threaded runtime harness | Separate worker/control thread IDs, continued control ticks, latest-only replacement, and deadline tests | Scripted component evidence; no LIBERO or Panda task-success claim |
+| Cartesian action adapter | Scripted `H x 7` LIBERO-style chunk mapped through the Panda Jacobian into the existing `H x 8` guard contract | Component smoke only; no official checkpoint, task-success, or controller-equivalence claim |
 
 Detailed results are in [Results](RESULTS.md). Frozen protocols and audits are
 listed in the [documentation index](README.md).
 
 ## What is integrated today
 
-The project currently integrates a common runtime interface and evidence model,
-not a verified direct control chain from `pi0.5` LIBERO action outputs to Panda
-joint commands. A direct chain would need an explicit action adapter, declared
-coordinate frames and gripper semantics, inverse kinematics or constrained
-projection, time synchronization, and new end-to-end experiments.
+The project now includes a component-level Cartesian adapter that maps a
+declared `H x 7` LIBERO-style end-effector chunk to the Panda runtime's `H x 8`
+joint-velocity/gripper contract. It uses the MuJoCo Panda hand Jacobian, damped
+least-squares differential inverse kinematics, joint-limit-aware scaling, and
+the existing guard. Its deterministic CPU smoke is documented in
+[LIBERO-to-Panda Cartesian adapter](PANDA_CARTESIAN_ADAPTER.md).
+
+This is still not a verified direct control chain from official `pi0.5`
+responses to Panda execution. The official-checkpoint worker is not connected
+to an independently ticking Panda or LIBERO actuator loop, and the adapter's
+scale, coordinate-frame, clipping, and gripper conventions have not been
+attested against the upstream LIBERO OSC controller. End-to-end claims require
+that integration, time synchronization, and a new frozen experiment.
 
 Do not write or say that `pi0.5` has been deployed on a Panda robot, that the
 Panda guard certifies VLA safety, or that the simulation results establish
@@ -116,7 +125,7 @@ system scheduling or worst-case latency guarantee.
 ## Next integration milestone
 
 The technically meaningful next step is not a cosmetic simulator change. It is
-to connect the two paths through a declared adapter and evaluate:
+to connect the implemented component adapter to a complete evaluator and test:
 
 1. wire the independently scheduled runtime into an end-to-end evaluator and
    preserve stale-response discard in task-level evidence;
@@ -127,5 +136,5 @@ to connect the two paths through a declared adapter and evaluate:
    and timing evidence.
 
 Until then, the accurate public description is: a seven-DoF constrained
-execution base plus a `pi0.5` VLA runtime-evaluation path, sharing auditable
-runtime infrastructure.
+execution base plus a `pi0.5` VLA runtime-evaluation path, with an explicit
+component-level Cartesian adapter and shared auditable runtime infrastructure.

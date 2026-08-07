@@ -69,12 +69,22 @@ ArmBench 是一个研究动作块式 VLA 在“模型响应返回”和“机器
 | RTC-style sampler extension | 300 组匹配 triplet：baseline 96/100，hard projection 97/100，RTC 97/100 | 没有任务成功率优势；seam 是探索性指标 |
 | Panda 运行时 | 本地 MuJoCo 中的协议、guard 和故障 trace | 不是官方 `pi0.5` 的效果证据，也不是物理安全证明 |
 | 分线程运行时验收 | 独立 worker/control 线程、持续 control tick、latest-only 替换与 deadline 测试 | Scripted 组件证据；不主张 LIBERO 或 Panda 任务成功率 |
+| 笛卡尔动作适配器 | 将 scripted `H x 7` LIBERO 风格动作经 Panda Jacobian 转为现有 `H x 8` guard 契约 | 仅为组件 smoke；不包含官方 checkpoint、任务成功率或控制器等价性主张 |
 
 详细结果见[结果说明](RESULTS.md)，冻结协议和审计记录见[文档索引](README.md)。
 
 ## 当前已经集成了什么
 
-当前集成的是共同的运行时接口与证据模型，而不是经过验证的“`pi0.5` 的 LIBERO 动作直接转为 Panda 关节命令”控制链。后者需要显式动作 adapter、坐标系和夹爪语义、逆运动学或受限投影、时间同步，以及新的端到端实验。
+项目现在已经实现组件级笛卡尔动作适配器：把声明为 LIBERO 风格的
+`H x 7` 末端动作转换为 Panda 运行时的 `H x 8` 关节速度/夹爪契约，内部使用
+MuJoCo Panda hand Jacobian、阻尼最小二乘微分逆运动学、关节限位缩放和现有
+guard。确定性 CPU smoke 见
+[LIBERO 到 Panda 的笛卡尔动作适配器](PANDA_CARTESIAN_ADAPTER_ZH.md)。
+
+但它仍不是经过验证的“官方 `pi0.5` 响应直接控制 Panda”链路。官方 checkpoint
+worker 尚未接入独立时钟推进的 Panda 或 LIBERO actuator loop；适配器的尺度、
+坐标系、裁剪和夹爪语义也尚未与上游 LIBERO OSC controller 对齐并固化。只有
+完成这些集成、时间同步和新的冻结实验，才能提出端到端主张。
 
 因此，不应表述为：`pi0.5` 已部署到 Panda、Panda guard 已证明 VLA 安全，或仿真结果已经达到硬实时。
 
@@ -84,11 +94,13 @@ checkpoint 的 LIBERO evaluator 或 Panda actuator loop。Python 线程也不提
 
 ## 下一阶段的合理整合
 
-真正有意义的下一步不是换一个仿真器，而是通过明确的 adapter 连接两条路径，并评测：
+真正有意义的下一步不是换一个仿真器，而是把已实现的组件适配器接入完整
+evaluator，并评测：
 
 1. 将独立调度运行时接入端到端 evaluator，并形成任务级过期响应丢弃证据；
 2. 有 deadline 的受限投影，包括连续碰撞和动力学约束；
 3. 第二个开放 action-chunk policy 在相同冻结协议下的表现；
 4. 面向 LeRobot 或真实硬件的 adapter，并单独报告安全和时序证据。
 
-在此之前，准确的公开表述是：**七自由度受限执行基座 + `pi0.5 VLA` 运行时评测路径，共用可审计运行时基础设施。**
+在此之前，准确的公开表述是：**七自由度受限执行基座 + `pi0.5 VLA`
+运行时评测路径 + 显式的组件级笛卡尔动作适配器，共用可审计运行时基础设施。**

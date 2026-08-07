@@ -101,6 +101,16 @@ Windows 上可以先执行一个有边界的本地验收：
 这只是组件级 scripted 证据，不是新的 `pi0.5` 任务成功率结果。设计边界见
 [非阻塞运行时验收](docs/ASYNC_RUNTIME_ZH.md)。
 
+下面的 CPU-only 动作适配验收会把脚本生成的 LIBERO 风格 `H x 7` 末端动作，
+通过 MuJoCo Panda hand Jacobian 转为关节速度，并继续经过现有 guard：
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m armbench vla-panda-adapter-smoke
+```
+
+它补上的是组件级动作语义边界，不运行 `pi0.5`，也不构成端到端部署证据。
+实现与限制见 [LIBERO 到 Panda 的笛卡尔动作适配器](docs/PANDA_CARTESIAN_ADAPTER_ZH.md)。
+
 ## 验收已保存结果
 
 以下命令只核验保留的实验数据并重建离线 dashboard，不重跑模型推理，也不需要 GPU：

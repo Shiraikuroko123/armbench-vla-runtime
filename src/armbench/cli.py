@@ -21,6 +21,7 @@ from armbench.mujoco_sim.benchmark import (
 )
 from armbench.scenario import benchmark_scenarios
 from armbench.vla.async_runtime import run_async_runtime_smoke
+from armbench.vla.cartesian_adapter import run_cartesian_adapter_smoke
 from armbench.vla.benchmark import (
     execute_openpi_probe,
     execute_vla_guard_benchmark,
@@ -121,6 +122,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--action-period-ms", type=float, default=1000.0 / 15.0
     )
     async_smoke.add_argument("--deadline-ms", type=float, default=200.0)
+
+    subparsers.add_parser(
+        "vla-panda-adapter-smoke",
+        help="verify the CPU-only LIBERO Cartesian to Panda guard bridge",
+    )
 
     validate = subparsers.add_parser("validate", help="validate config and scenario geometry")
     validate.add_argument(
@@ -603,6 +609,10 @@ def main(arguments: list[str] | None = None) -> int:
             action_period_ms=args.action_period_ms,
             deadline_ms=args.deadline_ms,
         )
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        return 0 if bool(report["passed"]) else 1
+    if args.command == "vla-panda-adapter-smoke":
+        report = run_cartesian_adapter_smoke()
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0 if bool(report["passed"]) else 1
     if args.command == "validate":

@@ -15,6 +15,14 @@ from armbench.vla.artifact import (
     ArtifactValidationResult,
     validate_online_artifact,
 )
+from armbench.vla.cartesian_adapter import (
+    CartesianAdapterConfig,
+    CartesianAdapterResult,
+    CartesianAdapterStep,
+    LIBERO_ACTION_SPACE_ID,
+    PandaCartesianActionAdapter,
+    run_cartesian_adapter_smoke,
+)
 from armbench.vla.fault_matrix import execute_loopback_fault_matrix
 from armbench.vla.guard import ActionChunkGuard, GuardConfig, GuardResult
 from armbench.vla.online import (
@@ -82,6 +90,9 @@ __all__ = [
     "AsyncDispatchConfig",
     "ArtifactValidationError",
     "ArtifactValidationResult",
+    "CartesianAdapterConfig",
+    "CartesianAdapterResult",
+    "CartesianAdapterStep",
     "BoundedOpenPIBackend",
     "GuardConfig",
     "GuardResult",
@@ -89,6 +100,7 @@ __all__ = [
     "LOOPBACK_FAULT_MODES",
     "LOOPBACK_POLICY_PROVENANCE",
     "LatestPolicyWorker",
+    "LIBERO_ACTION_SPACE_ID",
     "OpenPIPolicyClient",
     "OpenPIProtocolLoopbackServer",
     "OnlineEpisodeResult",
@@ -103,6 +115,7 @@ __all__ = [
     "ProbeBatchComparisonValidationResult",
     "PolicyOutcome",
     "PolicySubmission",
+    "PandaCartesianActionAdapter",
     "ReferenceActionChunkPolicy",
     "RecordedOpenPIRequest",
     "RecordedProbeValidationError",
@@ -123,6 +136,7 @@ __all__ = [
     "execute_loopback_fault_matrix",
     "run_online_episode",
     "run_async_runtime_smoke",
+    "run_cartesian_adapter_smoke",
     "load_recorded_openpi_request",
     "validate_online_artifact",
     "validate_recorded_probe_batch_comparison",
