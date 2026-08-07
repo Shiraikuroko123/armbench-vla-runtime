@@ -123,5 +123,6 @@ jobs:
           tests/test_postprocess_control.py
           tests/test_mujoco_sim.py
           tests/test_cartesian_adapter.py
+          tests/test_pi05_archive_replay.py
           tests/test_async_runtime.py
           -k "not offscreen_render"

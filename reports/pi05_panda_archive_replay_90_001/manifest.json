@@ -1,0 +1,26 @@
+{
+  "files": [
+    {
+      "bytes": 132249,
+      "path": "per_chunk.csv",
+      "sha256": "258780372506df4e7784bdc1caf6112834ac397fc362b946bfc228db13d62317"
+    },
+    {
+      "bytes": 4413,
+      "path": "provenance.json",
+      "sha256": "ed7b8d0b1dda72a1ae26e97e7dbbcb0f70dba4529a93229fad04f890f295cd3f"
+    },
+    {
+      "bytes": 7464,
+      "path": "summary.json",
+      "sha256": "b6d3523415d6210d975443108c7223c14e382d95eaf70474e362dcf8573f362b"
+    },
+    {
+      "bytes": 1202,
+      "path": "summary.md",
+      "sha256": "bfd94db30eed1953c64b494d26b862b0023164ba22abc4c0dbf394cecacbd75a"
+    }
+  ],
+  "files_sha256": "60657e3a3637c8d71e7e8ad0bee2b110662d335b41362e9e7de513f43f1b92ea",
+  "schema_version": "armbench.root_manifest.v1"
+}

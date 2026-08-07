@@ -93,6 +93,7 @@ simulator-catch-up evaluator used by the completed `pi0.5` studies.
 | Panda runtime | Protocol/guard/fault traces in local MuJoCo | Not official `pi0.5` policy efficacy or physical safety proof |
 | Threaded runtime harness | Separate worker/control thread IDs, continued control ticks, latest-only replacement, and deadline tests | Scripted component evidence; no LIBERO or Panda task-success claim |
 | Cartesian action adapter | Scripted `H x 7` LIBERO-style chunk mapped through the Panda Jacobian into the existing `H x 8` guard contract | Component smoke only; no official checkpoint, task-success, or controller-equivalence claim |
+| Frozen-response Panda replay | 7,934 official response hashes verified; 90 chunks replayed across three Panda scenes | Offline cross-controller diagnostic; no checkpoint execution, feedback loop, or task-success claim |
 
 Detailed results are in [Results](RESULTS.md). Frozen protocols and audits are
 listed in the [documentation index](README.md).
@@ -106,8 +107,14 @@ least-squares differential inverse kinematics, joint-limit-aware scaling, and
 the existing guard. Its deterministic CPU smoke is documented in
 [LIBERO-to-Panda Cartesian adapter](PANDA_CARTESIAN_ADAPTER.md).
 
-This is still not a verified direct control chain from official `pi0.5`
-responses to Panda execution. Scale, coordinate-frame, clipping, and gripper
+The adapter is now also exercised by a strictly validated offline replay of
+frozen official-checkpoint responses. The replay checks every preserved
+response hash, samples equally by LIBERO task and runtime method, resets each
+Panda case independently, and emits a self-validating CSV/JSON artifact. See
+[frozen pi0.5 response replay](PI05_PANDA_ARCHIVE_REPLAY.md).
+
+This is still not a verified live control chain from official `pi0.5`
+inference to Panda execution. Scale, coordinate-frame, clipping, and gripper
 conventions are now attested against LIBERO commit `f78abd68` and robosuite
 `1.4.1`, but the differential-IK adapter is not dynamically equivalent to
 robosuite's torque-level OSC. The official-checkpoint worker is also not

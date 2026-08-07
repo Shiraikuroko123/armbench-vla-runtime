@@ -129,6 +129,22 @@ This closes a component-level action-semantics boundary. It does not run
 `pi0.5` or establish an end-to-end deployment. See
 [LIBERO-to-Panda Cartesian adapter](docs/PANDA_CARTESIAN_ADAPTER.md).
 
+The next CPU-only acceptance path replays hash-verified action chunks that were
+previously produced by the attested official `pi0.5` LIBERO checkpoint:
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m armbench vla-panda-archive-replay `
+  evidence\pi05_rtc_overlap_primary_v3_seed_20260807_001\evaluation `
+  --output-directory results\pi05_panda_archive_replay --chunks 90
+```
+
+The preserved 90-chunk report covers 270 independent Panda lookahead cases.
+It found 36 invalid raw paths and six cases where collision avoidance and the
+configured acceleration bound could not both be satisfied. This is offline
+cross-controller diagnostic evidence: the checkpoint was not rerun, no Panda
+closed loop was executed, and no task-success claim is made. See
+[frozen pi0.5 response replay](docs/PI05_PANDA_ARCHIVE_REPLAY.md).
+
 ## Review preserved evidence
 
 These commands validate stored artifacts and rebuild offline dashboards. They

@@ -39,6 +39,8 @@ to match later results.
 | [非阻塞运行时验收](ASYNC_RUNTIME_ZH.md) | Current | 独立推理线程、latest-only 队列、deadline 调度与证据边界 |
 | [LIBERO-to-Panda Cartesian adapter](PANDA_CARTESIAN_ADAPTER.md) | Current | Jacobian-based component bridge from 7-D Cartesian chunks to guarded Panda joint velocity |
 | [LIBERO 到 Panda 动作适配器](PANDA_CARTESIAN_ADAPTER_ZH.md) | Current | 7 维末端动作到受保护 Panda 关节速度的组件级转换与边界 |
+| [Frozen pi0.5 response replay](PI05_PANDA_ARCHIVE_REPLAY.md) | Current | Hash-verified official responses replayed through the offline Panda adapter and guard |
+| [冻结 pi0.5 响应的 Panda 离线回放](PI05_PANDA_ARCHIVE_REPLAY_ZH.md) | Current | 官方冻结动作的严格校验、分层回放、结果与主张边界 |
 | [RTC-guided pi0.5 integration](RTC_PI05_INTEGRATION.md) | Current | Scheduler contract, reverse-time VJP mapping, and corrected-v3 outcome |
 | [Projected-overlap pilot](PI05_PROJECTED_OVERLAP_PILOT.md) | Current | Exploratory hard-conditioning study and its result boundary |
 | [Top-venue engineering gap analysis](research/VLA_TOP_VENUE_GAP_ANALYSIS_2026.md) | Current | Method positioning, evidence classes, and remaining research gaps |

@@ -70,6 +70,7 @@ ArmBench 是一个研究动作块式 VLA 在“模型响应返回”和“机器
 | Panda 运行时 | 本地 MuJoCo 中的协议、guard 和故障 trace | 不是官方 `pi0.5` 的效果证据，也不是物理安全证明 |
 | 分线程运行时验收 | 独立 worker/control 线程、持续 control tick、latest-only 替换与 deadline 测试 | Scripted 组件证据；不主张 LIBERO 或 Panda 任务成功率 |
 | 笛卡尔动作适配器 | 将 scripted `H x 7` LIBERO 风格动作经 Panda Jacobian 转为现有 `H x 8` guard 契约 | 仅为组件 smoke；不包含官方 checkpoint、任务成功率或控制器等价性主张 |
+| 冻结响应 Panda 回放 | 核验 7,934 个官方响应哈希，并将 90 个动作块送入 3 个 Panda 场景 | 跨控制器离线诊断；未执行 checkpoint、反馈闭环或任务成功率评测 |
 
 详细结果见[结果说明](RESULTS.md)，冻结协议和审计记录见[文档索引](README.md)。
 
@@ -81,7 +82,11 @@ MuJoCo Panda hand Jacobian、阻尼最小二乘微分逆运动学、关节限位
 guard。确定性 CPU smoke 见
 [LIBERO 到 Panda 的笛卡尔动作适配器](PANDA_CARTESIAN_ADAPTER_ZH.md)。
 
-但它仍不是经过验证的“官方 `pi0.5` 响应直接控制 Panda”链路。尺度、坐标系、
+适配器现在还接受经过严格校验的官方 checkpoint 冻结响应离线回放。该流程核验全部响应哈希，
+按 LIBERO 任务和运行时方法等额抽样，每个 Panda 案例独立重置，并生成可自校验的 CSV/JSON
+报告。详见[冻结 pi0.5 响应的 Panda 离线回放](PI05_PANDA_ARCHIVE_REPLAY_ZH.md)。
+
+但它仍不是经过验证的“官方 `pi0.5` 在线推理直接控制 Panda”链路。尺度、坐标系、
 裁剪和夹爪语义已经与 LIBERO commit `f78abd68`、robosuite `1.4.1` 源码核对，
 但微分逆解在动力学上不等价于 robosuite 的 torque-level OSC。官方 checkpoint
 worker 也尚未接入独立时钟推进的 Panda 或 LIBERO actuator loop。只有完成这些

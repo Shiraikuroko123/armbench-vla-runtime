@@ -68,10 +68,12 @@ explicitly labeled `scripted_cartesian_adapter_component_only`.
 - The smoke command does not use OpenPI, `pi0.5`, LIBERO task execution, a real
   robot, ROS2, or a safety PLC.
 
-## Next end-to-end milestone
+## Completed next boundary
 
-Replay frozen official LIBERO policy responses through this declared adapter,
-then wrap live responses in an independently scheduled evaluator. Compare
-unguarded, measured-age, and measured-age-plus-feasibility modes under one
-frozen paired protocol. A result on the local Panda remains a cross-controller
-transfer study and must not be reported as a reproduced LIBERO task score.
+Frozen official LIBERO policy responses now pass through this adapter in a
+strictly validated offline replay. See
+[frozen pi0.5 response replay](PI05_PANDA_ARCHIVE_REPLAY.md). The remaining
+end-to-end milestone is to wrap live responses in an independently scheduled
+Panda evaluator with feedback observations and a frozen paired protocol. Until
+then, the local result remains a cross-controller diagnostic and must not be
+reported as a reproduced LIBERO task score.

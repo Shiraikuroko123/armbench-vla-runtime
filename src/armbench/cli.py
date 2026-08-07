@@ -22,6 +22,11 @@ from armbench.mujoco_sim.benchmark import (
 from armbench.scenario import benchmark_scenarios
 from armbench.vla.async_runtime import run_async_runtime_smoke
 from armbench.vla.cartesian_adapter import run_cartesian_adapter_smoke
+from armbench.vla.pi05_archive_replay import (
+    ArchiveReplayConfig,
+    execute_pi05_archive_replay,
+    validate_pi05_replay_artifact,
+)
 from armbench.vla.benchmark import (
     execute_openpi_probe,
     execute_vla_guard_benchmark,
@@ -127,6 +132,32 @@ def build_parser() -> argparse.ArgumentParser:
         "vla-panda-adapter-smoke",
         help="verify the CPU-only LIBERO Cartesian to Panda guard bridge",
     )
+
+    archive_replay = subparsers.add_parser(
+        "vla-panda-archive-replay",
+        help="replay hash-verified frozen pi0.5 responses through the Panda guard",
+    )
+    archive_replay.add_argument("source_directory", type=Path)
+    archive_replay.add_argument("--output-directory", type=Path, required=True)
+    archive_replay.add_argument("--chunks", type=int, default=90)
+    archive_replay.add_argument("--selection-seed", type=int, default=20260807)
+    archive_replay.add_argument(
+        "--scenarios",
+        nargs="+",
+        choices=("free_space", "single_block", "narrow_gate"),
+        default=("free_space", "single_block", "narrow_gate"),
+    )
+    archive_replay.add_argument("--deadline-ms", type=float, default=200.0)
+    archive_replay.add_argument(
+        "--collision-resolution-rad", type=float, default=0.02
+    )
+
+    archive_replay_validate = subparsers.add_parser(
+        "vla-panda-archive-replay-validate",
+        help="verify a derived frozen-response Panda replay artifact",
+    )
+    archive_replay_validate.add_argument("directory", type=Path)
+    archive_replay_validate.add_argument("--source-directory", type=Path)
 
     validate = subparsers.add_parser("validate", help="validate config and scenario geometry")
     validate.add_argument(
@@ -615,6 +646,30 @@ def main(arguments: list[str] | None = None) -> int:
         report = run_cartesian_adapter_smoke()
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0 if bool(report["passed"]) else 1
+    if args.command == "vla-panda-archive-replay":
+        output = execute_pi05_archive_replay(
+            args.source_directory,
+            args.output_directory,
+            ArchiveReplayConfig(
+                chunk_count=args.chunks,
+                selection_seed=args.selection_seed,
+                scenarios=tuple(args.scenarios),
+                deadline_ms=args.deadline_ms,
+                collision_resolution_rad=args.collision_resolution_rad,
+            ),
+        )
+        result = validate_pi05_replay_artifact(
+            output, source_directory=args.source_directory
+        )
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-panda-archive-replay-validate":
+        result = validate_pi05_replay_artifact(
+            args.directory, source_directory=args.source_directory
+        )
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0
     if args.command == "validate":
         return _validate(args.config)
     if args.command == "mujoco-validate":

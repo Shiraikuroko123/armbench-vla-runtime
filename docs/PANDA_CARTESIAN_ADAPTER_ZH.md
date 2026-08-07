@@ -58,9 +58,9 @@ backtracking 和 hold 回退。
 - 当前碰撞检查是关节空间插值采样，不是连续碰撞认证。
 - smoke 不使用 OpenPI、`pi0.5`、LIBERO 任务执行、真机、ROS2 或安全 PLC。
 
-## 下一里程碑
+## 已完成的下一层边界
 
-先把保存的官方 LIBERO policy 响应经过该 adapter 离线回放，再将实时响应接入
-独立调度 evaluator；随后在同一冻结配对协议下比较无 guard、观测年龄对齐、
-观测年龄对齐加可行性约束。本地 Panda 结果属于跨控制器迁移研究，不能表述为
-复现了 LIBERO 任务分数。
+保存的官方 LIBERO policy 响应现在已经接入该 adapter，并完成严格校验的离线回放，详见
+[冻结 pi0.5 响应的 Panda 离线回放](PI05_PANDA_ARCHIVE_REPLAY_ZH.md)。剩余端到端里程碑是把
+实时响应接入带反馈观测的独立调度 Panda evaluator，并冻结配对协议。在完成前，本地结果仍是
+跨控制器诊断，不能表述为复现了 LIBERO 任务分数。

@@ -216,6 +216,48 @@ jitter, a hard real-time guarantee, a real-robot result, or a safety
 certificate. The complete artifact and analysis are in
 [`evidence/pi05_libero_alignment_core_001`](../evidence/pi05_libero_alignment_core_001/README.md).
 
+## Frozen pi0.5 response replay on the Panda guard path
+
+### Provenance and protocol
+
+- Derived report ID: `pi05_panda_archive_replay_90_001`
+- Source artifact:
+  `pi05_rtc_overlap_primary_v3_seed_20260807_001/evaluation`
+- Policy/checkpoint provenance: official `pi05_libero`, content SHA-256
+  `9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5`
+- Source validation: root inventory and hashes, scheduler chains, NPZ contract,
+  and 7,934/7,934 response-action hashes verified
+- Selection: 90 chunks, three from each of 30 LIBERO-10 task/method strata
+- Local matrix: three Panda scenes, 270 independent kinematic lookahead cases,
+  fresh scenario state and guard per case
+- Explicit scope: checkpoint not executed in replay; no Panda closed loop and no
+  task-success evaluation
+
+### Outcomes
+
+| Measure | Result |
+| --- | ---: |
+| Selected chunks containing at least one clipped input | 89/90 |
+| Raw Panda lookahead paths invalid | 36/270 |
+| Cases with guard intervention | 226/270 |
+| Source latency above the 200 ms deadline | 3/270 |
+| Guarded paths valid under 0.02 rad edge sampling | 270/270 |
+| Cases satisfying every registered guard constraint | 264/270 |
+| Collision/acceleration conflict cases | 6/270 |
+
+The six conflict cases required a collision-valid stop or hold whose immediate
+velocity change exceeded the configured acceleration bound. They remain failed
+guard cases even though the resulting position path passes discrete collision
+sampling. This result identifies a concrete empty-feasible-set condition for
+future trajectory repair; it does not establish physical safety or policy task
+efficacy. Method rows are diagnostics, not a registered comparison.
+
+The [derived report](../reports/pi05_panda_archive_replay_90_001/summary.md) stores
+per-case CSV data, aggregates, source and implementation hashes, local runtime
+versions, explicit claim flags, and a self-validating file manifest. The full
+method and reproduction boundary is documented in
+[frozen pi0.5 response replay](PI05_PANDA_ARCHIVE_REPLAY.md).
+
 ## Local scripted online VLA runtime result
 
 ### Provenance
