@@ -13,7 +13,7 @@ import shlex
 import subprocess
 import sys
 import time
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence
 
 from integrations.openpi.preflight import collect_facts, evaluate_preflight
 from integrations.openpi.validate_libero_artifact import validate_artifact

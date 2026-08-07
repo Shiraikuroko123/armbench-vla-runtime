@@ -1,5 +1,7 @@
 [项目网页](https://shiraikuroko123.github.io/armbench-vla-runtime/) | [English](README.md) | [文档索引](docs/README.md)
 
+[![CPU CI](https://github.com/Shiraikuroko123/armbench-vla-runtime/actions/workflows/ci.yml/badge.svg)](https://github.com/Shiraikuroko123/armbench-vla-runtime/actions/workflows/ci.yml)
+
 # ArmBench
 
 ArmBench 是一个面向动作块式视觉-语言-动作策略的运行时与评测平台。它研究的不是重新训练一个 VLA，而是 VLA 已经输出一段未来动作后，如何在推理延迟、状态变化和异常响应下可信地进入控制回路。

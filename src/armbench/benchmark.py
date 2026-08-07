@@ -22,7 +22,6 @@ from armbench.geometry import Sphere, point_to_segment_distance
 from armbench.model import RobotModel
 from armbench.planners import RRTConnect, RRTStar
 from armbench.postprocess import shortcut_path, time_parameterize
-from armbench.result import PlanResult
 from armbench.scenario import SCENARIO_VERSION, Scenario, benchmark_scenarios
 from armbench.visualization import (
     plot_control_summary,
@@ -470,7 +469,6 @@ def run_control_benchmark(
                         settling_threshold=float(control_config["settling_threshold"]),
                         checker=_checker(robot, scenario, collision_config),
                     )
-                    metrics = result.metrics()
                     row = {
                         "controller": result.controller,
                         "delay_ms": result.delay_ms,

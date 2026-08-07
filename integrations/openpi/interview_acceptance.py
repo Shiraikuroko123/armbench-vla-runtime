@@ -6,6 +6,7 @@ from integrations.openpi.alignment_acceptance import (
     main,
 )
 
+__all__ = ["REPORT_SCHEMA_VERSION", "build_interview_acceptance", "main"]
 
 build_interview_acceptance = build_alignment_acceptance
 

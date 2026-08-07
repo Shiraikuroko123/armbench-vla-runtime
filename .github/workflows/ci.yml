@@ -1,0 +1,121 @@
+name: CPU continuous integration
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cpu-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Static checks and package build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout ArmBench
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install quality tools
+        run: python -m pip install --disable-pip-version-check ".[test]" build==1.2.2.post1
+
+      - name: Run Ruff
+        run: python -m ruff check .
+
+      - name: Build wheel and source distribution
+        run: python -m build
+
+  test-ubuntu:
+    name: Full CPU tests on Ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MUJOCO_GL: egl
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - name: Checkout ArmBench
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned Panda model
+        uses: actions/checkout@v4
+        with:
+          repository: google-deepmind/mujoco_menagerie
+          ref: 71f066ad0be9cd271f7ed58c030243ef157af9f4
+          path: .cache/mujoco_menagerie
+          sparse-checkout: franka_emika_panda
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install OpenGL runtime
+        run: sudo apt-get update && sudo apt-get install --yes libegl1 libgl1
+
+      - name: Install ArmBench
+        run: python -m pip install --disable-pip-version-check -e ".[test]"
+
+      - name: Validate environment and scenarios
+        run: |
+          python -m armbench doctor
+          python -m armbench mujoco-validate
+
+      - name: Run full test suite
+        run: python -m pytest -q
+
+  test-windows:
+    name: CPU smoke tests on Windows
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - name: Checkout ArmBench
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned Panda model
+        uses: actions/checkout@v4
+        with:
+          repository: google-deepmind/mujoco_menagerie
+          ref: 71f066ad0be9cd271f7ed58c030243ef157af9f4
+          path: .cache/mujoco_menagerie
+          sparse-checkout: franka_emika_panda
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install ArmBench
+        run: python -m pip install --disable-pip-version-check -e ".[test]"
+
+      - name: Validate environment and scenarios
+        run: |
+          python -m armbench doctor
+          python -m armbench mujoco-validate
+
+      - name: Run portable smoke suite
+        run: >-
+          python -m pytest -q
+          tests/test_environment.py
+          tests/test_geometry.py
+          tests/test_model_collision.py
+          tests/test_planners.py
+          tests/test_postprocess_control.py
+          tests/test_mujoco_sim.py
+          tests/test_vla.py
+          -k "not offscreen_render"

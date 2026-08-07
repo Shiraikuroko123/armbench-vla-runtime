@@ -9,7 +9,6 @@ import hashlib
 import json
 import logging
 import math
-import os
 import pathlib
 import platform
 import re

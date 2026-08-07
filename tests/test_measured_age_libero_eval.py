@@ -5,7 +5,6 @@ import csv
 import dataclasses
 import hashlib
 import json
-import pathlib
 
 import pytest
 
@@ -23,7 +22,6 @@ from integrations.openpi.measured_age_libero_eval import (
     POLICY_SAMPLING_FIELDS,
     QUERY_FIELDS,
     SCHEMA_VERSION,
-    WARMUP_FIELDS,
     MeasuredAgePolicySamplingProxy,
     artifact_errors,
     jitter_key_sha256,

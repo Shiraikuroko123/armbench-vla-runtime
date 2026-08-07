@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use ArmBench, cite this software and the upstream models and benchmarks relevant to your experiment."
+title: "ArmBench: Runtime Evaluation for Action-Chunk VLA Policies"
+type: software
+version: 0.1.0
+authors:
+  - family-names: "谌"
+    given-names: "章伟"
+repository-code: "https://github.com/Shiraikuroko123/armbench-vla-runtime"
+url: "https://shiraikuroko123.github.io/armbench-vla-runtime/"
+license: MIT
+abstract: >-
+  A reproducible research-engineering platform for temporal alignment,
+  response validation, and fault handling in action-chunk VLA runtimes, with
+  separate MuJoCo Panda and official pi0.5-LIBERO evaluation paths.
+keywords:
+  - vision-language-action
+  - embodied-ai
+  - robot-learning
+  - runtime-evaluation
+  - reproducibility
