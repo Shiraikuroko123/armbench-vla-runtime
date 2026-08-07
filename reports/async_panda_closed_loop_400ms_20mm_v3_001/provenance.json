@@ -1,0 +1,209 @@
+{
+  "collision_validation": {
+    "base_joint_resolution_rad": 0.02,
+    "joint_motion_radii_m": [
+      1.1384226083986597,
+      1.1384226083986597,
+      0.8224226083986597,
+      0.7399226083986596,
+      0.34716027568331387,
+      0.33799584804938543,
+      0.2499958480493854
+    ],
+    "method": "clearance_backed_swept_static_obstacle_subdivision",
+    "self_collision_continuity": "sampled_only",
+    "swept_obstacle_margin_m": 0.02
+  },
+  "configuration": {
+    "action_horizon": 15,
+    "action_period_s": 0.06666666666666667,
+    "clearance_m": 0.02,
+    "collision_resolution_rad": 0.02,
+    "control_period_s": 0.01,
+    "goal_tolerance_rad": 0.05,
+    "joint_acceleration_limit_rad_s2": 15.0,
+    "joint_velocity_limit_rad_s": 1.0,
+    "kd": [
+      22.0,
+      22.0,
+      18.0,
+      18.0,
+      12.0,
+      8.0,
+      6.0
+    ],
+    "kp": [
+      120.0,
+      120.0,
+      100.0,
+      100.0,
+      60.0,
+      40.0,
+      30.0
+    ],
+    "max_action_steps": 277,
+    "max_state_mismatch_rad": 0.05,
+    "repair_selection_deadline_ms": 20.0,
+    "response_deadline_s": 0.4,
+    "settle_s": 0.3,
+    "terminal_feedback_gain_s_inv": 2.0,
+    "warmup_s": 0.1
+  },
+  "limitations": [
+    "The policy is scripted and non-learned.",
+    "No pi0 or pi0.5 checkpoint is executed by this benchmark.",
+    "Wall-clock deadlines are not an OS hard-real-time guarantee.",
+    "MuJoCo contacts are not physical-robot safety certification.",
+    "Camera rendering and Python scheduling are machine dependent.",
+    "Runtime obstacle checks use clearance-backed swept joint-space subdivision; self-collision and dynamics remain sampled."
+  ],
+  "local_runtime": {
+    "implementation_sha256": {
+      "armbench/vla/async_dispatch.py": "0d2acc0a6c4e73c44182d8a3a7b6e74982f91a86007a0310baa1f9443ab423b8",
+      "armbench/vla/async_panda.py": "c456c30eb52944fa10d88381333914fa93f80113ec292a1e13c29e47122124e2",
+      "armbench/vla/async_panda_benchmark.py": "268b88df25c1fd28c4f9c1cffd511d954d34a6a4faad3a356d3545fa0155f8d5",
+      "armbench/vla/async_worker.py": "251040b0acb2491682faa5809adc33a1e1c26d98e1a1b34039636ffe4cd84b1b",
+      "armbench/vla/trajectory_repair.py": "05d44a59b9ca7016cf53752d957bc963bc3ba6f4e608a2b64f5610f667439f6e"
+    },
+    "menagerie_commit": "71f066ad0be9cd271f7ed58c030243ef157af9f4",
+    "mujoco": "3.11.0",
+    "mujoco_scenario_version": "2.0-mujoco",
+    "numpy": "1.26.4",
+    "panda_scene_sha256": "60658e01f59909eadaffbb4eb98a98715f67f67e9ae49f42ac114567fddaf230",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.10.8",
+    "python_implementation": "cpython"
+  },
+  "matrix": {
+    "conditions": [
+      {
+        "drop_probability": 0.0,
+        "latency_jitter_ms": 0.0,
+        "latency_schedule_ms": [
+          0.0
+        ],
+        "name": "fixed_000ms",
+        "payload_mass_kg": 0.0,
+        "spike_joint": 0,
+        "spike_velocity_rad_s": 0.0
+      },
+      {
+        "drop_probability": 0.0,
+        "latency_jitter_ms": 0.0,
+        "latency_schedule_ms": [
+          40.0
+        ],
+        "name": "fixed_040ms",
+        "payload_mass_kg": 0.0,
+        "spike_joint": 0,
+        "spike_velocity_rad_s": 0.0
+      },
+      {
+        "drop_probability": 0.0,
+        "latency_jitter_ms": 0.0,
+        "latency_schedule_ms": [
+          80.0
+        ],
+        "name": "fixed_080ms",
+        "payload_mass_kg": 0.0,
+        "spike_joint": 0,
+        "spike_velocity_rad_s": 0.0
+      },
+      {
+        "drop_probability": 0.0,
+        "latency_jitter_ms": 0.0,
+        "latency_schedule_ms": [
+          160.0
+        ],
+        "name": "fixed_160ms",
+        "payload_mass_kg": 0.0,
+        "spike_joint": 0,
+        "spike_velocity_rad_s": 0.0
+      },
+      {
+        "drop_probability": 0.0,
+        "latency_jitter_ms": 0.0,
+        "latency_schedule_ms": [
+          240.0
+        ],
+        "name": "fixed_240ms",
+        "payload_mass_kg": 0.0,
+        "spike_joint": 0,
+        "spike_velocity_rad_s": 0.0
+      },
+      {
+        "drop_probability": 0.0,
+        "latency_jitter_ms": 25.0,
+        "latency_schedule_ms": [
+          80.0
+        ],
+        "name": "jitter_080ms_025ms",
+        "payload_mass_kg": 0.0,
+        "spike_joint": 0,
+        "spike_velocity_rad_s": 0.0
+      },
+      {
+        "drop_probability": 0.1,
+        "latency_jitter_ms": 0.0,
+        "latency_schedule_ms": [
+          80.0
+        ],
+        "name": "drop_080ms_010pct",
+        "payload_mass_kg": 0.0,
+        "spike_joint": 0,
+        "spike_velocity_rad_s": 0.0
+      },
+      {
+        "drop_probability": 0.0,
+        "latency_jitter_ms": 0.0,
+        "latency_schedule_ms": [
+          80.0
+        ],
+        "name": "payload_080ms_0500g",
+        "payload_mass_kg": 0.5,
+        "spike_joint": 0,
+        "spike_velocity_rad_s": 0.0
+      },
+      {
+        "drop_probability": 0.0,
+        "latency_jitter_ms": 0.0,
+        "latency_schedule_ms": [
+          40.0
+        ],
+        "name": "action_fault_040ms",
+        "payload_mass_kg": 0.0,
+        "spike_joint": 0,
+        "spike_velocity_rad_s": 2.5
+      }
+    ],
+    "modes": [
+      "unguarded",
+      "legacy_greedy",
+      "braking_invariant"
+    ],
+    "planning_clearance_m": 0.02,
+    "reference_action_steps": 232,
+    "runtime_action_steps": 277,
+    "runtime_clearance_m": 0.02,
+    "runtime_clearance_source": "planning_clearance",
+    "scenario": "single_block",
+    "seed": 20260807,
+    "target_is_scenario_goal": true
+  },
+  "policy": {
+    "checkpoint_executed": false,
+    "pi0_or_pi05_executed": false,
+    "source": "scripted_non_learned_async_reference"
+  },
+  "runtime": {
+    "control_scheduler": "best_effort_wall_clock_periodic",
+    "deadline_fallback": "hold_or_verified_terminal_braking",
+    "hard_realtime_claim": false,
+    "observation_execution": "latest_only_background_renderer",
+    "physical_safety_claim": false,
+    "policy_execution": "blocking_call_on_latest_only_worker_thread",
+    "response_alignment": "observation_age_action_suffix"
+  },
+  "schema_version": "armbench.async_panda_closed_loop_provenance.v3",
+  "scope": "scripted_async_vla_runtime_mujoco_closed_loop"
+}
