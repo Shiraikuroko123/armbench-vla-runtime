@@ -36,7 +36,7 @@ jobs:
           npx --yes html-validate@10.10.0 site/index.html
 
       - name: Upload static site
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
