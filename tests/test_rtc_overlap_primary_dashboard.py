@@ -5,6 +5,8 @@ import pathlib
 import shutil
 import tempfile
 
+import pytest
+
 from integrations.openpi import rtc_overlap_primary_dashboard as dashboard
 
 
@@ -13,6 +15,50 @@ def _payload(html: str) -> dict:
     start = html.index(marker) + len(marker)
     end = html.index("</script>", start)
     return json.loads(html[start:end])
+
+
+def test_rebuild_equivalence_allows_python_patch_version_difference() -> None:
+    saved = {
+        "implementation": {
+            "python_version": "3.10.8",
+            "numpy_version": "1.26.4",
+            "analyzer_sha256": "a" * 64,
+        },
+        "result": {"successes": 97},
+    }
+    recomputed = {
+        **saved,
+        "implementation": {
+            **saved["implementation"],
+            "python_version": "3.10.20",
+        },
+    }
+
+    dashboard._validate_rebuild_equivalence(saved, recomputed)
+
+
+def test_rebuild_equivalence_rejects_result_or_dependency_change() -> None:
+    saved = {
+        "implementation": {
+            "python_version": "3.10.8",
+            "numpy_version": "1.26.4",
+            "analyzer_sha256": "a" * 64,
+        },
+        "result": {"successes": 97},
+    }
+    changed_result = {**saved, "result": {"successes": 96}}
+    changed_numpy = {
+        **saved,
+        "implementation": {
+            **saved["implementation"],
+            "numpy_version": "2.0.0",
+        },
+    }
+
+    with pytest.raises(ValueError, match="disagrees"):
+        dashboard._validate_rebuild_equivalence(saved, changed_result)
+    with pytest.raises(ValueError, match="NumPy"):
+        dashboard._validate_rebuild_equivalence(saved, changed_numpy)
 
 
 def test_builds_fail_closed_dashboard_from_corrected_primary_evidence(

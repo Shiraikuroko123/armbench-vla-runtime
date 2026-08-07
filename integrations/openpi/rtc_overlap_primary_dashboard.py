@@ -185,6 +185,42 @@ def _expected_analysis_files(analysis_root: pathlib.Path) -> None:
         raise ValueError("primary analysis file inventory is unexpected")
 
 
+def _python_minor(version: Any) -> tuple[int, int]:
+    if not isinstance(version, str):
+        raise ValueError("analysis Python version must be a string")
+    parts = version.split(".")
+    if len(parts) < 2 or not all(part.isdigit() for part in parts[:2]):
+        raise ValueError("analysis Python version is malformed")
+    return int(parts[0]), int(parts[1])
+
+
+def _validate_rebuild_equivalence(
+    saved: Mapping[str, Any], recomputed: Mapping[str, Any]
+) -> None:
+    saved_payload = dict(saved)
+    recomputed_payload = dict(recomputed)
+    saved_implementation = saved_payload.get("implementation")
+    recomputed_implementation = recomputed_payload.get("implementation")
+    if not isinstance(saved_implementation, Mapping) or not isinstance(
+        recomputed_implementation, Mapping
+    ):
+        raise ValueError("analysis implementation identity is missing")
+    saved_identity = dict(saved_implementation)
+    recomputed_identity = dict(recomputed_implementation)
+    saved_python = saved_identity.pop("python_version", None)
+    recomputed_python = recomputed_identity.pop("python_version", None)
+    saved_numpy = saved_identity.pop("numpy_version", None)
+    recomputed_numpy = recomputed_identity.pop("numpy_version", None)
+    saved_payload["implementation"] = saved_identity
+    recomputed_payload["implementation"] = recomputed_identity
+    if saved_payload != recomputed_payload:
+        raise ValueError("saved analysis.json disagrees with a fresh primary rebuild")
+    if _python_minor(saved_python) != _python_minor(recomputed_python):
+        raise ValueError("saved analysis requires a different Python minor version")
+    if saved_numpy != recomputed_numpy:
+        raise ValueError("saved analysis requires a different NumPy version")
+
+
 def _validate_and_rebuild(
     seed06_root: pathlib.Path,
     seed07_root: pathlib.Path,
@@ -224,9 +260,8 @@ def _validate_and_rebuild(
 
     saved_analysis_path = analysis_root / "analysis.json"
     saved_analysis = _strict_json(saved_analysis_path, dict)
-    if saved_analysis != recomputed_analysis:
-        raise ValueError("saved analysis.json disagrees with a fresh primary rebuild")
-    if saved_analysis_path.read_bytes() != _canonical_json(recomputed_analysis):
+    _validate_rebuild_equivalence(saved_analysis, recomputed_analysis)
+    if saved_analysis_path.read_bytes() != _canonical_json(saved_analysis):
         raise ValueError("saved analysis.json does not use the canonical encoding")
     if (analysis_root / "per_triplet.csv").read_bytes() != _canonical_csv(
         recomputed_rows
