@@ -2,83 +2,129 @@
 
 ## Direction
 
-**Runtime observatory: a calibrated robotics instrument in a dark lab, with
-white evidence sheets and brass timing marks.**
+**Graphite runtime console with signal-yellow timing marks.**
 
-The page should feel exact, inspectable, and operational. It must not resemble
-a generic AI landing page. The visual language comes from controller clocks,
-action indices, status lamps, trace lines, hashes, and audit stamps. Real
-MuJoCo and LIBERO footage is the primary imagery.
+The interface behaves like a compact robotics review surface rather than a
+paper template or a generic AI landing page. Authentic MuJoCo and LIBERO media
+lead; controller ticks, action indices, exact statistics, manifests, and claim
+boundaries form the visual language.
 
 ## Palette
 
-The Impeccable palette seed is hue 230. The strategy is restrained: a neutral
-near-black hero and navigation, literal white evidence bands, a cobalt timing
-color, and a warm brass accent that distinguishes deadlines from policy data.
-All production colors use OKLCH.
+The production theme is consistently dark so media, measurements, and state
+changes can be compared without a visual mode switch. Yellow is reserved for
+timing, selection, and provenance. Red and green are semantic only.
 
 ```css
---black: oklch(0.085 0 0);
---black-soft: oklch(0.145 0.012 230);
---white: oklch(1 0 0);
---paper: oklch(0.965 0.006 95);
---ink: oklch(0.19 0.018 230);
---muted: oklch(0.50 0.025 230);
---primary: oklch(0.67 0.14 230);
---primary-dark: oklch(0.45 0.086 230);
---accent: oklch(0.78 0.14 83);
---danger: oklch(0.59 0.18 28);
---success: oklch(0.61 0.13 155);
+--bg: #0b0d0c;
+--bg-deep: #070908;
+--surface: #121513;
+--surface-raised: #191d1a;
+--surface-strong: #222720;
+--text: #f2f0e8;
+--text-soft: #cbc9c0;
+--muted: #969b93;
+--line: #30352f;
+--line-strong: #50564d;
+--signal: #f1c84b;
+--danger: #f47d73;
+--success: #83d09d;
 ```
+
+There are no gradients, decorative orbs, neon circuitry, or stock imagery.
 
 ## Typography
 
-- Display and body: system UI with Segoe UI / PingFang SC / Microsoft YaHei
-  fallbacks. This avoids remote font dependencies in China.
-- Technical labels and measurements: ui-monospace.
-- Hero type is reserved for the project name and literal runtime proposition.
-  Panel and section headings stay compact.
-- Letter spacing is zero. Font size does not scale directly with viewport width.
+- Display and body: Segoe UI Variable / Segoe UI with Chinese system fallbacks.
+- Measurements, commands, status labels, and action indices: Cascadia Code or
+  the local monospace fallback.
+- The 96 px display size is reserved for the ArmBench name on wide screens.
+- Section headings remain compact; letter spacing is always zero.
+- Font size changes at discrete breakpoints and never scales with viewport
+  width.
 
 ## Layout
 
-- Maximum reading width: 1180 px.
-- Full-bleed hero media; constrained text and instrument overlays.
-- Full-width alternating black, white, and paper bands instead of floating
-  section cards.
-- Cards are used only for repeated evidence items and video cases, with 6 px
-  corner radii.
-- Stable tracks and aspect ratios prevent video, chart, and control shifts.
+- Maximum evidence rail: 1240 px with 32 px desktop gutters.
+- Full-bleed hero footage with identity and capability over the actual scene.
+- Unframed full-width sections separated by one-pixel rules.
+- A four-cell artifact dock supplies the visible next-section cue.
+- Cards are limited to repeated testbeds, suites, and fault cases.
+- Media, charts, action tracks, and controls have stable aspect ratios or grid
+  tracks to prevent layout shift.
+- Corner radius is 4 px; there are no nested decorative cards.
 
-## Interaction
+## Core Components
 
-- Language control switches Chinese and English without navigation and saves
-  the choice locally.
-- Observation-age range input recomputes the frozen protocol decision using a
-  50 ms period, ceil rounding, ten-action chunk, five-action replan horizon,
-  and 250 ms deadline.
-- Video controls use familiar play/pause and comparison labels. Autoplay is
-  muted and disabled when reduced motion is requested.
-- Copy buttons expose the two offline acceptance commands.
-- Motion is limited to status pulses, timeline transitions, and section reveal.
-  Nothing essential depends on animation.
+- **Artifact dock:** direct entry to code, evidence, results, and debugging.
+- **Study tabs:** measured-age primary, cross-suite extension, RTC null result.
+- **Matched player:** aligned square videos, one play state, restart, progress,
+  and speed control. The seven-second clip holds its final frame on the shared
+  22-second timeline.
+- **Timing lab:** an observation-age range input that renders stale actions,
+  execution window, and execute/refresh state from the frozen protocol.
+- **Testbed split:** π0.5-LIBERO and Panda-MuJoCo stay visually and
+  semantically separate, followed by the integration gap.
+- **Fault map:** scripted non-learned detection and response rows with direct
+  artifact links.
+- **Claim boundary:** established and unsupported claims receive equal visual
+  weight.
 
-## Accessibility
+## Media Rules
 
-- Semantic landmarks, headings, table captions, and descriptive alt text.
-- Visible focus indicators and a skip link.
-- Native range and button controls with accessible names.
-- Minimum 44 px interactive targets on touch layouts.
-- Text contrast meets WCAG AA; body text targets 7:1 where practical.
-- `prefers-reduced-motion` disables autoplay-like motion and smooth scrolling.
+- Hero: repository-authentic Panda MuJoCo MP4 and WebP poster.
+- Comparison: repository-authentic π0.5-LIBERO matched pair and posters.
+- Every clip names simulation, embodiment, task or scene, outcome, conditions,
+  and playback rate where applicable.
+- The qualitative pair is disclosed as one selected aligned-only win; aggregate
+  rates are explicitly tied to all 120 pairs.
+- Only the hero may autoplay, always muted and inline. Below-fold videos load
+  near the viewport or after user intent.
+- Reduced motion pauses the hero. Data-saving mode requests no MP4 until intent.
 
-## Public Asset Provenance
+## Responsive Behavior
+
+- `1100 px`: reduce display scale and stack the timing lab.
+- `860 px`: replace desktop navigation with a keyboard-accessible menu; stack
+  evidence where comparison width is insufficient.
+- `620 px`: use a fixed 720 px hero, two-column artifact dock, compact controls,
+  and mobile-safe media labels.
+- `380 px`: tighten language controls and player layout while preserving a
+  320 px minimum page width.
+
+The 320 px composition keeps the project name, core claim, Panda evidence,
+simulation label, primary action, and the beginning of the artifact dock in
+the first viewport without horizontal overflow.
+
+## Interaction And Accessibility
+
+- Chinese and English switch in place and persist locally.
+- Tabs support Left, Right, Home, and End keys with roving focus.
+- The mobile menu exposes accurate expanded state and closes on navigation,
+  Escape, or an outside click.
+- All state-changing controls are native buttons, ranges, or selects.
+- Focus uses a visible two-pixel signal-yellow outline.
+- Semantic landmarks, one `h1`, sequential headings, captions, alt text,
+  accessible tab relationships, and a skip link are required.
+- Content remains visible when JavaScript or reveal animation is unavailable.
+- `prefers-reduced-motion` removes reveal motion and smooth scrolling.
+
+## Performance And Deployment
+
+- No frontend framework, external font, analytics script, or runtime CDN.
+- HTML, CSS, and JavaScript remain below the 500 KB source target.
+- Hero video is below 8 MB and uses `preload="none"` with a real poster.
+- Below-fold media is lazy-attached; posters reserve dimensions.
+- Metadata includes canonical URL, Open Graph, Twitter card, favicon, and
+  `SoftwareSourceCode` JSON-LD.
+- GitHub Pages is the deployment target; all local paths are relative to the
+  repository root served from `site/`.
+
+## Provenance
 
 - Panda footage: `evidence/mujoco_formal_20260803`.
-- Matched pi0.5-LIBERO videos:
+- Matched π0.5-LIBERO media:
   `evidence/pi05_libero_measured_age_confirmatory_001`.
-- Research landscape figure: `docs/research/figures/armbench_vla_method_gap`.
-- Numerical claims: `docs/RESULTS.md` and immutable evidence manifests.
-
-No stock imagery, generated robot imagery, personal data, or unsupported result
-is used.
+- Numerical claims: `docs/RESULTS.md`, repository evidence manifests, and the
+  cross-suite evidence Release.
+- Licensing: repository `LICENSE` and `THIRD_PARTY_NOTICES.md`.

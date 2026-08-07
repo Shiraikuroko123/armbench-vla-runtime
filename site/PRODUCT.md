@@ -1,88 +1,99 @@
 # ArmBench Website Product Brief
 
-## Product
+## Primary Job
 
-ArmBench is a public technical project page for a runtime and evaluation
-platform for action-chunk vision-language-action policies. The page must make
-one idea understandable without prior robotics knowledge: inference consumes
-time, so the first actions in a returned chunk may already be stale when they
-reach the controller.
+ArmBench is an evidence-first research project page. Its primary archetype is a
+research/model project, with a secondary benchmark and engineering-artifact
+role. The page helps a robotics reviewer answer three questions quickly:
 
-ArmBench measures the age of the source observation, selects an unexpired
-action suffix, and fails closed when the remaining horizon or deadline is
-invalid. It also preserves protocols, matched trials, videos, manifests, and
-validators so a reviewer can audit the result rather than trust a demo reel.
+1. What timing problem does ArmBench study?
+2. What measured evidence supports the result?
+3. Which claims are explicitly outside the current project?
+
+## Content Contract
+
+- **Identity:** ArmBench, runtime supervision for action-chunk VLA policies.
+- **Claim:** dispatch only the action suffix that still belongs to the current
+  observation age; refresh or hold when the usable horizon is invalid.
+- **Embodiments:** the official Physical Intelligence π0.5 checkpoint in
+  LIBERO simulation, plus a separately validated seven-DoF Panda in MuJoCo.
+- **Proof:** authentic Panda rollout footage, a matched π0.5-LIBERO qualitative
+  pair, exact paired statistics, and immutable evidence artifacts.
+- **Artifacts:** source, evidence, result protocol, debugging guide, acceptance
+  commands, license, and third-party notices.
+- **Status:** simulation-only, no training or fine-tuning, updated 2026-08-07.
 
 ## Audience
 
-- Robotics and embodied-AI hiring teams evaluating engineering depth.
-- VLA and robot-learning researchers checking the method and statistics.
-- Engineers who want to inspect, validate, or extend the repository.
-- General technical visitors who need a concise explanation before the details.
+- Embodied-AI and robotics hiring teams evaluating engineering depth.
+- VLA and robot-learning researchers checking protocol and statistics.
+- Engineers deciding whether the repository is reproducible and extensible.
+- Technical visitors who need the central timing issue without reading a paper.
 
 The public page contains no resume, phone number, private email address, cloud
-credentials, or personally identifying information beyond the public GitHub
-account that owns the repository.
+credential, raw home path, or personally identifying data beyond the public
+GitHub account that owns the repository.
 
-## Core Story
+## Evidence Order
 
-1. Show the system moving in the first viewport.
-2. Explain stale action prefixes with an interactive 50 ms control timeline.
-3. Show the frozen Physical Intelligence pi0.5 VLA results, including a matched
-   baseline-failure/aligned-success video pair.
-4. Report both positive and null results. The corrected RTC comparison must say
-   that it establishes no task-success superiority.
-5. Separate the official-checkpoint LIBERO path from the local seven-DoF
-   MuJoCo Panda validation path.
-6. End with commands and links a reviewer can use to verify the artifacts.
+The first viewport shows the literal project name, the runtime proposition, an
+authentic MuJoCo Panda rollout, its exact simulation conditions, and links to
+the measured result and repository. The artifact dock remains visible as the
+next-scroll cue.
+
+The page then presents three separately scoped studies:
+
+| Study | Scope | Reported result |
+| --- | --- | --- |
+| Measured-age primary | Spatial, 120 matched pairs | 88/120 to 116/120; +23.33 pp |
+| Cross-suite extension | Object, Goal, LIBERO-10; 150 pairs | 83/150 to 141/150 |
+| Corrected-v3 RTC extension | 100 matched triplets | 96/97/97; Holm p = 1.0 |
+
+The RTC row is intentionally a null result. It is not presented as another
+layer of support for the measured-age result.
+
+## Page Structure
+
+1. Full-bleed Panda simulation hero with explicit test conditions.
+2. Code, evidence, results, and local-run artifact dock.
+3. Tabbed measured-age, cross-suite, and RTC studies.
+4. Synchronized matched-video player with selection disclosure.
+5. Interactive observation-age timeline using the frozen 50 ms rule.
+6. Two independent testbeds and their unclosed integration gap.
+7. Scripted non-learned fault artifacts with direct provenance links.
+8. Established and unsupported claim boundaries.
+9. GPU-free reviewer acceptance commands.
 
 ## Verified Claims
 
-- Held-out measured-age study: 120 matched pairs, 88/120 baseline successes and
-  116/120 aligned successes, +23.33 percentage points, exact two-sided McNemar
-  p=1.941574737e-6.
-- Cross-suite deterministic-delay validation: 300 rollouts / 150 matched pairs,
-  83/150 baseline successes and 141/150 aligned successes.
-- Corrected-v3 RTC comparison: 300 rollouts / 100 matched triplets, with
-  96/100, 97/100, and 97/100 successes. Holm-adjusted p=1.0; no task-success
-  superiority is supported.
-- The local MuJoCo path exercises planning, tracking, action validation, fault
-  injection, and bounded response on a seven-DoF Panda model.
+- Measured age: 120 matched pairs, 88/120 baseline and 116/120 aligned,
+  +23.33 percentage points, exact two-sided McNemar p = 1.94e-6, and pair
+  bootstrap 95% interval [+15.00, +31.67] pp.
+- Cross-suite: 300 rollouts / 150 matched pairs, 83/150 baseline and 141/150
+  aligned. The pooled row is descriptive; inference remains suite-level.
+- Corrected-v3 RTC: 300 rollouts / 100 matched triplets with 96/100, 97/100,
+  and 97/100 successes. Holm-adjusted p = 1.0; superiority is unsupported.
+- Panda: local planning, time parameterization, torque-limited joint PD,
+  action validation, collision sampling, and bounded scripted fault responses.
 
 ## Claim Boundaries
 
-- No pi0.5 training or fine-tuning.
-- Simulation-only official-checkpoint evidence.
-- Blocking inference with simulated controller catch-up, not hard real time.
-- No verified pi0.5-to-Panda end-to-end deployment.
-- No real robot, Isaac Lab, ROS2, safety PLC, or collision-safety certification.
-- Panda and LIBERO outcomes remain separate evidence domains.
+- No π0.5 training or fine-tuning.
+- No real robot, hard-real-time, or collision-safety certification.
+- Blocking inference with post-response catch-up simulation, not concurrent
+  inference and control.
+- No verified π0.5-to-Panda action adapter or end-to-end deployment.
+- Scripted fault cards do not run π0.5 and do not establish VLA safety.
+- No cross-checkpoint generalization, Isaac Lab, or ROS2 claim.
+- LIBERO and Panda outcomes remain separate evidence domains.
 
 ## Delivery
 
-The site is dependency-free HTML, CSS, and JavaScript deployed through GitHub
-Pages. It is bilingual, keyboard accessible, responsive from 320 px mobile to
-wide desktop, usable with reduced motion, and built entirely from repository
-evidence. No analytics or third-party runtime assets are loaded.
+The site is dependency-free HTML, CSS, and JavaScript deployed with GitHub
+Pages. It is bilingual, keyboard accessible, responsive from 320 px upward,
+and usable with reduced motion or data saving enabled. No analytics, remote
+fonts, generated robot imagery, or third-party runtime assets are loaded.
 
-## Reference Synthesis
-
-The visual study covered OpenVLA, Open X-Embodiment / RT-X, Diffusion Policy,
-Mobile ALOHA, Octo, 3D Diffusion Policy, and Physical Intelligence's pi0.5 page.
-The useful shared pattern is evidence-first communication: working robot media,
-one method diagram, quantitative comparison, code/paper links, and limitations.
-ArmBench adopts that evidence order but replaces the conventional academic
-paper template with a runtime-observatory interface suited to its timing and
-verification contribution.
-
-Research pages reviewed:
-
-- [OpenVLA](https://openvla.github.io/)
-- [Open X-Embodiment / RT-X](https://robotics-transformer-x.github.io/)
-- [Diffusion Policy](https://diffusion-policy.cs.columbia.edu/)
-- [Mobile ALOHA](https://mobile-aloha.github.io/)
-- [Octo](https://octo-models.github.io/)
-- [3D Diffusion Policy](https://3d-diffusion-policy.github.io/)
-- [Physical Intelligence pi0.5](https://www.pi.website/blog/pi05)
-
-No template code or third-party page assets were copied into ArmBench.
+The structure was informed by OpenVLA, Open X-Embodiment / RT-X, Diffusion
+Policy, Mobile ALOHA, Octo, 3D Diffusion Policy, and Physical Intelligence's
+π0.5 page. No template code or page media was copied.
