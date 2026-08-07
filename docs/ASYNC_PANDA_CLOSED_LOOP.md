@@ -80,9 +80,11 @@ budget, high hold rates are expected. `--deadline-ms` is an explicit experiment
 parameter, not a hidden relaxation. The artifact records the resolved value.
 
 Reference planning retains the configured 20 mm obstacle inflation. Runtime
-checks default to the true obstacle geometry (`--runtime-clearance-mm 0`) so a
-tracking deviation into the planning margin is not falsely labeled a physical
-collision. Both clearances are recorded separately in provenance.
+checks inherit that clearance by default so the guard includes room for
+closed-loop tracking error and braking distance. Pass `--runtime-clearance-mm
+0` only for an explicit true-geometry ablation. Both values and the source of
+the runtime clearance are recorded in provenance; MuJoCo contact remains the
+separate physical-outcome metric.
 
 ## Inspect motion
 

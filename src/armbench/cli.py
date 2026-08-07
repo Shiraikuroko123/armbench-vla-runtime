@@ -169,8 +169,10 @@ def build_parser() -> argparse.ArgumentParser:
     async_panda.add_argument(
         "--runtime-clearance-mm",
         type=float,
-        default=0.0,
-        help="runtime collision inflation; reference planning remains at configured clearance",
+        help=(
+            "runtime collision inflation; defaults to the configured planning "
+            "clearance (pass 0 for a true-geometry ablation)"
+        ),
     )
     async_panda.add_argument(
         "--deadline-ms",
@@ -793,7 +795,11 @@ def main(arguments: list[str] | None = None) -> int:
             extra_action_steps=(5 if args.quick else args.extra_action_steps),
             seed=args.seed,
             make_videos=args.videos,
-            runtime_clearance_m=args.runtime_clearance_mm / 1000.0,
+            runtime_clearance_m=(
+                None
+                if args.runtime_clearance_mm is None
+                else args.runtime_clearance_mm / 1000.0
+            ),
             response_deadline_ms=args.deadline_ms,
         )
         result = validate_async_panda_artifact(output)

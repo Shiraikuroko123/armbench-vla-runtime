@@ -182,10 +182,41 @@ def test_async_benchmark_writes_recomputable_manifest_artifact(
         "traces",
     }
     summary = json.loads((async_artifact / "summary.json").read_text("utf-8"))
+    provenance = json.loads(
+        (async_artifact / "provenance.json").read_text("utf-8")
+    )
     assert summary["policy_checkpoint_executed"] is False
     assert summary["scripted_policy"] is True
     assert summary["panda_closed_loop_executed"] is True
     assert summary["hard_realtime_claim"] is False
+    assert provenance["matrix"]["runtime_clearance_source"] == (
+        "planning_clearance"
+    )
+    assert provenance["matrix"]["runtime_clearance_m"] == (
+        provenance["matrix"]["planning_clearance_m"]
+    )
+
+
+def test_async_benchmark_records_explicit_zero_runtime_clearance(
+    tmp_path: Path,
+) -> None:
+    artifact = execute_async_panda_benchmark(
+        Path("configs/vla_guard_benchmark.json"),
+        tmp_path / "zero_clearance",
+        scenario_name="free_space",
+        modes=("braking_invariant",),
+        conditions=(AsyncPandaCondition("fixed_000ms", (0.0,)),),
+        max_reference_steps=1,
+        extra_action_steps=0,
+        runtime_clearance_m=0.0,
+    )
+    provenance = json.loads((artifact / "provenance.json").read_text("utf-8"))
+
+    assert provenance["matrix"]["runtime_clearance_source"] == (
+        "explicit_override"
+    )
+    assert provenance["matrix"]["runtime_clearance_m"] == 0.0
+    assert validate_async_panda_artifact(artifact)["valid"]
 
 
 def test_resigned_csv_metric_tamper_is_rejected(

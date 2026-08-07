@@ -654,7 +654,7 @@ def execute_async_panda_benchmark(
     extra_action_steps: int = 15,
     seed: int = 20260807,
     make_videos: bool = False,
-    runtime_clearance_m: float = 0.0,
+    runtime_clearance_m: float | None = None,
     response_deadline_ms: float | None = None,
 ) -> Path:
     """Execute a paired mode-by-fault matrix and write immutable evidence."""
@@ -681,7 +681,11 @@ def execute_async_panda_benchmark(
     if (
         max_reference_steps is not None and max_reference_steps <= 0
     ) or extra_action_steps < 0 or (
-        not np.isfinite(runtime_clearance_m) or runtime_clearance_m < 0.0
+        runtime_clearance_m is not None
+        and (
+            not np.isfinite(runtime_clearance_m)
+            or runtime_clearance_m < 0.0
+        )
     ) or (
         response_deadline_ms is not None
         and (
@@ -694,6 +698,12 @@ def execute_async_panda_benchmark(
         raise ValueError("seed must be nonnegative")
 
     raw_config = load_vla_config(config_path)
+    planning_clearance_m = float(dict(raw_config["guard"])["clearance_m"])
+    resolved_runtime_clearance_m = (
+        planning_clearance_m
+        if runtime_clearance_m is None
+        else float(runtime_clearance_m)
+    )
     guard_config = configured_guard(raw_config)
     actions = _safe_stream(scenario_name, raw_config, guard_config)
     if max_reference_steps is not None:
@@ -712,7 +722,7 @@ def execute_async_panda_benchmark(
     runtime_config = _runtime_config(
         raw_config,
         max_action_steps=runtime_steps,
-        runtime_clearance_m=runtime_clearance_m,
+        runtime_clearance_m=resolved_runtime_clearance_m,
         response_deadline_ms=response_deadline_ms,
     )
 
@@ -803,8 +813,13 @@ def execute_async_panda_benchmark(
             "target_is_scenario_goal": bool(
                 np.allclose(reference[-1], scenario.goal, atol=1e-12)
             ),
-            "planning_clearance_m": float(dict(raw_config["guard"])["clearance_m"]),
-            "runtime_clearance_m": runtime_clearance_m,
+            "planning_clearance_m": planning_clearance_m,
+            "runtime_clearance_m": resolved_runtime_clearance_m,
+            "runtime_clearance_source": (
+                "planning_clearance"
+                if runtime_clearance_m is None
+                else "explicit_override"
+            ),
         },
         "configuration": asdict(runtime_config),
         "local_runtime": {
@@ -1175,6 +1190,17 @@ def validate_async_panda_artifact(directory: Path) -> dict[str, Any]:
         and float(matrix["planning_clearance_m"]) >= 0.0,
         "planning/runtime clearance provenance mismatch",
     )
+    clearance_source = matrix.get("runtime_clearance_source")
+    _require(
+        clearance_source in {"planning_clearance", "explicit_override"},
+        "runtime clearance source is invalid",
+    )
+    if clearance_source == "planning_clearance":
+        _require(
+            float(matrix["runtime_clearance_m"])
+            == float(matrix["planning_clearance_m"]),
+            "inherited runtime clearance does not match planning clearance",
+        )
     for row in rows:
         _validate_case_trace(
             root,

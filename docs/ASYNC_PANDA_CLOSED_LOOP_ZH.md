@@ -73,9 +73,10 @@ deadline 前最后一个 action 可能只执行剩余的一部分墙钟时间。
 预算，出现高 hold 率是合理结果。`--deadline-ms` 是明确的实验变量，不是暗中
 放宽限制；解析后的数值会写入 artifact。
 
-参考规划仍使用配置中的 20 mm 障碍膨胀。运行时默认按真实障碍几何检查
-（`--runtime-clearance-mm 0`），避免把“进入规划余量但尚未碰撞”误报成真实
-碰撞。两种 clearance 会在 provenance 中分别记录。
+参考规划仍使用配置中的 20 mm 障碍膨胀。运行时检查默认继承同一余量，为闭环
+跟踪误差和制动距离留出空间；只有做真实几何消融时才显式传入
+`--runtime-clearance-mm 0`。两种 clearance 及运行时取值来源都会写入 provenance，
+MuJoCo contact 仍作为单独的物理结果指标。
 
 ## 查看机械臂运动
 
