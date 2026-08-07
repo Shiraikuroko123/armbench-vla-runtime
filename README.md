@@ -127,6 +127,12 @@ do not rerun model inference and do not require a GPU.
 .\scripts\rtc_primary_acceptance.cmd
 ```
 
+Browse the [evidence catalog](docs/EVIDENCE_CATALOG.md) to distinguish primary
+results, pilots, integration gates, rejected runs, and scripted runtime checks.
+Its [machine-readable form](docs/evidence_catalog.json) links every preserved
+artifact to its result, protocol, manifest, raw review files, validator, and
+explicit claim boundary.
+
 For local setup, remote OpenPI execution, debugging, and environment support,
 use [the documentation index](docs/README.md).
 

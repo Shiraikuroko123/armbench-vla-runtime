@@ -152,8 +152,9 @@ def _require_recomputed_analysis(
             or expected != fresh_base["source"].get(field)
         ):
             raise ValueError("analysis source binding mismatch: %s" % field)
+    saved_base_canonical = _canonical_sha256(base)
     fresh_base_canonical = _canonical_sha256(fresh_base)
-    if recorded_source.get("base_analysis_canonical_sha256") != fresh_base_canonical:
+    if recorded_source.get("base_analysis_canonical_sha256") != saved_base_canonical:
         raise ValueError("confirmatory analysis base canonical hash mismatch")
     if recomputed_source.get("base_analysis_canonical_sha256") != fresh_base_canonical:
         raise ValueError("recomputed confirmatory base canonical hash mismatch")

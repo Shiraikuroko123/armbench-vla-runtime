@@ -213,6 +213,40 @@ def test_base_canonical_mismatch_fails_before_dashboard(
     assert not dashboard.exists()
 
 
+def test_saved_and_current_base_implementations_have_separate_bindings(
+    acceptance_fixture, monkeypatch
+) -> None:
+    run_root, base_root, confirmatory_root, dashboard, analysis = acceptance_fixture
+    saved_base = json.loads((base_root / "analysis.json").read_text(encoding="utf-8"))
+    saved_base["implementation"] = {"analyzer_sha256": "1" * 64}
+    _write_json(base_root / "analysis.json", saved_base)
+
+    recorded = copy.deepcopy(analysis)
+    recorded["source"]["base_analysis_canonical_sha256"] = (
+        acceptance._canonical_sha256(saved_base)
+    )
+    _write_json(confirmatory_root / "analysis.json", recorded)
+
+    fresh_base = copy.deepcopy(saved_base)
+    fresh_base["implementation"] = {"analyzer_sha256": "2" * 64}
+    recomputed = copy.deepcopy(recorded)
+    recomputed["source"]["base_analysis_canonical_sha256"] = (
+        acceptance._canonical_sha256(fresh_base)
+    )
+    monkeypatch.setattr(acceptance, "analyze_artifact", lambda _root: recomputed)
+    monkeypatch.setattr(
+        acceptance.base_analysis,
+        "analyze_artifact",
+        lambda *_args, **_kwargs: (fresh_base, []),
+    )
+
+    report = acceptance.build_acceptance(
+        run_root, base_root, confirmatory_root, dashboard
+    )
+
+    assert report["valid"] is True
+
+
 def test_invalid_cohort_fails_before_dashboard(
     acceptance_fixture, monkeypatch
 ) -> None:

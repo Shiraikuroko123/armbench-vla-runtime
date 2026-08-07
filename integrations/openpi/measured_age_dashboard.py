@@ -212,8 +212,9 @@ def _portable_analysis_equal(
 ) -> bool:
     expected = copy.deepcopy(dict(recomputed))
     observed = copy.deepcopy(dict(recorded))
-    # Absolute source paths and interpreter/package versions are provenance,
-    # not portable scientific results. Source code hashes are checked below.
+    # Absolute paths and implementation identity are provenance, not portable
+    # scientific results. The recorded identity remains analysis-manifest bound;
+    # current code must independently reproduce every scientific field below.
     expected_source = expected.get("source")
     observed_source = observed.get("source")
     if isinstance(expected_source, dict) and isinstance(observed_source, Mapping):
@@ -226,7 +227,12 @@ def _portable_analysis_equal(
     expected_impl = expected.get("implementation")
     observed_impl = observed.get("implementation")
     if isinstance(expected_impl, dict) and isinstance(observed_impl, Mapping):
-        for field in ("python_version", "numpy_version"):
+        for field in (
+            "analyzer_source",
+            "analyzer_sha256",
+            "python_version",
+            "numpy_version",
+        ):
             expected_impl[field] = observed_impl.get(field)
         expected_impl["validator_source"] = observed_impl.get("validator_source")
         expected_impl["validator_sha256"] = observed_impl.get("validator_sha256")
@@ -266,9 +272,8 @@ def _validate_source_bindings(
     if implementation.get("analyzer_source") != ANALYZER_SOURCE:
         raise ValueError("analysis implementation source mismatch: analyzer_source")
     analyzer_digest = implementation.get("analyzer_sha256")
-    analyzer_path = project_root / pathlib.PurePosixPath(ANALYZER_SOURCE)
-    if not isinstance(analyzer_digest, str) or _sha256(analyzer_path) != analyzer_digest:
-        raise ValueError("analysis implementation hash mismatch: analyzer_sha256")
+    if not isinstance(analyzer_digest, str) or not _SHA256.fullmatch(analyzer_digest):
+        raise ValueError("analysis analyzer_sha256 is invalid")
 
     if implementation.get("validator_source") != VALIDATOR_SOURCE:
         raise ValueError("analysis implementation source mismatch: validator_source")
@@ -525,6 +530,8 @@ def build_dashboard(
             "validatorChecks": validator_report["checks"],
             "analyzerSha256": recomputed["implementation"]["analyzer_sha256"],
             "validatorSha256": recomputed["implementation"]["validator_sha256"],
+            "recordedAnalyzerSha256": verified_hashes["analyzer_sha256"],
+            "recordedValidatorSha256": verified_hashes["validator_sha256"],
         },
         "claimBoundary": recomputed["claim_boundary"],
         "scopeLabel": presentation["scope_label"],

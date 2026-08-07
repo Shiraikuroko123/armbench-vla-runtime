@@ -343,6 +343,36 @@ def test_historical_validator_snapshot_preserves_portable_recomputation(
     assert dashboard._portable_analysis_equal(recorded, recomputed)
 
 
+def test_manifest_bound_historical_analyzer_allows_current_recomputation(
+    dashboard_fixture,
+) -> None:
+    source, _analysis_root, analysis, _pair_row = dashboard_fixture
+    recorded = copy.deepcopy(analysis)
+    recorded["implementation"]["analyzer_sha256"] = "a" * 64
+    report = {
+        "schema_version": recorded["source"]["validator_schema_version"],
+        "checks": recorded["source"]["validator_checks"],
+    }
+
+    verified = dashboard._validate_source_bindings(source, recorded, report)
+
+    assert verified["analyzer_sha256"] == "a" * 64
+    assert dashboard._portable_analysis_equal(recorded, analysis)
+
+
+def test_malformed_historical_analyzer_hash_fails_closed(dashboard_fixture) -> None:
+    source, _analysis_root, analysis, _pair_row = dashboard_fixture
+    recorded = copy.deepcopy(analysis)
+    recorded["implementation"]["analyzer_sha256"] = "not-a-sha256"
+    report = {
+        "schema_version": recorded["source"]["validator_schema_version"],
+        "checks": recorded["source"]["validator_checks"],
+    }
+
+    with pytest.raises(ValueError, match="analyzer_sha256 is invalid"):
+        dashboard._validate_source_bindings(source, recorded, report)
+
+
 def test_missing_or_empty_video_fails_closed(
     dashboard_fixture, tmp_path: pathlib.Path
 ) -> None:

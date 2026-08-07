@@ -1,0 +1,549 @@
+{
+  "schema_version": "armbench.evidence_catalog_source.v1",
+  "classes": [
+    {
+      "id": "primary",
+      "label": "Primary or confirmatory",
+      "description": "Frozen or prospectively defined studies used for the repository's bounded result claims."
+    },
+    {
+      "id": "primary_source",
+      "label": "Primary source artifact",
+      "description": "Raw input to a primary combined analysis; interpret it with the linked companion artifact and protocol."
+    },
+    {
+      "id": "exploratory",
+      "label": "Exploratory pilot",
+      "description": "Pilot or smoke evidence used to test feasibility or choose a later protocol, not a confirmatory result."
+    },
+    {
+      "id": "mechanism_gate",
+      "label": "Mechanism or integration gate",
+      "description": "Component-level evidence that an implementation contract holds; it is not task-success evidence."
+    },
+    {
+      "id": "diagnostic",
+      "label": "Diagnostic",
+      "description": "A bounded debugging artifact retained for traceability rather than a headline efficacy claim."
+    },
+    {
+      "id": "rejected",
+      "label": "Rejected from effect analysis",
+      "description": "Byte-preserved evidence excluded after a documented protocol or pairing failure."
+    },
+    {
+      "id": "scripted_runtime",
+      "label": "Scripted runtime evidence",
+      "description": "MuJoCo or wire-contract evidence produced with a scripted non-learned policy, not pi0/pi0.5 inference."
+    },
+    {
+      "id": "simulation_baseline",
+      "label": "Planning and control baseline",
+      "description": "Classical Panda planning, collision, and trajectory-tracking evidence without a learned policy."
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "mujoco_formal_20260803",
+      "title": "MuJoCo Panda planning and control matrix",
+      "class": "simulation_baseline",
+      "policy_provenance": "none_classical_planning_and_control",
+      "result": "evidence/mujoco_formal_20260803/summary.md",
+      "protocol": "evidence/mujoco_formal_20260803/config.json",
+      "manifest": null,
+      "raw": [
+        "evidence/mujoco_formal_20260803/planning_per_trial.csv",
+        "evidence/mujoco_formal_20260803/execution_per_trial.csv",
+        "evidence/mujoco_formal_20260803/collision_samples.csv"
+      ],
+      "validator": {
+        "status": "not_available",
+        "reason": "This early benchmark predates the standalone artifact validators; its CSV, JSON, and media remain directly reviewable."
+      },
+      "claim_boundary": "Supports the local seven-DoF planning, collision-checking, and torque-limited tracking baseline only."
+    },
+    {
+      "id": "pi05_libero_alignment_core_001",
+      "title": "pi0.5 LIBERO temporal-alignment confirmatory study",
+      "class": "primary",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_libero_alignment_core_001/analysis/summary.md",
+      "protocol": "docs/PI05_ALIGNMENT_CONFIRMATORY_FREEZE.md",
+      "manifest": "evidence/pi05_libero_alignment_core_001/analysis/manifest.json",
+      "raw": [
+        "evidence/pi05_libero_alignment_core_001/run/evaluation/per_episode.csv",
+        "evidence/pi05_libero_alignment_core_001/run/evaluation/per_query.csv",
+        "evidence/pi05_libero_alignment_core_001/run/evaluation/resolved_protocol.json"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": ["python", "-m", "integrations.openpi.alignment_acceptance", "--no-open"],
+        "scope": "Validates the stored run and analysis, then rebuilds the offline acceptance report without model inference."
+      },
+      "claim_boundary": "Deterministic-delay LIBERO Spatial evidence for post-response suffix alignment; it is not a live non-blocking controller result."
+    },
+    {
+      "id": "pi05_libero_alignment_pilot_001",
+      "title": "pi0.5 LIBERO temporal-alignment pilot",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_libero_alignment_pilot_001/DIAGNOSTIC.md",
+      "protocol": "evidence/pi05_libero_alignment_pilot_001/run/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_libero_alignment_pilot_001/run/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_libero_alignment_pilot_001/run/evaluation/per_episode.csv",
+        "evidence/pi05_libero_alignment_pilot_001/run/evaluation/per_query.csv"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": ["python", "-m", "integrations.openpi.validate_libero_artifact", "evidence/pi05_libero_alignment_pilot_001/run/evaluation", "--json"],
+        "scope": "Checks the finalized exploratory artifact and recomputes its registered aggregates."
+      },
+      "claim_boundary": "Exploratory evidence that motivated a separately frozen confirmatory study."
+    },
+    {
+      "id": "pi05_libero_measured_age_confirmatory_001",
+      "title": "pi0.5 LIBERO measured-age confirmatory study",
+      "class": "primary",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_libero_measured_age_confirmatory_001/confirmatory_analysis/summary.md",
+      "protocol": "docs/PI05_MEASURED_AGE_CONFIRMATORY_FREEZE.md",
+      "manifest": "evidence/pi05_libero_measured_age_confirmatory_001/confirmatory_analysis/manifest.json",
+      "raw": [
+        "evidence/pi05_libero_measured_age_confirmatory_001/run/evaluation/per_episode.csv",
+        "evidence/pi05_libero_measured_age_confirmatory_001/run/evaluation/per_query.csv",
+        "evidence/pi05_libero_measured_age_confirmatory_001/run/evaluation/policy_sampling.csv"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": ["python", "-m", "integrations.openpi.measured_age_confirmatory_acceptance", "--no-open"],
+        "scope": "Validates the stored measured-age artifact and independently rebuilds the prespecified analysis and dashboard."
+      },
+      "claim_boundary": "Measured variable-age evidence with blocking inference plus simulator catch-up; it does not establish live asynchronous pi0.5 control."
+    },
+    {
+      "id": "pi05_libero_measured_age_pilot_001",
+      "title": "pi0.5 LIBERO measured-age pilot",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_libero_measured_age_pilot_001/analysis/summary.md",
+      "protocol": "evidence/pi05_libero_measured_age_pilot_001/plan.json",
+      "manifest": "evidence/pi05_libero_measured_age_pilot_001/analysis/manifest.json",
+      "raw": [
+        "evidence/pi05_libero_measured_age_pilot_001/run/evaluation/per_episode.csv",
+        "evidence/pi05_libero_measured_age_pilot_001/run/evaluation/per_query.csv"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": ["python", "-m", "integrations.openpi.validate_measured_age_artifact", "evidence/pi05_libero_measured_age_pilot_001/run/evaluation", "--json"],
+        "scope": "Checks the exploratory measured-age artifact, including timing and manifest consistency."
+      },
+      "claim_boundary": "Exploratory pilot used to design the held-out measured-age experiment."
+    },
+    {
+      "id": "pi05_libero_pilot_002",
+      "title": "pi0.5 LIBERO fixed-delay diagnostic pilot",
+      "class": "diagnostic",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_libero_pilot_002/DIAGNOSTIC.md",
+      "protocol": "evidence/pi05_libero_pilot_002/run/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_libero_pilot_002/run/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_libero_pilot_002/run/evaluation/per_episode.csv",
+        "evidence/pi05_libero_pilot_002/run/evaluation/per_query.csv"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": ["python", "-m", "integrations.openpi.validate_libero_artifact", "evidence/pi05_libero_pilot_002/run/evaluation", "--json"],
+        "scope": "Checks the finalized pilot artifact and registered aggregate consistency."
+      },
+      "claim_boundary": "Early fixed-delay diagnostic, retained for traceability rather than confirmatory performance claims."
+    },
+    {
+      "id": "pi05_libero_smoke_003",
+      "title": "pi0.5 LIBERO two-rollout smoke test",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_libero_smoke_003/summary.md",
+      "protocol": "docs/PI05_LIBERO_STUDY.md",
+      "manifest": null,
+      "raw": [
+        "evidence/pi05_libero_smoke_003/pi05_libero_smoke_003-validation.json",
+        "evidence/pi05_libero_smoke_003/visual_audit/episode_000_contact_sheet.png"
+      ],
+      "validator": {
+        "status": "not_available",
+        "reason": "Only the compact smoke summary, validation report, and visual audit were retained in Git."
+      },
+      "claim_boundary": "A two-rollout infrastructure smoke test, not an estimate of model task success."
+    },
+    {
+      "id": "pi05_projected_conditioning_g0_001",
+      "title": "pi0.5 projected-conditioning integration gate",
+      "class": "mechanism_gate",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_projected_conditioning_g0_001/README.md",
+      "protocol": "evidence/pi05_projected_conditioning_g0_001/report.json",
+      "manifest": "evidence/pi05_projected_conditioning_g0_001/manifest.json",
+      "raw": ["evidence/pi05_projected_conditioning_g0_001/report.json"],
+      "validator": {
+        "status": "available",
+        "argv": ["python", "-m", "integrations.openpi.validate_projected_conditioning_g0", "evidence/pi05_projected_conditioning_g0_001"],
+        "scope": "Rechecks source identity, equivalence, residual, latency-ratio, and memory gates."
+      },
+      "claim_boundary": "A policy-internal integration and resource gate; no closed-loop task-success claim."
+    },
+    {
+      "id": "pi05_projected_overlap_pilot_001",
+      "title": "pi0.5 projected-overlap paired pilot",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_projected_overlap_pilot_001/summary.md",
+      "protocol": "docs/PI05_PROJECTED_OVERLAP_PILOT.md",
+      "manifest": "evidence/pi05_projected_overlap_pilot_001/manifest.json",
+      "raw": [
+        "evidence/pi05_projected_overlap_pilot_001/episodes.json",
+        "evidence/pi05_projected_overlap_pilot_001/queries.json",
+        "evidence/pi05_projected_overlap_pilot_001/resolved_protocol.json"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": ["python", "-m", "integrations.openpi.projected_overlap_pilot", "validate", "evidence/pi05_projected_overlap_pilot_001"],
+        "scope": "Checks the paired pilot inventory, transition data, and registered result fields."
+      },
+      "claim_boundary": "Exploratory 40-rollout pilot; its observed differences are not confirmatory efficacy evidence."
+    },
+    {
+      "id": "pi05_rtc_guidance_g0_001",
+      "title": "pi0.5 RTC-guidance feasibility gate",
+      "class": "mechanism_gate",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_rtc_guidance_g0_001/README.md",
+      "protocol": "evidence/pi05_rtc_guidance_g0_001/report.json",
+      "manifest": "evidence/pi05_rtc_guidance_g0_001/manifest.json",
+      "raw": ["evidence/pi05_rtc_guidance_g0_001/report.json"],
+      "validator": {
+        "status": "available",
+        "argv": ["python", "-m", "integrations.openpi.validate_rtc_guidance_g0", "evidence/pi05_rtc_guidance_g0_001"],
+        "scope": "Rechecks implementation identity, equivalence controls, VJP response, latency, and device-memory gates."
+      },
+      "claim_boundary": "A 20-query feasibility gate on one fixed observation; no task-success or publication claim."
+    },
+    {
+      "id": "pi05_rtc_overlap_pairing_smoke_v3_001",
+      "title": "pi0.5 RTC-overlap v3 pairing smoke",
+      "class": "mechanism_gate",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_rtc_overlap_pairing_smoke_v3_001/README.md",
+      "protocol": "evidence/pi05_rtc_overlap_pairing_smoke_v3_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_rtc_overlap_pairing_smoke_v3_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_rtc_overlap_pairing_smoke_v3_001/evaluation/episodes.json",
+        "evidence/pi05_rtc_overlap_pairing_smoke_v3_001/evaluation/queries.json"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": ["python", "-m", "integrations.openpi.rtc_overlap_pilot", "validate", "evidence/pi05_rtc_overlap_pairing_smoke_v3_001/evaluation"],
+        "scope": "Checks the corrected-v3 query-zero input, response, key, and noise pairing contract."
+      },
+      "claim_boundary": "An implementation gate covering three triplets, not outcome evidence."
+    },
+    {
+      "id": "pi05_rtc_overlap_pilot_001",
+      "title": "pi0.5 RTC-overlap three-method pilot",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_rtc_overlap_pilot_001/analysis/summary.md",
+      "protocol": "evidence/pi05_rtc_overlap_pilot_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_rtc_overlap_pilot_001/analysis/manifest.json",
+      "raw": [
+        "evidence/pi05_rtc_overlap_pilot_001/evaluation/episodes.json",
+        "evidence/pi05_rtc_overlap_pilot_001/evaluation/queries.json"
+      ],
+      "validator": {
+        "status": "not_available",
+        "reason": "The current corrected-v3 validator deliberately rejects this historical v2 schema; its saved analysis, manifest, and raw records remain reviewable."
+      },
+      "claim_boundary": "Exploratory 60-rollout integration and mechanism study, not a confirmatory efficacy result."
+    },
+    {
+      "id": "pi05_rtc_overlap_primary_seed_20260806_001",
+      "title": "Rejected RTC-overlap v2 seed 20260806",
+      "class": "rejected",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_rtc_overlap_primary_seed_20260806_001/PAIRING_AUDIT.md",
+      "protocol": "docs/research/RTC_OVERLAP_PRIMARY_300_PROTOCOL.md",
+      "manifest": "evidence/pi05_rtc_overlap_primary_seed_20260806_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_rtc_overlap_primary_seed_20260806_001/evaluation/episodes.json",
+        "evidence/pi05_rtc_overlap_primary_seed_20260806_001/evaluation/queries.json"
+      ],
+      "validator": {
+        "status": "not_available",
+        "reason": "The current corrected-v3 validator rejects this historical v2 schema, and the linked pairing audit already excludes it from matched-effect analysis."
+      },
+      "claim_boundary": "Rejected after query-zero response mismatches; never use its summary as method-effect evidence."
+    },
+    {
+      "id": "pi05_rtc_overlap_primary_seed_20260807_001",
+      "title": "Rejected RTC-overlap v2 seed 20260807",
+      "class": "rejected",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_rtc_overlap_primary_seed_20260807_001/PAIRING_AUDIT.md",
+      "protocol": "docs/research/RTC_OVERLAP_PRIMARY_300_PROTOCOL.md",
+      "manifest": "evidence/pi05_rtc_overlap_primary_seed_20260807_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_rtc_overlap_primary_seed_20260807_001/evaluation/episodes.json",
+        "evidence/pi05_rtc_overlap_primary_seed_20260807_001/evaluation/queries.json"
+      ],
+      "validator": {
+        "status": "not_available",
+        "reason": "The current corrected-v3 validator rejects this historical v2 schema, and the linked pairing audit already excludes it from matched-effect analysis."
+      },
+      "claim_boundary": "Rejected after query-zero response mismatches; never use its summary as method-effect evidence."
+    },
+    {
+      "id": "pi05_rtc_overlap_primary_v3_300_001",
+      "title": "Corrected pi0.5 RTC-overlap primary analysis",
+      "class": "primary",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_rtc_overlap_primary_v3_300_001/analysis/summary.md",
+      "protocol": "docs/research/RTC_OVERLAP_PRIMARY_300_V3_PROTOCOL.md",
+      "manifest": "evidence/pi05_rtc_overlap_primary_v3_300_001/analysis/manifest.json",
+      "raw": [
+        "evidence/pi05_rtc_overlap_primary_v3_300_001/analysis/analysis.json",
+        "evidence/pi05_rtc_overlap_primary_v3_300_001/analysis/per_triplet.csv"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": ["python", "-m", "integrations.openpi.rtc_overlap_primary_dashboard"],
+        "scope": "Validates both corrected-v3 source artifacts, rebuilds the 300-rollout analysis, and verifies canonical saved outputs."
+      },
+      "claim_boundary": "A corrected 300-rollout primary comparison with a null success-improvement result; it does not support an efficacy claim for RTC guidance."
+    },
+    {
+      "id": "pi05_rtc_overlap_primary_v3_seed_20260806_001",
+      "title": "Corrected RTC-overlap primary source, seed 20260806",
+      "class": "primary_source",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_rtc_overlap_primary_v3_seed_20260806_001/README.md",
+      "protocol": "docs/research/RTC_OVERLAP_PRIMARY_300_V3_PROTOCOL.md",
+      "manifest": "evidence/pi05_rtc_overlap_primary_v3_seed_20260806_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_rtc_overlap_primary_v3_seed_20260806_001/evaluation/episodes.json",
+        "evidence/pi05_rtc_overlap_primary_v3_seed_20260806_001/evaluation/queries.json",
+        "evidence/pi05_rtc_overlap_primary_v3_seed_20260806_001/evaluation/resolved_protocol.json"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": ["python", "-m", "integrations.openpi.rtc_overlap_pilot", "validate", "evidence/pi05_rtc_overlap_primary_v3_seed_20260806_001/evaluation"],
+        "scope": "Checks all 50 corrected-v3 matched triplets and the query-zero pairing gate for this source seed."
+      },
+      "claim_boundary": "One raw half of the primary cohort; interpret only through the combined prespecified analysis."
+    },
+    {
+      "id": "pi05_rtc_overlap_primary_v3_seed_20260807_001",
+      "title": "Corrected RTC-overlap primary source, seed 20260807",
+      "class": "primary_source",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_rtc_overlap_primary_v3_seed_20260807_001/README.md",
+      "protocol": "docs/research/RTC_OVERLAP_PRIMARY_300_V3_PROTOCOL.md",
+      "manifest": "evidence/pi05_rtc_overlap_primary_v3_seed_20260807_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_rtc_overlap_primary_v3_seed_20260807_001/evaluation/episodes.json",
+        "evidence/pi05_rtc_overlap_primary_v3_seed_20260807_001/evaluation/queries.json",
+        "evidence/pi05_rtc_overlap_primary_v3_seed_20260807_001/evaluation/resolved_protocol.json"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": ["python", "-m", "integrations.openpi.rtc_overlap_pilot", "validate", "evidence/pi05_rtc_overlap_primary_v3_seed_20260807_001/evaluation"],
+        "scope": "Checks all 50 corrected-v3 matched triplets and the query-zero pairing gate for this source seed."
+      },
+      "claim_boundary": "One raw half of the primary cohort; interpret only through the combined prespecified analysis."
+    },
+    {
+      "id": "vla_guard_formal_20260803",
+      "title": "Scripted action-guard fault matrix",
+      "class": "scripted_runtime",
+      "policy_provenance": "scripted_non_learned",
+      "result": "evidence/vla_guard_formal_20260803/summary.md",
+      "protocol": "evidence/vla_guard_formal_20260803/config.json",
+      "manifest": null,
+      "raw": [
+        "evidence/vla_guard_formal_20260803/per_case.csv",
+        "evidence/vla_guard_formal_20260803/per_chunk.csv",
+        "evidence/vla_guard_formal_20260803/per_action.csv"
+      ],
+      "validator": {
+        "status": "not_available",
+        "reason": "This legacy guard artifact predates the schema-v5 standalone validator."
+      },
+      "claim_boundary": "Tests guard behavior against scripted action streams; no pi0/pi0.5 checkpoint was used."
+    },
+    {
+      "id": "vla_online_camera_freeze_20260804",
+      "title": "Scripted frozen-camera rejection case",
+      "class": "scripted_runtime",
+      "policy_provenance": "scripted_non_learned_reference",
+      "result": "evidence/vla_online_camera_freeze_20260804/summary.md",
+      "protocol": "evidence/vla_online_camera_freeze_20260804/config.json",
+      "manifest": null,
+      "raw": [
+        "evidence/vla_online_camera_freeze_20260804/per_episode.csv",
+        "evidence/vla_online_camera_freeze_20260804/per_chunk.csv"
+      ],
+      "validator": {
+        "status": "not_available",
+        "reason": "The stored schema-v2 artifact is intentionally unsupported by the current schema-v5 validator."
+      },
+      "claim_boundary": "Demonstrates fail-closed observation rejection with a scripted policy, not learned-policy robustness."
+    },
+    {
+      "id": "vla_online_camera_nominal_20260804",
+      "title": "Scripted nominal camera-feedback case",
+      "class": "scripted_runtime",
+      "policy_provenance": "scripted_non_learned_reference",
+      "result": "evidence/vla_online_camera_nominal_20260804/summary.md",
+      "protocol": "evidence/vla_online_camera_nominal_20260804/config.json",
+      "manifest": null,
+      "raw": [
+        "evidence/vla_online_camera_nominal_20260804/per_episode.csv",
+        "evidence/vla_online_camera_nominal_20260804/per_chunk.csv"
+      ],
+      "validator": {
+        "status": "not_available",
+        "reason": "The stored legacy artifact predates the schema-v5 standalone validator."
+      },
+      "claim_boundary": "Checks the nominal receding-horizon observation path with a scripted reference policy."
+    },
+    {
+      "id": "vla_online_formal_20260804",
+      "title": "Scripted receding-horizon MuJoCo matrix",
+      "class": "scripted_runtime",
+      "policy_provenance": "scripted_non_learned_reference",
+      "result": "evidence/vla_online_formal_20260804/summary.md",
+      "protocol": "evidence/vla_online_formal_20260804/config.json",
+      "manifest": null,
+      "raw": [
+        "evidence/vla_online_formal_20260804/per_episode.csv",
+        "evidence/vla_online_formal_20260804/per_chunk.csv"
+      ],
+      "validator": {
+        "status": "not_available",
+        "reason": "The stored legacy artifact predates the schema-v5 standalone validator."
+      },
+      "claim_boundary": "Compares feedback horizons and physics tracking with a scripted policy; it is not VLA task-competence evidence."
+    },
+    {
+      "id": "vla_online_jitter_deadline_20260804",
+      "title": "Scripted synthetic-latency deadline case",
+      "class": "scripted_runtime",
+      "policy_provenance": "scripted_non_learned_reference",
+      "result": "evidence/vla_online_jitter_deadline_20260804/summary.md",
+      "protocol": "evidence/vla_online_jitter_deadline_20260804/config.json",
+      "manifest": null,
+      "raw": [
+        "evidence/vla_online_jitter_deadline_20260804/per_episode.csv",
+        "evidence/vla_online_jitter_deadline_20260804/per_action.csv"
+      ],
+      "validator": {
+        "status": "not_available",
+        "reason": "The stored schema-v2 artifact is intentionally unsupported by the current schema-v5 validator."
+      },
+      "claim_boundary": "Demonstrates a deadline fallback under synthetic latency with a scripted policy; latency is not measured model inference."
+    },
+    {
+      "id": "vla_online_jitter_safe_20260804",
+      "title": "Scripted synthetic-jitter completion case",
+      "class": "scripted_runtime",
+      "policy_provenance": "scripted_non_learned_reference",
+      "result": "evidence/vla_online_jitter_safe_20260804/summary.md",
+      "protocol": "evidence/vla_online_jitter_safe_20260804/config.json",
+      "manifest": null,
+      "raw": [
+        "evidence/vla_online_jitter_safe_20260804/per_episode.csv",
+        "evidence/vla_online_jitter_safe_20260804/per_action.csv"
+      ],
+      "validator": {
+        "status": "not_available",
+        "reason": "The stored schema-v2 artifact is intentionally unsupported by the current schema-v5 validator."
+      },
+      "claim_boundary": "Checks runtime behavior under synthetic jitter with a scripted reference policy, not pi0.5 latency."
+    },
+    {
+      "id": "vla_online_visual_nominal_20260804",
+      "title": "Scripted visual-feedback nominal case",
+      "class": "scripted_runtime",
+      "policy_provenance": "scripted_non_learned_reference",
+      "result": "evidence/vla_online_visual_nominal_20260804/summary.md",
+      "protocol": "evidence/vla_online_visual_nominal_20260804/config.json",
+      "manifest": null,
+      "raw": [
+        "evidence/vla_online_visual_nominal_20260804/per_episode.csv",
+        "evidence/vla_online_visual_nominal_20260804/per_chunk.csv"
+      ],
+      "validator": {
+        "status": "not_available",
+        "reason": "The stored legacy artifact predates the schema-v5 standalone validator."
+      },
+      "claim_boundary": "A visual telemetry and feedback-path check with a scripted policy, not evidence of visual-language reasoning."
+    },
+    {
+      "id": "vla_online_visual_state_jump_20260804",
+      "title": "Scripted state-jump rejection case",
+      "class": "scripted_runtime",
+      "policy_provenance": "scripted_non_learned_reference",
+      "result": "evidence/vla_online_visual_state_jump_20260804/summary.md",
+      "protocol": "evidence/vla_online_visual_state_jump_20260804/config.json",
+      "manifest": null,
+      "raw": [
+        "evidence/vla_online_visual_state_jump_20260804/per_episode.csv",
+        "evidence/vla_online_visual_state_jump_20260804/per_chunk.csv"
+      ],
+      "validator": {
+        "status": "not_available",
+        "reason": "The stored legacy artifact predates the schema-v5 standalone validator."
+      },
+      "claim_boundary": "Demonstrates fail-closed state-mismatch handling with a scripted policy."
+    },
+    {
+      "id": "vla_openpi_fault_matrix_20260804",
+      "title": "Official-client OpenPI wire fault matrix",
+      "class": "scripted_runtime",
+      "policy_provenance": "scripted_non_learned_loopback",
+      "result": "evidence/vla_openpi_fault_matrix_20260804/summary.md",
+      "protocol": "evidence/vla_openpi_fault_matrix_20260804/matrix.json",
+      "manifest": "evidence/vla_openpi_fault_matrix_20260804/manifest.json",
+      "raw": [
+        "evidence/vla_openpi_fault_matrix_20260804/matrix.csv",
+        "evidence/vla_openpi_fault_matrix_20260804/none/per_episode.csv",
+        "evidence/vla_openpi_fault_matrix_20260804/disconnect/per_episode.csv"
+      ],
+      "validator": {
+        "status": "not_available",
+        "reason": "Each schema-v5 child is independently validatable, but this historical matrix has no single public aggregate-validator command."
+      },
+      "claim_boundary": "Exercises the official MessagePack/WebSocket client against scripted wire faults; no pi0/pi0.5 inference was run."
+    },
+    {
+      "id": "vla_openpi_request_replay_20260804",
+      "title": "Replayable OpenPI request round trip",
+      "class": "scripted_runtime",
+      "policy_provenance": "scripted_non_learned_loopback",
+      "result": "evidence/vla_openpi_request_replay_20260804/summary.md",
+      "protocol": "evidence/vla_openpi_request_replay_20260804/config.json",
+      "manifest": null,
+      "raw": [
+        "evidence/vla_openpi_request_replay_20260804/per_episode.csv",
+        "evidence/vla_openpi_request_replay_20260804/per_chunk.csv",
+        "evidence/vla_openpi_request_replay_20260804/loopback_server.json"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": ["python", "-m", "armbench", "vla-artifact-validate", "evidence/vla_openpi_request_replay_20260804"],
+        "scope": "Reconstructs and hashes stored requests and validates schema-v5 cross-file consistency."
+      },
+      "claim_boundary": "Proves request serialization and replayability against a scripted loopback server; checkpoint identity is false."
+    }
+  ]
+}

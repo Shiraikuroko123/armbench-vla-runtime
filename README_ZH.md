@@ -110,6 +110,11 @@ Windows 上可以先执行一个有边界的本地验收：
 .\scripts\rtc_primary_acceptance.cmd
 ```
 
+通过[证据目录](docs/EVIDENCE_CATALOG.md)可以明确区分正式结果、pilot、集成门槛、
+被拒绝的旧实验和 scripted 运行时检查。[机器可读版本](docs/evidence_catalog.json)
+将每个保留 artifact 连接到结果、协议、manifest、原始审阅文件、验证命令和明确的
+主张边界。
+
 安装、远程 OpenPI 执行、调试与环境支持请从[文档索引](docs/README.md)进入。
 
 ## 仓库结构

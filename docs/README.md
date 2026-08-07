@@ -22,6 +22,7 @@ to match later results.
 | [Architecture and claim boundaries](PROJECT_ARCHITECTURE.md) | Current | Two execution paths, shared runtime layer, terminology, and integration boundary |
 | [架构与主张边界](PROJECT_ARCHITECTURE_ZH.md) | Current | 中文架构、术语和可公开主张范围 |
 | [Results](RESULTS.md) | Current | Verified outcomes, provenance, statistics, and study-specific limitations |
+| [Evidence catalog](EVIDENCE_CATALOG.md) | Current | Complete artifact inventory, evidence classes, review links, validators, and claim boundaries |
 | [Evaluation methodology](METHODOLOGY.md) | Current | Runtime contracts, metrics, experimental design, and claim scope |
 | [Troubleshooting](DEBUGGING.md) | Operational | Boundary-oriented diagnosis for installation, protocol, runtime, and artifacts |
 | [Local CPU setup](LOCAL_SETUP.md) | Operational | Portable Windows/Linux installation, model resolution, and offline commands |
@@ -70,6 +71,12 @@ to match later results.
 The evidence/ tree contains preserved experiment artifacts. The reports/ tree
 contains generated offline dashboards. Treat evidence directories as read-only:
 create a new run ID for diagnostics or reruns.
+
+The generated [evidence catalog](EVIDENCE_CATALOG.md) covers every top-level
+artifact and links its machine-readable result, protocol, manifest, raw review
+files, validator command, and claim boundary. Run
+`python scripts/build_evidence_catalog.py --check` to verify that the catalog
+matches all Git-tracked evidence bytes.
 
 The active result summary is [Results](RESULTS.md). When a summary and a frozen
 protocol use different tense or status language, the protocol records what was
