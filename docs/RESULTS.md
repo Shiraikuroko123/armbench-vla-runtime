@@ -394,6 +394,55 @@ proof. The self-validating artifact is
 and the method boundary is documented in
 [clearance-backed swept collision audit](MUJOCO_SWEPT_AUDIT.md).
 
+## Provider-neutral second-family contract audit
+
+- Run ID: `provider_contract_audit_001`
+- Provider identity: `openvla_oft_libero_contract_fixture`
+- Upstream family/revision declaration: OpenVLA-OFT / `e4287e9`
+- Response origin: `synthetic_contract_fixture`
+- Raw/adapted shapes: `6x7` LIBERO-style / `6x8` Panda runtime
+- Observation binding: exact dual-image, state, prompt, and sequence SHA-256
+- Semantic mismatch matrix: 5/5 rejected (frame, period, rotation encoding,
+  gripper convention, and controller semantics)
+- Root inventory SHA-256:
+  `41bd52c99a645ff26c47c1d992e0d5fc9c889fa6e69ca6967388caf9e8673812`
+
+The validator checks both root and nested manifests, provider identity and
+claim flags, canonical action/semantic hashes, observation-response binding,
+all registered semantic rejections, and deterministic Panda adapter replay.
+This demonstrates a second model-family ABI and fail-closed semantic boundary.
+It does not execute or capture output from an OpenVLA-OFT checkpoint, measure
+GPU latency, or establish cross-model task success. The artifact is
+[`reports/provider_contract_audit_001`](../reports/provider_contract_audit_001/summary.json)
+and the method is documented in
+[provider-neutral action contract](PROVIDER_CONTRACT.md).
+
+## LeRobot-style actuator-boundary replay
+
+- Run ID: `lerobot_style_watchdog_001`
+- Frames: 5
+- Decisions: 3 execute / 2 hold
+- Fault path: stale observation -> latched hold -> explicit reset -> recovery
+- Registered Panda action semantics SHA-256:
+  `f2133fdd533e6a50ebe18400b70a316b1c674dd0ddd5e788d13f5c39c5873ddd`
+- Root inventory SHA-256:
+  `7bf9a72ff642cc0386148f3ba5d8f2cdd4d2458fec19a739f5b13b19bf1643c5`
+
+The artifact exposes LeRobot `add_frame`-style in-memory keys for two images,
+state, action, and task. Its software watchdog checks action semantics,
+sequence and timestamp monotonicity, observation/action deadlines, heartbeat,
+fault latching, and reset replay protection. Validation reconstructs every
+observation, replays the watchdog state machine, regenerates all frame hashes,
+and recomputes the summary even after a manifest has been re-signed.
+
+Neither the official `lerobot` package nor a physical robot was used. This is
+not official LeRobotDataset storage validation, a driver integration, a
+hardware emergency stop, hard-real-time behavior, or safety certification. The
+artifact is
+[`reports/lerobot_style_watchdog_001`](../reports/lerobot_style_watchdog_001/summary.json)
+and the implementation boundary is documented in
+[LeRobot-style runtime bridge](LEROBOT_RUNTIME_BRIDGE.md).
+
 ## Local scripted online VLA runtime result
 
 ### Provenance

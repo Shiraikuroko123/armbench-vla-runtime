@@ -102,6 +102,8 @@ completed `pi0.5` studies.
 | Cartesian action adapter | Scripted `H x 7` LIBERO-style chunk mapped through the Panda Jacobian into the existing `H x 8` guard contract | Component smoke only; no official checkpoint, task-success, or controller-equivalence claim |
 | Frozen-response Panda replay | 7,934 official response hashes verified; 90 chunks replayed across three Panda scenes | Offline cross-controller diagnostic; no checkpoint execution, feedback loop, or task-success claim |
 | Braking-invariant repair | 270 paired frozen-response cases: 264/270 to 270/270 registered constraints, all 6 legacy conflicts resolved, zero regressions | Training-free trajectory repair diagnostic; measured software budget, not hard real time or physical safety |
+| Provider-neutral ABI | Synthetic OpenVLA-OFT-named `6x7` fixture bound to one observation, adapted to `6x8`, with 5/5 registered semantic mismatches rejected | Interface portability only; no OpenVLA-OFT checkpoint execution or cross-model task result |
+| LeRobot-style actuator boundary | Five replayable frames: three executes, one stale-observation hold, one latched hold, one explicit reset | In-memory frame compatibility and software watchdog only; no official LeRobot runtime, driver, or robot |
 
 Detailed results are in [Results](RESULTS.md). Frozen protocols and audits are
 listed in the [documentation index](README.md).
@@ -150,6 +152,21 @@ the preserved v3 matrix records these bounds and the 20 mm margin in its
 provenance. Self-collision remains sampled and dynamics are not certified. See
 [asynchronous Panda closed-loop runtime](ASYNC_PANDA_CLOSED_LOOP.md).
 
+The policy boundary is now provider-neutral at the ABI level. Frozen response
+bundles carry model-family identity, checkpoint-attestation status, observation
+binding, and a canonical action-semantics hash. Provider-native actions do not
+enter the runtime until an exact gate accepts coordinate frame, control period,
+normalization, scale, rotation, gripper, and controller fields and an explicit
+adapter emits the Panda `Hx8` contract. The preserved second-family fixture is
+synthetic, so this is portability evidence rather than cross-model efficacy.
+See [provider-neutral action contract](PROVIDER_CONTRACT.md).
+
+The actuator boundary now also exposes LeRobot-style in-memory frame keys and
+a fail-closed command watchdog. Hash-manifested episode records preserve input
+and dispatched commands, time/sequence metadata, latch/reset events, and enough
+bytes for deterministic decision replay. This is not official LeRobotDataset
+storage or a robot driver. See [LeRobot-style runtime bridge](LEROBOT_RUNTIME_BRIDGE.md).
+
 This is still not a verified live control chain from official `pi0.5`
 inference to Panda execution. Scale, coordinate-frame, clipping, and gripper
 conventions are now attested against LIBERO commit `f78abd68` and robosuite
@@ -173,15 +190,17 @@ system scheduling or worst-case latency guarantee.
 The technically meaningful next step is not a cosmetic simulator change. It is
 to connect the implemented component adapter to a complete evaluator and test:
 
-1. wire the independently scheduled runtime and the repair layer into an
-   end-to-end evaluator and preserve stale-response discard in task-level
-   evidence;
-2. extend the static-obstacle swept bound to continuous self-collision and
-   dynamics-aware reachability, with separately reported limits;
-3. reproduce the repair protocol on a second open action-chunk policy; and
-4. add a simulator-to-hardware or LeRobot-compatible adapter with separate
-   watchdog, safety, and timing evidence.
+1. replace the second-family synthetic fixture with attested, checkpoint-backed
+   OpenVLA-OFT captures and run a preregistered cross-model closed-loop matrix;
+2. pin an official LeRobot release, validate records with its loader, and bind
+   the watchdog to a concrete driver before any hardware claim;
+3. extend the static-obstacle swept bound to continuous self-collision and
+   dynamics-aware reachability, with separately reported limits; and
+4. add calibrated hardware timing, emergency-stop integration, and repeated
+   physical fault-injection evidence.
 
 Until then, the accurate public description is: a seven-DoF constrained
-execution base plus a `pi0.5` VLA runtime-evaluation path, with an explicit
-component-level Cartesian adapter and shared auditable runtime infrastructure.
+execution base plus a `pi0.5` VLA runtime-evaluation path, with provider-neutral
+action semantics, a LeRobot-style software boundary, and shared auditable
+runtime infrastructure. Learned second-model and physical-robot evidence remain
+future work.

@@ -53,6 +53,8 @@ Panda 与 LIBERO 的动作契约不同，实验结果不会混合统计。完整
 | 终端制动不变量修复 | 270 个成对离线案例：已注册约束从 264/270 提升到 270/270，6 个旧冲突全部解决，0 个回归 | 将冻结的 `pi0.5` 响应送入 Panda 适配器；不主张任务成功率或硬实时 |
 | 异步 Panda 闭环 | 27 个带 clearance-backed swept 静态障碍检查的 CPU 墙钟案例：制动不变量模式 9/9 通过物理谓词，突停违规 0，修复预算超限 0；legacy 为 311 次突停，unguarded 为 289 次 | 使用 scripted 非学习策略验证双相机、策略 worker、调度、修复和力矩控制集成；不是学习策略效果或实体安全认证 |
 | Clearance-backed swept 审计 | 三个场景 72 条固定 seed 边：相对更密采样 oracle 的 false-safe 为 0 | 静态障碍保守审计；自碰撞和连续实体安全仍不在范围内 |
+| Provider-neutral 动作契约 | OpenVLA-OFT 命名的 CPU fixture：`6x7` 转 `6x8`，精确绑定观测，5/5 类语义冲突均被拒绝 | 仅证明第二模型族 ABI；没有执行 OpenVLA-OFT checkpoint |
+| LeRobot 风格执行器边界 | 5 帧确定性重放：执行 3 条命令，拒绝过期观测，保持锁存，并在显式 reset 后恢复 | 仅证明帧接口与软件 watchdog；未运行官方 LeRobot 或实体机器人 |
 
 完整协议、验证器、统计和研究限制见[结果说明](docs/RESULTS.md)。
 
@@ -63,6 +65,7 @@ Panda 与 LIBERO 的动作契约不同，实验结果不会混合统计。完整
 - 时序实验使用 blocking inference 加 simulator catch-up，不是操作系统级硬实时控制。
 - Panda guard 不是碰撞安全认证，也不能证明 `pi0.5` 已控制 Panda。
 - 没有集成 Isaac Lab、ROS2、真实 Franka Panda 或安全 PLC。
+- LeRobot bridge 是 CPU-only 的内存接口契约，不等于官方 LeRobotDataset 或真机集成。
 
 ## 本地 CPU 快速开始
 
@@ -160,6 +163,30 @@ deadline 回退、制动修复和力矩控制 Panda 物理执行接到同一个�
 19.01 ms。静态障碍边使用记录在 provenance 中的 20 mm clearance-backed swept
 细分，自碰撞仍为采样检查。它只在 1/9 个条件中到达目标，因此报告明确保留了
 安全/进度代价和本地 CPU 吞吐限制，而不是用汇总成功率掩盖。
+
+Provider-neutral CPU 审计演示第二个 action-chunk 模型族如何进入现有 runtime，
+并避免把所有 `Hx7` 张量误认为相同动作空间：
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m armbench vla-provider-audit-validate `
+  reports\provider_contract_audit_001
+```
+
+仓库中的 fixture 使用 `OpenVLA-OFT` 名称来覆盖该 provider ABI，但它是合成数据，
+不是 checkpoint 输出。精确语义门禁和主张边界见
+[Provider-neutral 动作契约](docs/PROVIDER_CONTRACT_ZH.md)。
+
+最后一个 CPU-only 边界将 Panda 命令映射为 LeRobot 风格 `add_frame` 字段，在发送前
+执行 command watchdog，并导出带哈希清单的 episode；离线重放会重新计算全部决定：
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m armbench vla-lerobot-replay `
+  reports\lerobot_style_watchdog_001
+```
+
+它验证软件接口、过期命令 hold、故障锁存和 reset 路径，但没有使用官方 LeRobot 包，
+也没有连接实体机器人。详见
+[LeRobot 风格运行时桥接](docs/LEROBOT_RUNTIME_BRIDGE_ZH.md)。
 
 ## 验收已保存结果
 

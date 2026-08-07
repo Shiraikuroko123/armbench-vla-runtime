@@ -24,6 +24,14 @@ from armbench.vla.cartesian_adapter import (
     PandaCartesianActionAdapter,
     run_cartesian_adapter_smoke,
 )
+from armbench.vla.command_watchdog import (
+    PANDA_RUNTIME_ACTION_SEMANTICS_SHA256,
+    PANDA_RUNTIME_ACTION_SPACE_ID,
+    ActuatorCommandWatchdog,
+    CommandWatchdogConfig,
+    WatchdogDecision,
+    runtime_action_semantics,
+)
 from armbench.vla.fault_matrix import execute_loopback_fault_matrix
 from armbench.vla.guard import ActionChunkGuard, GuardConfig, GuardResult
 from armbench.vla.online import (
@@ -44,6 +52,17 @@ from armbench.vla.loopback import (
     LOOPBACK_POLICY_PROVENANCE,
     OpenPIProtocolLoopbackServer,
     execute_openpi_loopback_run,
+)
+from armbench.vla.lerobot_adapter import (
+    LEROBOT_STYLE_FRAME_KEYS,
+    LeRobotFrameAdapter,
+)
+from armbench.vla.lerobot_episode import (
+    LeRobotEpisodeError,
+    LeRobotEpisodeRecorder,
+    replay_lerobot_episode,
+    run_lerobot_episode_smoke,
+    validate_lerobot_episode,
 )
 from armbench.vla.policy import (
     ActionChunkPolicy,
@@ -103,6 +122,7 @@ __all__ = [
     "ActionChunkPolicy",
     "ActionChunkGuard",
     "ActionSemantics",
+    "ActuatorCommandWatchdog",
     "AdaptedActionChunkPolicy",
     "AsyncChunkDispatcher",
     "AsyncCommandDecision",
@@ -112,6 +132,7 @@ __all__ = [
     "CartesianAdapterConfig",
     "CartesianAdapterResult",
     "CartesianAdapterStep",
+    "CommandWatchdogConfig",
     "BoundedOpenPIBackend",
     "GuardConfig",
     "GuardResult",
@@ -121,6 +142,10 @@ __all__ = [
     "LatestPolicyWorker",
     "LIBERO_ACTION_SPACE_ID",
     "LIBERO_CONTROLLER_SEMANTICS_ID",
+    "LEROBOT_STYLE_FRAME_KEYS",
+    "LeRobotEpisodeError",
+    "LeRobotEpisodeRecorder",
+    "LeRobotFrameAdapter",
     "OpenPIPolicyClient",
     "OpenPIProtocolLoopbackServer",
     "OnlineEpisodeResult",
@@ -138,6 +163,8 @@ __all__ = [
     "ProviderContractError",
     "ProviderIdentity",
     "PandaCartesianActionAdapter",
+    "PANDA_RUNTIME_ACTION_SEMANTICS_SHA256",
+    "PANDA_RUNTIME_ACTION_SPACE_ID",
     "ReferenceActionChunkPolicy",
     "RecordedOpenPIRequest",
     "RecordedProbeValidationError",
@@ -154,6 +181,7 @@ __all__ = [
     "VLARuntimeSupervisor",
     "VLAObservationGuard",
     "VLAObservation",
+    "WatchdogDecision",
     "execute_openpi_loopback_run",
     "execute_recorded_probe_batch_comparison",
     "execute_recorded_probe_comparison",
@@ -163,13 +191,17 @@ __all__ = [
     "canonical_action_sha256",
     "libero_cartesian_semantics",
     "require_semantic_compatibility",
+    "replay_lerobot_episode",
+    "runtime_action_semantics",
     "run_provider_contract_audit",
     "run_online_episode",
     "run_async_runtime_smoke",
     "run_cartesian_adapter_smoke",
+    "run_lerobot_episode_smoke",
     "load_recorded_openpi_request",
     "validate_online_artifact",
     "validate_frozen_provider_bundle",
+    "validate_lerobot_episode",
     "validate_provider_contract_audit",
     "validate_recorded_probe_batch_comparison",
     "validate_recorded_probe_comparison",

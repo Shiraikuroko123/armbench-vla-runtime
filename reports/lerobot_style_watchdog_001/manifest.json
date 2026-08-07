@@ -1,0 +1,26 @@
+{
+  "files": [
+    {
+      "path": "episode.npz",
+      "sha256": "a897e04c91f4e5f7c29691e69ac127acaa7cf6f06ceb3c35e65d510d6c109994",
+      "size_bytes": 6271
+    },
+    {
+      "path": "frames.jsonl",
+      "sha256": "aae83f2c427ef7692ecd9151f2e6823a547308c8b0dedea1564faf9d183c8a14",
+      "size_bytes": 8881
+    },
+    {
+      "path": "metadata.json",
+      "sha256": "4163e0c7dce76145221b4aa87509ce7a7c1cb6bbfac8ce8b4cc1b1f55e813fa2",
+      "size_bytes": 2055
+    },
+    {
+      "path": "summary.json",
+      "sha256": "8e4d5345006f20da7ae5c71fa2f42bf4d6a46f921f220567ba4fc86e036640ad",
+      "size_bytes": 851
+    }
+  ],
+  "inventory_sha256": "7bf9a72ff642cc0386148f3ba5d8f2cdd4d2458fec19a739f5b13b19bf1643c5",
+  "schema_version": "armbench.lerobot_style_episode_manifest.v1"
+}

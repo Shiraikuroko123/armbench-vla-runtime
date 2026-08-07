@@ -1,0 +1,58 @@
+{
+  "claims": {
+    "hard_realtime_guarantee": false,
+    "hardware_estop_integrated": false,
+    "learned_policy_checkpoint_executed": false,
+    "official_lerobot_dataset_validated": false,
+    "official_lerobot_package_used": false,
+    "physical_robot_connected": false,
+    "robot_safety_certification": false
+  },
+  "episode_id": "lerobot_style_watchdog_smoke_001",
+  "frame_count": 5,
+  "lerobot_style_interface": {
+    "add_frame_keys": [
+      "observation.images.exterior",
+      "observation.images.wrist",
+      "observation.state",
+      "action",
+      "task"
+    ],
+    "official_lerobot_dataset_storage": false,
+    "official_lerobot_runtime_validated": false
+  },
+  "runtime_action_semantics": {
+    "action_dim": 8,
+    "action_order": [
+      "panda_joint1_velocity_rad_s",
+      "panda_joint2_velocity_rad_s",
+      "panda_joint3_velocity_rad_s",
+      "panda_joint4_velocity_rad_s",
+      "panda_joint5_velocity_rad_s",
+      "panda_joint6_velocity_rad_s",
+      "panda_joint7_velocity_rad_s",
+      "gripper_position_normalized"
+    ],
+    "action_space_id": "armbench.panda.joint_velocity_gripper_position.v1",
+    "coordinate_frame": "panda_joint_space",
+    "gripper_convention": "zero_closed_one_open",
+    "gripper_range": [
+      0.0,
+      1.0
+    ],
+    "joint_units": "rad_s",
+    "schema_version": "armbench.runtime_action_semantics.v1"
+  },
+  "runtime_action_semantics_sha256": "f2133fdd533e6a50ebe18400b70a316b1c674dd0ddd5e788d13f5c39c5873ddd",
+  "schema_version": "armbench.lerobot_style_episode.v1",
+  "scope": "cpu_only_lerobot_style_frame_and_actuator_boundary",
+  "source": "scripted_non_learned_cpu_bridge_fixture",
+  "watchdog_config": {
+    "action_semantics_id": "armbench.panda.joint_velocity_gripper_position.v1",
+    "action_semantics_sha256": "f2133fdd533e6a50ebe18400b70a316b1c674dd0ddd5e788d13f5c39c5873ddd",
+    "fallback_gripper_position": 1.0,
+    "heartbeat_timeout_s": 0.25,
+    "max_action_age_s": 0.1,
+    "max_observation_age_s": 0.2
+  }
+}

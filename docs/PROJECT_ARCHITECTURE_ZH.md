@@ -78,6 +78,8 @@ blocking inference 加 simulator catch-up evaluator。
 | 笛卡尔动作适配器 | 将 scripted `H x 7` LIBERO 风格动作经 Panda Jacobian 转为现有 `H x 8` guard 契约 | 仅为组件 smoke；不包含官方 checkpoint、任务成功率或控制器等价性主张 |
 | 冻结响应 Panda 回放 | 核验 7,934 个官方响应哈希，并将 90 个动作块送入 3 个 Panda 场景 | 跨控制器离线诊断；未执行 checkpoint、反馈闭环或任务成功率评测 |
 | 终端制动不变量修复 | 270 个冻结响应成对案例：已注册约束从 264/270 到 270/270，6 个旧冲突全部解决，0 个回归 | 不训练模型的轨迹修复诊断；软件预算测量，不是硬实时或物理安全证明 |
+| Provider-neutral ABI | OpenVLA-OFT 命名的合成 `6x7` fixture 与观测绑定并适配为 `6x8`，5/5 类语义冲突均被拒绝 | 只证明接口可迁移；没有执行 OpenVLA-OFT checkpoint 或得到跨模型任务结果 |
+| LeRobot 风格执行器边界 | 5 帧可重放记录：3 次执行、1 次过期观测 hold、1 次锁存 hold、1 次显式 reset | 只证明内存帧接口和软件 watchdog；没有官方 LeRobot runtime、驱动或机器人 |
 
 详细结果见[结果说明](RESULTS.md)，冻结协议和审计记录见[文档索引](README.md)。
 
@@ -112,6 +114,18 @@ workspace 运动上界并细分带 clearance 的边；仓库保留的 v3 矩阵�
 中记录这些上界与 20 mm 余量。自碰撞仍为采样检查，动力学也没有得到认证。详见
 [异步 Panda 闭环运行时](ASYNC_PANDA_CLOSED_LOOP_ZH.md)。
 
+策略边界现在在 ABI 层面是 provider-neutral 的。冻结响应 bundle 记录模型族身份、
+checkpoint 认证状态、观测绑定和规范化动作语义哈希。provider 原生动作只有在坐标系、
+控制周期、归一化、尺度、旋转、夹爪和 controller 字段完全匹配，并经过显式 adapter
+转换为 Panda `Hx8` 契约后，才能进入 runtime。保留的第二模型族 fixture 是合成数据，
+因此它证明接口可迁移性，不证明跨模型效果。见
+[Provider-neutral 动作契约](PROVIDER_CONTRACT_ZH.md)。
+
+执行器边界还增加了 LeRobot 风格内存字段和 fail-closed command watchdog。带哈希清单
+的 episode 保存输入/下发命令、时序、序列、锁存/reset 事件以及确定性重放所需数据。
+它不是官方 LeRobotDataset 磁盘格式，也不是机器人驱动。见
+[LeRobot 风格运行时桥接](LEROBOT_RUNTIME_BRIDGE_ZH.md)。
+
 但它仍不是经过验证的“官方 `pi0.5` 在线推理直接控制 Panda”链路。尺度、坐标系、
 裁剪和夹爪语义已经与 LIBERO commit `f78abd68`、robosuite `1.4.1` 源码核对，
 但微分逆解在动力学上不等价于 robosuite 的 torque-level OSC。官方 checkpoint
@@ -129,10 +143,11 @@ worker 仍未接入该 Panda loop 或独立推进的 LIBERO actuator loop。只�
 真正有意义的下一步不是换一个仿真器，而是把已实现的组件适配器接入完整
 evaluator，并评测：
 
-1. 将独立调度运行时和修复层接入端到端 evaluator，并形成任务级过期响应丢弃证据；
-2. 将静态障碍 swept 上界扩展到连续自碰和动力学可达性，并分别报告适用边界；
-3. 在第二个开放 action-chunk policy 上复现实验协议；
-4. 面向 LeRobot 或真实硬件增加 adapter，并单独报告 watchdog、安全和时序证据。
+1. 用经过认证的 OpenVLA-OFT checkpoint 响应替换合成 fixture，并运行预注册的跨模型闭环矩阵；
+2. 固定官方 LeRobot 版本，用其 loader 验证记录，并将 watchdog 绑定到具体驱动；
+3. 将静态障碍 swept 上界扩展到连续自碰和动力学可达性，并分别报告适用边界；
+4. 增加标定后的硬件时序、急停集成和重复实体故障注入证据。
 
 在此之前，准确的公开表述是：**七自由度受限执行基座 + `pi0.5 VLA`
-运行时评测路径 + 显式的组件级笛卡尔动作适配器，共用可审计运行时基础设施。**
+运行时评测路径 + provider-neutral 动作语义 + LeRobot 风格软件边界，共用可审计
+运行时基础设施。第二学习模型和实体机器人证据仍是后续工作。**

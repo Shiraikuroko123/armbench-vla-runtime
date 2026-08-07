@@ -1,0 +1,27 @@
+{
+  "deterministic_replay_required": true,
+  "episode_id": "lerobot_style_watchdog_smoke_001",
+  "executed_commands": 3,
+  "frames": 5,
+  "held_commands": 2,
+  "reason_counts": {
+    "command_valid": 3,
+    "fault_latched": 1,
+    "observation_deadline_exceeded": 1
+  },
+  "reset_events": 1,
+  "schema_version": "armbench.lerobot_style_episode_summary.v1",
+  "watchdog_metrics": {
+    "accepted_commands": 3,
+    "action_semantics_id": "armbench.panda.joint_velocity_gripper_position.v1",
+    "action_semantics_sha256": "f2133fdd533e6a50ebe18400b70a316b1c674dd0ddd5e788d13f5c39c5873ddd",
+    "fault_reason": null,
+    "heartbeat_timeouts": 0,
+    "last_command_sequence_id": 4,
+    "last_evaluated_at_s": 100.38,
+    "last_observation_sequence_id": 3,
+    "latched": false,
+    "rejected_commands": 1,
+    "resets": 1
+  }
+}

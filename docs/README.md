@@ -29,6 +29,10 @@ to match later results.
 | [本地 CPU 安装](LOCAL_SETUP_ZH.md) | Operational | Windows/Linux 安装、模型路径解析与离线运行说明 |
 | [MuJoCo swept collision audit](MUJOCO_SWEPT_AUDIT.md) | Current | Clearance-backed static-obstacle subdivision, dense-oracle audit, and claim boundary |
 | [MuJoCo swept 碰撞审计](MUJOCO_SWEPT_AUDIT_ZH.md) | Current | 基于 clearance 的静态障碍细分、dense 对照和主张边界 |
+| [Provider-neutral action contract](PROVIDER_CONTRACT.md) | Current | Frozen provider identity, exact action semantics, fail-closed gate, and second-family ABI audit |
+| [Provider-neutral 动作契约](PROVIDER_CONTRACT_ZH.md) | Current | 冻结 provider 身份、精确动作语义、fail-closed 门禁与第二模型族 ABI 审计 |
+| [LeRobot-style runtime bridge](LEROBOT_RUNTIME_BRIDGE.md) | Current | Frame mapping, actuator watchdog, episode export, and deterministic replay |
+| [LeRobot 风格运行时桥接](LEROBOT_RUNTIME_BRIDGE_ZH.md) | Current | 帧映射、执行器 watchdog、episode 导出与确定性重放 |
 | [Technical review guide](TECHNICAL_REVIEW.md) | Operational | Architecture walkthrough, review questions, and maintainer readiness checks |
 | [OpenPI/LIBERO operations](OPENPI_LIBERO_OPERATIONS.md) | Operational | Linux/NVIDIA execution, validation lifecycle, retention, and cost controls |
 
@@ -43,6 +47,10 @@ to match later results.
 | [异步 Panda 闭环运行时](ASYNC_PANDA_CLOSED_LOOP_ZH.md) | Current | 双相机采集、异步策略、观测年龄调度、制动回退与 MuJoCo 力矩执行的本地验收 |
 | [LIBERO-to-Panda Cartesian adapter](PANDA_CARTESIAN_ADAPTER.md) | Current | Jacobian-based component bridge from 7-D Cartesian chunks to guarded Panda joint velocity |
 | [LIBERO 到 Panda 动作适配器](PANDA_CARTESIAN_ADAPTER_ZH.md) | Current | 7 维末端动作到受保护 Panda 关节速度的组件级转换与边界 |
+| [Provider-neutral action contract](PROVIDER_CONTRACT.md) | Current | Model-family identity, semantic SHA-256 gate, frozen responses, and Panda adapter binding |
+| [Provider-neutral 动作契约](PROVIDER_CONTRACT_ZH.md) | Current | 模型族身份、动作语义哈希门禁、冻结响应与 Panda adapter 绑定 |
+| [LeRobot-style runtime bridge](LEROBOT_RUNTIME_BRIDGE.md) | Current | LeRobot-style frames, fail-closed command watchdog, and replayable episode evidence |
+| [LeRobot 风格运行时桥接](LEROBOT_RUNTIME_BRIDGE_ZH.md) | Current | LeRobot 风格帧、fail-closed 命令 watchdog 与可重放 episode 证据 |
 | [Frozen pi0.5 response replay](PI05_PANDA_ARCHIVE_REPLAY.md) | Current | Hash-verified official responses replayed through the offline Panda adapter and guard |
 | [冻结 pi0.5 响应的 Panda 离线回放](PI05_PANDA_ARCHIVE_REPLAY_ZH.md) | Current | 官方冻结动作的严格校验、分层回放、结果与主张边界 |
 | [Deadline-bounded braking-invariant repair](PI05_PANDA_BRAKING_REPAIR.md) | Current | Whole-chunk scale search, terminal braking validation, and paired frozen-response result |

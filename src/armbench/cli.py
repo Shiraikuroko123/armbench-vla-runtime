@@ -63,6 +63,11 @@ from armbench.vla.loopback import (
     LOOPBACK_FAULT_MODES,
     execute_openpi_loopback_run,
 )
+from armbench.vla.lerobot_episode import (
+    replay_lerobot_episode,
+    run_lerobot_episode_smoke,
+    validate_lerobot_episode,
+)
 from armbench.vla.probe_comparison import (
     execute_recorded_probe_comparison,
     validate_recorded_probe_comparison,
@@ -226,6 +231,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="validate one frozen action-provider bundle",
     )
     provider_bundle_validate.add_argument("directory", type=Path)
+    lerobot_smoke = subparsers.add_parser(
+        "vla-lerobot-smoke",
+        help="record a CPU-only LeRobot-style frame/watchdog episode",
+    )
+    lerobot_smoke.add_argument("--output-directory", type=Path, required=True)
+    lerobot_validate = subparsers.add_parser(
+        "vla-lerobot-validate",
+        help="validate and deterministically recompute a bridge episode",
+    )
+    lerobot_validate.add_argument("directory", type=Path)
+    lerobot_replay = subparsers.add_parser(
+        "vla-lerobot-replay",
+        help="offline-replay a validated LeRobot-style bridge episode",
+    )
+    lerobot_replay.add_argument("directory", type=Path)
 
     archive_replay = subparsers.add_parser(
         "vla-panda-archive-replay",
@@ -874,6 +894,20 @@ def main(arguments: list[str] | None = None) -> int:
         return 0
     if args.command == "vla-provider-bundle-validate":
         result = validate_frozen_provider_bundle(args.directory)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0
+    if args.command == "vla-lerobot-smoke":
+        output = run_lerobot_episode_smoke(args.output_directory)
+        result = validate_lerobot_episode(output)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-lerobot-validate":
+        result = validate_lerobot_episode(args.directory)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0
+    if args.command == "vla-lerobot-replay":
+        result = replay_lerobot_episode(args.directory)
         print(json.dumps(result, indent=2, ensure_ascii=False))
         return 0
     if args.command == "vla-panda-archive-replay":
