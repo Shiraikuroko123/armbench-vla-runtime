@@ -1,6 +1,6 @@
 # ArmBench 架构与主张边界
 
-状态：Current。更新日期：2026-08-05。
+状态：Current。更新日期：2026-08-07。
 
 ## 项目目的
 
@@ -55,6 +55,11 @@ ArmBench 是一个研究动作块式 VLA 在“模型响应返回”和“机器
 
 共用工具不代表实验语义相同。LIBERO 和 Panda 的动作空间、策略、执行环境和结果主张保持分离。
 
+当前维护的运行时还增加了一个组件级非阻塞验收：阻塞策略在独立 worker 中
+运行，latest-only 待处理邮箱限制积压；控制侧拒绝乱序、失败、超过 deadline
+或耗尽 action horizon 的响应。该验收使用 scripted policy 在 CPU 上验证，尚未
+替换既有 `pi0.5` 实验采用的 blocking inference 加 simulator catch-up evaluator。
+
 ## 当前证据
 
 | 组件 | 已验证结果 | 主张边界 |
@@ -63,6 +68,7 @@ ArmBench 是一个研究动作块式 VLA 在“模型响应返回”和“机器
 | 跨任务集验证 | Object、Goal、LIBERO-10，300 rollouts / 150 pairs：83/150 到 141/150 | 同一模型族和仿真套件内的确定性延迟证据 |
 | RTC-style sampler extension | 300 组匹配 triplet：baseline 96/100，hard projection 97/100，RTC 97/100 | 没有任务成功率优势；seam 是探索性指标 |
 | Panda 运行时 | 本地 MuJoCo 中的协议、guard 和故障 trace | 不是官方 `pi0.5` 的效果证据，也不是物理安全证明 |
+| 分线程运行时验收 | 独立 worker/control 线程、持续 control tick、latest-only 替换与 deadline 测试 | Scripted 组件证据；不主张 LIBERO 或 Panda 任务成功率 |
 
 详细结果见[结果说明](RESULTS.md)，冻结协议和审计记录见[文档索引](README.md)。
 
@@ -72,11 +78,15 @@ ArmBench 是一个研究动作块式 VLA 在“模型响应返回”和“机器
 
 因此，不应表述为：`pi0.5` 已部署到 Panda、Panda guard 已证明 VLA 安全，或仿真结果已经达到硬实时。
 
+独立推理/控制调度目前已经作为本地运行时组件实现并测试，但尚未接入官方
+checkpoint 的 LIBERO evaluator 或 Panda actuator loop。Python 线程也不提供
+操作系统调度和最坏时延保证。
+
 ## 下一阶段的合理整合
 
 真正有意义的下一步不是换一个仿真器，而是通过明确的 adapter 连接两条路径，并评测：
 
-1. 独立调度的推理和控制，以及过期响应丢弃；
+1. 将独立调度运行时接入端到端 evaluator，并形成任务级过期响应丢弃证据；
 2. 有 deadline 的受限投影，包括连续碰撞和动力学约束；
 3. 第二个开放 action-chunk policy 在相同冻结协议下的表现；
 4. 面向 LeRobot 或真实硬件的 adapter，并单独报告安全和时序证据。

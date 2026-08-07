@@ -1,6 +1,6 @@
 # ArmBench Architecture and Claim Boundaries
 
-Status: Current. Updated: 2026-08-05.
+Status: Current. Updated: 2026-08-07.
 
 ## Purpose
 
@@ -76,6 +76,13 @@ Shared tooling does not mean shared experimental semantics. The LIBERO and
 Panda action spaces, policies, execution environments, and result claims are
 kept separate.
 
+The maintained runtime now also contains a component-level non-blocking
+harness: a blocking policy runs on a dedicated worker, a latest-only pending
+mailbox bounds backlog, and the control side rejects superseded, failed,
+deadline-missed, or horizon-exhausted responses. This harness uses a scripted
+policy for CPU validation. It has not replaced the blocking-inference plus
+simulator-catch-up evaluator used by the completed `pi0.5` studies.
+
 ## Current evidence
 
 | Component | Validated result | Claim boundary |
@@ -84,6 +91,7 @@ kept separate.
 | Cross-suite validation | Object, Goal, and LIBERO-10, 300 rollouts / 150 pairs: 83/150 to 141/150 | Same model family and simulator suite; deterministic-delay evidence |
 | RTC-style sampler extension | 300 matched triplets: 96/100 baseline, 97/100 hard projection, 97/100 RTC | No task-success superiority; seam metrics are exploratory |
 | Panda runtime | Protocol/guard/fault traces in local MuJoCo | Not official `pi0.5` policy efficacy or physical safety proof |
+| Threaded runtime harness | Separate worker/control thread IDs, continued control ticks, latest-only replacement, and deadline tests | Scripted component evidence; no LIBERO or Panda task-success claim |
 
 Detailed results are in [Results](RESULTS.md). Frozen protocols and audits are
 listed in the [documentation index](README.md).
@@ -100,12 +108,18 @@ Do not write or say that `pi0.5` has been deployed on a Panda robot, that the
 Panda guard certifies VLA safety, or that the simulation results establish
 hard-real-time behavior.
 
+Independent inference/control scheduling is implemented and tested as a local
+runtime component, but it is not yet wired into the official-checkpoint LIBERO
+evaluator or the Panda actuator loop. Python threads also provide no operating
+system scheduling or worst-case latency guarantee.
+
 ## Next integration milestone
 
 The technically meaningful next step is not a cosmetic simulator change. It is
 to connect the two paths through a declared adapter and evaluate:
 
-1. independently scheduled inference and control with stale-response discard;
+1. wire the independently scheduled runtime into an end-to-end evaluator and
+   preserve stale-response discard in task-level evidence;
 2. deadline-bounded constrained projection, including continuous collision and
    dynamics limits;
 3. a second open action-chunk policy under the same frozen protocol; and

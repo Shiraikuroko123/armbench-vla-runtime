@@ -107,6 +107,16 @@ For a bounded local acceptance check on Windows:
 .\scripts\vla_demo.cmd -CheckOnly
 ```
 
+The model-free asynchronous harness verifies that a blocking policy call runs
+on a separate worker while the control side continues to tick:
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m armbench vla-async-smoke
+```
+
+This is component-level scripted evidence, not a new `pi0.5` task-success
+result. See [non-blocking runtime harness](docs/ASYNC_RUNTIME.md).
+
 ## Review preserved evidence
 
 These commands validate stored artifacts and rebuild offline dashboards. They

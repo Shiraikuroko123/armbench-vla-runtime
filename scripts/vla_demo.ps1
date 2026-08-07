@@ -44,9 +44,10 @@ try {
         throw "MuJoCo scenario validation failed."
     }
 
-    & $ArmbenchPython -m pytest tests\test_vla.py -q
+    & $ArmbenchPython -m pytest `
+        tests\test_async_runtime.py tests\test_environment.py -q
     if ($LASTEXITCODE -ne 0) {
-        throw "VLA contract/runtime tests failed."
+        throw "Local runtime/environment tests failed."
     }
 
     if ($CheckOnly) {

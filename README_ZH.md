@@ -91,6 +91,16 @@ Windows 上可以先执行一个有边界的本地验收：
 .\scripts\vla_demo.cmd -CheckOnly
 ```
 
+下面的无模型异步验收会让阻塞策略调用在独立 worker 中运行，同时检查控制
+侧是否继续按周期 tick：
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m armbench vla-async-smoke
+```
+
+这只是组件级 scripted 证据，不是新的 `pi0.5` 任务成功率结果。设计边界见
+[非阻塞运行时验收](docs/ASYNC_RUNTIME_ZH.md)。
+
 ## 验收已保存结果
 
 以下命令只核验保留的实验数据并重建离线 dashboard，不重跑模型推理，也不需要 GPU：

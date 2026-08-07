@@ -20,6 +20,7 @@ from armbench.mujoco_sim.benchmark import (
     validate_mujoco_scenarios,
 )
 from armbench.scenario import benchmark_scenarios
+from armbench.vla.async_runtime import run_async_runtime_smoke
 from armbench.vla.benchmark import (
     execute_openpi_probe,
     execute_vla_guard_benchmark,
@@ -109,6 +110,17 @@ def build_parser() -> argparse.ArgumentParser:
     doctor.add_argument(
         "--json", action="store_true", help="emit a machine-readable report"
     )
+
+    async_smoke = subparsers.add_parser(
+        "vla-async-smoke",
+        help="verify that policy inference does not block a local control loop",
+    )
+    async_smoke.add_argument("--policy-latency-ms", type=float, default=160.0)
+    async_smoke.add_argument("--control-period-ms", type=float, default=10.0)
+    async_smoke.add_argument(
+        "--action-period-ms", type=float, default=1000.0 / 15.0
+    )
+    async_smoke.add_argument("--deadline-ms", type=float, default=200.0)
 
     validate = subparsers.add_parser("validate", help="validate config and scenario geometry")
     validate.add_argument(
@@ -584,6 +596,15 @@ def main(arguments: list[str] | None = None) -> int:
         else:
             print(format_environment_report(report))
         return 0 if report.ready else 1
+    if args.command == "vla-async-smoke":
+        report = run_async_runtime_smoke(
+            policy_latency_ms=args.policy_latency_ms,
+            control_period_ms=args.control_period_ms,
+            action_period_ms=args.action_period_ms,
+            deadline_ms=args.deadline_ms,
+        )
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        return 0 if bool(report["passed"]) else 1
     if args.command == "validate":
         return _validate(args.config)
     if args.command == "mujoco-validate":
