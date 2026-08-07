@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout ArmBench
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
@@ -46,10 +46,10 @@ jobs:
       PYTHONUNBUFFERED: "1"
     steps:
       - name: Checkout ArmBench
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Checkout pinned Panda model
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: google-deepmind/mujoco_menagerie
           ref: 71f066ad0be9cd271f7ed58c030243ef157af9f4
@@ -84,10 +84,10 @@ jobs:
       PYTHONUNBUFFERED: "1"
     steps:
       - name: Checkout ArmBench
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Checkout pinned Panda model
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: google-deepmind/mujoco_menagerie
           ref: 71f066ad0be9cd271f7ed58c030243ef157af9f4
