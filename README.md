@@ -171,6 +171,26 @@ inspection, use the `raw_positions`, `legacy_positions`, and `repair_positions`
 arrays with `mujoco-view`; the method and claim boundary are documented in
 [deadline-bounded braking-invariant repair](docs/PI05_PANDA_BRAKING_REPAIR.md).
 
+The local asynchronous closed-loop stage connects live dual-camera capture, a
+blocking policy worker, observation-age suffix selection, deadline fallback,
+braking repair, and torque-controlled Panda physics. Its built-in policy is
+scripted and non-learned so the entire runtime can be accepted on a CPU:
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m armbench vla-panda-async-run `
+  --output-directory results\async_panda_quick `
+  --scenario single_block --quick --deadline-ms 400
+
+& '.\.venv\Scripts\python.exe' -m armbench `
+  vla-panda-async-validate results\async_panda_quick
+```
+
+Each case preserves wall-clock events and measured MuJoCo traces. Add
+`--videos` for post-run MP4 rendering, or replay `actual_positions` with
+`mujoco-view`. This closes the local runtime/control feedback loop; it does not
+execute a learned VLA checkpoint or establish hard-real-time or robot-safety
+claims. See [asynchronous Panda closed-loop runtime](docs/ASYNC_PANDA_CLOSED_LOOP.md).
+
 ## Review preserved evidence
 
 These commands validate stored artifacts and rebuild offline dashboards. They

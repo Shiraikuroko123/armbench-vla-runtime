@@ -134,6 +134,24 @@ Windows 上可以先执行一个有边界的本地验收：
 可用 `mujoco-view` 查看 `raw_positions`、`legacy_positions` 和 `repair_positions`，
 完整方法见[延迟有界的终端制动不变量动作修复](docs/PI05_PANDA_BRAKING_REPAIR_ZH.md)。
 
+本地异步闭环阶段进一步把实时双相机采集、阻塞策略 worker、观测年龄后缀选择、
+deadline 回退、制动修复和力矩控制 Panda 物理执行接到同一个控制循环中。内置策略
+是 scripted、非学习策略，因此整条运行时可以只用 CPU 验收：
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m armbench vla-panda-async-run `
+  --output-directory results\async_panda_quick `
+  --scenario single_block --quick --deadline-ms 400
+
+& '.\.venv\Scripts\python.exe' -m armbench `
+  vla-panda-async-validate results\async_panda_quick
+```
+
+每个案例都会保留墙钟事件与 MuJoCo 实测 trace。运行时添加 `--videos` 可以在计时
+结束后渲染 MP4，也可以用 `mujoco-view` 回放 `actual_positions`。这个阶段补齐的是
+本地运行时/控制反馈闭环；它没有执行学习式 VLA checkpoint，也不构成硬实时或
+真机安全证明。详见[异步 Panda 闭环运行时](docs/ASYNC_PANDA_CLOSED_LOOP_ZH.md)。
+
 ## 验收已保存结果
 
 以下命令只核验保留的实验数据并重建离线 dashboard，不重跑模型推理，也不需要 GPU：

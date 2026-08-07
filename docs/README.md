@@ -37,6 +37,8 @@ to match later results.
 | [Measured-age temporal alignment](MEASURED_LATENCY_RUNTIME.md) | Current | Timestamp-based suffix selection and held-out confirmation |
 | [Non-blocking runtime harness](ASYNC_RUNTIME.md) | Current | Threaded inference mailbox, latest-only queue, deadline dispatch, and limitations |
 | [非阻塞运行时验收](ASYNC_RUNTIME_ZH.md) | Current | 独立推理线程、latest-only 队列、deadline 调度与证据边界 |
+| [Asynchronous Panda closed loop](ASYNC_PANDA_CLOSED_LOOP.md) | Current | Live dual-camera capture, blocking policy worker, measured-age dispatch, braking fallback, and torque-level MuJoCo execution |
+| [异步 Panda 闭环运行时](ASYNC_PANDA_CLOSED_LOOP_ZH.md) | Current | 双相机采集、异步策略、观测年龄调度、制动回退与 MuJoCo 力矩执行的本地验收 |
 | [LIBERO-to-Panda Cartesian adapter](PANDA_CARTESIAN_ADAPTER.md) | Current | Jacobian-based component bridge from 7-D Cartesian chunks to guarded Panda joint velocity |
 | [LIBERO 到 Panda 动作适配器](PANDA_CARTESIAN_ADAPTER_ZH.md) | Current | 7 维末端动作到受保护 Panda 关节速度的组件级转换与边界 |
 | [Frozen pi0.5 response replay](PI05_PANDA_ARCHIVE_REPLAY.md) | Current | Hash-verified official responses replayed through the offline Panda adapter and guard |

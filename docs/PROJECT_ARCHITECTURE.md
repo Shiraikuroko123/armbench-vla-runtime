@@ -80,8 +80,11 @@ The maintained runtime now also contains a component-level non-blocking
 harness: a blocking policy runs on a dedicated worker, a latest-only pending
 mailbox bounds backlog, and the control side rejects superseded, failed,
 deadline-missed, or horizon-exhausted responses. This harness uses a scripted
-policy for CPU validation. It has not replaced the blocking-inference plus
-simulator-catch-up evaluator used by the completed `pi0.5` studies.
+policy for CPU validation. The same scheduling contract is now connected to a
+local torque-controlled MuJoCo Panda loop with live dual-camera capture,
+measured-state terminal braking, and trace-derived validation. It has not
+replaced the blocking-inference plus simulator-catch-up evaluator used by the
+completed `pi0.5` studies.
 
 ## Current evidence
 
@@ -92,6 +95,7 @@ simulator-catch-up evaluator used by the completed `pi0.5` studies.
 | RTC-style sampler extension | 300 matched triplets: 96/100 baseline, 97/100 hard projection, 97/100 RTC | No task-success superiority; seam metrics are exploratory |
 | Panda runtime | Protocol/guard/fault traces in local MuJoCo | Not official `pi0.5` policy efficacy or physical safety proof |
 | Threaded runtime harness | Separate worker/control thread IDs, continued control ticks, latest-only replacement, and deadline tests | Scripted component evidence; no LIBERO or Panda task-success claim |
+| Asynchronous Panda closed loop | Live camera/state capture, blocking scripted policy, stale-suffix dispatch, deadline fallback, braking repair, and torque-level measured traces | CPU scripted-policy evidence; not learned-policy efficacy, hard real time, or physical safety certification |
 | Cartesian action adapter | Scripted `H x 7` LIBERO-style chunk mapped through the Panda Jacobian into the existing `H x 8` guard contract | Component smoke only; no official checkpoint, task-success, or controller-equivalence claim |
 | Frozen-response Panda replay | 7,934 official response hashes verified; 90 chunks replayed across three Panda scenes | Offline cross-controller diagnostic; no checkpoint execution, feedback loop, or task-success claim |
 | Braking-invariant repair | 270 paired frozen-response cases: 264/270 to 270/270 registered constraints, all 6 legacy conflicts resolved, zero regressions | Training-free trajectory repair diagnostic; measured software budget, not hard real time or physical safety |
@@ -122,22 +126,32 @@ candidate. On the preserved 270-case matrix it resolves all six legacy
 collision/acceleration conflicts with zero repair regressions. See
 [deadline-bounded braking-invariant repair](PI05_PANDA_BRAKING_REPAIR.md).
 
+The asynchronous Panda runtime now integrates the local half of the chain. A
+latest-only camera worker timestamps live Panda state and two simulated images;
+a separate blocking scripted policy returns action chunks; every control tick
+performs observation-age suffix dispatch and deadline checks; and PD plus bias
+compensation applies torque-limited commands to MuJoCo. Expired or failed
+responses trigger a stop rebuilt and checked from measured state. The resulting
+events, NPZ traces, provenance, hashes, and recomputed metrics form a
+self-validating artifact. See
+[asynchronous Panda closed-loop runtime](ASYNC_PANDA_CLOSED_LOOP.md).
+
 This is still not a verified live control chain from official `pi0.5`
 inference to Panda execution. Scale, coordinate-frame, clipping, and gripper
 conventions are now attested against LIBERO commit `f78abd68` and robosuite
 `1.4.1`, but the differential-IK adapter is not dynamically equivalent to
 robosuite's torque-level OSC. The official-checkpoint worker is also not
-connected to an independently ticking Panda or LIBERO actuator loop. End-to-end
-claims require that integration, time synchronization, and a new frozen
-experiment.
+connected to this Panda loop or an independently ticking LIBERO actuator loop.
+End-to-end claims require learned-policy integration, time synchronization,
+and a new frozen experiment.
 
 Do not write or say that `pi0.5` has been deployed on a Panda robot, that the
 Panda guard certifies VLA safety, or that the simulation results establish
 hard-real-time behavior.
 
-Independent inference/control scheduling is implemented and tested as a local
-runtime component, but it is not yet wired into the official-checkpoint LIBERO
-evaluator or the Panda actuator loop. Python threads also provide no operating
+Independent inference/control scheduling is implemented and tested in the
+local scripted Panda actuator loop, but it is not yet wired to an official
+checkpoint or the LIBERO evaluator. Python threads also provide no operating
 system scheduling or worst-case latency guarantee.
 
 ## Next integration milestone

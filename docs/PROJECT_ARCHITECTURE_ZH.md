@@ -57,8 +57,10 @@ ArmBench 是一个研究动作块式 VLA 在“模型响应返回”和“机器
 
 当前维护的运行时还增加了一个组件级非阻塞验收：阻塞策略在独立 worker 中
 运行，latest-only 待处理邮箱限制积压；控制侧拒绝乱序、失败、超过 deadline
-或耗尽 action horizon 的响应。该验收使用 scripted policy 在 CPU 上验证，尚未
-替换既有 `pi0.5` 实验采用的 blocking inference 加 simulator catch-up evaluator。
+或耗尽 action horizon 的响应。该验收使用 scripted policy 在 CPU 上验证；同一
+调度契约现在已经接入本地力矩控制 MuJoCo Panda 闭环，包括实时双相机采集、基于
+实测状态的终端制动和 trace 重算验证。它尚未替换既有 `pi0.5` 实验采用的
+blocking inference 加 simulator catch-up evaluator。
 
 ## 当前证据
 
@@ -69,6 +71,7 @@ ArmBench 是一个研究动作块式 VLA 在“模型响应返回”和“机器
 | RTC-style sampler extension | 300 组匹配 triplet：baseline 96/100，hard projection 97/100，RTC 97/100 | 没有任务成功率优势；seam 是探索性指标 |
 | Panda 运行时 | 本地 MuJoCo 中的协议、guard 和故障 trace | 不是官方 `pi0.5` 的效果证据，也不是物理安全证明 |
 | 分线程运行时验收 | 独立 worker/control 线程、持续 control tick、latest-only 替换与 deadline 测试 | Scripted 组件证据；不主张 LIBERO 或 Panda 任务成功率 |
+| 异步 Panda 闭环 | 实时相机/状态采集、阻塞 scripted 策略、过期后缀调度、deadline 回退、制动修复和力矩级实测 trace | CPU scripted-policy 证据；不是学习策略效果、硬实时或物理安全认证 |
 | 笛卡尔动作适配器 | 将 scripted `H x 7` LIBERO 风格动作经 Panda Jacobian 转为现有 `H x 8` guard 契约 | 仅为组件 smoke；不包含官方 checkpoint、任务成功率或控制器等价性主张 |
 | 冻结响应 Panda 回放 | 核验 7,934 个官方响应哈希，并将 90 个动作块送入 3 个 Panda 场景 | 跨控制器离线诊断；未执行 checkpoint、反馈闭环或任务成功率评测 |
 | 终端制动不变量修复 | 270 个冻结响应成对案例：已注册约束从 264/270 到 270/270，6 个旧冲突全部解决，0 个回归 | 不训练模型的轨迹修复诊断；软件预算测量，不是硬实时或物理安全证明 |
@@ -92,17 +95,24 @@ guard。确定性 CPU smoke 见
 270 个保留案例中，它解决了旧 guard 的 6 个避碰/加速度冲突，且没有观察到修复回归。
 详见[延迟有界的终端制动不变量修复](PI05_PANDA_BRAKING_REPAIR_ZH.md)。
 
+异步 Panda 运行时现在补齐了本地链路。latest-only 相机 worker 为实时 Panda 状态和
+两路仿真图像加时间戳，独立阻塞 scripted 策略返回 action chunk；每个 control tick
+执行观测年龄后缀调度与 deadline 检查，并由 PD、偏置补偿和力矩限制推进 MuJoCo。
+响应超时或失败时，从实测状态重建并检查停止序列。事件、NPZ trace、provenance、
+哈希和重算指标共同构成可独立验收的 artifact。详见
+[异步 Panda 闭环运行时](ASYNC_PANDA_CLOSED_LOOP_ZH.md)。
+
 但它仍不是经过验证的“官方 `pi0.5` 在线推理直接控制 Panda”链路。尺度、坐标系、
 裁剪和夹爪语义已经与 LIBERO commit `f78abd68`、robosuite `1.4.1` 源码核对，
 但微分逆解在动力学上不等价于 robosuite 的 torque-level OSC。官方 checkpoint
-worker 也尚未接入独立时钟推进的 Panda 或 LIBERO actuator loop。只有完成这些
-集成、时间同步和新的冻结实验，才能提出端到端主张。
+worker 仍未接入该 Panda loop 或独立推进的 LIBERO actuator loop。只有完成学习式
+策略集成、时间同步和新的冻结实验，才能提出端到端主张。
 
 因此，不应表述为：`pi0.5` 已部署到 Panda、Panda guard 已证明 VLA 安全，或仿真结果已经达到硬实时。
 
-独立推理/控制调度目前已经作为本地运行时组件实现并测试，但尚未接入官方
-checkpoint 的 LIBERO evaluator 或 Panda actuator loop。Python 线程也不提供
-操作系统调度和最坏时延保证。
+独立推理/控制调度目前已经接入并测试于本地 scripted Panda actuator loop，但尚未
+连接官方 checkpoint 或 LIBERO evaluator。Python 线程也不提供操作系统调度和
+最坏时延保证。
 
 ## 下一阶段的合理整合
 

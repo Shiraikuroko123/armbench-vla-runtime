@@ -21,6 +21,12 @@ from armbench.mujoco_sim.benchmark import (
 )
 from armbench.scenario import benchmark_scenarios
 from armbench.vla.async_runtime import run_async_runtime_smoke
+from armbench.vla.async_panda import ASYNC_PANDA_MODES
+from armbench.vla.async_panda_benchmark import (
+    AsyncPandaCondition,
+    execute_async_panda_benchmark,
+    validate_async_panda_artifact,
+)
 from armbench.vla.cartesian_adapter import run_cartesian_adapter_smoke
 from armbench.vla.pi05_archive_replay import (
     ArchiveReplayConfig,
@@ -132,6 +138,62 @@ def build_parser() -> argparse.ArgumentParser:
         "--action-period-ms", type=float, default=1000.0 / 15.0
     )
     async_smoke.add_argument("--deadline-ms", type=float, default=200.0)
+
+    async_panda = subparsers.add_parser(
+        "vla-panda-async-run",
+        help="run a wall-clock asynchronous policy/repair/Panda fault matrix",
+    )
+    async_panda.add_argument(
+        "--config", type=Path, default=Path("configs/vla_guard_benchmark.json")
+    )
+    async_panda.add_argument("--output-directory", type=Path, required=True)
+    async_panda.add_argument(
+        "--scenario",
+        choices=("free_space", "single_block", "narrow_gate"),
+        default="single_block",
+    )
+    async_panda.add_argument(
+        "--modes",
+        nargs="+",
+        choices=ASYNC_PANDA_MODES,
+        default=list(ASYNC_PANDA_MODES),
+    )
+    async_panda.add_argument(
+        "--latencies-ms",
+        nargs="+",
+        type=float,
+        help="run only fixed-latency conditions instead of the default fault matrix",
+    )
+    async_panda.add_argument("--max-reference-steps", type=int)
+    async_panda.add_argument("--extra-action-steps", type=int, default=15)
+    async_panda.add_argument(
+        "--runtime-clearance-mm",
+        type=float,
+        default=0.0,
+        help="runtime collision inflation; reference planning remains at configured clearance",
+    )
+    async_panda.add_argument(
+        "--deadline-ms",
+        type=float,
+        help="override the configured response deadline for this matrix",
+    )
+    async_panda.add_argument("--seed", type=int, default=20260807)
+    async_panda.add_argument(
+        "--quick",
+        action="store_true",
+        help="run 20 reference steps at 0/80/240 ms across all selected modes",
+    )
+    async_panda.add_argument(
+        "--videos",
+        action="store_true",
+        help="render each measured trace to MP4 after timing collection",
+    )
+
+    async_panda_validate = subparsers.add_parser(
+        "vla-panda-async-validate",
+        help="recompute an asynchronous Panda artifact from traces and events",
+    )
+    async_panda_validate.add_argument("directory", type=Path)
 
     subparsers.add_parser(
         "vla-panda-adapter-smoke",
@@ -688,6 +750,60 @@ def main(arguments: list[str] | None = None) -> int:
         )
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0 if bool(report["passed"]) else 1
+    if args.command == "vla-panda-async-run":
+        if args.quick and (
+            args.latencies_ms is not None
+            or args.max_reference_steps is not None
+            or args.extra_action_steps != 15
+        ):
+            parser.error(
+                "--quick cannot be combined with latency/reference step overrides"
+            )
+        latencies = (
+            [0.0, 80.0, 240.0]
+            if args.quick
+            else args.latencies_ms
+        )
+        if latencies is not None and (
+            len(set(latencies)) != len(latencies)
+            or any(
+                not float(value).is_integer() or value < 0.0
+                for value in latencies
+            )
+        ):
+            parser.error("fixed latencies must be unique nonnegative integers")
+        conditions = (
+            tuple(
+                AsyncPandaCondition(
+                    name=f"fixed_{int(value):03d}ms",
+                    latency_schedule_ms=(float(value),),
+                )
+                for value in latencies
+            )
+            if latencies is not None
+            else None
+        )
+        output = execute_async_panda_benchmark(
+            args.config,
+            args.output_directory,
+            scenario_name=args.scenario,
+            modes=args.modes,
+            conditions=conditions,
+            max_reference_steps=(20 if args.quick else args.max_reference_steps),
+            extra_action_steps=(5 if args.quick else args.extra_action_steps),
+            seed=args.seed,
+            make_videos=args.videos,
+            runtime_clearance_m=args.runtime_clearance_mm / 1000.0,
+            response_deadline_ms=args.deadline_ms,
+        )
+        result = validate_async_panda_artifact(output)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-panda-async-validate":
+        result = validate_async_panda_artifact(args.directory)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0
     if args.command == "vla-panda-adapter-smoke":
         report = run_cartesian_adapter_smoke()
         print(json.dumps(report, indent=2, ensure_ascii=False))
