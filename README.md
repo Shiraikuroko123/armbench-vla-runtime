@@ -63,7 +63,7 @@ for the full design and the current integration gap.
 | Cross-suite validation | Object, Goal, and LIBERO-10: 300 rollouts / 150 pairs, 83/150 to 141/150 | Extends deterministic-delay evidence within the same model family and simulator suite |
 | RTC-style continuation | 300 rollouts / 100 matched triplets: 96/100 baseline, 97/100 hard projection, 97/100 RTC guidance | No task-success superiority; motion-seam measurements remain exploratory |
 | Braking-invariant Panda repair | 270 paired offline cases: 264/270 to 270/270 registered constraints, all 6 legacy conflicts resolved, 0 regressions | Frozen `pi0.5` responses replayed through the Panda adapter; no task-success or hard-real-time claim |
-| Asynchronous Panda closed loop | 27 CPU wall-clock cases: braking invariant was physically safe in 9/9 with 0 abrupt stops and 0 repair-budget misses; legacy recorded 266 abrupt stops and unguarded 211 | Live dual-camera, policy-worker, dispatcher, repair, and torque-control integration using a scripted non-learned policy; not learned-policy efficacy or physical certification |
+| Asynchronous Panda closed loop | 27 CPU wall-clock cases with clearance-backed swept obstacle checks: braking invariant was physically safe in 9/9 with 0 abrupt stops and 0 repair-budget misses; legacy recorded 311 abrupt stops and unguarded 289 | Live dual-camera, policy-worker, dispatcher, repair, and torque-control integration using a scripted non-learned policy; not learned-policy efficacy or physical certification |
 | Clearance-backed swept audit | 72 seeded MuJoCo edges across three scenes: 0 false-safe decisions against a denser sampled oracle | Conservative static-obstacle audit; self-collision and continuous physical safety remain out of scope |
 
 Full protocols, validators, statistics, and limitations are in
@@ -193,13 +193,15 @@ Each case preserves wall-clock events and measured MuJoCo traces. Add
 execute a learned VLA checkpoint or establish hard-real-time or robot-safety
 claims. See [asynchronous Panda closed-loop runtime](docs/ASYNC_PANDA_CLOSED_LOOP.md).
 
-The preserved [27-case v2 report](reports/async_panda_closed_loop_400ms_20mm_v2_001/summary.md)
+The preserved [27-case v3 report](reports/async_panda_closed_loop_400ms_20mm_v3_001/summary.md)
 uses five fixed latencies plus jitter, response loss, payload, and persistent
 action-fault conditions. Braking-invariant execution recorded 0 abrupt-stop
-violations and 9/9 physically safe traces, with 5.99 ms P95 and 11.47 ms maximum
-repair latency. It reached the target in only 1/9 conditions, making the
-safety/progress and local CPU-throughput limits explicit rather than hiding
-them behind an aggregate success claim.
+violations and 9/9 physically safe traces, with 7.81 ms P95 and 19.01 ms
+maximum repair latency. Its static-obstacle edges use the recorded 20 mm
+clearance-backed swept subdivision; self-collision remains sampled. It reached
+the target in only 1/9 conditions, making the safety/progress and local CPU-
+throughput limits explicit rather than hiding them behind an aggregate success
+claim.
 
 ## Review preserved evidence
 

@@ -74,7 +74,7 @@ blocking inference 加 simulator catch-up evaluator。
 | RTC-style sampler extension | 300 组匹配 triplet：baseline 96/100，hard projection 97/100，RTC 97/100 | 没有任务成功率优势；seam 是探索性指标 |
 | Panda 运行时 | 本地 MuJoCo 中的协议、guard 和故障 trace | 不是官方 `pi0.5` 的效果证据，也不是物理安全证明 |
 | 分线程运行时验收 | 独立 worker/control 线程、持续 control tick、latest-only 替换与 deadline 测试 | Scripted 组件证据；不主张 LIBERO 或 Panda 任务成功率 |
-| 异步 Panda 闭环 | 27 案例：制动不变量 9/9 满足物理谓词且 0 次突停；旧 guard 为 9/9、266 次；unguarded 为 8/9、211 次 | Scripted 单次工程矩阵；不是学习策略效果、统计优越性检验、硬实时或物理安全认证 |
+| 异步 Panda 闭环 | 27 案例采用 clearance-backed swept 静态障碍检查：制动不变量 9/9 满足物理谓词且 0 次突停；旧 guard 为 9/9、311 次；unguarded 为 8/9、289 次 | Scripted 单次工程矩阵；不是学习策略效果、统计优越性检验、硬实时或物理安全认证 |
 | 笛卡尔动作适配器 | 将 scripted `H x 7` LIBERO 风格动作经 Panda Jacobian 转为现有 `H x 8` guard 契约 | 仅为组件 smoke；不包含官方 checkpoint、任务成功率或控制器等价性主张 |
 | 冻结响应 Panda 回放 | 核验 7,934 个官方响应哈希，并将 90 个动作块送入 3 个 Panda 场景 | 跨控制器离线诊断；未执行 checkpoint、反馈闭环或任务成功率评测 |
 | 终端制动不变量修复 | 270 个冻结响应成对案例：已注册约束从 264/270 到 270/270，6 个旧冲突全部解决，0 个回归 | 不训练模型的轨迹修复诊断；软件预算测量，不是硬实时或物理安全证明 |
@@ -108,8 +108,8 @@ guard。确定性 CPU smoke 见
 执行观测年龄后缀调度与 deadline 检查，并由 PD、偏置补偿和力矩限制推进 MuJoCo。
 响应超时或失败时，从实测状态重建并检查停止序列。事件、NPZ trace、provenance、
 哈希和重算指标共同构成可独立验收的 artifact。当前 checker 还会计算逐关节
-workspace 运动上界并细分带 clearance 的边；仓库保留的 v2 矩阵是在这个优化前
-生成的，因此仍按分辨率有界的 provenance 解释。详见
+workspace 运动上界并细分带 clearance 的边；仓库保留的 v3 矩阵在 provenance
+中记录这些上界与 20 mm 余量。自碰撞仍为采样检查，动力学也没有得到认证。详见
 [异步 Panda 闭环运行时](ASYNC_PANDA_CLOSED_LOOP_ZH.md)。
 
 但它仍不是经过验证的“官方 `pi0.5` 在线推理直接控制 Panda”链路。尺度、坐标系、
@@ -130,7 +130,7 @@ worker 仍未接入该 Panda loop 或独立推进的 LIBERO actuator loop。只�
 evaluator，并评测：
 
 1. 将独立调度运行时和修复层接入端到端 evaluator，并形成任务级过期响应丢弃证据；
-2. 用经过验证的连续或保守扫掠体碰撞检查替代当前的分辨率有界边采样，并报告动力学约束；
+2. 将静态障碍 swept 上界扩展到连续自碰和动力学可达性，并分别报告适用边界；
 3. 在第二个开放 action-chunk policy 上复现实验协议；
 4. 面向 LeRobot 或真实硬件增加 adapter，并单独报告 watchdog、安全和时序证据。
 

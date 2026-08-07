@@ -81,8 +81,9 @@ MuJoCo contact 仍作为单独的物理结果指标。
 当前 MuJoCo checker 还会计算逐关节 workspace 运动上界，并细分每条边，使相邻
 采样点之间的上界不超过声明障碍 clearance 的一半。机器人模型使用同一 clearance
 膨胀后的障碍，因此在模型几何假设下，通过的边对静态障碍是保守检查；它不是连续
-自碰证明、动力学扫掠体证明或真机安全保证。仓库保留的 v2 artifact 生成于该
-checker 优化之前，故其 provenance 仍按分辨率有界检查解释。
+自碰证明、动力学扫掠体证明或真机安全保证。下方保留的 v3 artifact 已在
+provenance 中记录该 checker 及解析后的运动上界；v2 artifact 作为
+resolution-bounded 的历史运行保持不变。
 
 ## 查看机械臂运动
 
@@ -138,11 +139,12 @@ manifest，错误数字仍不能通过验收。
 5. 回放 `actual_positions`，并核对同一 NPZ 中的接触和命令数组。
 6. 任何数字写入简历或报告前，都要运行 `vla-panda-async-validate`。
 
-## 已保留的 v2 矩阵
+## 已保留的 v3 矩阵
 
 仓库保留的
-[`async_panda_closed_loop_400ms_20mm_v2_001`](../reports/async_panda_closed_loop_400ms_20mm_v2_001/summary.md)
-由 commit `6f21d2b6bdc925604f9241f92a1c310e84bf9e7e` 生成。27 个案例由三种
+[`async_panda_closed_loop_400ms_20mm_v3_001`](../reports/async_panda_closed_loop_400ms_20mm_v3_001/summary.md)
+由 commit `fe7d3171ba54642ca335111110105392916394a8` 生成，provenance 记录了精确的
+运行时实现哈希。27 个案例由三种
 运行模式与以下条件交叉组成：0/40/80/160/240 ms 固定策略延迟、80 +/- 25 ms
 jitter、10% 响应丢失、0.5 kg 负载和持续 2.5 rad/s 的 0 号关节动作故障。
 响应 deadline 为 400 ms，规划与运行时 clearance 均为 20 mm，控制/动作周期
@@ -150,15 +152,16 @@ jitter、10% 响应丢失、0.5 kg 负载和持续 2.5 rad/s 的 0 号关节动�
 
 | 模式 | 满足物理谓词 | 到达目标 | 突停违规 | 修复预算超限 | 修复 P95 / 最大值 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `unguarded` | 8/9 | 6/9 | 211 | 0 | 0 / 0 ms |
-| `legacy_greedy` | 9/9 | 1/9 | 266 | 0 | 5.36 / 20.07 ms |
-| `braking_invariant` | 9/9 | 1/9 | 0 | 0 | 5.99 / 11.47 ms |
+| `unguarded` | 8/9 | 6/9 | 289 | 0 | 0 / 0 ms |
+| `legacy_greedy` | 9/9 | 1/9 | 311 | 0 | 9.95 / 22.84 ms |
+| `braking_invariant` | 9/9 | 1/9 | 0 | 0 | 7.81 / 19.01 ms |
 
 物理谓词表示实测 trace 中障碍/自碰接触步数和关节限位违规步数均为 0。
-unguarded 的持续故障案例因关节限位违规失败，并非障碍接触。三种模式都按观测
-年龄调度后缀：artifact 共记录 8,193 条过期索引之后的命令，index 0 命令为 0。
-160 ms 条件的跨模式平均 hold 率为 0.892，240 ms 为 1.000，明确显示本地 CPU
-吞吐边界。每个条件只有一次墙钟运行，因此这是工程验收证据，不是统计方法比较。
+unguarded 的持续故障案例累计 1,722 个关节限位违规步，并非障碍接触。三种模式
+都按观测年龄调度后缀：artifact 共记录 7,616 条过期索引之后的命令，index 0
+命令为 0。160 ms 条件的跨模式平均 hold 率为 0.925、deadline rejection 为 199；
+240 ms 条件分别为 1.000 和 207，明确显示本地 CPU 吞吐边界。每个条件只有一次
+墙钟运行，因此这是工程验收证据，不是统计方法比较。
 
 ## 主张边界
 

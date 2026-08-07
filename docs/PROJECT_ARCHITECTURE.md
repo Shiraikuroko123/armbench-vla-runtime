@@ -98,7 +98,7 @@ completed `pi0.5` studies.
 | RTC-style sampler extension | 300 matched triplets: 96/100 baseline, 97/100 hard projection, 97/100 RTC | No task-success superiority; seam metrics are exploratory |
 | Panda runtime | Protocol/guard/fault traces in local MuJoCo | Not official `pi0.5` policy efficacy or physical safety proof |
 | Threaded runtime harness | Separate worker/control thread IDs, continued control ticks, latest-only replacement, and deadline tests | Scripted component evidence; no LIBERO or Panda task-success claim |
-| Asynchronous Panda closed loop | 27 cases: braking invariant 9/9 physically safe and 0 abrupt stops; legacy 9/9 and 266 abrupt stops; unguarded 8/9 and 211 | Scripted single-run engineering matrix; not learned-policy efficacy, a statistical superiority test, hard real time, or physical safety certification |
+| Asynchronous Panda closed loop | 27 cases with clearance-backed swept obstacle checks: braking invariant 9/9 physically safe and 0 abrupt stops; legacy 9/9 and 311 abrupt stops; unguarded 8/9 and 289 | Scripted single-run engineering matrix; not learned-policy efficacy, a statistical superiority test, hard real time, or physical safety certification |
 | Cartesian action adapter | Scripted `H x 7` LIBERO-style chunk mapped through the Panda Jacobian into the existing `H x 8` guard contract | Component smoke only; no official checkpoint, task-success, or controller-equivalence claim |
 | Frozen-response Panda replay | 7,934 official response hashes verified; 90 chunks replayed across three Panda scenes | Offline cross-controller diagnostic; no checkpoint execution, feedback loop, or task-success claim |
 | Braking-invariant repair | 270 paired frozen-response cases: 264/270 to 270/270 registered constraints, all 6 legacy conflicts resolved, zero regressions | Training-free trajectory repair diagnostic; measured software budget, not hard real time or physical safety |
@@ -146,8 +146,8 @@ responses trigger a stop rebuilt and checked from measured state. The resulting
 events, NPZ traces, provenance, hashes, and recomputed metrics form a
 self-validating artifact. The current checker also derives a conservative
 per-joint workspace-motion bound and subdivides each clearance-backed edge;
-the preserved v2 matrix was generated immediately before this optimization and
-retains its resolution-bounded provenance. See
+the preserved v3 matrix records these bounds and the 20 mm margin in its
+provenance. Self-collision remains sampled and dynamics are not certified. See
 [asynchronous Panda closed-loop runtime](ASYNC_PANDA_CLOSED_LOOP.md).
 
 This is still not a verified live control chain from official `pi0.5`
@@ -176,8 +176,8 @@ to connect the implemented component adapter to a complete evaluator and test:
 1. wire the independently scheduled runtime and the repair layer into an
    end-to-end evaluator and preserve stale-response discard in task-level
    evidence;
-2. replace resolution-bounded edge sampling with a validated continuous or
-   conservative swept-volume collision check and report dynamics limits;
+2. extend the static-obstacle swept bound to continuous self-collision and
+   dynamics-aware reachability, with separately reported limits;
 3. reproduce the repair protocol on a second open action-chunk policy; and
 4. add a simulator-to-hardware or LeRobot-compatible adapter with separate
    watchdog, safety, and timing evidence.
