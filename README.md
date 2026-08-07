@@ -74,6 +74,37 @@ Full protocols, validators, statistics, and limitations are in
   that `pi0.5` controls a Panda robot.
 - No Isaac Lab, ROS2, real Franka Panda, or safety PLC integration is claimed.
 
+## Local CPU quickstart
+
+The local Panda path requires Git and CPython 3.10. It does not require a GPU,
+an OpenPI server, or a robot. From a fresh clone on Windows:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup_local.ps1
+& '.\.venv\Scripts\python.exe' -m armbench doctor
+& '.\.venv\Scripts\python.exe' -m armbench mujoco-view --scenario narrow_gate
+```
+
+On Ubuntu or another supported Linux distribution:
+
+```bash
+./scripts/setup_local.sh
+./.venv/bin/python -m armbench doctor
+./.venv/bin/python -m armbench mujoco-view --scenario narrow_gate
+```
+
+The setup script installs the CPU dependencies and checks out the pinned Panda
+model under `.cache/`. Add `-WithVla` on PowerShell or `--with-vla` on Linux
+only when the lightweight OpenPI client is needed; this does not download a
+`pi0.5` checkpoint. See [local setup and support](docs/LOCAL_SETUP.md) for
+manual installation, model overrides, and headless environments.
+
+For a bounded local acceptance check on Windows:
+
+```powershell
+.\scripts\vla_demo.cmd -CheckOnly
+```
+
 ## Review preserved evidence
 
 These commands validate stored artifacts and rebuild offline dashboards. They

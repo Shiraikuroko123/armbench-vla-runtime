@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 from typing import Sequence
@@ -31,23 +32,68 @@ ARM_BODY_NAMES = (
     "hand",
 )
 ARM_FORCE_LIMITS = np.array([87.0, 87.0, 87.0, 87.0, 12.0, 12.0, 12.0])
+PANDA_SCENE_ENV = "ARMBENCH_PANDA_SCENE"
+MENAGERIE_ROOT_ENV = "ARMBENCH_MENAGERIE_ROOT"
+
+
+def panda_scene_candidates() -> tuple[Path, ...]:
+    """Return portable, ordered locations for the pinned Panda scene."""
+
+    project_root = Path(__file__).resolve().parents[3]
+    candidates: list[Path] = []
+    scene_override = os.environ.get(PANDA_SCENE_ENV)
+    if scene_override:
+        candidates.append(Path(scene_override))
+    root_override = os.environ.get(MENAGERIE_ROOT_ENV)
+    if root_override:
+        root = Path(root_override)
+        candidates.append(root / "franka_emika_panda" / "scene.xml")
+        candidates.append(root / "scene.xml")
+    candidates.extend(
+        (
+            project_root
+            / ".cache"
+            / "mujoco_menagerie"
+            / "franka_emika_panda"
+            / "scene.xml",
+            project_root.parent
+            / "upstream"
+            / "mujoco_menagerie"
+            / "franka_emika_panda"
+            / "scene.xml",
+            Path.cwd()
+            / ".cache"
+            / "mujoco_menagerie"
+            / "franka_emika_panda"
+            / "scene.xml",
+            Path.cwd()
+            / "upstream"
+            / "mujoco_menagerie"
+            / "franka_emika_panda"
+            / "scene.xml",
+        )
+    )
+    unique: list[Path] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        resolved = candidate.expanduser().resolve()
+        key = os.path.normcase(str(resolved))
+        if key not in seen:
+            seen.add(key)
+            unique.append(resolved)
+    return tuple(unique)
 
 
 def default_panda_scene_path() -> Path:
-    project_root = Path(__file__).resolve().parents[3]
-    path = (
-        project_root.parent
-        / "upstream"
-        / "mujoco_menagerie"
-        / "franka_emika_panda"
-        / "scene.xml"
+    candidates = panda_scene_candidates()
+    for path in candidates:
+        if path.is_file():
+            return path
+    searched = "\n  - ".join(str(path) for path in candidates)
+    raise FileNotFoundError(
+        "MuJoCo Menagerie Panda scene not found. Run scripts/setup_local.ps1 "
+        f"or set {PANDA_SCENE_ENV}. Searched:\n  - {searched}"
     )
-    if not path.is_file():
-        raise FileNotFoundError(
-            "Menagerie Panda scene not found. Expected sparse checkout at "
-            f"{path}"
-        )
-    return path
 
 
 def _safe_name(label: str) -> str:

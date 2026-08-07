@@ -9,6 +9,10 @@ from pathlib import Path
 
 from armbench.benchmark import execute_benchmark, load_config, parse_seed_spec
 from armbench.collision import CollisionChecker
+from armbench.environment import (
+    collect_environment_report,
+    format_environment_report,
+)
 from armbench.model import RobotModel
 from armbench.mujoco_sim.benchmark import (
     execute_mujoco_benchmark,
@@ -93,6 +97,18 @@ def build_parser() -> argparse.ArgumentParser:
         description="VLA action-chunk runtime evaluation and Panda physics benchmarks",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    doctor = subparsers.add_parser(
+        "doctor", help="check the local CPU runtime and Panda model installation"
+    )
+    doctor.add_argument(
+        "--require-vla",
+        action="store_true",
+        help="treat the optional OpenPI client as a required dependency",
+    )
+    doctor.add_argument(
+        "--json", action="store_true", help="emit a machine-readable report"
+    )
 
     validate = subparsers.add_parser("validate", help="validate config and scenario geometry")
     validate.add_argument(
@@ -561,6 +577,13 @@ def build_parser() -> argparse.ArgumentParser:
 def main(arguments: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(arguments)
+    if args.command == "doctor":
+        report = collect_environment_report(require_vla=args.require_vla)
+        if args.json:
+            print(json.dumps(report.to_dict(), indent=2, ensure_ascii=False))
+        else:
+            print(format_environment_report(report))
+        return 0 if report.ready else 1
     if args.command == "validate":
         return _validate(args.config)
     if args.command == "mujoco-validate":

@@ -59,6 +59,36 @@ Panda 与 LIBERO 的动作契约不同，实验结果不会混合统计。完整
 - Panda guard 不是碰撞安全认证，也不能证明 `pi0.5` 已控制 Panda。
 - 没有集成 Isaac Lab、ROS2、真实 Franka Panda 或安全 PLC。
 
+## 本地 CPU 快速开始
+
+本地 Panda 路径需要 Git 和 CPython 3.10，不需要 GPU、OpenPI 服务器或
+实体机器人。在全新克隆的 Windows 仓库根目录运行：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup_local.ps1
+& '.\.venv\Scripts\python.exe' -m armbench doctor
+& '.\.venv\Scripts\python.exe' -m armbench mujoco-view --scenario narrow_gate
+```
+
+在 Ubuntu 或其他支持的 Linux 发行版中运行：
+
+```bash
+./scripts/setup_local.sh
+./.venv/bin/python -m armbench doctor
+./.venv/bin/python -m armbench mujoco-view --scenario narrow_gate
+```
+
+安装脚本会安装 CPU 依赖，并将固定版本的 Panda 模型检出到 `.cache/`。
+只有需要轻量 OpenPI 客户端时才使用 PowerShell 的 `-WithVla` 或 Linux
+的 `--with-vla`；该选项不会下载 `pi0.5` checkpoint。手动安装、模型路径
+覆盖和无桌面环境说明见[本地安装与支持](docs/LOCAL_SETUP_ZH.md)。
+
+Windows 上可以先执行一个有边界的本地验收：
+
+```powershell
+.\scripts\vla_demo.cmd -CheckOnly
+```
+
 ## 验收已保存结果
 
 以下命令只核验保留的实验数据并重建离线 dashboard，不重跑模型推理，也不需要 GPU：

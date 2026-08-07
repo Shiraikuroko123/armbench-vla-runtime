@@ -3,29 +3,40 @@ param(
     [switch]$Formal,
     [switch]$NoVideos,
     [switch]$CheckOnly,
+    [string]$Python,
     [string]$RunId = ("vla_demo_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
 )
 
 $ErrorActionPreference = "Stop"
 $ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $WorkspaceRoot = Split-Path $ProjectRoot -Parent
-$ArmbenchPython = Join-Path $WorkspaceRoot ".venv\Scripts\python.exe"
-$MenagerieScene = Join-Path $WorkspaceRoot `
-    "upstream\mujoco_menagerie\franka_emika_panda\scene.xml"
-
-if (-not (Test-Path -LiteralPath $ArmbenchPython -PathType Leaf)) {
-    throw "Python environment not found: $ArmbenchPython. Run the README setup first."
+$PythonCandidates = @(
+    (Join-Path $ProjectRoot ".venv\Scripts\python.exe"),
+    (Join-Path $WorkspaceRoot ".venv\Scripts\python.exe")
+)
+if ($Python) {
+    $ArmbenchPython = $Python
 }
-if (-not (Test-Path -LiteralPath $MenagerieScene -PathType Leaf)) {
-    throw "Pinned MuJoCo Menagerie Panda model not found: $MenagerieScene"
+else {
+    $ArmbenchPython = $PythonCandidates |
+        Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } |
+        Select-Object -First 1
+}
+if (-not $ArmbenchPython) {
+    throw "Python environment not found. Run .\scripts\setup_local.ps1 first."
 }
 
 Push-Location $ProjectRoot
 try {
     & $ArmbenchPython -c `
-        "import mujoco, openpi_client, armbench; print(f'Python VLA client OK; MuJoCo {mujoco.__version__}')"
+        "import mujoco, armbench; print(f'ArmBench local runtime OK; MuJoCo {mujoco.__version__}')"
     if ($LASTEXITCODE -ne 0) {
-        throw "Dependency import check failed. Install the project[test,vla] extras."
+        throw "Dependency import check failed. Install the project[test] extras."
+    }
+
+    & $ArmbenchPython -m armbench doctor
+    if ($LASTEXITCODE -ne 0) {
+        throw "ArmBench environment validation failed."
     }
 
     & $ArmbenchPython -m armbench mujoco-validate
