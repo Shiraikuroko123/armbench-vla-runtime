@@ -71,7 +71,7 @@ blocking inference 加 simulator catch-up evaluator。
 | RTC-style sampler extension | 300 组匹配 triplet：baseline 96/100，hard projection 97/100，RTC 97/100 | 没有任务成功率优势；seam 是探索性指标 |
 | Panda 运行时 | 本地 MuJoCo 中的协议、guard 和故障 trace | 不是官方 `pi0.5` 的效果证据，也不是物理安全证明 |
 | 分线程运行时验收 | 独立 worker/control 线程、持续 control tick、latest-only 替换与 deadline 测试 | Scripted 组件证据；不主张 LIBERO 或 Panda 任务成功率 |
-| 异步 Panda 闭环 | 实时相机/状态采集、阻塞 scripted 策略、过期后缀调度、deadline 回退、制动修复和力矩级实测 trace | CPU scripted-policy 证据；不是学习策略效果、硬实时或物理安全认证 |
+| 异步 Panda 闭环 | 27 案例：制动不变量 9/9 满足物理谓词且 0 次突停；旧 guard 为 9/9、266 次；unguarded 为 8/9、211 次 | Scripted 单次工程矩阵；不是学习策略效果、统计优越性检验、硬实时或物理安全认证 |
 | 笛卡尔动作适配器 | 将 scripted `H x 7` LIBERO 风格动作经 Panda Jacobian 转为现有 `H x 8` guard 契约 | 仅为组件 smoke；不包含官方 checkpoint、任务成功率或控制器等价性主张 |
 | 冻结响应 Panda 回放 | 核验 7,934 个官方响应哈希，并将 90 个动作块送入 3 个 Panda 场景 | 跨控制器离线诊断；未执行 checkpoint、反馈闭环或任务成功率评测 |
 | 终端制动不变量修复 | 270 个冻结响应成对案例：已注册约束从 264/270 到 270/270，6 个旧冲突全部解决，0 个回归 | 不训练模型的轨迹修复诊断；软件预算测量，不是硬实时或物理安全证明 |

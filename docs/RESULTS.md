@@ -304,6 +304,62 @@ and [the method document](PI05_PANDA_BRAKING_REPAIR.md). The result does not
 establish task-success improvement, continuous collision safety, physical
 safety, or worst-case hard-real-time behavior.
 
+## Asynchronous Panda closed-loop runtime
+
+### Provenance and protocol
+
+- Run ID: `async_panda_closed_loop_400ms_20mm_v2_001`
+- Source commit: `6f21d2b6bdc925604f9241f92a1c310e84bf9e7e`
+- Policy: `scripted_non_learned_async_reference`; no `pi0`/`pi0.5`
+  checkpoint was executed
+- Execution: 100 Hz best-effort wall-clock control, 15 Hz action period,
+  torque-controlled MuJoCo Panda, live 224x224 exterior/wrist images, separate
+  latest-only observation and blocking-policy workers
+- Dispatcher: observation age measured from state capture, expired-prefix
+  removal, 400 ms response deadline, and per-control-tick activation checks
+- Matrix: `single_block`, 232 reference actions plus 45 terminal steps; three
+  modes crossed with 0/40/80/160/240 ms fixed delay, 80 +/- 25 ms jitter, 10%
+  response loss, 0.5 kg payload, and a persistent 2.5 rad/s joint-0 fault
+- Geometry: 20 mm planning clearance inherited by runtime checks; 0.02 rad
+  resolution-bounded joint-space edge sampling
+- Artifact: 27 NPZ traces, 18.36 MB JSONL event log, CSV, summaries,
+  provenance, and manifest; 23,749,470 bytes total
+- Manifest inventory SHA-256:
+  `91f56b3eb97cecc6e7284efbc5fa69d673520f9b87821d7f81abe4c3611faac8`
+
+### Outcomes
+
+| Mode | Cases satisfying physical predicate | Target reached | Abrupt-stop violations | Repair-budget misses | P95 / max repair latency |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Unguarded | 8/9 | 6/9 | 211 | 0 | 0 / 0 ms |
+| Legacy greedy | 9/9 | 1/9 | 266 | 0 | 5.362 / 20.065 ms |
+| Braking invariant | 9/9 | 1/9 | 0 | 0 | 5.989 / 11.471 ms |
+
+The registered physical predicate is zero MuJoCo obstacle/self-contact steps
+and zero joint-limit-violation steps. No mode contacted the obstacle in this
+matrix. The unguarded persistent-fault case failed because it accumulated
+1,725 joint-limit-violation steps; both guarded modes recorded zero. The
+braking-invariant mode also kept every evaluated command transition within the
+15 rad/s^2 acceleration bound. Its zero repair-budget misses mean no
+`BrakingTrajectoryGuard` selection exceeded the 20 ms measured software
+budget in this run; this remains a best-effort measurement, not a hard bound.
+
+All three modes exercised measured-age dispatch: 8,193 executed command
+switches used a positive action index and zero used index 0. The 160 ms
+condition had a cross-mode mean hold rate of 0.892 and 159 deadline rejections;
+the 240 ms condition held at every action boundary and recorded 209 deadline
+rejections. This exposes the local dual-camera CPU pipeline's throughput limit
+under a 400 ms deadline.
+
+The guarded modes reached the target in only 1/9 conditions, compared with 6/9
+for unguarded execution. This is a visible safety/progress tradeoff, not a
+learned-policy task-success comparison. There is one best-effort wall-clock run
+per mode/condition, so scheduling noise is not paired and no statistical
+superiority claim is made. The self-validating report is in
+[`reports/async_panda_closed_loop_400ms_20mm_v2_001`](../reports/async_panda_closed_loop_400ms_20mm_v2_001/summary.md),
+and the implementation/claim boundary is documented in
+[asynchronous Panda closed-loop runtime](ASYNC_PANDA_CLOSED_LOOP.md).
+
 ## Local scripted online VLA runtime result
 
 ### Provenance

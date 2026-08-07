@@ -148,6 +148,32 @@ metric pass.
 5. Replay `actual_positions` and inspect contact/command arrays in the same NPZ.
 6. Run `vla-panda-async-validate` before quoting any number.
 
+## Preserved v2 matrix
+
+The checked-in
+[`async_panda_closed_loop_400ms_20mm_v2_001`](../reports/async_panda_closed_loop_400ms_20mm_v2_001/summary.md)
+artifact was generated from commit
+`6f21d2b6bdc925604f9241f92a1c310e84bf9e7e`. It contains 27 cases: three
+runtime modes crossed with fixed 0/40/80/160/240 ms policy delays, 80 +/- 25 ms
+jitter, 10% response loss, a 0.5 kg payload, and a persistent 2.5 rad/s joint-0
+action fault. The response deadline is 400 ms, both planning and runtime
+clearance are 20 mm, and the control/action periods are 10/66.7 ms.
+
+| Mode | Physical predicate | Target reached | Abrupt-stop violations | Repair-budget misses | P95 / max repair |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `unguarded` | 8/9 | 6/9 | 211 | 0 | 0 / 0 ms |
+| `legacy_greedy` | 9/9 | 1/9 | 266 | 0 | 5.36 / 20.07 ms |
+| `braking_invariant` | 9/9 | 1/9 | 0 | 0 | 5.99 / 11.47 ms |
+
+The physical predicate means zero obstacle/self-contact steps and zero joint-
+limit-violation steps in the measured trace. The unguarded persistent-fault
+case failed it because of joint-limit violations, not MuJoCo obstacle contact.
+All three modes dispatch measured-age suffixes: the artifact records 8,193
+stale-index commands and zero index-zero commands. At 160 ms the cross-mode
+mean hold rate is 0.892; at 240 ms it is 1.000. These are explicit local CPU
+throughput limits. The single wall-clock run per condition is engineering
+acceptance evidence, not a statistical method comparison.
+
 ## Claim boundary
 
 This is closed-loop Panda physics and asynchronous runtime evidence. It is not
