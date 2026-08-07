@@ -18,6 +18,8 @@ class CollisionStats:
     configuration_queries: int = 0
     edge_queries: int = 0
     link_obstacle_tests: int = 0
+    swept_edge_queries: int = 0
+    swept_subdivision_samples: int = 0
 
     def to_dict(self) -> dict[str, int]:
         return asdict(self)
@@ -101,4 +103,3 @@ class CollisionChecker:
             self.edge_is_valid(start, end)
             for start, end in zip(configurations[:-1], configurations[1:])
         )
-

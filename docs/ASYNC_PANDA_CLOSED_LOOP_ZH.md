@@ -78,6 +78,12 @@ deadline 前最后一个 action 可能只执行剩余的一部分墙钟时间。
 `--runtime-clearance-mm 0`。两种 clearance 及运行时取值来源都会写入 provenance，
 MuJoCo contact 仍作为单独的物理结果指标。
 
+当前 MuJoCo checker 还会计算逐关节 workspace 运动上界，并细分每条边，使相邻
+采样点之间的上界不超过声明障碍 clearance 的一半。机器人模型使用同一 clearance
+膨胀后的障碍，因此在模型几何假设下，通过的边对静态障碍是保守检查；它不是连续
+自碰证明、动力学扫掠体证明或真机安全保证。仓库保留的 v2 artifact 生成于该
+checker 优化之前，故其 provenance 仍按分辨率有界检查解释。
+
 ## 查看机械臂运动
 
 每个案例都会生成可由现有 viewer 回放的轨迹：

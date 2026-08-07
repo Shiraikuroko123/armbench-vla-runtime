@@ -19,6 +19,8 @@ from armbench.mujoco_sim.model import (
     MuJoCoPanda,
     default_panda_scene_path,
 )
+from armbench.mujoco_sim.benchmark import inflate_obstacles
+from armbench.mujoco_sim.collision import MuJoCoCollisionChecker
 from armbench.mujoco_sim.scenarios import MUJOCO_SCENARIO_VERSION, mujoco_scenarios
 from armbench.vla.async_panda import (
     ASYNC_PANDA_MODES,
@@ -735,6 +737,16 @@ def execute_async_panda_benchmark(
         runtime_clearance_m=resolved_runtime_clearance_m,
         response_deadline_ms=response_deadline_ms,
     )
+    collision_validation_robot = MuJoCoPanda.create(
+        obstacles=inflate_obstacles(
+            scenario.obstacles, resolved_runtime_clearance_m
+        )
+    )
+    collision_validation_checker = MuJoCoCollisionChecker(
+        collision_validation_robot,
+        resolution=runtime_config.collision_resolution_rad,
+        swept_obstacle_margin_m=resolved_runtime_clearance_m,
+    )
 
     output.mkdir(parents=True)
     trace_directory = output / "traces"
@@ -813,6 +825,15 @@ def execute_async_panda_benchmark(
             "hard_realtime_claim": False,
             "physical_safety_claim": False,
         },
+        "collision_validation": {
+            "method": "clearance_backed_swept_static_obstacle_subdivision",
+            "swept_obstacle_margin_m": resolved_runtime_clearance_m,
+            "joint_motion_radii_m": (
+                collision_validation_checker.joint_motion_radii_m.tolist()
+            ),
+            "base_joint_resolution_rad": runtime_config.collision_resolution_rad,
+            "self_collision_continuity": "sampled_only",
+        },
         "matrix": {
             "scenario": scenario_name,
             "modes": list(selected_modes),
@@ -852,7 +873,8 @@ def execute_async_panda_benchmark(
             "Wall-clock deadlines are not an OS hard-real-time guarantee.",
             "MuJoCo contacts are not physical-robot safety certification.",
             "Camera rendering and Python scheduling are machine dependent.",
-            "Runtime collision checks use resolution-bounded joint-space edges.",
+            "Runtime obstacle checks use clearance-backed swept joint-space "
+            "subdivision; self-collision and dynamics remain sampled.",
         ],
     }
     _write_csv(output / "per_case.csv", rows)
@@ -1215,6 +1237,26 @@ def validate_async_panda_artifact(directory: Path) -> dict[str, Any]:
             == float(matrix["planning_clearance_m"]),
             "inherited runtime clearance does not match planning clearance",
         )
+    collision_validation = provenance.get("collision_validation")
+    _require(
+        isinstance(collision_validation, Mapping)
+        and collision_validation.get("method")
+        == "clearance_backed_swept_static_obstacle_subdivision"
+        and collision_validation.get("self_collision_continuity")
+        == "sampled_only",
+        "collision validation provenance is invalid",
+    )
+    radii = np.asarray(
+        collision_validation.get("joint_motion_radii_m"), dtype=float
+    )
+    _require(
+        radii.shape == (7,)
+        and bool(np.all(np.isfinite(radii)))
+        and bool(np.all(radii > 0.0))
+        and float(collision_validation["swept_obstacle_margin_m"])
+        == float(matrix["runtime_clearance_m"]),
+        "collision motion-bound provenance is invalid",
+    )
     for row in rows:
         _validate_case_trace(
             root,

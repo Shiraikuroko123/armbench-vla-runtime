@@ -86,6 +86,15 @@ closed-loop tracking error and braking distance. Pass `--runtime-clearance-mm
 the runtime clearance are recorded in provenance; MuJoCo contact remains the
 separate physical-outcome metric.
 
+The current MuJoCo checker additionally derives a conservative per-joint
+workspace-motion bound and subdivides each edge so the bound between neighboring
+samples is at most half the declared obstacle clearance. With the robot model
+constructed from obstacles inflated by that clearance, an accepted edge is a
+conservative static-obstacle check under the model geometry. It is not a
+continuous self-collision certificate, a dynamic swept-volume proof, or a
+hardware safety guarantee. The preserved v2 artifact was generated before this
+checker enhancement and its provenance intentionally remains resolution-bounded.
+
 ## Inspect motion
 
 Every case writes a trace that the existing viewer can replay:

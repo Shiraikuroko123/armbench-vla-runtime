@@ -64,6 +64,7 @@ for the full design and the current integration gap.
 | RTC-style continuation | 300 rollouts / 100 matched triplets: 96/100 baseline, 97/100 hard projection, 97/100 RTC guidance | No task-success superiority; motion-seam measurements remain exploratory |
 | Braking-invariant Panda repair | 270 paired offline cases: 264/270 to 270/270 registered constraints, all 6 legacy conflicts resolved, 0 regressions | Frozen `pi0.5` responses replayed through the Panda adapter; no task-success or hard-real-time claim |
 | Asynchronous Panda closed loop | 27 CPU wall-clock cases: braking invariant was physically safe in 9/9 with 0 abrupt stops and 0 repair-budget misses; legacy recorded 266 abrupt stops and unguarded 211 | Live dual-camera, policy-worker, dispatcher, repair, and torque-control integration using a scripted non-learned policy; not learned-policy efficacy or physical certification |
+| Clearance-backed swept audit | 72 seeded MuJoCo edges across three scenes: 0 false-safe decisions against a denser sampled oracle | Conservative static-obstacle audit; self-collision and continuous physical safety remain out of scope |
 
 Full protocols, validators, statistics, and limitations are in
 [Results](docs/RESULTS.md).

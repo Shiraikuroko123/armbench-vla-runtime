@@ -35,13 +35,16 @@ The local MuJoCo Panda path provides the classical robotics base:
 
 - RRT-Connect/RRT* planning, path smoothing, and time parameterization;
 - PD/LQR trajectory tracking and disturbance-oriented execution checks;
-- sampled configuration and interpolated-edge collision checks;
+- sampled configuration and interpolated-edge collision checks, with the
+  asynchronous runtime additionally using clearance-backed swept subdivision
+  for static obstacles;
 - joint, velocity, gripper, and state-consistency checks;
 - dual-camera observations, transport tests, and deterministic fault injection.
 
 This path validates runtime contracts and controlled failure behavior on a
-seven-DoF arm model. Its collision checks are sampled checks, not a continuous
-collision certificate.
+seven-DoF arm model. The clearance-backed runtime subdivision bounds downstream
+geometry motion between samples for static obstacles under the declared model;
+self-collision and torque-level dynamics remain sampled/uncertified.
 
 ### 2. `pi0.5` VLA temporal-evaluation path
 
@@ -126,6 +129,14 @@ candidate. On the preserved 270-case matrix it resolves all six legacy
 collision/acceleration conflicts with zero repair regressions. See
 [deadline-bounded braking-invariant repair](PI05_PANDA_BRAKING_REPAIR.md).
 
+The local MuJoCo checker now also exposes a clearance-backed swept static-
+obstacle audit. It derives conservative per-joint workspace displacement
+radii, subdivides edges against the configured static clearance, and compares
+the result with a denser sampled oracle. The preserved 72-edge audit has zero
+false-safe decisions. Self-collision remains sampled, and the audit is not a
+continuous or physical-robot safety certificate. See
+[MuJoCo swept collision audit](MUJOCO_SWEPT_AUDIT.md).
+
 The asynchronous Panda runtime now integrates the local half of the chain. A
 latest-only camera worker timestamps live Panda state and two simulated images;
 a separate blocking scripted policy returns action chunks; every control tick
@@ -133,7 +144,10 @@ performs observation-age suffix dispatch and deadline checks; and PD plus bias
 compensation applies torque-limited commands to MuJoCo. Expired or failed
 responses trigger a stop rebuilt and checked from measured state. The resulting
 events, NPZ traces, provenance, hashes, and recomputed metrics form a
-self-validating artifact. See
+self-validating artifact. The current checker also derives a conservative
+per-joint workspace-motion bound and subdivides each clearance-backed edge;
+the preserved v2 matrix was generated immediately before this optimization and
+retains its resolution-bounded provenance. See
 [asynchronous Panda closed-loop runtime](ASYNC_PANDA_CLOSED_LOOP.md).
 
 This is still not a verified live control chain from official `pi0.5`

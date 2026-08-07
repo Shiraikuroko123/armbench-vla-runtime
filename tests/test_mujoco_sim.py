@@ -73,6 +73,56 @@ def test_mesh_contact_identifies_blocking_body(menagerie_path: Path) -> None:
     assert any("center_block" in failure for failure in collisions)
 
 
+def test_swept_checker_uses_clearance_backed_workspace_bound(
+    menagerie_path: Path,
+) -> None:
+    scenario = mujoco_scenarios()["free_space"]
+    robot = MuJoCoPanda.create(
+        scene_path=menagerie_path,
+        obstacles=inflate_obstacles(scenario.obstacles, 0.02),
+    )
+    checker = MuJoCoCollisionChecker(
+        robot,
+        resolution=0.05,
+        swept_obstacle_margin_m=0.02,
+    )
+    end = scenario.start.copy()
+    end[:3] += [0.12, -0.08, 0.05]
+    bound = checker.edge_workspace_motion_bound(scenario.start, end)
+    expected_swept_samples = int(np.ceil(bound / 0.01))
+
+    assert checker.joint_motion_radii_m.shape == (7,)
+    assert np.all(checker.joint_motion_radii_m > 0.0)
+    assert checker.edge_sample_count(scenario.start, end) >= expected_swept_samples
+    assert checker.edge_is_valid(scenario.start, end)
+    assert checker.stats.swept_edge_queries == 1
+    assert checker.stats.swept_subdivision_samples >= expected_swept_samples + 1
+
+
+def test_swept_checker_never_accepts_an_edge_rejected_by_dense_sampling(
+    menagerie_path: Path,
+) -> None:
+    scenario = mujoco_scenarios()["single_block"]
+    inflated = inflate_obstacles(scenario.obstacles, 0.02)
+    swept = MuJoCoCollisionChecker(
+        MuJoCoPanda.create(scene_path=menagerie_path, obstacles=inflated),
+        resolution=0.05,
+        swept_obstacle_margin_m=0.02,
+    )
+    dense = MuJoCoCollisionChecker(
+        MuJoCoPanda.create(scene_path=menagerie_path, obstacles=inflated),
+        resolution=0.002,
+    )
+    rng = np.random.default_rng(20260808)
+    for _ in range(12):
+        start = scenario.start + rng.normal(0.0, 0.04, size=7)
+        end = start + rng.normal(0.0, 0.10, size=7)
+        start = np.clip(start, swept.robot.lower_limits + 1e-3, swept.robot.upper_limits - 1e-3)
+        end = np.clip(end, swept.robot.lower_limits + 1e-3, swept.robot.upper_limits - 1e-3)
+        if swept.edge_is_valid(start, end):
+            assert dense.edge_is_valid(start, end)
+
+
 def test_short_torque_control_execution_reaches_goal(menagerie_path: Path) -> None:
     scenario = mujoco_scenarios()["free_space"]
     goal = scenario.start.copy()

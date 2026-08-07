@@ -52,6 +52,7 @@ Panda 与 LIBERO 的动作契约不同，实验结果不会混合统计。完整
 | RTC-style continuation | 300 rollouts / 100 matched triplets：baseline 96/100，hard projection 97/100，RTC guidance 97/100 | 没有任务成功率优势；motion seam 仅为探索性过程指标 |
 | 终端制动不变量修复 | 270 个成对离线案例：已注册约束从 264/270 提升到 270/270，6 个旧冲突全部解决，0 个回归 | 将冻结的 `pi0.5` 响应送入 Panda 适配器；不主张任务成功率或硬实时 |
 | 异步 Panda 闭环 | 27 个 CPU 墙钟案例：制动不变量模式 9/9 通过物理谓词，突停违规 0，修复预算超限 0；legacy 为 266 次突停，unguarded 为 211 次 | 使用 scripted 非学习策略验证双相机、策略 worker、调度、修复和力矩控制集成；不是学习策略效果或实体安全认证 |
+| Clearance-backed swept 审计 | 三个场景 72 条固定 seed 边：相对更密采样 oracle 的 false-safe 为 0 | 静态障碍保守审计；自碰撞和连续实体安全仍不在范围内 |
 
 完整协议、验证器、统计和研究限制见[结果说明](docs/RESULTS.md)。
 

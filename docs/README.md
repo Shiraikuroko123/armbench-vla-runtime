@@ -27,6 +27,8 @@ to match later results.
 | [Troubleshooting](DEBUGGING.md) | Operational | Boundary-oriented diagnosis for installation, protocol, runtime, and artifacts |
 | [Local CPU setup](LOCAL_SETUP.md) | Operational | Portable Windows/Linux installation, model resolution, and offline commands |
 | [本地 CPU 安装](LOCAL_SETUP_ZH.md) | Operational | Windows/Linux 安装、模型路径解析与离线运行说明 |
+| [MuJoCo swept collision audit](MUJOCO_SWEPT_AUDIT.md) | Current | Clearance-backed static-obstacle subdivision, dense-oracle audit, and claim boundary |
+| [MuJoCo swept 碰撞审计](MUJOCO_SWEPT_AUDIT_ZH.md) | Current | 基于 clearance 的静态障碍细分、dense 对照和主张边界 |
 | [Technical review guide](TECHNICAL_REVIEW.md) | Operational | Architecture walkthrough, review questions, and maintainer readiness checks |
 | [OpenPI/LIBERO operations](OPENPI_LIBERO_OPERATIONS.md) | Operational | Linux/NVIDIA execution, validation lifecycle, retention, and cost controls |
 

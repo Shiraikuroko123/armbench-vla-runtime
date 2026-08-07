@@ -360,6 +360,39 @@ superiority claim is made. The self-validating report is in
 and the implementation/claim boundary is documented in
 [asynchronous Panda closed-loop runtime](ASYNC_PANDA_CLOSED_LOOP.md).
 
+## Clearance-backed MuJoCo swept audit
+
+### Provenance and protocol
+
+- Run ID: `mujoco_swept_audit_001`
+- Source: implementation hashes recorded in the artifact summary and protected
+  by the root manifest
+- Matrix: three Panda scenes x 24 edges = 72 seeded edges
+- Swept checker: 0.05 rad joint-resolution lower bound plus per-joint workspace
+  displacement subdivision at half of the 20 mm static-obstacle clearance
+- Comparison oracle: the same inflated MuJoCo geometry sampled at 0.002 rad
+- Scope: static-obstacle certificate only; self-collision remains sampled
+
+### Outcomes
+
+| Metric | Result |
+| --- | ---: |
+| Edges | 72 |
+| Swept / dense accepted | 49 / 49 |
+| False-safe edges | 0 |
+| Conservative rejections | 0 |
+| Mean swept samples per edge | 744.7 |
+| P95 swept / dense latency | 141.20 / 273.02 ms |
+
+The broad random edges make the cost of a conservative bound visible; they are
+not representative of short control actions. A separate three-case runtime
+smoke kept braking-repair P95 below 7.9 ms with zero selection-budget misses.
+The dense oracle remains sampled and therefore does not convert this audit into
+an analytic continuous-collision proof. The self-validating artifact is
+[`reports/mujoco_swept_audit_001`](../reports/mujoco_swept_audit_001/summary.json),
+and the method boundary is documented in
+[clearance-backed swept collision audit](MUJOCO_SWEPT_AUDIT.md).
+
 ## Local scripted online VLA runtime result
 
 ### Provenance

@@ -19,6 +19,11 @@ from armbench.mujoco_sim.benchmark import (
     load_mujoco_config,
     validate_mujoco_scenarios,
 )
+from armbench.mujoco_sim.swept_audit import (
+    SweptAuditConfig,
+    run_swept_collision_audit,
+    validate_swept_collision_audit,
+)
 from armbench.scenario import benchmark_scenarios
 from armbench.vla.async_runtime import run_async_runtime_smoke
 from armbench.vla.async_panda import ASYNC_PANDA_MODES
@@ -289,6 +294,29 @@ def build_parser() -> argparse.ArgumentParser:
     mujoco_validate.add_argument(
         "--config", type=Path, default=Path("configs/mujoco_benchmark.json")
     )
+
+    swept_audit = subparsers.add_parser(
+        "mujoco-swept-audit",
+        help="compare clearance-backed swept checks with a dense sampled oracle",
+    )
+    swept_audit.add_argument("--output-directory", type=Path, required=True)
+    swept_audit.add_argument(
+        "--scenarios",
+        nargs="+",
+        choices=("free_space", "single_block", "narrow_gate"),
+        default=("free_space", "single_block", "narrow_gate"),
+    )
+    swept_audit.add_argument("--samples-per-scenario", type=int, default=24)
+    swept_audit.add_argument("--seed", type=int, default=20260808)
+    swept_audit.add_argument("--clearance-mm", type=float, default=20.0)
+    swept_audit.add_argument("--sampled-resolution-rad", type=float, default=0.05)
+    swept_audit.add_argument("--dense-resolution-rad", type=float, default=0.002)
+    swept_audit.add_argument("--quick", action="store_true")
+    swept_validate = subparsers.add_parser(
+        "mujoco-swept-validate",
+        help="validate a preserved swept-collision audit",
+    )
+    swept_validate.add_argument("directory", type=Path)
 
     mujoco_run = subparsers.add_parser(
         "mujoco-run", help="run mesh planning and MuJoCo rigid-body experiments"
@@ -869,6 +897,28 @@ def main(arguments: list[str] | None = None) -> int:
         return _validate(args.config)
     if args.command == "mujoco-validate":
         return _mujoco_validate(args.config)
+    if args.command == "mujoco-swept-audit":
+        if args.quick and args.samples_per_scenario != 24:
+            parser.error("--quick cannot be combined with --samples-per-scenario")
+        output = run_swept_collision_audit(
+            args.output_directory,
+            config=SweptAuditConfig(
+                scenarios=tuple(args.scenarios),
+                samples_per_scenario=(8 if args.quick else args.samples_per_scenario),
+                seed=args.seed,
+                clearance_m=args.clearance_mm / 1000.0,
+                sampled_resolution_rad=args.sampled_resolution_rad,
+                dense_resolution_rad=args.dense_resolution_rad,
+            ),
+        )
+        result = validate_swept_collision_audit(output)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "mujoco-swept-validate":
+        result = validate_swept_collision_audit(args.directory)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0
     if args.command == "mujoco-run":
         if args.quick and args.seeds:
             parser.error("--quick cannot be combined with --seeds")

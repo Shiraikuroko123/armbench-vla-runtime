@@ -24,11 +24,14 @@ ArmBench 是一个研究动作块式 VLA 在“模型响应返回”和“机器
 
 - RRT-Connect/RRT* 规划、路径平滑和时间参数化；
 - PD/LQR 轨迹跟踪与扰动下的执行检查；
-- 构型采样和边插值的碰撞检查；
+- 构型采样和边插值的碰撞检查；异步运行时另外对静态障碍使用带 clearance
+  的保守扫掠细分；
 - 关节、速度、夹爪和状态一致性检查；
 - 双相机观测、传输测试和确定性故障注入。
 
-这条路径用于验证七自由度机械臂上的运行时契约和受控失败行为。碰撞检查属于采样检查，不是连续碰撞证明。
+这条路径用于验证七自由度机械臂上的运行时契约和受控失败行为。带 clearance 的
+运行时细分会在声明的模型假设下约束静态障碍之间的下游几何运动；自碰和力矩级
+动力学仍是采样/未认证的。
 
 ### 2. `pi0.5 VLA` 时序评测路径
 
@@ -95,11 +98,18 @@ guard。确定性 CPU smoke 见
 270 个保留案例中，它解决了旧 guard 的 6 个避碰/加速度冲突，且没有观察到修复回归。
 详见[延迟有界的终端制动不变量修复](PI05_PANDA_BRAKING_REPAIR_ZH.md)。
 
+本地 MuJoCo checker 现在还提供基于 clearance 的静态障碍 swept 审计：为每个关节
+计算保守工作空间位移半径，按配置余量细分边，并与更密的采样 oracle 对照。保留的
+72 条边审计 false-safe 为 0。自碰撞仍是采样检查，这不是连续或实体机器人安全证书。
+详见[MuJoCo swept 碰撞审计](MUJOCO_SWEPT_AUDIT_ZH.md)。
+
 异步 Panda 运行时现在补齐了本地链路。latest-only 相机 worker 为实时 Panda 状态和
 两路仿真图像加时间戳，独立阻塞 scripted 策略返回 action chunk；每个 control tick
 执行观测年龄后缀调度与 deadline 检查，并由 PD、偏置补偿和力矩限制推进 MuJoCo。
 响应超时或失败时，从实测状态重建并检查停止序列。事件、NPZ trace、provenance、
-哈希和重算指标共同构成可独立验收的 artifact。详见
+哈希和重算指标共同构成可独立验收的 artifact。当前 checker 还会计算逐关节
+workspace 运动上界并细分带 clearance 的边；仓库保留的 v2 矩阵是在这个优化前
+生成的，因此仍按分辨率有界的 provenance 解释。详见
 [异步 Panda 闭环运行时](ASYNC_PANDA_CLOSED_LOOP_ZH.md)。
 
 但它仍不是经过验证的“官方 `pi0.5` 在线推理直接控制 Panda”链路。尺度、坐标系、

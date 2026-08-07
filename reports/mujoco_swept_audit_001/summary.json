@@ -1,0 +1,61 @@
+{
+  "by_scenario": {
+    "free_space": {
+      "conservative_rejections": 0,
+      "dense_valid": 23,
+      "edges": 24,
+      "false_safe": 0,
+      "swept_valid": 23
+    },
+    "narrow_gate": {
+      "conservative_rejections": 0,
+      "dense_valid": 11,
+      "edges": 24,
+      "false_safe": 0,
+      "swept_valid": 11
+    },
+    "single_block": {
+      "conservative_rejections": 0,
+      "dense_valid": 15,
+      "edges": 24,
+      "false_safe": 0,
+      "swept_valid": 15
+    }
+  },
+  "claim_boundary": [
+    "The dense comparison is a stronger sampled oracle, not an analytic proof.",
+    "The certificate covers static obstacles represented by the configured clearance.",
+    "Self-collision remains sampled and is not a continuous certificate.",
+    "No physical robot or hard-real-time claim is made."
+  ],
+  "configuration": {
+    "clearance_m": 0.02,
+    "dense_resolution_rad": 0.002,
+    "sampled_resolution_rad": 0.05,
+    "samples_per_scenario": 24,
+    "scenarios": [
+      "free_space",
+      "single_block",
+      "narrow_gate"
+    ],
+    "seed": 20260808
+  },
+  "implementation_sha256": {
+    "armbench/mujoco_sim/collision.py": "48e8ccf40fc4b5ecbe426b454c38104561e861d88c1d4be09636efe664c08f29",
+    "armbench/mujoco_sim/swept_audit.py": "13b2543e7488cea96d190cfbaa35d410c06d41290c5e557a2ba0b18324abc639"
+  },
+  "overall": {
+    "conservative_rejections": 0,
+    "dense_valid": 49,
+    "edges": 72,
+    "false_safe": 0,
+    "max_workspace_bound_m": 12.590048641693816,
+    "mean_swept_samples": 744.7222222222222,
+    "p95_dense_latency_ms": 273.023784999532,
+    "p95_swept_latency_ms": 141.2013800072601,
+    "swept_valid": 49
+  },
+  "panda_scene_sha256": "60658e01f59909eadaffbb4eb98a98715f67f67e9ae49f42ac114567fddaf230",
+  "schema_version": "armbench.mujoco_swept_audit.v1",
+  "scope": "clearance_backed_swept_checker_vs_dense_sampled_oracle"
+}

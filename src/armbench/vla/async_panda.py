@@ -929,7 +929,9 @@ def run_async_panda_episode(
         obstacles=inflate_obstacles(scenario.obstacles, config.clearance_m)
     )
     checker = MuJoCoCollisionChecker(
-        guard_robot, resolution=config.collision_resolution_rad
+        guard_robot,
+        resolution=config.collision_resolution_rad,
+        swept_obstacle_margin_m=config.clearance_m,
     )
     robot = MuJoCoPanda.create(
         obstacles=scenario.obstacles,
