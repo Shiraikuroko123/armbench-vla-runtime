@@ -101,12 +101,12 @@ interactive MuJoCo viewer:
 & '.\.venv\Scripts\python.exe' -m armbench mujoco-view `
   --scenario narrow_gate `
   --trace reports\pi05_panda_braking_repair_90_001\trajectories.npz `
-  --array legacy_positions --episode 101 --play
+  --array legacy_positions --episode 101 --play --loop
 
 & '.\.venv\Scripts\python.exe' -m armbench mujoco-view `
   --scenario narrow_gate `
   --trace reports\pi05_panda_braking_repair_90_001\trajectories.npz `
-  --array repair_positions --episode 101 --play
+  --array repair_positions --episode 101 --play --loop
 ```
 
 Use `per_case.csv` to map `trajectory_index` to a scenario and source response

@@ -48,7 +48,11 @@ def load_pose_sequence(
                 raise ValueError(f"trajectory does not contain array {array_key!r}")
             selected = array_key
         positions = np.asarray(trace[selected], dtype=float)
-        times = np.asarray(trace["times"], dtype=float) if "times" in trace else None
+        time_key = next(
+            (key for key in ("times", "times_s") if key in trace),
+            None,
+        )
+        times = np.asarray(trace[time_key], dtype=float) if time_key else None
     if episode < 0:
         raise ValueError("trajectory episode must be nonnegative")
     if positions.ndim == 3:
@@ -134,7 +138,7 @@ def launch_trajectory_viewer(
             raise IndexError(
                 f"frame {resolved_frame} is outside trajectory of length {len(positions)}"
             )
-        q = positions[resolved_frame]
+        q = positions[0] if play and frame < 0 else positions[resolved_frame]
     robot = MuJoCoPanda.create(
         obstacles=inflate_obstacles(scenario.obstacles, clearance_m),
         payload_mass=payload_mass,

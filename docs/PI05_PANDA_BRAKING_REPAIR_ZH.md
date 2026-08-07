@@ -93,12 +93,12 @@ NPZ 中保存了原始、旧 guard、修复后以及终端制动的关节轨迹�
 & '.\.venv\Scripts\python.exe' -m armbench mujoco-view `
   --scenario narrow_gate `
   --trace reports\pi05_panda_braking_repair_90_001\trajectories.npz `
-  --array legacy_positions --episode 101 --play
+  --array legacy_positions --episode 101 --play --loop
 
 & '.\.venv\Scripts\python.exe' -m armbench mujoco-view `
   --scenario narrow_gate `
   --trace reports\pi05_panda_braking_repair_90_001\trajectories.npz `
-  --array repair_positions --episode 101 --play
+  --array repair_positions --episode 101 --play --loop
 ```
 
 先在 `per_case.csv` 中按 `trajectory_index` 查场景、方法和源响应哈希，再打开
