@@ -1,14 +1,14 @@
 {
   "files": [
     {
-      "bytes": 9332,
+      "bytes": 28792,
       "path": "per_edge.csv",
-      "sha256": "fbb235022818beb26c02ea056ba8dc12d5a214fc9e745acd5b3e3a1464e99860"
+      "sha256": "51aec2c0d8fb86ff2fd2dd4bb6b1599540c4c19428aa5f45e0be05e455f09bd2"
     },
     {
-      "bytes": 1933,
+      "bytes": 1934,
       "path": "summary.json",
-      "sha256": "100f3563f6f03ca24f04d8d8b8fc047e3a3d7bcec59b917c92bc2c8616ce4307"
+      "sha256": "76d97c32c12ae042e4f903e855675a43041673a85e12a8643d1597c7dc4aa775"
     },
     {
       "bytes": 184,
@@ -16,6 +16,6 @@
       "sha256": "8ee8f99aa5837f2b8bfb1854aa622422b252795e6ca8135195f9e35230cad9c6"
     }
   ],
-  "inventory_sha256": "9cb78bfeb6caadf9eb90a0fb4b060f0862652207bdc48901996320b8efca4157",
+  "inventory_sha256": "f62d6cae2c7940f65d6411776cfc6fbb1f932bd11f36aa2d808176aa5d2615ed",
   "schema_version": "armbench.mujoco_swept_audit.v1.manifest"
 }

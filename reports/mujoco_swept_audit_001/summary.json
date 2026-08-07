@@ -42,7 +42,7 @@
   },
   "implementation_sha256": {
     "armbench/mujoco_sim/collision.py": "48e8ccf40fc4b5ecbe426b454c38104561e861d88c1d4be09636efe664c08f29",
-    "armbench/mujoco_sim/swept_audit.py": "13b2543e7488cea96d190cfbaa35d410c06d41290c5e557a2ba0b18324abc639"
+    "armbench/mujoco_sim/swept_audit.py": "a8f015c472c2a38488f0d602ea40195dc062281c0958522fe9326ecf150c2b3e"
   },
   "overall": {
     "conservative_rejections": 0,
@@ -51,8 +51,8 @@
     "false_safe": 0,
     "max_workspace_bound_m": 12.590048641693816,
     "mean_swept_samples": 744.7222222222222,
-    "p95_dense_latency_ms": 273.023784999532,
-    "p95_swept_latency_ms": 141.2013800072601,
+    "p95_dense_latency_ms": 321.4954449940707,
+    "p95_swept_latency_ms": 129.0698800017708,
     "swept_valid": 49
   },
   "panda_scene_sha256": "60658e01f59909eadaffbb4eb98a98715f67f67e9ae49f42ac114567fddaf230",
