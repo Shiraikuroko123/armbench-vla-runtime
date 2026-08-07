@@ -827,7 +827,11 @@ def execute_async_panda_benchmark(
             "physical_safety_claim": False,
         },
         "collision_validation": {
-            "method": "clearance_backed_swept_static_obstacle_subdivision",
+            "method": (
+                "clearance_backed_swept_static_obstacle_subdivision"
+                if resolved_runtime_clearance_m > 0.0
+                else "resolution_bounded_joint_space_sampling"
+            ),
             "swept_obstacle_margin_m": resolved_runtime_clearance_m,
             "joint_motion_radii_m": (
                 collision_validation_checker.joint_motion_radii_m.tolist()
@@ -1241,10 +1245,15 @@ def validate_async_panda_artifact(directory: Path) -> dict[str, Any]:
         )
     if provenance.get("schema_version") == PROVENANCE_SCHEMA:
         collision_validation = provenance.get("collision_validation")
+        expected_collision_method = (
+            "clearance_backed_swept_static_obstacle_subdivision"
+            if float(matrix["runtime_clearance_m"]) > 0.0
+            else "resolution_bounded_joint_space_sampling"
+        )
         _require(
             isinstance(collision_validation, Mapping)
             and collision_validation.get("method")
-            == "clearance_backed_swept_static_obstacle_subdivision"
+            == expected_collision_method
             and collision_validation.get("self_collision_continuity")
             == "sampled_only",
             "collision validation provenance is invalid",

@@ -200,6 +200,9 @@ def test_async_benchmark_writes_recomputable_manifest_artifact(
     assert provenance["matrix"]["runtime_clearance_m"] == (
         provenance["matrix"]["planning_clearance_m"]
     )
+    assert provenance["collision_validation"]["method"] == (
+        "clearance_backed_swept_static_obstacle_subdivision"
+    )
 
 
 def test_async_benchmark_records_explicit_zero_runtime_clearance(
@@ -221,6 +224,9 @@ def test_async_benchmark_records_explicit_zero_runtime_clearance(
         "explicit_override"
     )
     assert provenance["matrix"]["runtime_clearance_m"] == 0.0
+    assert provenance["collision_validation"]["method"] == (
+        "resolution_bounded_joint_space_sampling"
+    )
     assert validate_async_panda_artifact(artifact)["valid"]
 
 

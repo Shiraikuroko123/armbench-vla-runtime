@@ -117,8 +117,16 @@ def test_swept_checker_never_accepts_an_edge_rejected_by_dense_sampling(
     for _ in range(12):
         start = scenario.start + rng.normal(0.0, 0.04, size=7)
         end = start + rng.normal(0.0, 0.10, size=7)
-        start = np.clip(start, swept.robot.lower_limits + 1e-3, swept.robot.upper_limits - 1e-3)
-        end = np.clip(end, swept.robot.lower_limits + 1e-3, swept.robot.upper_limits - 1e-3)
+        start = np.clip(
+            start,
+            swept.robot.lower_limits + 1e-3,
+            swept.robot.upper_limits - 1e-3,
+        )
+        end = np.clip(
+            end,
+            swept.robot.lower_limits + 1e-3,
+            swept.robot.upper_limits - 1e-3,
+        )
         if swept.edge_is_valid(start, end):
             assert dense.edge_is_valid(start, end)
 
