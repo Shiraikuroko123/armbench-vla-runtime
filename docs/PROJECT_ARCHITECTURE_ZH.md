@@ -81,10 +81,11 @@ MuJoCo Panda hand Jacobian、阻尼最小二乘微分逆运动学、关节限位
 guard。确定性 CPU smoke 见
 [LIBERO 到 Panda 的笛卡尔动作适配器](PANDA_CARTESIAN_ADAPTER_ZH.md)。
 
-但它仍不是经过验证的“官方 `pi0.5` 响应直接控制 Panda”链路。官方 checkpoint
-worker 尚未接入独立时钟推进的 Panda 或 LIBERO actuator loop；适配器的尺度、
-坐标系、裁剪和夹爪语义也尚未与上游 LIBERO OSC controller 对齐并固化。只有
-完成这些集成、时间同步和新的冻结实验，才能提出端到端主张。
+但它仍不是经过验证的“官方 `pi0.5` 响应直接控制 Panda”链路。尺度、坐标系、
+裁剪和夹爪语义已经与 LIBERO commit `f78abd68`、robosuite `1.4.1` 源码核对，
+但微分逆解在动力学上不等价于 robosuite 的 torque-level OSC。官方 checkpoint
+worker 也尚未接入独立时钟推进的 Panda 或 LIBERO actuator loop。只有完成这些
+集成、时间同步和新的冻结实验，才能提出端到端主张。
 
 因此，不应表述为：`pi0.5` 已部署到 Panda、Panda guard 已证明 VLA 安全，或仿真结果已经达到硬实时。
 

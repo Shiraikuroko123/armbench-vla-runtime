@@ -10,6 +10,7 @@ from armbench.mujoco_sim.model import default_panda_scene_path
 from armbench.mujoco_sim.scenarios import mujoco_scenarios
 from armbench.vla.cartesian_adapter import (
     CartesianAdapterConfig,
+    LIBERO_CONTROLLER_SEMANTICS_ID,
     PandaCartesianActionAdapter,
     run_cartesian_adapter_smoke,
 )
@@ -22,6 +23,16 @@ def robot() -> MuJoCoPanda:
     except FileNotFoundError as error:
         pytest.skip(str(error))
     return MuJoCoPanda.create(scene_path=scene_path, obstacles=())
+
+
+def test_default_config_locks_attested_libero_osc_pose_contract() -> None:
+    config = CartesianAdapterConfig()
+
+    assert config.control_dt_s == pytest.approx(0.05)
+    assert config.translation_delta_scale_m == pytest.approx(0.05)
+    assert config.rotation_delta_scale_rad == pytest.approx(0.5)
+    assert config.normalized_action_limit == pytest.approx(1.0)
+    assert config.action_frame == "base"
 
 
 def test_hand_jacobian_translation_matches_finite_difference(
@@ -52,7 +63,7 @@ def test_hand_pose_rotation_is_orthonormal(robot: MuJoCoPanda) -> None:
     assert np.linalg.det(rotation) == pytest.approx(1.0, abs=1e-12)
 
 
-def test_zero_cartesian_actions_hold_joints_and_map_gripper(
+def test_zero_cartesian_actions_hold_joints_and_invert_libero_gripper(
     robot: MuJoCoPanda,
 ) -> None:
     q = mujoco_scenarios()["free_space"].start
@@ -69,7 +80,7 @@ def test_zero_cartesian_actions_hold_joints_and_map_gripper(
     )
 
     np.testing.assert_allclose(result.chunk.actions[:, :7], 0.0, atol=1e-12)
-    np.testing.assert_allclose(result.chunk.actions[:, 7], [0.0, 0.5, 1.0])
+    np.testing.assert_allclose(result.chunk.actions[:, 7], [1.0, 0.5, 0.0])
     np.testing.assert_allclose(
         result.predicted_positions,
         np.repeat(q[None, :], 4, axis=0),
@@ -115,6 +126,7 @@ def test_adapter_clips_input_and_respects_joint_velocity_limits(
 
     assert result.clipped_input_steps == 2
     assert result.velocity_limited_steps >= 1
+    np.testing.assert_allclose(result.chunk.actions[:, 7], 0.0)
     limits = robot.velocity_limits * config.joint_velocity_limit_scale
     assert np.all(np.abs(result.chunk.actions[:, :7]) <= limits + 1e-12)
     assert all(robot.within_limits(position) for position in result.predicted_positions)
@@ -178,5 +190,13 @@ def test_cartesian_adapter_smoke_passes_with_explicit_scope() -> None:
     assert report["scope"] == "scripted_cartesian_adapter_component_only"
     assert report["policy_checkpoint_used"] is False
     assert report["adapter"]["action_space_id"] == "libero.ee_delta_pose_gripper.v1"
+    assert (
+        report["adapter"]["controller_semantics_id"]
+        == LIBERO_CONTROLLER_SEMANTICS_ID
+    )
+    assert (
+        report["adapter"]["kinematic_control_point_id"]
+        == "mujoco-menagerie.hand-body-origin.v1"
+    )
     assert report["guard"]["safe_after_guard"]
     assert report["hand_displacement_m"][0] > 0.0

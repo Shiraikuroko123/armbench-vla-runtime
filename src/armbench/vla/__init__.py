@@ -20,6 +20,7 @@ from armbench.vla.cartesian_adapter import (
     CartesianAdapterResult,
     CartesianAdapterStep,
     LIBERO_ACTION_SPACE_ID,
+    LIBERO_CONTROLLER_SEMANTICS_ID,
     PandaCartesianActionAdapter,
     run_cartesian_adapter_smoke,
 )
@@ -101,6 +102,7 @@ __all__ = [
     "LOOPBACK_POLICY_PROVENANCE",
     "LatestPolicyWorker",
     "LIBERO_ACTION_SPACE_ID",
+    "LIBERO_CONTROLLER_SEMANTICS_ID",
     "OpenPIPolicyClient",
     "OpenPIProtocolLoopbackServer",
     "OnlineEpisodeResult",

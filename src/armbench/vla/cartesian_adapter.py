@@ -14,6 +14,13 @@ from armbench.vla.types import ActionChunk, DROID_ACTION_DIM, VLAObservation
 FloatArray = NDArray[np.float64]
 LIBERO_ACTION_DIM = 7
 LIBERO_ACTION_SPACE_ID = "libero.ee_delta_pose_gripper.v1"
+LIBERO_CONTROLLER_SEMANTICS_ID = (
+    "libero-f78abd68.robosuite-1.4.1.osc-pose.v1"
+)
+PANDA_KINEMATIC_CONTROL_POINT_ID = "mujoco-menagerie.hand-body-origin.v1"
+LIBERO_CONTROL_DT_S = 0.05
+LIBERO_TRANSLATION_DELTA_SCALE_M = 0.05
+LIBERO_ROTATION_DELTA_SCALE_RAD = 0.50
 
 
 class PandaCartesianKinematics(Protocol):
@@ -35,17 +42,16 @@ class PandaCartesianKinematics(Protocol):
 
 @dataclass(frozen=True)
 class CartesianAdapterConfig:
-    """Explicit component-test mapping from normalized deltas to a hand twist.
+    """Source-attested LIBERO OSC_POSE mapping from actions to a hand twist.
 
-    The default scales are conservative smoke-test values. They are not an
-    attestation that the local Panda exactly reproduces LIBERO's OSC controller.
-    A formal end-to-end study must freeze scales and frame semantics from the
-    upstream controller configuration before collecting outcomes.
+    The default scale, clip, frame, and gripper semantics match LIBERO commit
+    f78abd68 with robosuite 1.4.1. The local differential-IK velocity adapter is
+    still not dynamically equivalent to robosuite's torque-level OSC controller.
     """
 
-    control_dt_s: float = 0.05
-    translation_delta_scale_m: float = 0.05
-    rotation_delta_scale_rad: float = 0.50
+    control_dt_s: float = LIBERO_CONTROL_DT_S
+    translation_delta_scale_m: float = LIBERO_TRANSLATION_DELTA_SCALE_M
+    rotation_delta_scale_rad: float = LIBERO_ROTATION_DELTA_SCALE_RAD
     damping: float = 0.05
     normalized_action_limit: float = 1.0
     joint_velocity_limit_scale: float = 0.50
@@ -112,6 +118,8 @@ class CartesianAdapterResult:
         return {
             "scope": "component_cartesian_adapter_only",
             "action_space_id": self.action_space_id,
+            "controller_semantics_id": LIBERO_CONTROLLER_SEMANTICS_ID,
+            "kinematic_control_point_id": PANDA_KINEMATIC_CONTROL_POINT_ID,
             "horizon": self.chunk.horizon,
             "source": self.chunk.source,
             "clipped_input_steps": self.clipped_input_steps,
@@ -151,7 +159,7 @@ class PandaCartesianActionAdapter:
             action[:6],
             -self.config.normalized_action_limit,
             self.config.normalized_action_limit,
-        )
+        ) / self.config.normalized_action_limit
         delta = np.concatenate(
             (
                 normalized[:3] * self.config.translation_delta_scale_m,
@@ -242,7 +250,9 @@ class PandaCartesianActionAdapter:
             achieved_twist = jacobian @ joint_velocity
             singular_values = np.linalg.svd(jacobian, compute_uv=False)
             input_clipped = bool(np.any(np.abs(action) > limit + 1e-12))
-            gripper = float(np.clip((action[6] / limit + 1.0) / 2.0, 0.0, 1.0))
+            normalized_gripper = float(np.clip(action[6] / limit, -1.0, 1.0))
+            # LIBERO: -1=open, +1=closed. Local Panda: 0=closed, 1=open.
+            gripper = (1.0 - normalized_gripper) / 2.0
             output[index, :7] = joint_velocity
             output[index, 7] = gripper
             predicted.append(q.copy())
@@ -289,7 +299,7 @@ def run_cartesian_adapter_smoke() -> dict[str, object]:
     config = CartesianAdapterConfig()
     actions = np.zeros((10, LIBERO_ACTION_DIM), dtype=float)
     actions[:, 0] = 0.10
-    actions[:, 6] = 1.0
+    actions[:, 6] = -1.0
     captured_at_s = 100.0
     adapter = PandaCartesianActionAdapter(robot, config)
     adapted = adapter.adapt(
@@ -337,7 +347,8 @@ def run_cartesian_adapter_smoke() -> dict[str, object]:
         "hand_displacement_m": displacement.tolist(),
         "limitations": [
             "No pi0.5 inference or LIBERO task-success claim.",
-            "Default Cartesian scales are component-test values, not an attested LIBERO OSC mapping.",
+            "LIBERO action semantics are source-attested; local differential IK is not torque-OSC equivalence.",
+            "The local control point is the Menagerie hand-body origin, not the robosuite grip_site.",
             "Collision checking is resolution-bounded edge sampling, not continuous certification.",
         ],
     }

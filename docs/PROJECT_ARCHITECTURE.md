@@ -107,11 +107,13 @@ the existing guard. Its deterministic CPU smoke is documented in
 [LIBERO-to-Panda Cartesian adapter](PANDA_CARTESIAN_ADAPTER.md).
 
 This is still not a verified direct control chain from official `pi0.5`
-responses to Panda execution. The official-checkpoint worker is not connected
-to an independently ticking Panda or LIBERO actuator loop, and the adapter's
-scale, coordinate-frame, clipping, and gripper conventions have not been
-attested against the upstream LIBERO OSC controller. End-to-end claims require
-that integration, time synchronization, and a new frozen experiment.
+responses to Panda execution. Scale, coordinate-frame, clipping, and gripper
+conventions are now attested against LIBERO commit `f78abd68` and robosuite
+`1.4.1`, but the differential-IK adapter is not dynamically equivalent to
+robosuite's torque-level OSC. The official-checkpoint worker is also not
+connected to an independently ticking Panda or LIBERO actuator loop. End-to-end
+claims require that integration, time synchronization, and a new frozen
+experiment.
 
 Do not write or say that `pi0.5` has been deployed on a Panda robot, that the
 Panda guard certifies VLA safety, or that the simulation results establish

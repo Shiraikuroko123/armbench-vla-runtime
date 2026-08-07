@@ -15,17 +15,23 @@ model inference.
 
 ## Mapping
 
-For each normalized Cartesian action, the adapter:
+For each raw Cartesian action, the adapter:
 
-1. clips the six motion coordinates to a declared input interval;
-2. applies explicit translation and rotation scales;
-3. converts tool-frame commands to the MuJoCo world frame when configured;
+1. clips the six motion coordinates to the declared input interval;
+2. applies the source-attested `0.05 m` translation and `0.5 rad` rotation
+   scales at the LIBERO control period of `0.05 s`;
+3. interprets the default command in the base/world frame and converts an
+   explicitly configured tool-frame command when needed;
 4. evaluates the Menagerie Panda hand-body geometric Jacobian;
 5. solves damped least-squares differential inverse kinematics;
 6. uniformly scales joint velocity to robot limits and a joint-limit margin;
-7. maps the signed gripper command from `[-1, 1]` to `[0, 1]`; and
+7. maps LIBERO `-1=open, +1=closed` to the local Panda
+   `0=closed, 1=open` convention; and
 8. preserves source, observation sequence, inference latency, and receive time
    in the resulting action chunk.
+
+Official archived responses can exceed the nominal input interval. Matching
+robosuite, the adapter records those steps and clips them before scaling.
 
 The existing `ActionChunkGuard` then applies cross-step acceleration limiting,
 configuration checks, resolution-bounded collision edge checks, deadline and
@@ -46,11 +52,17 @@ explicitly labeled `scripted_cartesian_adapter_component_only`.
 
 ## Claim boundary
 
-- Default scales are conservative component-test parameters. A formal LIBERO
-  comparison must freeze its upstream OSC controller units, frame, clipping,
-  and gripper semantics first.
+- The default action semantics are attested to OpenPI's LIBERO submodule at
+  commit `f78abd68`, which creates a 20 Hz robosuite `OSC_POSE` environment,
+  and robosuite `1.4.1`. Its controller config clips at `[-1, 1]`, scales
+  translation to `+/-0.05 m` and rotation to `+/-0.5 rad`, and applies deltas
+  in the base/world frame. Panda gripper source code defines `-1=open` and
+  `+1=closed`.
 - Damped least squares plus deterministic scaling is not a quadratic-program
-  safety filter.
+  safety filter, and it is not dynamically equivalent to robosuite's
+  torque-level operational-space controller.
+- The local kinematic control point is the Menagerie `hand` body origin, not
+  robosuite's `grip_site`; the report exposes this distinction explicitly.
 - Collision checking interpolates joint-space edges at a configured resolution;
   it is not continuous-collision certification.
 - The smoke command does not use OpenPI, `pi0.5`, LIBERO task execution, a real
@@ -58,9 +70,8 @@ explicitly labeled `scripted_cartesian_adapter_component_only`.
 
 ## Next end-to-end milestone
 
-Wrap the official LIBERO policy response with this declared adapter contract,
-run policy inference on the maintained worker while the simulator advances on
-an independent control clock, and compare unguarded, measured-age, and
-measured-age-plus-feasibility modes under one frozen paired protocol. Replace
-the component scales with values attested from the actual controller before
-interpreting task outcomes.
+Replay frozen official LIBERO policy responses through this declared adapter,
+then wrap live responses in an independently scheduled evaluator. Compare
+unguarded, measured-age, and measured-age-plus-feasibility modes under one
+frozen paired protocol. A result on the local Panda remains a cross-controller
+transfer study and must not be reported as a reproduced LIBERO task score.
