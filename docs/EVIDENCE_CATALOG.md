@@ -10,7 +10,8 @@ scripted runtime checks, and rejected runs.
 - Artifact directories: 27
 - Files: 1384
 - Stored size: 199.6 MiB
-- Catalog tree SHA-256: `f39a9d9da4473bab8b5577f26e08690c630dd70a9584566f5ceac0954ef00dc2`
+- Catalog tree SHA-256: `ae1d20b4d8bb98373385a4e7fab4e367538ea1a3e2d450bcceafa56ffb2b53aa`
+- Fingerprint basis: Git blob IDs + canonical paths + blob sizes
 - Machine-readable form: [evidence_catalog.json](evidence_catalog.json)
 
 Run `python scripts/build_evidence_catalog.py --check` from the repository
@@ -56,7 +57,7 @@ Frozen or prospectively defined studies used for the repository's bounded result
 - Raw review files: [per_episode.csv](../evidence/pi05_libero_alignment_core_001/run/evaluation/per_episode.csv), [per_query.csv](../evidence/pi05_libero_alignment_core_001/run/evaluation/per_query.csv), [resolved_protocol.json](../evidence/pi05_libero_alignment_core_001/run/evaluation/resolved_protocol.json)
 - Validator: `python -m integrations.openpi.alignment_acceptance --no-open`. Validates the stored run and analysis, then rebuilds the offline acceptance report without model inference.
 - Claim boundary: Deterministic-delay LIBERO Spatial evidence for post-response suffix alignment; it is not a live non-blocking controller result.
-- Inventory: 343 files, 20.4 MiB, tree SHA-256 `bd06ed6fc9475834de155213c70cc78a93a849b7d7b2263a1ac97291e02e0237`
+- Inventory: 343 files, 20.4 MiB, tree SHA-256 `174fb485caf6c516534ffd595fb8dbdc27b0a8d511c1c3ac00b835508ab97db7`
 
 ### pi0.5 LIBERO measured-age confirmatory study
 
@@ -68,7 +69,7 @@ Frozen or prospectively defined studies used for the repository's bounded result
 - Raw review files: [per_episode.csv](../evidence/pi05_libero_measured_age_confirmatory_001/run/evaluation/per_episode.csv), [per_query.csv](../evidence/pi05_libero_measured_age_confirmatory_001/run/evaluation/per_query.csv), [policy_sampling.csv](../evidence/pi05_libero_measured_age_confirmatory_001/run/evaluation/policy_sampling.csv)
 - Validator: `python -m integrations.openpi.measured_age_confirmatory_acceptance --no-open`. Validates the stored measured-age artifact and independently rebuilds the prespecified analysis and dashboard.
 - Claim boundary: Measured variable-age evidence with blocking inference plus simulator catch-up; it does not establish live asynchronous pi0.5 control.
-- Inventory: 290 files, 20.4 MiB, tree SHA-256 `4be8c05e6d8c15141258ff6860a4d544e634d8372be06fb29d26f28208fa958a`
+- Inventory: 290 files, 20.4 MiB, tree SHA-256 `66927633dc8a06f9797ba0dd0261d1c09147ea738cdce40b21c32ca26d9063c3`
 
 ### Corrected pi0.5 RTC-overlap primary analysis
 
@@ -80,7 +81,7 @@ Frozen or prospectively defined studies used for the repository's bounded result
 - Raw review files: [analysis.json](../evidence/pi05_rtc_overlap_primary_v3_300_001/analysis/analysis.json), [per_triplet.csv](../evidence/pi05_rtc_overlap_primary_v3_300_001/analysis/per_triplet.csv)
 - Validator: `python -m integrations.openpi.rtc_overlap_primary_dashboard`. Validates both corrected-v3 source artifacts, rebuilds the 300-rollout analysis, and verifies canonical saved outputs.
 - Claim boundary: A corrected 300-rollout primary comparison with a null success-improvement result; it does not support an efficacy claim for RTC guidance.
-- Inventory: 4 files, 0.2 MiB, tree SHA-256 `f3d64968971c8ee66f878efaa719a79b7c4a8d18a5d48a9095ebaf7a7cecbeec`
+- Inventory: 4 files, 0.2 MiB, tree SHA-256 `fc006f5d72e3df28b96a342b851dd89fe8c16bb94cb130b92a67983f843417f4`
 
 ## Primary source artifact
 
@@ -96,7 +97,7 @@ Raw input to a primary combined analysis; interpret it with the linked companion
 - Raw review files: [episodes.json](../evidence/pi05_rtc_overlap_primary_v3_seed_20260806_001/evaluation/episodes.json), [queries.json](../evidence/pi05_rtc_overlap_primary_v3_seed_20260806_001/evaluation/queries.json), [resolved_protocol.json](../evidence/pi05_rtc_overlap_primary_v3_seed_20260806_001/evaluation/resolved_protocol.json)
 - Validator: `python -m integrations.openpi.rtc_overlap_pilot validate evidence/pi05_rtc_overlap_primary_v3_seed_20260806_001/evaluation`. Checks all 50 corrected-v3 matched triplets and the query-zero pairing gate for this source seed.
 - Claim boundary: One raw half of the primary cohort; interpret only through the combined prespecified analysis.
-- Inventory: 17 files, 21.9 MiB, tree SHA-256 `5dfef31f7ec865f2c2084aaa50790ae7b005c48d3dcff30659ba8db234069cc3`
+- Inventory: 17 files, 21.9 MiB, tree SHA-256 `010128cbe4ad6f5de0d67fb6f608c3a0ab5aa7a597a3c1d1ec67dcf9e59325db`
 
 ### Corrected RTC-overlap primary source, seed 20260807
 
@@ -108,7 +109,7 @@ Raw input to a primary combined analysis; interpret it with the linked companion
 - Raw review files: [episodes.json](../evidence/pi05_rtc_overlap_primary_v3_seed_20260807_001/evaluation/episodes.json), [queries.json](../evidence/pi05_rtc_overlap_primary_v3_seed_20260807_001/evaluation/queries.json), [resolved_protocol.json](../evidence/pi05_rtc_overlap_primary_v3_seed_20260807_001/evaluation/resolved_protocol.json)
 - Validator: `python -m integrations.openpi.rtc_overlap_pilot validate evidence/pi05_rtc_overlap_primary_v3_seed_20260807_001/evaluation`. Checks all 50 corrected-v3 matched triplets and the query-zero pairing gate for this source seed.
 - Claim boundary: One raw half of the primary cohort; interpret only through the combined prespecified analysis.
-- Inventory: 15 files, 21.7 MiB, tree SHA-256 `42056e7770a5ecc425349d0817815ff543b607ac0238ded3facc0417607b210b`
+- Inventory: 15 files, 21.7 MiB, tree SHA-256 `1904ae22252f556eb4957ae0971be56d7bb2e2c0d4a3ffe4dc2db180385bea66`
 
 ## Exploratory pilot
 
@@ -124,7 +125,7 @@ Pilot or smoke evidence used to test feasibility or choose a later protocol, not
 - Raw review files: [per_episode.csv](../evidence/pi05_libero_alignment_pilot_001/run/evaluation/per_episode.csv), [per_query.csv](../evidence/pi05_libero_alignment_pilot_001/run/evaluation/per_query.csv)
 - Validator: `python -m integrations.openpi.validate_libero_artifact evidence/pi05_libero_alignment_pilot_001/run/evaluation --json`. Checks the finalized exploratory artifact and recomputes its registered aggregates.
 - Claim boundary: Exploratory evidence that motivated a separately frozen confirmatory study.
-- Inventory: 74 files, 3.4 MiB, tree SHA-256 `92471f649debc01c8aeb6dcff6d5452b3bc9bfd657c8ac2ff60276684277b7ca`
+- Inventory: 74 files, 3.4 MiB, tree SHA-256 `29cbf3f8865dd9745ef17f9ae9303cf9e19e2c0adba5b41b2ad333003232469e`
 
 ### pi0.5 LIBERO measured-age pilot
 
@@ -136,7 +137,7 @@ Pilot or smoke evidence used to test feasibility or choose a later protocol, not
 - Raw review files: [per_episode.csv](../evidence/pi05_libero_measured_age_pilot_001/run/evaluation/per_episode.csv), [per_query.csv](../evidence/pi05_libero_measured_age_pilot_001/run/evaluation/per_query.csv)
 - Validator: `python -m integrations.openpi.validate_measured_age_artifact evidence/pi05_libero_measured_age_pilot_001/run/evaluation --json`. Checks the exploratory measured-age artifact, including timing and manifest consistency.
 - Claim boundary: Exploratory pilot used to design the held-out measured-age experiment.
-- Inventory: 80 files, 3.6 MiB, tree SHA-256 `34639fc97898f0414548e2c0c4437f45851d40fd601d1aad10fa363e8ac68cc6`
+- Inventory: 80 files, 3.6 MiB, tree SHA-256 `5584464eba51eb9dc09b3bb451a94b7efa33904928563c31ded1161b50666d5d`
 
 ### pi0.5 LIBERO two-rollout smoke test
 
@@ -148,7 +149,7 @@ Pilot or smoke evidence used to test feasibility or choose a later protocol, not
 - Raw review files: [pi05_libero_smoke_003-validation.json](../evidence/pi05_libero_smoke_003/pi05_libero_smoke_003-validation.json), [episode_000_contact_sheet.png](../evidence/pi05_libero_smoke_003/visual_audit/episode_000_contact_sheet.png)
 - Validator: Not available. Only the compact smoke summary, validation report, and visual audit were retained in Git.
 - Claim boundary: A two-rollout infrastructure smoke test, not an estimate of model task success.
-- Inventory: 6 files, 0.4 MiB, tree SHA-256 `df994af15f1e7e1160ae60488238ad4d446bf0a08eb81f66fe5dc1e93e25e75a`
+- Inventory: 6 files, 0.4 MiB, tree SHA-256 `e0fd1fc9f9c7a7e8a753f3cf1f1f2d6e759df32fdb89c90b9d103a1c7b617ba1`
 
 ### pi0.5 projected-overlap paired pilot
 
@@ -160,7 +161,7 @@ Pilot or smoke evidence used to test feasibility or choose a later protocol, not
 - Raw review files: [episodes.json](../evidence/pi05_projected_overlap_pilot_001/episodes.json), [queries.json](../evidence/pi05_projected_overlap_pilot_001/queries.json), [resolved_protocol.json](../evidence/pi05_projected_overlap_pilot_001/resolved_protocol.json)
 - Validator: `python -m integrations.openpi.projected_overlap_pilot validate evidence/pi05_projected_overlap_pilot_001`. Checks the paired pilot inventory, transition data, and registered result fields.
 - Claim boundary: Exploratory 40-rollout pilot; its observed differences are not confirmatory efficacy evidence.
-- Inventory: 50 files, 9.8 MiB, tree SHA-256 `a687afa316b51d7a21283d263005e101128b0c6b0b121f6b1f8ab1a927ff146e`
+- Inventory: 50 files, 9.8 MiB, tree SHA-256 `4d8acdb3bad3ec109d189b1a0a7e7a04b575d8397b26d9ddcc68cfbfb5b16032`
 
 ### pi0.5 RTC-overlap three-method pilot
 
@@ -172,7 +173,7 @@ Pilot or smoke evidence used to test feasibility or choose a later protocol, not
 - Raw review files: [episodes.json](../evidence/pi05_rtc_overlap_pilot_001/evaluation/episodes.json), [queries.json](../evidence/pi05_rtc_overlap_pilot_001/evaluation/queries.json)
 - Validator: Not available. The current corrected-v3 validator deliberately rejects this historical v2 schema; its saved analysis, manifest, and raw records remain reviewable.
 - Claim boundary: Exploratory 60-rollout integration and mechanism study, not a confirmatory efficacy result.
-- Inventory: 75 files, 14.8 MiB, tree SHA-256 `6a55b85e55f4b4622d8c1ef266adff39fbaa72ce99cf375f24b3c62aa3216474`
+- Inventory: 75 files, 14.8 MiB, tree SHA-256 `bb8f17ec06781685a7d601426a2bc3d12054b7be50c572be29a756b7a3721f88`
 
 ## Mechanism or integration gate
 
@@ -188,7 +189,7 @@ Component-level evidence that an implementation contract holds; it is not task-s
 - Raw review files: [report.json](../evidence/pi05_projected_conditioning_g0_001/report.json)
 - Validator: `python -m integrations.openpi.validate_projected_conditioning_g0 evidence/pi05_projected_conditioning_g0_001`. Rechecks source identity, equivalence, residual, latency-ratio, and memory gates.
 - Claim boundary: A policy-internal integration and resource gate; no closed-loop task-success claim.
-- Inventory: 3 files, 0.0 MiB, tree SHA-256 `a4f7c4823d39a4352040d657887c85ecbe40d49382a053abaaaaf1f3c9c2c377`
+- Inventory: 3 files, 0.0 MiB, tree SHA-256 `8452b6c9f4f6d1c4ee3fc798423a679b133a85cda2b75ce2c173dbd1059117b0`
 
 ### pi0.5 RTC-guidance feasibility gate
 
@@ -200,7 +201,7 @@ Component-level evidence that an implementation contract holds; it is not task-s
 - Raw review files: [report.json](../evidence/pi05_rtc_guidance_g0_001/report.json)
 - Validator: `python -m integrations.openpi.validate_rtc_guidance_g0 evidence/pi05_rtc_guidance_g0_001`. Rechecks implementation identity, equivalence controls, VJP response, latency, and device-memory gates.
 - Claim boundary: A 20-query feasibility gate on one fixed observation; no task-success or publication claim.
-- Inventory: 3 files, 0.0 MiB, tree SHA-256 `75de1dca2f65317ad8cc05058cd2c109220dad7e0eca896db258ebaad736f94e`
+- Inventory: 3 files, 0.0 MiB, tree SHA-256 `b94db836b4ed2007497363878a8edfb438be5526bab0f04dd2c6cb921430dc9f`
 
 ### pi0.5 RTC-overlap v3 pairing smoke
 
@@ -212,7 +213,7 @@ Component-level evidence that an implementation contract holds; it is not task-s
 - Raw review files: [episodes.json](../evidence/pi05_rtc_overlap_pairing_smoke_v3_001/evaluation/episodes.json), [queries.json](../evidence/pi05_rtc_overlap_pairing_smoke_v3_001/evaluation/queries.json)
 - Validator: `python -m integrations.openpi.rtc_overlap_pilot validate evidence/pi05_rtc_overlap_pairing_smoke_v3_001/evaluation`. Checks the corrected-v3 query-zero input, response, key, and noise pairing contract.
 - Claim boundary: An implementation gate covering three triplets, not outcome evidence.
-- Inventory: 11 files, 1.6 MiB, tree SHA-256 `7281bf79672d12077ab9d996ed147f81844166de11c2784998fc665b433ecb40`
+- Inventory: 11 files, 1.6 MiB, tree SHA-256 `32834520aebba4128f24dc5161eb88a4200d2335921312d47e8f766fe0e68c06`
 
 ## Diagnostic
 
@@ -228,7 +229,7 @@ A bounded debugging artifact retained for traceability rather than a headline ef
 - Raw review files: [per_episode.csv](../evidence/pi05_libero_pilot_002/run/evaluation/per_episode.csv), [per_query.csv](../evidence/pi05_libero_pilot_002/run/evaluation/per_query.csv)
 - Validator: `python -m integrations.openpi.validate_libero_artifact evidence/pi05_libero_pilot_002/run/evaluation --json`. Checks the finalized pilot artifact and registered aggregate consistency.
 - Claim boundary: Early fixed-delay diagnostic, retained for traceability rather than confirmatory performance claims.
-- Inventory: 74 files, 3.4 MiB, tree SHA-256 `de78484ec33285a2a5199d0216a8d4ab7b53df3c65d07a17a82b980e76205397`
+- Inventory: 74 files, 3.4 MiB, tree SHA-256 `3fc3c4e6496806c384c57bbcacf043562a7745ac932187f60b2f4274f386a4c4`
 
 ## Rejected from effect analysis
 
@@ -244,7 +245,7 @@ Byte-preserved evidence excluded after a documented protocol or pairing failure.
 - Raw review files: [episodes.json](../evidence/pi05_rtc_overlap_primary_seed_20260806_001/evaluation/episodes.json), [queries.json](../evidence/pi05_rtc_overlap_primary_seed_20260806_001/evaluation/queries.json)
 - Validator: Not available. The current corrected-v3 validator rejects this historical v2 schema, and the linked pairing audit already excludes it from matched-effect analysis.
 - Claim boundary: Rejected after query-zero response mismatches; never use its summary as method-effect evidence.
-- Inventory: 20 files, 22.2 MiB, tree SHA-256 `d28dbfaf2e2686b70e78292ef3ccc3de97c92d874ec3cde750c30c767f7f97f4`
+- Inventory: 20 files, 22.2 MiB, tree SHA-256 `e801a6a0e26e851b06cf7dd1387dfe0e1b3a4fd0ec88e29b7956e033bf0b3576`
 
 ### Rejected RTC-overlap v2 seed 20260807
 
@@ -256,7 +257,7 @@ Byte-preserved evidence excluded after a documented protocol or pairing failure.
 - Raw review files: [episodes.json](../evidence/pi05_rtc_overlap_primary_seed_20260807_001/evaluation/episodes.json), [queries.json](../evidence/pi05_rtc_overlap_primary_seed_20260807_001/evaluation/queries.json)
 - Validator: Not available. The current corrected-v3 validator rejects this historical v2 schema, and the linked pairing audit already excludes it from matched-effect analysis.
 - Claim boundary: Rejected after query-zero response mismatches; never use its summary as method-effect evidence.
-- Inventory: 17 files, 21.5 MiB, tree SHA-256 `2369428a498948eabcf6a35bb92e818f84af5d46b0c95747ba80061f7e8495d8`
+- Inventory: 17 files, 21.5 MiB, tree SHA-256 `aa4e3258d7d7d1bb93509a55a7a0b3a7578e751fb2bfd37cdbb0316af327585c`
 
 ## Scripted runtime evidence
 
@@ -272,7 +273,7 @@ MuJoCo or wire-contract evidence produced with a scripted non-learned policy, no
 - Raw review files: [per_case.csv](../evidence/vla_guard_formal_20260803/per_case.csv), [per_chunk.csv](../evidence/vla_guard_formal_20260803/per_chunk.csv), [per_action.csv](../evidence/vla_guard_formal_20260803/per_action.csv)
 - Validator: Not available. This legacy guard artifact predates the schema-v5 standalone validator.
 - Claim boundary: Tests guard behavior against scripted action streams; no pi0/pi0.5 checkpoint was used.
-- Inventory: 28 files, 6.4 MiB, tree SHA-256 `b06bfed623aa4b2fb6743c86d93fec12ce515e0a3be01271f1f63294689bd040`
+- Inventory: 28 files, 6.4 MiB, tree SHA-256 `4c439a7d660773a2aa135800a3c187d530c1767bbd9287379afd4b9d82717c96`
 
 ### Scripted frozen-camera rejection case
 
@@ -284,7 +285,7 @@ MuJoCo or wire-contract evidence produced with a scripted non-learned policy, no
 - Raw review files: [per_episode.csv](../evidence/vla_online_camera_freeze_20260804/per_episode.csv), [per_chunk.csv](../evidence/vla_online_camera_freeze_20260804/per_chunk.csv)
 - Validator: Not available. The stored schema-v2 artifact is intentionally unsupported by the current schema-v5 validator.
 - Claim boundary: Demonstrates fail-closed observation rejection with a scripted policy, not learned-policy robustness.
-- Inventory: 15 files, 0.8 MiB, tree SHA-256 `9ce94fe2fd440e1a2ed7b38aaf766ffa0e4ec1924071a54a4992c0d169df32f4`
+- Inventory: 15 files, 0.8 MiB, tree SHA-256 `82d62f9a73c1ed9619a329e3b9d10144ee6a0f0761aa0657a6111658ddc943f9`
 
 ### Scripted nominal camera-feedback case
 
@@ -296,7 +297,7 @@ MuJoCo or wire-contract evidence produced with a scripted non-learned policy, no
 - Raw review files: [per_episode.csv](../evidence/vla_online_camera_nominal_20260804/per_episode.csv), [per_chunk.csv](../evidence/vla_online_camera_nominal_20260804/per_chunk.csv)
 - Validator: Not available. The stored legacy artifact predates the schema-v5 standalone validator.
 - Claim boundary: Checks the nominal receding-horizon observation path with a scripted reference policy.
-- Inventory: 15 files, 3.2 MiB, tree SHA-256 `1b886e4c0d6c360f65f8dfdcf0354011c215c116d970089781eb1397b0fa3164`
+- Inventory: 15 files, 3.2 MiB, tree SHA-256 `7dfb34b633c584071fa392c5a3b056500cb3cb46265b67711a8e63cc0f0fd495`
 
 ### Scripted receding-horizon MuJoCo matrix
 
@@ -308,7 +309,7 @@ MuJoCo or wire-contract evidence produced with a scripted non-learned policy, no
 - Raw review files: [per_episode.csv](../evidence/vla_online_formal_20260804/per_episode.csv), [per_chunk.csv](../evidence/vla_online_formal_20260804/per_chunk.csv)
 - Validator: Not available. The stored legacy artifact predates the schema-v5 standalone validator.
 - Claim boundary: Compares feedback horizons and physics tracking with a scripted policy; it is not VLA task-competence evidence.
-- Inventory: 68 files, 4.9 MiB, tree SHA-256 `1678826f02a6dd2d07c7824af4825884d1f3de7fdfd40aa5795404c0d37b5813`
+- Inventory: 68 files, 4.9 MiB, tree SHA-256 `891c40ad246c769d88ff2112e6187597d7d8669868bb2e7e2ab593279c93eb4c`
 
 ### Scripted synthetic-latency deadline case
 
@@ -320,7 +321,7 @@ MuJoCo or wire-contract evidence produced with a scripted non-learned policy, no
 - Raw review files: [per_episode.csv](../evidence/vla_online_jitter_deadline_20260804/per_episode.csv), [per_action.csv](../evidence/vla_online_jitter_deadline_20260804/per_action.csv)
 - Validator: Not available. The stored schema-v2 artifact is intentionally unsupported by the current schema-v5 validator.
 - Claim boundary: Demonstrates a deadline fallback under synthetic latency with a scripted policy; latency is not measured model inference.
-- Inventory: 14 files, 0.6 MiB, tree SHA-256 `b66ff45c6fe9906d98f9a7dace0f735f606280955a44e3616ed4119a0e78de20`
+- Inventory: 14 files, 0.6 MiB, tree SHA-256 `690801b658018097513881c73ca8f344c3282ffef2958daeba49b99be087af1f`
 
 ### Scripted synthetic-jitter completion case
 
@@ -332,7 +333,7 @@ MuJoCo or wire-contract evidence produced with a scripted non-learned policy, no
 - Raw review files: [per_episode.csv](../evidence/vla_online_jitter_safe_20260804/per_episode.csv), [per_action.csv](../evidence/vla_online_jitter_safe_20260804/per_action.csv)
 - Validator: Not available. The stored schema-v2 artifact is intentionally unsupported by the current schema-v5 validator.
 - Claim boundary: Checks runtime behavior under synthetic jitter with a scripted reference policy, not pi0.5 latency.
-- Inventory: 14 files, 0.9 MiB, tree SHA-256 `7ecc544511f06e89ff77cdd10ca5876282966b9c281f63684fc452f49589c482`
+- Inventory: 14 files, 0.9 MiB, tree SHA-256 `30013e0a5e5f039276c2843ac066fb385cd52baf9af6a7ab690d1dbb5a50cf99`
 
 ### Scripted visual-feedback nominal case
 
@@ -344,7 +345,7 @@ MuJoCo or wire-contract evidence produced with a scripted non-learned policy, no
 - Raw review files: [per_episode.csv](../evidence/vla_online_visual_nominal_20260804/per_episode.csv), [per_chunk.csv](../evidence/vla_online_visual_nominal_20260804/per_chunk.csv)
 - Validator: Not available. The stored legacy artifact predates the schema-v5 standalone validator.
 - Claim boundary: A visual telemetry and feedback-path check with a scripted policy, not evidence of visual-language reasoning.
-- Inventory: 14 files, 3.1 MiB, tree SHA-256 `b5de00f00eef4def4871d91d0f824bd046257cd2173039043e3e9c6c1a5aa75d`
+- Inventory: 14 files, 3.1 MiB, tree SHA-256 `00ad23bfa28eb224319ef48a24e5ef4f35c6daa75155d2f59205b469ee0a8efe`
 
 ### Scripted state-jump rejection case
 
@@ -356,7 +357,7 @@ MuJoCo or wire-contract evidence produced with a scripted non-learned policy, no
 - Raw review files: [per_episode.csv](../evidence/vla_online_visual_state_jump_20260804/per_episode.csv), [per_chunk.csv](../evidence/vla_online_visual_state_jump_20260804/per_chunk.csv)
 - Validator: Not available. The stored legacy artifact predates the schema-v5 standalone validator.
 - Claim boundary: Demonstrates fail-closed state-mismatch handling with a scripted policy.
-- Inventory: 14 files, 0.6 MiB, tree SHA-256 `c8d49e4c1a0f51522e8a2fd2b70d3e3707359e475bc4712abc759b33101db242`
+- Inventory: 14 files, 0.6 MiB, tree SHA-256 `19083d60ad9b7b6bb5d7d8e2a3a27b453c9e95b4c83665c2326626d89a3855d4`
 
 ### Official-client OpenPI wire fault matrix
 
@@ -368,7 +369,7 @@ MuJoCo or wire-contract evidence produced with a scripted non-learned policy, no
 - Raw review files: [matrix.csv](../evidence/vla_openpi_fault_matrix_20260804/matrix.csv), [per_episode.csv](../evidence/vla_openpi_fault_matrix_20260804/none/per_episode.csv), [per_episode.csv](../evidence/vla_openpi_fault_matrix_20260804/disconnect/per_episode.csv)
 - Validator: Not available. Each schema-v5 child is independently validatable, but this historical matrix has no single public aggregate-validator command.
 - Claim boundary: Exercises the official MessagePack/WebSocket client against scripted wire faults; no pi0/pi0.5 inference was run.
-- Inventory: 86 files, 3.4 MiB, tree SHA-256 `0338c0e30bcf7746b767e3ad5d784bf79a8d9ffe6beffb2d26d65cea7bf358f5`
+- Inventory: 86 files, 3.4 MiB, tree SHA-256 `530e3c5ec71703d5c80b33f6fda66bd2c818728ba49b0a41091f2f3b6f004f1f`
 
 ### Replayable OpenPI request round trip
 
@@ -380,7 +381,7 @@ MuJoCo or wire-contract evidence produced with a scripted non-learned policy, no
 - Raw review files: [per_episode.csv](../evidence/vla_openpi_request_replay_20260804/per_episode.csv), [per_chunk.csv](../evidence/vla_openpi_request_replay_20260804/per_chunk.csv), [loopback_server.json](../evidence/vla_openpi_request_replay_20260804/loopback_server.json)
 - Validator: `python -m armbench vla-artifact-validate evidence/vla_openpi_request_replay_20260804`. Reconstructs and hashes stored requests and validates schema-v5 cross-file consistency.
 - Claim boundary: Proves request serialization and replayability against a scripted loopback server; checkpoint identity is false.
-- Inventory: 16 files, 0.8 MiB, tree SHA-256 `3597260cf1e5515b84313fbe980e45f0f3416569144e9dbb4dd0dbca5a855852`
+- Inventory: 16 files, 0.8 MiB, tree SHA-256 `b283115bd36125a0031f1f058a0dd7479bf31551f4a997182b1c1d761ffc7b49`
 
 ## Planning and control baseline
 
@@ -396,4 +397,4 @@ Classical Panda planning, collision, and trajectory-tracking evidence without a 
 - Raw review files: [planning_per_trial.csv](../evidence/mujoco_formal_20260803/planning_per_trial.csv), [execution_per_trial.csv](../evidence/mujoco_formal_20260803/execution_per_trial.csv), [collision_samples.csv](../evidence/mujoco_formal_20260803/collision_samples.csv)
 - Validator: Not available. This early benchmark predates the standalone artifact validators; its CSV, JSON, and media remain directly reviewable.
 - Claim boundary: Supports the local seven-DoF planning, collision-checking, and torque-limited tracking baseline only.
-- Inventory: 18 files, 9.5 MiB, tree SHA-256 `d7bb6deb9a2db3bdec151b2619ef7acc562c1565b791ae990ba563796c9b6a49`
+- Inventory: 18 files, 9.5 MiB, tree SHA-256 `5b32b2111ca2bf5d65329f49114e5d83755b11f446411c217cf9239b2e2b55fa`

@@ -3,9 +3,10 @@
   "source": "configs/evidence_catalog.json",
   "artifact_count": 27,
   "inventory": {
+    "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
     "file_count": 1384,
-    "total_bytes": 209323163,
-    "tree_sha256": "f39a9d9da4473bab8b5577f26e08690c630dd70a9584566f5ceac0954ef00dc2"
+    "total_bytes": 209317894,
+    "tree_sha256": "ae1d20b4d8bb98373385a4e7fab4e367538ea1a3e2d450bcceafa56ffb2b53aa"
   },
   "class_counts": {
     "primary": 3,
@@ -79,9 +80,10 @@
       },
       "claim_boundary": "Supports the local seven-DoF planning, collision-checking, and torque-limited tracking baseline only.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 18,
-        "total_bytes": 9986538,
-        "tree_sha256": "d7bb6deb9a2db3bdec151b2619ef7acc562c1565b791ae990ba563796c9b6a49"
+        "total_bytes": 9985217,
+        "tree_sha256": "5b32b2111ca2bf5d65329f49114e5d83755b11f446411c217cf9239b2e2b55fa"
       }
     },
     {
@@ -109,9 +111,10 @@
       },
       "claim_boundary": "Deterministic-delay LIBERO Spatial evidence for post-response suffix alignment; it is not a live non-blocking controller result.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 343,
         "total_bytes": 21437499,
-        "tree_sha256": "bd06ed6fc9475834de155213c70cc78a93a849b7d7b2263a1ac97291e02e0237"
+        "tree_sha256": "174fb485caf6c516534ffd595fb8dbdc27b0a8d511c1c3ac00b835508ab97db7"
       }
     },
     {
@@ -139,9 +142,10 @@
       },
       "claim_boundary": "Exploratory evidence that motivated a separately frozen confirmatory study.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 74,
         "total_bytes": 3605626,
-        "tree_sha256": "92471f649debc01c8aeb6dcff6d5452b3bc9bfd657c8ac2ff60276684277b7ca"
+        "tree_sha256": "29cbf3f8865dd9745ef17f9ae9303cf9e19e2c0adba5b41b2ad333003232469e"
       }
     },
     {
@@ -169,9 +173,10 @@
       },
       "claim_boundary": "Measured variable-age evidence with blocking inference plus simulator catch-up; it does not establish live asynchronous pi0.5 control.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 290,
         "total_bytes": 21351001,
-        "tree_sha256": "4be8c05e6d8c15141258ff6860a4d544e634d8372be06fb29d26f28208fa958a"
+        "tree_sha256": "66927633dc8a06f9797ba0dd0261d1c09147ea738cdce40b21c32ca26d9063c3"
       }
     },
     {
@@ -199,9 +204,10 @@
       },
       "claim_boundary": "Exploratory pilot used to design the held-out measured-age experiment.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 80,
         "total_bytes": 3747277,
-        "tree_sha256": "34639fc97898f0414548e2c0c4437f45851d40fd601d1aad10fa363e8ac68cc6"
+        "tree_sha256": "5584464eba51eb9dc09b3bb451a94b7efa33904928563c31ded1161b50666d5d"
       }
     },
     {
@@ -229,9 +235,10 @@
       },
       "claim_boundary": "Early fixed-delay diagnostic, retained for traceability rather than confirmatory performance claims.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 74,
         "total_bytes": 3609888,
-        "tree_sha256": "de78484ec33285a2a5199d0216a8d4ab7b53df3c65d07a17a82b980e76205397"
+        "tree_sha256": "3fc3c4e6496806c384c57bbcacf043562a7745ac932187f60b2f4274f386a4c4"
       }
     },
     {
@@ -252,9 +259,10 @@
       },
       "claim_boundary": "A two-rollout infrastructure smoke test, not an estimate of model task success.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 6,
         "total_bytes": 418700,
-        "tree_sha256": "df994af15f1e7e1160ae60488238ad4d446bf0a08eb81f66fe5dc1e93e25e75a"
+        "tree_sha256": "e0fd1fc9f9c7a7e8a753f3cf1f1f2d6e759df32fdb89c90b9d103a1c7b617ba1"
       }
     },
     {
@@ -280,9 +288,10 @@
       },
       "claim_boundary": "A policy-internal integration and resource gate; no closed-loop task-success claim.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 3,
         "total_bytes": 4506,
-        "tree_sha256": "a4f7c4823d39a4352040d657887c85ecbe40d49382a053abaaaaf1f3c9c2c377"
+        "tree_sha256": "8452b6c9f4f6d1c4ee3fc798423a679b133a85cda2b75ce2c173dbd1059117b0"
       }
     },
     {
@@ -311,9 +320,10 @@
       },
       "claim_boundary": "Exploratory 40-rollout pilot; its observed differences are not confirmatory efficacy evidence.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 50,
         "total_bytes": 10267302,
-        "tree_sha256": "a687afa316b51d7a21283d263005e101128b0c6b0b121f6b1f8ab1a927ff146e"
+        "tree_sha256": "4d8acdb3bad3ec109d189b1a0a7e7a04b575d8397b26d9ddcc68cfbfb5b16032"
       }
     },
     {
@@ -339,9 +349,10 @@
       },
       "claim_boundary": "A 20-query feasibility gate on one fixed observation; no task-success or publication claim.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 3,
         "total_bytes": 5921,
-        "tree_sha256": "75de1dca2f65317ad8cc05058cd2c109220dad7e0eca896db258ebaad736f94e"
+        "tree_sha256": "b94db836b4ed2007497363878a8edfb438be5526bab0f04dd2c6cb921430dc9f"
       }
     },
     {
@@ -369,9 +380,10 @@
       },
       "claim_boundary": "An implementation gate covering three triplets, not outcome evidence.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 11,
         "total_bytes": 1671387,
-        "tree_sha256": "7281bf79672d12077ab9d996ed147f81844166de11c2784998fc665b433ecb40"
+        "tree_sha256": "32834520aebba4128f24dc5161eb88a4200d2335921312d47e8f766fe0e68c06"
       }
     },
     {
@@ -392,9 +404,10 @@
       },
       "claim_boundary": "Exploratory 60-rollout integration and mechanism study, not a confirmatory efficacy result.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 75,
         "total_bytes": 15537676,
-        "tree_sha256": "6a55b85e55f4b4622d8c1ef266adff39fbaa72ce99cf375f24b3c62aa3216474"
+        "tree_sha256": "bb8f17ec06781685a7d601426a2bc3d12054b7be50c572be29a756b7a3721f88"
       }
     },
     {
@@ -415,9 +428,10 @@
       },
       "claim_boundary": "Rejected after query-zero response mismatches; never use its summary as method-effect evidence.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 20,
         "total_bytes": 23329104,
-        "tree_sha256": "d28dbfaf2e2686b70e78292ef3ccc3de97c92d874ec3cde750c30c767f7f97f4"
+        "tree_sha256": "e801a6a0e26e851b06cf7dd1387dfe0e1b3a4fd0ec88e29b7956e033bf0b3576"
       }
     },
     {
@@ -438,9 +452,10 @@
       },
       "claim_boundary": "Rejected after query-zero response mismatches; never use its summary as method-effect evidence.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 17,
         "total_bytes": 22594313,
-        "tree_sha256": "2369428a498948eabcf6a35bb92e818f84af5d46b0c95747ba80061f7e8495d8"
+        "tree_sha256": "aa4e3258d7d7d1bb93509a55a7a0b3a7578e751fb2bfd37cdbb0316af327585c"
       }
     },
     {
@@ -466,9 +481,10 @@
       },
       "claim_boundary": "A corrected 300-rollout primary comparison with a null success-improvement result; it does not support an efficacy claim for RTC guidance.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 4,
         "total_bytes": 165271,
-        "tree_sha256": "f3d64968971c8ee66f878efaa719a79b7c4a8d18a5d48a9095ebaf7a7cecbeec"
+        "tree_sha256": "fc006f5d72e3df28b96a342b851dd89fe8c16bb94cb130b92a67983f843417f4"
       }
     },
     {
@@ -497,9 +513,10 @@
       },
       "claim_boundary": "One raw half of the primary cohort; interpret only through the combined prespecified analysis.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 17,
         "total_bytes": 22916534,
-        "tree_sha256": "5dfef31f7ec865f2c2084aaa50790ae7b005c48d3dcff30659ba8db234069cc3"
+        "tree_sha256": "010128cbe4ad6f5de0d67fb6f608c3a0ab5aa7a597a3c1d1ec67dcf9e59325db"
       }
     },
     {
@@ -528,9 +545,10 @@
       },
       "claim_boundary": "One raw half of the primary cohort; interpret only through the combined prespecified analysis.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 15,
         "total_bytes": 22704248,
-        "tree_sha256": "42056e7770a5ecc425349d0817815ff543b607ac0238ded3facc0417607b210b"
+        "tree_sha256": "1904ae22252f556eb4957ae0971be56d7bb2e2c0d4a3ffe4dc2db180385bea66"
       }
     },
     {
@@ -552,9 +570,10 @@
       },
       "claim_boundary": "Tests guard behavior against scripted action streams; no pi0/pi0.5 checkpoint was used.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 28,
-        "total_bytes": 6724396,
-        "tree_sha256": "b06bfed623aa4b2fb6743c86d93fec12ce515e0a3be01271f1f63294689bd040"
+        "total_bytes": 6722333,
+        "tree_sha256": "4c439a7d660773a2aa135800a3c187d530c1767bbd9287379afd4b9d82717c96"
       }
     },
     {
@@ -575,9 +594,10 @@
       },
       "claim_boundary": "Demonstrates fail-closed observation rejection with a scripted policy, not learned-policy robustness.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 15,
-        "total_bytes": 838002,
-        "tree_sha256": "9ce94fe2fd440e1a2ed7b38aaf766ffa0e4ec1924071a54a4992c0d169df32f4"
+        "total_bytes": 837966,
+        "tree_sha256": "82d62f9a73c1ed9619a329e3b9d10144ee6a0f0761aa0657a6111658ddc943f9"
       }
     },
     {
@@ -598,9 +618,10 @@
       },
       "claim_boundary": "Checks the nominal receding-horizon observation path with a scripted reference policy.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 15,
-        "total_bytes": 3394567,
-        "tree_sha256": "1b886e4c0d6c360f65f8dfdcf0354011c215c116d970089781eb1397b0fa3164"
+        "total_bytes": 3394307,
+        "tree_sha256": "7dfb34b633c584071fa392c5a3b056500cb3cb46265b67711a8e63cc0f0fd495"
       }
     },
     {
@@ -621,9 +642,10 @@
       },
       "claim_boundary": "Compares feedback horizons and physics tracking with a scripted policy; it is not VLA task-competence evidence.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 68,
-        "total_bytes": 5176214,
-        "tree_sha256": "1678826f02a6dd2d07c7824af4825884d1f3de7fdfd40aa5795404c0d37b5813"
+        "total_bytes": 5175118,
+        "tree_sha256": "891c40ad246c769d88ff2112e6187597d7d8669868bb2e7e2ab593279c93eb4c"
       }
     },
     {
@@ -644,9 +666,10 @@
       },
       "claim_boundary": "Demonstrates a deadline fallback under synthetic latency with a scripted policy; latency is not measured model inference.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 14,
-        "total_bytes": 605394,
-        "tree_sha256": "b66ff45c6fe9906d98f9a7dace0f735f606280955a44e3616ed4119a0e78de20"
+        "total_bytes": 605326,
+        "tree_sha256": "690801b658018097513881c73ca8f344c3282ffef2958daeba49b99be087af1f"
       }
     },
     {
@@ -667,9 +690,10 @@
       },
       "claim_boundary": "Checks runtime behavior under synthetic jitter with a scripted reference policy, not pi0.5 latency.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 14,
-        "total_bytes": 906400,
-        "tree_sha256": "7ecc544511f06e89ff77cdd10ca5876282966b9c281f63684fc452f49589c482"
+        "total_bytes": 906140,
+        "tree_sha256": "30013e0a5e5f039276c2843ac066fb385cd52baf9af6a7ab690d1dbb5a50cf99"
       }
     },
     {
@@ -690,9 +714,10 @@
       },
       "claim_boundary": "A visual telemetry and feedback-path check with a scripted policy, not evidence of visual-language reasoning.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 14,
-        "total_bytes": 3263996,
-        "tree_sha256": "b5de00f00eef4def4871d91d0f824bd046257cd2173039043e3e9c6c1a5aa75d"
+        "total_bytes": 3263977,
+        "tree_sha256": "00ad23bfa28eb224319ef48a24e5ef4f35c6daa75155d2f59205b469ee0a8efe"
       }
     },
     {
@@ -713,9 +738,10 @@
       },
       "claim_boundary": "Demonstrates fail-closed state-mismatch handling with a scripted policy.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 14,
-        "total_bytes": 638385,
-        "tree_sha256": "c8d49e4c1a0f51522e8a2fd2b70d3e3707359e475bc4712abc759b33101db242"
+        "total_bytes": 638381,
+        "tree_sha256": "19083d60ad9b7b6bb5d7d8e2a3a27b453c9e95b4c83665c2326626d89a3855d4"
       }
     },
     {
@@ -737,9 +763,10 @@
       },
       "claim_boundary": "Exercises the official MessagePack/WebSocket client against scripted wire faults; no pi0/pi0.5 inference was run.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 86,
-        "total_bytes": 3575903,
-        "tree_sha256": "0338c0e30bcf7746b767e3ad5d784bf79a8d9ffe6beffb2d26d65cea7bf358f5"
+        "total_bytes": 3575797,
+        "tree_sha256": "530e3c5ec71703d5c80b33f6fda66bd2c818728ba49b0a41091f2f3b6f004f1f"
       }
     },
     {
@@ -768,9 +795,10 @@
       },
       "claim_boundary": "Proves request serialization and replayability against a scripted loopback server; checkpoint identity is false.",
       "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": 16,
-        "total_bytes": 847115,
-        "tree_sha256": "3597260cf1e5515b84313fbe980e45f0f3416569144e9dbb4dd0dbca5a855852"
+        "total_bytes": 847079,
+        "tree_sha256": "b283115bd36125a0031f1f058a0dd7479bf31551f4a997182b1c1d761ffc7b49"
       }
     }
   ]

@@ -78,18 +78,19 @@ def _repository_path(value: Any, label: str) -> tuple[str, pathlib.Path]:
     return raw, path
 
 
-def _sha256(path: pathlib.Path) -> bytes:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for block in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(block)
-    return digest.digest()
-
-
-def _tracked_evidence_files() -> dict[str, list[pathlib.Path]]:
+def _tracked_evidence_files() -> dict[str, list[tuple[pathlib.Path, str, int]]]:
     try:
         completed = subprocess.run(
-            ["git", "-C", str(PROJECT_ROOT), "ls-files", "-z", "--", "evidence"],
+            [
+                "git",
+                "-C",
+                str(PROJECT_ROOT),
+                "ls-files",
+                "--stage",
+                "-z",
+                "--",
+                "evidence",
+            ],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -98,46 +99,85 @@ def _tracked_evidence_files() -> dict[str, list[pathlib.Path]]:
         raise ValueError(
             "catalog inventory requires a Git checkout with git available"
         ) from exc
-    try:
-        values = completed.stdout.decode("utf-8").split("\0")
-    except UnicodeError as exc:
-        raise ValueError("Git returned a non-UTF-8 evidence path") from exc
-    grouped: dict[str, list[pathlib.Path]] = {}
-    for raw in values:
-        if not raw:
+    records: list[tuple[str, str, pathlib.PurePosixPath]] = []
+    object_ids: list[str] = []
+    for raw_record in completed.stdout.split(b"\0"):
+        if not raw_record:
             continue
-        pure = pathlib.PurePosixPath(raw)
+        try:
+            metadata, raw_path = raw_record.split(b"\t", 1)
+            mode, object_id, stage = metadata.decode("ascii").split()
+            pure = pathlib.PurePosixPath(raw_path.decode("utf-8"))
+        except (UnicodeError, ValueError) as exc:
+            raise ValueError("Git returned malformed evidence index metadata") from exc
+        if mode not in {"100644", "100755"} or stage != "0":
+            raise ValueError(f"unsupported evidence index entry: {pure}")
         if len(pure.parts) < 3 or pure.parts[0] != "evidence":
-            raise ValueError(f"unexpected tracked evidence path: {raw}")
+            raise ValueError(f"unexpected tracked evidence path: {pure}")
+        records.append((mode, object_id, pure))
+        object_ids.append(object_id)
+
+    try:
+        sizes_result = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(PROJECT_ROOT),
+                "cat-file",
+                "--batch-check=%(objectname) %(objecttype) %(objectsize)",
+            ],
+            input=("\n".join(object_ids) + "\n").encode("ascii"),
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise ValueError("cannot inspect Git evidence blobs") from exc
+    sizes: dict[str, int] = {}
+    try:
+        for line in sizes_result.stdout.decode("ascii").splitlines():
+            object_id, object_type, raw_size = line.split()
+            if object_type != "blob":
+                raise ValueError(f"evidence object is not a blob: {object_id}")
+            sizes[object_id] = int(raw_size)
+    except (UnicodeError, ValueError) as exc:
+        raise ValueError("Git returned malformed evidence blob metadata") from exc
+
+    grouped: dict[str, list[tuple[pathlib.Path, str, int]]] = {}
+    for _mode, object_id, pure in records:
         path = (PROJECT_ROOT / pathlib.Path(*pure.parts)).resolve()
         if not path.is_file() or path.is_symlink():
-            raise ValueError(f"tracked evidence path is not a regular file: {raw}")
-        grouped.setdefault(pure.parts[1], []).append(path)
+            raise ValueError(f"tracked evidence path is not a regular file: {pure}")
+        if object_id not in sizes:
+            raise ValueError(f"missing Git blob metadata for evidence path: {pure}")
+        grouped.setdefault(pure.parts[1], []).append(
+            (path, object_id, sizes[object_id])
+        )
     return grouped
 
 
 def _artifact_inventory(
-    root: pathlib.Path, tracked_files: Sequence[pathlib.Path]
+    root: pathlib.Path, tracked_files: Sequence[tuple[pathlib.Path, str, int]]
 ) -> dict[str, Any]:
     if not root.is_dir() or root.is_symlink():
         raise ValueError(f"artifact root is not a regular directory: {root}")
     files = list(tracked_files)
     if not files:
         raise ValueError(f"artifact has no Git-tracked files: {root}")
-    files.sort(key=lambda path: path.relative_to(root).as_posix())
+    files.sort(key=lambda item: item[0].relative_to(root).as_posix())
     digest = hashlib.sha256()
     total_bytes = 0
-    for path in files:
+    for path, object_id, size in files:
         relative = path.relative_to(root).as_posix()
-        size = path.stat().st_size
         total_bytes += size
         digest.update(relative.encode("utf-8"))
         digest.update(b"\0")
         digest.update(str(size).encode("ascii"))
         digest.update(b"\0")
-        digest.update(_sha256(path))
+        digest.update(object_id.encode("ascii"))
         digest.update(b"\n")
     return {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
         "file_count": len(files),
         "total_bytes": total_bytes,
         "tree_sha256": digest.hexdigest(),
@@ -337,6 +377,7 @@ def build_catalog(source_path: pathlib.Path = DEFAULT_SOURCE) -> dict[str, Any]:
         "source": source_path.relative_to(PROJECT_ROOT).as_posix(),
         "artifact_count": len(output_artifacts),
         "inventory": {
+            "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
             "file_count": total_files,
             "total_bytes": total_bytes,
             "tree_sha256": global_digest.hexdigest(),
@@ -385,6 +426,7 @@ def _markdown(catalog: Mapping[str, Any]) -> str:
         f"- Files: {catalog['inventory']['file_count']}",
         f"- Stored size: {_format_bytes(catalog['inventory']['total_bytes'])}",
         f"- Catalog tree SHA-256: `{catalog['inventory']['tree_sha256']}`",
+        "- Fingerprint basis: Git blob IDs + canonical paths + blob sizes",
         "- Machine-readable form: [evidence_catalog.json](evidence_catalog.json)",
         "",
         "Run `python scripts/build_evidence_catalog.py --check` from the repository",
