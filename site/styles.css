@@ -245,7 +245,7 @@ html[data-lang="en"] [data-lang-content="zh"] {
 .lang-switch {
   display: grid;
   grid-template-columns: repeat(2, 44px);
-  height: 44px;
+  height: 46px;
   overflow: hidden;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
