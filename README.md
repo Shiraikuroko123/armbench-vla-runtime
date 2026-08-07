@@ -62,6 +62,7 @@ for the full design and the current integration gap.
 | Measured-age temporal alignment | Official `pi0.5`-LIBERO Spatial, 120 matched pairs: 88/120 to 116/120, +23.33 points, exact McNemar `p=1.94e-6` | Training-free, observation-age-based suffix selection improves this frozen simulation matrix |
 | Cross-suite validation | Object, Goal, and LIBERO-10: 300 rollouts / 150 pairs, 83/150 to 141/150 | Extends deterministic-delay evidence within the same model family and simulator suite |
 | RTC-style continuation | 300 rollouts / 100 matched triplets: 96/100 baseline, 97/100 hard projection, 97/100 RTC guidance | No task-success superiority; motion-seam measurements remain exploratory |
+| Braking-invariant Panda repair | 270 paired offline cases: 264/270 to 270/270 registered constraints, all 6 legacy conflicts resolved, 0 regressions | Frozen `pi0.5` responses replayed through the Panda adapter; no task-success or hard-real-time claim |
 
 Full protocols, validators, statistics, and limitations are in
 [Results](docs/RESULTS.md).
@@ -144,6 +145,31 @@ configured acceleration bound could not both be satisfied. This is offline
 cross-controller diagnostic evidence: the checkpoint was not rerun, no Panda
 closed loop was executed, and no task-success claim is made. See
 [frozen pi0.5 response replay](docs/PI05_PANDA_ARCHIVE_REPLAY.md).
+
+The next CPU-only stage compares the legacy per-step guard with a
+trajectory-level braking-invariant repair on the same frozen responses:
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m armbench vla-panda-braking-repair `
+  evidence\pi05_rtc_overlap_primary_v3_seed_20260807_001\evaluation `
+  --output-directory results\pi05_panda_braking_repair_90_001 `
+  --chunks 90 --selection-seed 20260807
+
+& '.\.venv\Scripts\python.exe' -m armbench `
+  vla-panda-braking-repair-validate `
+  results\pi05_panda_braking_repair_90_001 `
+  --source-directory `
+  evidence\pi05_rtc_overlap_primary_v3_seed_20260807_001\evaluation
+```
+
+The checked-in [braking-repair report](reports/pi05_panda_braking_repair_90_001/summary.md)
+shows 270/270 cases satisfying the registered constraints, resolving all six
+legacy collision/acceleration conflicts with zero regressions. The report is a
+paired offline diagnostic: it does not rerun `pi0.5`, close the Panda feedback
+loop, or provide a physical-safety or hard-real-time guarantee. For trajectory
+inspection, use the `raw_positions`, `legacy_positions`, and `repair_positions`
+arrays with `mujoco-view`; the method and claim boundary are documented in
+[deadline-bounded braking-invariant repair](docs/PI05_PANDA_BRAKING_REPAIR.md).
 
 ## Review preserved evidence
 

@@ -357,6 +357,15 @@ acceleration or jerk. The VLA runtime adds a separate command-space acceleration
 limit while validating action chunks; this does not change the planner's
 first-order trajectory parameterization.
 
+The frozen-response Panda repair uses a separate trajectory-level contract. It
+first verifies a zero-scale hold candidate, then searches a fixed descending
+set of whole-chunk velocity scales. Every candidate is checked at each control
+step for joint limits, velocity clipping, acceleration slew, and interpolated
+edge collision; a bounded terminal deceleration trace must also reach zero
+velocity. The 20 ms selection value is a measured software budget. It is not an
+operating-system scheduling guarantee, and the resolution-bounded edge checks
+are not continuous collision detection.
+
 The `nominal_fast` profile runs at 35% of Panda velocity limits. The matched
 `nominal_slow` and `clearance_slow` profiles both use 10%; their only planning
 difference is 0 versus 20 mm obstacle inflation.

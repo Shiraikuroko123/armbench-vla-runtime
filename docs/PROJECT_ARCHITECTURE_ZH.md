@@ -71,6 +71,7 @@ ArmBench 是一个研究动作块式 VLA 在“模型响应返回”和“机器
 | 分线程运行时验收 | 独立 worker/control 线程、持续 control tick、latest-only 替换与 deadline 测试 | Scripted 组件证据；不主张 LIBERO 或 Panda 任务成功率 |
 | 笛卡尔动作适配器 | 将 scripted `H x 7` LIBERO 风格动作经 Panda Jacobian 转为现有 `H x 8` guard 契约 | 仅为组件 smoke；不包含官方 checkpoint、任务成功率或控制器等价性主张 |
 | 冻结响应 Panda 回放 | 核验 7,934 个官方响应哈希，并将 90 个动作块送入 3 个 Panda 场景 | 跨控制器离线诊断；未执行 checkpoint、反馈闭环或任务成功率评测 |
+| 终端制动不变量修复 | 270 个冻结响应成对案例：已注册约束从 264/270 到 270/270，6 个旧冲突全部解决，0 个回归 | 不训练模型的轨迹修复诊断；软件预算测量，不是硬实时或物理安全证明 |
 
 详细结果见[结果说明](RESULTS.md)，冻结协议和审计记录见[文档索引](README.md)。
 
@@ -85,6 +86,11 @@ guard。确定性 CPU smoke 见
 适配器现在还接受经过严格校验的官方 checkpoint 冻结响应离线回放。该流程核验全部响应哈希，
 按 LIBERO 任务和运行时方法等额抽样，每个 Panda 案例独立重置，并生成可自校验的 CSV/JSON
 报告。详见[冻结 pi0.5 响应的 Panda 离线回放](PI05_PANDA_ARCHIVE_REPLAY_ZH.md)。
+
+同一回放 archive 现在还进入第二个成对诊断：轨迹级终端制动不变量修复。它在有限的整块
+速度比例集合中搜索，检查构型限位和插值边碰撞，并在选中动作后追加终端减速路径。在
+270 个保留案例中，它解决了旧 guard 的 6 个避碰/加速度冲突，且没有观察到修复回归。
+详见[延迟有界的终端制动不变量修复](PI05_PANDA_BRAKING_REPAIR_ZH.md)。
 
 但它仍不是经过验证的“官方 `pi0.5` 在线推理直接控制 Panda”链路。尺度、坐标系、
 裁剪和夹爪语义已经与 LIBERO commit `f78abd68`、robosuite `1.4.1` 源码核对，
@@ -103,10 +109,10 @@ checkpoint 的 LIBERO evaluator 或 Panda actuator loop。Python 线程也不提
 真正有意义的下一步不是换一个仿真器，而是把已实现的组件适配器接入完整
 evaluator，并评测：
 
-1. 将独立调度运行时接入端到端 evaluator，并形成任务级过期响应丢弃证据；
-2. 有 deadline 的受限投影，包括连续碰撞和动力学约束；
-3. 第二个开放 action-chunk policy 在相同冻结协议下的表现；
-4. 面向 LeRobot 或真实硬件的 adapter，并单独报告安全和时序证据。
+1. 将独立调度运行时和修复层接入端到端 evaluator，并形成任务级过期响应丢弃证据；
+2. 用经过验证的连续或保守扫掠体碰撞检查替代当前的分辨率有界边采样，并报告动力学约束；
+3. 在第二个开放 action-chunk policy 上复现实验协议；
+4. 面向 LeRobot 或真实硬件增加 adapter，并单独报告 watchdog、安全和时序证据。
 
 在此之前，准确的公开表述是：**七自由度受限执行基座 + `pi0.5 VLA`
 运行时评测路径 + 显式的组件级笛卡尔动作适配器，共用可审计运行时基础设施。**

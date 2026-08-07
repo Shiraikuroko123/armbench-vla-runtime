@@ -177,3 +177,25 @@ def test_saved_trace_can_be_loaded_for_interactive_debugging(tmp_path: Path) -> 
     np.testing.assert_allclose(loaded_positions, positions)
     np.testing.assert_allclose(loaded_times, [0.0, 0.1, 0.2])
     assert selected == "actual_positions"
+
+
+def test_batched_repair_trace_selects_one_episode(tmp_path: Path) -> None:
+    positions = np.arange(2 * 3 * 7, dtype=float).reshape(2, 3, 7) / 10.0
+    trace_path = tmp_path / "repair_trace.npz"
+    np.savez_compressed(trace_path, repair_positions=positions)
+
+    loaded, times, selected = load_pose_sequence(
+        trace_path,
+        array_key="repair_positions",
+        episode=1,
+    )
+
+    np.testing.assert_allclose(loaded, positions[1])
+    assert times is None
+    assert selected == "repair_positions"
+    with pytest.raises(IndexError, match="outside trajectory batch"):
+        load_pose_sequence(
+            trace_path,
+            array_key="repair_positions",
+            episode=2,
+        )

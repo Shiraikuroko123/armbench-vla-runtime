@@ -50,6 +50,7 @@ Panda 与 LIBERO 的动作契约不同，实验结果不会混合统计。完整
 | 观测年龄时序对齐 | 官方 `pi0.5`-LIBERO Spatial，120 组匹配试验：88/120 到 116/120，+23.33 个百分点，exact McNemar `p=1.94e-6` | 在该冻结仿真矩阵中，免训练的观测年龄后缀选择有效 |
 | 跨任务集验证 | Object、Goal、LIBERO-10：300 rollouts / 150 pairs，83/150 到 141/150 | 将同一模型族和仿真套件内的确定性延迟证据扩展至三个任务集 |
 | RTC-style continuation | 300 rollouts / 100 matched triplets：baseline 96/100，hard projection 97/100，RTC guidance 97/100 | 没有任务成功率优势；motion seam 仅为探索性过程指标 |
+| 终端制动不变量修复 | 270 个成对离线案例：已注册约束从 264/270 提升到 270/270，6 个旧冲突全部解决，0 个回归 | 将冻结的 `pi0.5` 响应送入 Panda 适配器；不主张任务成功率或硬实时 |
 
 完整协议、验证器、统计和研究限制见[结果说明](docs/RESULTS.md)。
 
@@ -110,6 +111,28 @@ Windows 上可以先执行一个有边界的本地验收：
 
 它补上的是组件级动作语义边界，不运行 `pi0.5`，也不构成端到端部署证据。
 实现与限制见 [LIBERO 到 Panda 的笛卡尔动作适配器](docs/PANDA_CARTESIAN_ADAPTER_ZH.md)。
+
+下一步 CPU-only 验收在同一批冻结响应上，成对比较旧的逐步 guard 与轨迹级终端制动
+不变量修复：
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m armbench vla-panda-braking-repair `
+  evidence\pi05_rtc_overlap_primary_v3_seed_20260807_001\evaluation `
+  --output-directory results\pi05_panda_braking_repair_90_001 `
+  --chunks 90 --selection-seed 20260807
+
+& '.\.venv\Scripts\python.exe' -m armbench `
+  vla-panda-braking-repair-validate `
+  results\pi05_panda_braking_repair_90_001 `
+  --source-directory `
+  evidence\pi05_rtc_overlap_primary_v3_seed_20260807_001\evaluation
+```
+
+仓库中的[修复报告](reports/pi05_panda_braking_repair_90_001/summary.md)显示：270/270
+案例满足已注册约束，6 个旧的避碰/加速度冲突全部解决，且没有回归。它仍是成对的
+离线诊断，不重新运行 `pi0.5`，不形成 Panda 反馈闭环，也不是物理安全或硬实时证明。
+可用 `mujoco-view` 查看 `raw_positions`、`legacy_positions` 和 `repair_positions`，
+完整方法见[延迟有界的终端制动不变量动作修复](docs/PI05_PANDA_BRAKING_REPAIR_ZH.md)。
 
 ## 验收已保存结果
 

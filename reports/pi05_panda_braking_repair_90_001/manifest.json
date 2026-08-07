@@ -1,0 +1,31 @@
+{
+  "files": [
+    {
+      "bytes": 119031,
+      "path": "per_case.csv",
+      "sha256": "1ed0916c4ca8418eee02fb06e5f9d7fe5b8b83c0cdf8be2548c0657d26a32baa"
+    },
+    {
+      "bytes": 4789,
+      "path": "provenance.json",
+      "sha256": "3123e123bcaf66df3f61cee3ee294cd35de3ebb7cd98a30db254741aca9c3400"
+    },
+    {
+      "bytes": 9517,
+      "path": "summary.json",
+      "sha256": "e8deffd289e1a16fae26dfd59abe3e11a51f963aef1611e7f40f6c9fc18f634b"
+    },
+    {
+      "bytes": 877,
+      "path": "summary.md",
+      "sha256": "37aff0d8ae6e68d367fde44bbcb039af71bcff54633319a53fc74e3e5a8f414b"
+    },
+    {
+      "bytes": 166183,
+      "path": "trajectories.npz",
+      "sha256": "e0ede7fda377001411ffcf388b035d5bfe6ef16fa9c64fa2c21857b8da111b22"
+    }
+  ],
+  "files_sha256": "ea85c69dece4ad89e1268fb0345a4ab0aa8ebc3a3f719fd4d482e43320110d14",
+  "schema_version": "armbench.root_manifest.v1"
+}

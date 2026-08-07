@@ -27,6 +27,11 @@ from armbench.vla.pi05_archive_replay import (
     execute_pi05_archive_replay,
     validate_pi05_replay_artifact,
 )
+from armbench.vla.pi05_braking_repair import (
+    Pi05BrakingComparisonConfig,
+    execute_pi05_braking_comparison,
+    validate_pi05_braking_comparison,
+)
 from armbench.vla.benchmark import (
     execute_openpi_probe,
     execute_vla_guard_benchmark,
@@ -159,6 +164,37 @@ def build_parser() -> argparse.ArgumentParser:
     archive_replay_validate.add_argument("directory", type=Path)
     archive_replay_validate.add_argument("--source-directory", type=Path)
 
+    braking_repair = subparsers.add_parser(
+        "vla-panda-braking-repair",
+        help="compare greedy and braking-invariant guards on frozen pi0.5 chunks",
+    )
+    braking_repair.add_argument("source_directory", type=Path)
+    braking_repair.add_argument("--output-directory", type=Path, required=True)
+    braking_repair.add_argument("--chunks", type=int, default=90)
+    braking_repair.add_argument("--selection-seed", type=int, default=20260807)
+    braking_repair.add_argument(
+        "--scenarios",
+        nargs="+",
+        choices=("free_space", "single_block", "narrow_gate"),
+        default=("free_space", "single_block", "narrow_gate"),
+    )
+    braking_repair.add_argument(
+        "--response-deadline-ms", type=float, default=200.0
+    )
+    braking_repair.add_argument(
+        "--repair-selection-deadline-ms", type=float, default=20.0
+    )
+    braking_repair.add_argument(
+        "--collision-resolution-rad", type=float, default=0.02
+    )
+
+    braking_repair_validate = subparsers.add_parser(
+        "vla-panda-braking-repair-validate",
+        help="verify a paired braking-repair report and trajectory archive",
+    )
+    braking_repair_validate.add_argument("directory", type=Path)
+    braking_repair_validate.add_argument("--source-directory", type=Path)
+
     validate = subparsers.add_parser("validate", help="validate config and scenario geometry")
     validate.add_argument(
         "--config", type=Path, default=Path("configs/benchmark.json")
@@ -223,9 +259,19 @@ def build_parser() -> argparse.ArgumentParser:
     mujoco_view.add_argument("--trace", type=Path)
     mujoco_view.add_argument(
         "--array",
-        choices=("auto", "actual_positions", "desired_positions", "smoothed", "raw"),
+        choices=(
+            "auto",
+            "actual_positions",
+            "desired_positions",
+            "smoothed",
+            "raw",
+            "raw_positions",
+            "legacy_positions",
+            "repair_positions",
+        ),
         default="auto",
     )
+    mujoco_view.add_argument("--episode", type=int, default=0)
     mujoco_view.add_argument("--frame", type=int, default=-1)
     mujoco_view.add_argument("--play", action="store_true")
     mujoco_view.add_argument("--speed", type=float, default=1.0)
@@ -670,6 +716,33 @@ def main(arguments: list[str] | None = None) -> int:
         )
         print(json.dumps(result, indent=2, ensure_ascii=False))
         return 0
+    if args.command == "vla-panda-braking-repair":
+        output = execute_pi05_braking_comparison(
+            args.source_directory,
+            args.output_directory,
+            Pi05BrakingComparisonConfig(
+                chunk_count=args.chunks,
+                selection_seed=args.selection_seed,
+                scenarios=tuple(args.scenarios),
+                response_deadline_ms=args.response_deadline_ms,
+                repair_selection_deadline_ms=(
+                    args.repair_selection_deadline_ms
+                ),
+                collision_resolution_rad=args.collision_resolution_rad,
+            ),
+        )
+        result = validate_pi05_braking_comparison(
+            output, source_directory=args.source_directory
+        )
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-panda-braking-repair-validate":
+        result = validate_pi05_braking_comparison(
+            args.directory, source_directory=args.source_directory
+        )
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0
     if args.command == "validate":
         return _validate(args.config)
     if args.command == "mujoco-validate":
@@ -701,6 +774,7 @@ def main(arguments: list[str] | None = None) -> int:
             payload_mass=args.payload,
             trace_path=args.trace,
             array_key=args.array,
+            episode=args.episode,
             frame=args.frame,
             play=args.play,
             playback_speed=args.speed,

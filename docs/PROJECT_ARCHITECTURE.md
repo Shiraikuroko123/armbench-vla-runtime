@@ -94,6 +94,7 @@ simulator-catch-up evaluator used by the completed `pi0.5` studies.
 | Threaded runtime harness | Separate worker/control thread IDs, continued control ticks, latest-only replacement, and deadline tests | Scripted component evidence; no LIBERO or Panda task-success claim |
 | Cartesian action adapter | Scripted `H x 7` LIBERO-style chunk mapped through the Panda Jacobian into the existing `H x 8` guard contract | Component smoke only; no official checkpoint, task-success, or controller-equivalence claim |
 | Frozen-response Panda replay | 7,934 official response hashes verified; 90 chunks replayed across three Panda scenes | Offline cross-controller diagnostic; no checkpoint execution, feedback loop, or task-success claim |
+| Braking-invariant repair | 270 paired frozen-response cases: 264/270 to 270/270 registered constraints, all 6 legacy conflicts resolved, zero regressions | Training-free trajectory repair diagnostic; measured software budget, not hard real time or physical safety |
 
 Detailed results are in [Results](RESULTS.md). Frozen protocols and audits are
 listed in the [documentation index](README.md).
@@ -112,6 +113,14 @@ frozen official-checkpoint responses. The replay checks every preserved
 response hash, samples equally by LIBERO task and runtime method, resets each
 Panda case independently, and emits a self-validating CSV/JSON artifact. See
 [frozen pi0.5 response replay](PI05_PANDA_ARCHIVE_REPLAY.md).
+
+The same replay archive now feeds a second, paired diagnostic: a
+trajectory-level braking-invariant repair. It searches a bounded set of whole-
+chunk velocity scales, validates configuration and interpolated-edge collision
+constraints, and appends a terminal deceleration path before selecting a
+candidate. On the preserved 270-case matrix it resolves all six legacy
+collision/acceleration conflicts with zero repair regressions. See
+[deadline-bounded braking-invariant repair](PI05_PANDA_BRAKING_REPAIR.md).
 
 This is still not a verified live control chain from official `pi0.5`
 inference to Panda execution. Scale, coordinate-frame, clipping, and gripper
@@ -136,13 +145,14 @@ system scheduling or worst-case latency guarantee.
 The technically meaningful next step is not a cosmetic simulator change. It is
 to connect the implemented component adapter to a complete evaluator and test:
 
-1. wire the independently scheduled runtime into an end-to-end evaluator and
-   preserve stale-response discard in task-level evidence;
-2. deadline-bounded constrained projection, including continuous collision and
-   dynamics limits;
-3. a second open action-chunk policy under the same frozen protocol; and
-4. a simulator-to-hardware or LeRobot-compatible adapter with separate safety
-   and timing evidence.
+1. wire the independently scheduled runtime and the repair layer into an
+   end-to-end evaluator and preserve stale-response discard in task-level
+   evidence;
+2. replace resolution-bounded edge sampling with a validated continuous or
+   conservative swept-volume collision check and report dynamics limits;
+3. reproduce the repair protocol on a second open action-chunk policy; and
+4. add a simulator-to-hardware or LeRobot-compatible adapter with separate
+   watchdog, safety, and timing evidence.
 
 Until then, the accurate public description is: a seven-DoF constrained
 execution base plus a `pi0.5` VLA runtime-evaluation path, with an explicit

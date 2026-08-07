@@ -258,6 +258,52 @@ versions, explicit claim flags, and a self-validating file manifest. The full
 method and reproduction boundary is documented in
 [frozen pi0.5 response replay](PI05_PANDA_ARCHIVE_REPLAY.md).
 
+## Braking-invariant repair on frozen pi0.5 responses
+
+### Provenance and protocol
+
+- Derived report ID: `pi05_panda_braking_repair_90_001`
+- Source artifact: `pi05_rtc_overlap_primary_v3_seed_20260807_001/evaluation`
+- Source validation: 7,934/7,934 response-action hashes reverified before the
+  paired matrix was executed
+- Selection: the same 90 frozen chunks and three independent Panda scenarios
+  used by the archive replay (270 cases total)
+- Baseline: existing greedy per-step guard
+- Repair: whole-chunk scale search over `1.0, 0.75, 0.5, 0.25, 0.0`, with
+  configuration, velocity, acceleration, edge-collision, and terminal-braking
+  checks
+- Selection budget: 20 ms measured software budget; not a hard-real-time
+  scheduler
+- Explicit scope: no policy execution, Panda feedback loop, or task-success
+  evaluation
+
+### Outcomes
+
+| Measure | Greedy guard | Braking-invariant repair |
+| --- | ---: | ---: |
+| All registered constraints satisfied | 264/270 | 270/270 |
+| Position path valid under 0.02 rad edge sampling | 270/270 | 270/270 |
+| Collision/acceleration conflict cases | 6 | 0 |
+| Repair regressions | - | 0 |
+| P95 software selection latency | 13.550 ms | 12.777 ms |
+| Maximum software selection latency | - | 19.979 ms |
+| Selection-budget exceedances | - | 0/270 |
+| Terminal braking path valid | - | 270/270 |
+
+The repair resolves the exact six cases in which the legacy guard's collision
+response and acceleration bound conflicted. Four cases select a zero-scale
+hold, while the remaining cases select a reduced nonzero scale; the complete
+distribution is preserved in `summary.json`. No repair regression was observed
+in the paired matrix.
+
+This is a registered engineering diagnostic, not a policy-effect comparison:
+the source responses are frozen and replayed offline, and the repair does not
+optimize task progress. The report and its validator are in
+[`reports/pi05_panda_braking_repair_90_001`](../reports/pi05_panda_braking_repair_90_001/summary.md)
+and [the method document](PI05_PANDA_BRAKING_REPAIR.md). The result does not
+establish task-success improvement, continuous collision safety, physical
+safety, or worst-case hard-real-time behavior.
+
 ## Local scripted online VLA runtime result
 
 ### Provenance

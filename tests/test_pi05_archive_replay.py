@@ -23,6 +23,11 @@ from armbench.vla.pi05_archive_replay import (
     validate_pi05_replay_artifact,
     validate_pi05_source_archive,
 )
+from armbench.vla.pi05_braking_repair import (
+    Pi05BrakingComparisonConfig,
+    execute_pi05_braking_comparison,
+    validate_pi05_braking_comparison,
+)
 
 
 METHODS = (
@@ -346,3 +351,36 @@ def test_replay_refuses_to_overwrite_an_existing_directory(tmp_path: Path) -> No
 
     with pytest.raises(FileExistsError, match="must not already exist"):
         execute_pi05_archive_replay(source, output)
+
+
+def test_paired_braking_comparison_binds_trajectories_to_source(
+    tmp_path: Path,
+) -> None:
+    try:
+        default_panda_scene_path()
+    except FileNotFoundError as error:
+        pytest.skip(str(error))
+    source = _source_artifact(tmp_path)
+    output = tmp_path / "braking-comparison"
+
+    execute_pi05_braking_comparison(
+        source,
+        output,
+        Pi05BrakingComparisonConfig(
+            chunk_count=6,
+            selection_seed=23,
+            scenarios=("free_space",),
+            repair_selection_deadline_ms=1000.0,
+        ),
+    )
+    validation = validate_pi05_braking_comparison(output, source)
+    summary = json.loads((output / "summary.json").read_text(encoding="utf-8"))
+    with np.load(output / "trajectories.npz", allow_pickle=False) as trace:
+        assert trace["raw_positions"].shape == (6, 11, 7)
+        assert trace["legacy_positions"].shape == (6, 11, 7)
+        assert trace["repair_positions"].shape == (6, 11, 7)
+
+    assert validation["valid"] is True
+    assert validation["checks"][-1] == "source_archive_reverified"
+    assert summary["overall"]["cases"] == 6
+    assert summary["overall"]["repair_regressions"] == 0

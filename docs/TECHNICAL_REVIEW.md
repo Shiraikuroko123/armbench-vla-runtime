@@ -257,17 +257,20 @@ Negative and invalid results are handled differently:
   and inference clocks;
 - no hardware adapter or safety certification;
 - no learned fallback, takeover, or recovery policy;
+- the braking-invariant repair is validated only on frozen responses and does
+  not yet run in the task-level online evaluator;
 - RTC success comparison is underpowered for small effects and currently
   supports no superiority claim.
 
 ## Recommended next milestones
 
-1. Separate policy inference and control into independently scheduled loops and
-   record observation, action, and commitment age at each control tick.
-2. Reproduce the runtime method on a second open VLA family without forcing
+1. Wire the independently scheduled runtime and braking repair into an
+   end-to-end evaluator, recording observation, action, and commitment age at
+   each control tick.
+2. Replace resolution-bounded edge sampling with a validated continuous or
+   conservative swept-volume collision check and report dynamics limits.
+3. Reproduce the runtime method on a second open VLA family without forcing
    incompatible action semantics into the existing adapter.
-3. Add a physically constrained action-repair layer with continuous collision
-   checking and explicit deadline budgeting.
 4. Evaluate calibrated abstention or takeover under registered faults.
 5. Add a hardware adapter only after watchdog, calibration, and emergency-stop
    requirements are specified and tested.

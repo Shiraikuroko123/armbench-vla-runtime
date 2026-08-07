@@ -15,13 +15,22 @@ from armbench.mujoco_sim.model import MuJoCoPanda
 from armbench.mujoco_sim.scenarios import mujoco_scenarios
 
 FloatArray = NDArray[np.float64]
-TRACE_ARRAY_KEYS = ("actual_positions", "desired_positions", "smoothed", "raw")
+TRACE_ARRAY_KEYS = (
+    "actual_positions",
+    "desired_positions",
+    "smoothed",
+    "raw",
+    "raw_positions",
+    "legacy_positions",
+    "repair_positions",
+)
 
 
 def load_pose_sequence(
     trace_path: Path,
     *,
     array_key: str = "auto",
+    episode: int = 0,
 ) -> tuple[FloatArray, FloatArray | None, str]:
     if not trace_path.is_file():
         raise FileNotFoundError(f"trajectory file not found: {trace_path}")
@@ -40,6 +49,18 @@ def load_pose_sequence(
             selected = array_key
         positions = np.asarray(trace[selected], dtype=float)
         times = np.asarray(trace["times"], dtype=float) if "times" in trace else None
+    if episode < 0:
+        raise ValueError("trajectory episode must be nonnegative")
+    if positions.ndim == 3:
+        if episode >= len(positions):
+            raise IndexError(
+                f"episode {episode} is outside trajectory batch of size {len(positions)}"
+            )
+        positions = positions[episode]
+        if times is not None and times.ndim == 2:
+            times = times[episode]
+    elif episode != 0:
+        raise IndexError("a two-dimensional trajectory only contains episode 0")
     if positions.ndim != 2 or positions.shape[1] != 7 or len(positions) == 0:
         raise ValueError("trajectory positions must have shape (samples, 7)")
     if not np.all(np.isfinite(positions)):
@@ -83,6 +104,7 @@ def launch_trajectory_viewer(
     payload_mass: float = 0.0,
     trace_path: Path | None = None,
     array_key: str = "auto",
+    episode: int = 0,
     frame: int = -1,
     play: bool = False,
     playback_speed: float = 1.0,
@@ -103,7 +125,9 @@ def launch_trajectory_viewer(
         q = scenario.start if pose_name == "start" else scenario.goal
     else:
         positions, times, selected_array = load_pose_sequence(
-            trace_path, array_key=array_key
+            trace_path,
+            array_key=array_key,
+            episode=episode,
         )
         resolved_frame = frame if frame >= 0 else len(positions) - 1
         if resolved_frame >= len(positions):
@@ -123,6 +147,7 @@ def launch_trajectory_viewer(
             "payload_mass": payload_mass,
             "trace_path": str(trace_path.resolve()) if trace_path else None,
             "trace_array": selected_array,
+            "trace_episode": episode if trace_path else None,
         }
     )
     with mujoco.viewer.launch_passive(robot.model, data) as viewer:
