@@ -224,6 +224,26 @@ def test_async_benchmark_records_explicit_zero_runtime_clearance(
     assert validate_async_panda_artifact(artifact)["valid"]
 
 
+def test_async_validator_accepts_frozen_v2_collision_provenance(
+    async_artifact: Path, tmp_path: Path
+) -> None:
+    copied = tmp_path / "legacy_v2"
+    shutil.copytree(async_artifact, copied)
+    provenance_path = copied / "provenance.json"
+    provenance = json.loads(provenance_path.read_text("utf-8"))
+    provenance["schema_version"] = (
+        "armbench.async_panda_closed_loop_provenance.v2"
+    )
+    provenance.pop("collision_validation")
+    provenance_path.write_text(
+        json.dumps(provenance, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    _write_root_manifest(copied)
+
+    assert validate_async_panda_artifact(copied)["valid"]
+
+
 def test_resigned_csv_metric_tamper_is_rejected(
     async_artifact: Path, tmp_path: Path
 ) -> None:

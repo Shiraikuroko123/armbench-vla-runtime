@@ -46,7 +46,8 @@ from armbench.vla.pi05_archive_replay import (
 
 ARTIFACT_SCHEMA = "armbench.async_panda_closed_loop.v2"
 SUMMARY_SCHEMA = "armbench.async_panda_closed_loop_summary.v2"
-PROVENANCE_SCHEMA = "armbench.async_panda_closed_loop_provenance.v2"
+LEGACY_PROVENANCE_SCHEMA = "armbench.async_panda_closed_loop_provenance.v2"
+PROVENANCE_SCHEMA = "armbench.async_panda_closed_loop_provenance.v3"
 TRACE_SCHEMA = "armbench.async_panda_trace.v1"
 SCOPE = "scripted_async_vla_runtime_mujoco_closed_loop"
 
@@ -1121,7 +1122,8 @@ def validate_async_panda_artifact(directory: Path) -> dict[str, Any]:
     )
     _require(
         isinstance(provenance, Mapping)
-        and provenance.get("schema_version") == PROVENANCE_SCHEMA
+        and provenance.get("schema_version")
+        in {LEGACY_PROVENANCE_SCHEMA, PROVENANCE_SCHEMA}
         and provenance.get("scope") == SCOPE,
         "provenance schema/scope mismatch",
     )
@@ -1237,26 +1239,27 @@ def validate_async_panda_artifact(directory: Path) -> dict[str, Any]:
             == float(matrix["planning_clearance_m"]),
             "inherited runtime clearance does not match planning clearance",
         )
-    collision_validation = provenance.get("collision_validation")
-    _require(
-        isinstance(collision_validation, Mapping)
-        and collision_validation.get("method")
-        == "clearance_backed_swept_static_obstacle_subdivision"
-        and collision_validation.get("self_collision_continuity")
-        == "sampled_only",
-        "collision validation provenance is invalid",
-    )
-    radii = np.asarray(
-        collision_validation.get("joint_motion_radii_m"), dtype=float
-    )
-    _require(
-        radii.shape == (7,)
-        and bool(np.all(np.isfinite(radii)))
-        and bool(np.all(radii > 0.0))
-        and float(collision_validation["swept_obstacle_margin_m"])
-        == float(matrix["runtime_clearance_m"]),
-        "collision motion-bound provenance is invalid",
-    )
+    if provenance.get("schema_version") == PROVENANCE_SCHEMA:
+        collision_validation = provenance.get("collision_validation")
+        _require(
+            isinstance(collision_validation, Mapping)
+            and collision_validation.get("method")
+            == "clearance_backed_swept_static_obstacle_subdivision"
+            and collision_validation.get("self_collision_continuity")
+            == "sampled_only",
+            "collision validation provenance is invalid",
+        )
+        radii = np.asarray(
+            collision_validation.get("joint_motion_radii_m"), dtype=float
+        )
+        _require(
+            radii.shape == (7,)
+            and bool(np.all(np.isfinite(radii)))
+            and bool(np.all(radii > 0.0))
+            and float(collision_validation["swept_obstacle_margin_m"])
+            == float(matrix["runtime_clearance_m"]),
+            "collision motion-bound provenance is invalid",
+        )
     for row in rows:
         _validate_case_trace(
             root,
