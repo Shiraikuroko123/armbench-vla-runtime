@@ -292,8 +292,8 @@ class ProviderIdentity:
                 "checkpoint_capture",
                 "attested_archive",
                 "synthetic_contract_fixture",
+                "live_checkpoint_inference",
             }
-            or self.checkpoint_executed_this_run
         ):
             raise ProviderContractError("provider identity is invalid")
         if self.checkpoint_sha256 is not None and not _HEX_64.fullmatch(
@@ -315,6 +315,20 @@ class ProviderIdentity:
         ):
             raise ProviderContractError(
                 "synthetic fixtures cannot claim checkpoint execution or attestation"
+            )
+        if self.response_origin == "live_checkpoint_inference":
+            if (
+                not self.checkpoint_executed_this_run
+                or self.checkpoint_executed_during_capture
+                or self.checkpoint_identity_status != "content_attested"
+            ):
+                raise ProviderContractError(
+                    "live providers require current-run execution and checkpoint "
+                    "content attestation"
+                )
+        elif self.checkpoint_executed_this_run:
+            raise ProviderContractError(
+                "non-live providers cannot claim current-run checkpoint execution"
             )
 
     def to_dict(self) -> dict[str, object]:
@@ -800,7 +814,9 @@ class AdaptedActionChunkPolicy:
             "source_semantics": self.provider.semantics.to_dict(),
             "source_semantics_sha256": self.provider.semantics.semantic_sha256,
             "adapter": "PandaCartesianActionAdapter",
-            "checkpoint_executed_this_run": False,
+            "checkpoint_executed_this_run": (
+                self.identity.checkpoint_executed_this_run
+            ),
         }
 
     def infer(self, observation: VLAObservation) -> ActionChunk:

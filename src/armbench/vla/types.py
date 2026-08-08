@@ -84,6 +84,21 @@ class VLAObservation:
             "prompt": self.prompt,
         }
 
+    def to_openpi_libero(self) -> dict[str, object]:
+        """Build the ``pi05_libero`` request after camera capture/resize.
+
+        The local Panda camera worker already emits contiguous 224x224 uint8
+        images. LIBERO's environment-specific 180-degree source-image rotation
+        is deliberately not repeated for those locally rendered images.
+        """
+
+        return {
+            "observation/image": np.ascontiguousarray(self.exterior_image),
+            "observation/wrist_image": np.ascontiguousarray(self.wrist_image),
+            "observation/state": np.ascontiguousarray(self.state, dtype=np.float64),
+            "prompt": self.prompt,
+        }
+
 
 @dataclass(frozen=True)
 class ActionChunk:

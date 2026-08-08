@@ -41,6 +41,10 @@ from armbench.vla.online import (
     ReferenceActionChunkPolicy,
     run_online_episode,
 )
+from armbench.vla.openpi_provider import (
+    OpenPILiberoRawProvider,
+    provider_identity_from_openpi_metadata,
+)
 from armbench.vla.observation_guard import (
     ObservationCheck,
     ObservationGuardConfig,
@@ -147,6 +151,7 @@ __all__ = [
     "LeRobotEpisodeRecorder",
     "LeRobotFrameAdapter",
     "OpenPIPolicyClient",
+    "OpenPILiberoRawProvider",
     "OpenPIProtocolLoopbackServer",
     "OnlineEpisodeResult",
     "OnlineExecutionConfig",
@@ -190,6 +195,7 @@ __all__ = [
     "execute_loopback_fault_matrix",
     "canonical_action_sha256",
     "libero_cartesian_semantics",
+    "provider_identity_from_openpi_metadata",
     "require_semantic_compatibility",
     "replay_lerobot_episode",
     "runtime_action_semantics",
