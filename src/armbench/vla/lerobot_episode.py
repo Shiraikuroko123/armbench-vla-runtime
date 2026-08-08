@@ -286,19 +286,8 @@ class LeRobotEpisodeRecorder:
     def frame_count(self) -> int:
         return len(self._records)
 
-    def append(
-        self,
-        observation: VLAObservation,
-        requested_action: ArrayLike,
-        *,
-        command_sequence_id: int,
-        issued_at_s: float,
-        evaluated_at_s: float,
-        reset_before: bool = False,
-        reset_at_s: float | None = None,
-        action_semantics_id: str = PANDA_RUNTIME_ACTION_SPACE_ID,
-        action_semantics_sha256: str = PANDA_RUNTIME_ACTION_SEMANTICS_SHA256,
-    ) -> WatchdogDecision:
+    @staticmethod
+    def _validate_requested_action(requested_action: ArrayLike) -> FloatArray:
         raw_action = np.asarray(requested_action)
         if raw_action.dtype.kind not in {"i", "u", "f"}:
             raise ValueError(
@@ -314,16 +303,15 @@ class LeRobotEpisodeRecorder:
                 "episode requested action must be a finite numeric 8-vector "
                 "with gripper in [0, 1]"
             )
-        if type(reset_before) is not bool:
-            raise ValueError("reset_before must be a boolean")
-        if type(command_sequence_id) is not int or command_sequence_id < 0:
-            raise ValueError("command_sequence_id must be a nonnegative integer")
-        if type(observation.sequence_id) is not int:
-            raise ValueError("observation sequence ID must be an integer")
-        if not isinstance(action_semantics_id, str) or not isinstance(
-            action_semantics_sha256, str
-        ):
-            raise ValueError("input action semantics identity must be strings")
+        return action
+
+    @staticmethod
+    def _validate_observation_timing(
+        observation: VLAObservation,
+        *,
+        issued_at_s: float,
+        evaluated_at_s: float,
+    ) -> tuple[float, float, float, float]:
         captured_at = _runtime_float(
             observation.captured_at_s, "observation captured_at_s"
         )
@@ -334,15 +322,59 @@ class LeRobotEpisodeRecorder:
         )
         if not 0.0 <= gripper_position <= 1.0:
             raise ValueError("observation gripper must be in [0, 1]")
+        return captured_at, issued_at, evaluated_at, gripper_position
+
+    def _apply_reset(
+        self,
+        *,
+        reset_before: bool,
+        reset_at_s: float | None,
+    ) -> float | None:
+        if type(reset_before) is not bool:
+            raise ValueError("reset_before must be a boolean")
         if reset_before:
             if reset_at_s is None:
                 raise ValueError("reset_at_s is required when reset_before is true")
             reset_at = _runtime_float(reset_at_s, "reset_at_s")
             self.watchdog.reset(evaluated_at_s=reset_at)
-        elif reset_at_s is not None:
+            return reset_at
+        if reset_at_s is not None:
             raise ValueError("reset_at_s requires reset_before")
-        else:
-            reset_at = None
+        return None
+
+    def append(
+        self,
+        observation: VLAObservation,
+        requested_action: ArrayLike,
+        *,
+        command_sequence_id: int,
+        issued_at_s: float,
+        evaluated_at_s: float,
+        reset_before: bool = False,
+        reset_at_s: float | None = None,
+        action_semantics_id: str = PANDA_RUNTIME_ACTION_SPACE_ID,
+        action_semantics_sha256: str = PANDA_RUNTIME_ACTION_SEMANTICS_SHA256,
+    ) -> WatchdogDecision:
+        action = self._validate_requested_action(requested_action)
+        if type(command_sequence_id) is not int or command_sequence_id < 0:
+            raise ValueError("command_sequence_id must be a nonnegative integer")
+        if type(observation.sequence_id) is not int:
+            raise ValueError("observation sequence ID must be an integer")
+        if not isinstance(action_semantics_id, str) or not isinstance(
+            action_semantics_sha256, str
+        ):
+            raise ValueError("input action semantics identity must be strings")
+        captured_at, issued_at, evaluated_at, gripper_position = (
+            self._validate_observation_timing(
+                observation,
+                issued_at_s=issued_at_s,
+                evaluated_at_s=evaluated_at_s,
+            )
+        )
+        reset_at = self._apply_reset(
+            reset_before=reset_before,
+            reset_at_s=reset_at_s,
+        )
         decision = self.watchdog.evaluate(
             action,
             command_sequence_id=command_sequence_id,
@@ -677,6 +709,136 @@ def _config_from_metadata(value: object) -> CommandWatchdogConfig:
         raise LeRobotEpisodeError("watchdog configuration is invalid") from error
 
 
+def _replay_frame(
+    index: int,
+    row: Mapping[str, object],
+    arrays: Mapping[str, np.ndarray],
+    watchdog: ActuatorCommandWatchdog,
+    adapter: LeRobotFrameAdapter,
+) -> WatchdogDecision:
+    """Reconstruct and validate one recorded frame against the live contracts."""
+
+    _require(
+        has_exact_fields(row, _FRAME_FIELDS)
+        and row["schema_version"] == LEROBOT_FRAME_SCHEMA
+        and type(row["frame_index"]) is int
+        and row["frame_index"] == index
+        and type(row["command_sequence_id"]) is int
+        and type(row["observation_sequence_id"]) is int
+        and _is_json_float(row["captured_at_s"])
+        and _is_json_float(row["issued_at_s"])
+        and _is_json_float(row["evaluated_at_s"])
+        and _is_json_float(row["watchdog_gripper_position"])
+        and type(row["reset_before"]) is bool
+        and (row["reset_at_s"] is None or _is_json_float(row["reset_at_s"]))
+        and isinstance(row["task"], str)
+        and bool(row["task"].strip())
+        and isinstance(row["input_action_semantics_id"], str)
+        and isinstance(row["input_action_semantics_sha256"], str)
+        and isinstance(row["watchdog_decision"], Mapping)
+        and has_exact_fields(row["hashes"], _FRAME_HASH_FIELDS)
+        and all(is_sha256(value) for value in row["hashes"].values()),
+        f"frame {index} schema/index mismatch",
+    )
+    command_id = int(arrays["command_sequence_ids"][index])
+    observation_id = int(arrays["observation_sequence_ids"][index])
+    captured = float(arrays["captured_at_s"][index])
+    issued = float(arrays["issued_at_s"][index])
+    evaluated = float(arrays["evaluated_at_s"][index])
+    reset_before = bool(arrays["reset_before"][index])
+    reset_at = float(arrays["reset_at_s"][index])
+    watchdog_gripper = float(arrays["watchdog_gripper_positions"][index])
+    _require(
+        row["command_sequence_id"] == command_id
+        and row["observation_sequence_id"] == observation_id
+        and row["captured_at_s"] == captured
+        and row["issued_at_s"] == issued
+        and row["evaluated_at_s"] == evaluated
+        and row["watchdog_gripper_position"] == watchdog_gripper
+        and row["reset_before"] is reset_before,
+        f"frame {index} scalar/array mismatch",
+    )
+    if reset_before:
+        _require(row["reset_at_s"] == reset_at, f"frame {index} reset mismatch")
+        watchdog.reset(evaluated_at_s=reset_at)
+    else:
+        _require(
+            row["reset_at_s"] is None and reset_at == -1.0,
+            f"frame {index} unexpected reset",
+        )
+
+    task = row["task"]
+    state = arrays["states"][index]
+    observation = VLAObservation(
+        exterior_image=arrays["exterior_images"][index],
+        wrist_image=arrays["wrist_images"][index],
+        joint_position=state[:7],
+        gripper_position=state[7:],
+        prompt=task,
+        sequence_id=observation_id,
+        captured_at_s=captured,
+    )
+    semantics_id = row["input_action_semantics_id"]
+    semantics_sha = row["input_action_semantics_sha256"]
+    decision = watchdog.evaluate(
+        arrays["requested_actions"][index],
+        command_sequence_id=command_id,
+        observation_sequence_id=observation_id,
+        captured_at_s=captured,
+        issued_at_s=issued,
+        evaluated_at_s=evaluated,
+        gripper_position=watchdog_gripper,
+        action_semantics_id=semantics_id,
+        action_semantics_sha256=semantics_sha,
+    )
+    _require(
+        np.isclose(float(state[7]), watchdog_gripper, atol=1e-7, rtol=0.0),
+        f"frame {index} LeRobot/watchdog gripper mismatch",
+    )
+    _require(
+        json_equal(row["watchdog_decision"], decision.to_dict()),
+        f"frame {index} watchdog decision is not reproducible",
+    )
+    _require(
+        np.array_equal(decision.action, arrays["dispatched_actions"][index]),
+        f"frame {index} dispatched action mismatch",
+    )
+    frame = adapter.to_frame(
+        observation,
+        decision.action,
+        action_semantics_id=PANDA_RUNTIME_ACTION_SPACE_ID,
+        action_semantics_sha256=PANDA_RUNTIME_ACTION_SEMANTICS_SHA256,
+    )
+    _require(tuple(frame) == LEROBOT_STYLE_FRAME_KEYS, "LeRobot frame keys changed")
+    _require(
+        np.array_equal(frame["action"], decision.action.astype(np.float32)),
+        f"frame {index} LeRobot action projection mismatch",
+    )
+    hashes = {
+        "exterior_image_sha256": frame_array_sha256(
+            frame["observation.images.exterior"], dtype="uint8"
+        ),
+        "wrist_image_sha256": frame_array_sha256(
+            frame["observation.images.wrist"], dtype="uint8"
+        ),
+        "state_sha256": frame_array_sha256(
+            frame["observation.state"], dtype="<f4"
+        ),
+        "requested_action_sha256": frame_array_sha256(
+            arrays["requested_actions"][index], dtype="<f8"
+        ),
+        "dispatched_action_sha256": frame_array_sha256(
+            arrays["dispatched_actions"][index], dtype="<f8"
+        ),
+        "task_sha256": _text_sha256(task),
+    }
+    _require(
+        json_equal(row["hashes"], hashes),
+        f"frame {index} content hash mismatch",
+    )
+    return decision
+
+
 def validate_lerobot_episode(directory: Path) -> dict[str, object]:
     """Verify hashes, schema, frame mapping, and every watchdog decision."""
 
@@ -743,131 +905,10 @@ def validate_lerobot_episode(directory: Path) -> dict[str, object]:
     reason_counts: Counter[str] = Counter()
     reset_events = 0
     for index, row in enumerate(rows):
-        _require(
-            has_exact_fields(row, _FRAME_FIELDS)
-            and row["schema_version"] == LEROBOT_FRAME_SCHEMA
-            and type(row["frame_index"]) is int
-            and row["frame_index"] == index
-            and type(row["command_sequence_id"]) is int
-            and type(row["observation_sequence_id"]) is int
-            and _is_json_float(row["captured_at_s"])
-            and _is_json_float(row["issued_at_s"])
-            and _is_json_float(row["evaluated_at_s"])
-            and _is_json_float(row["watchdog_gripper_position"])
-            and type(row["reset_before"]) is bool
-            and (
-                row["reset_at_s"] is None
-                or _is_json_float(row["reset_at_s"])
-            )
-            and isinstance(row["task"], str)
-            and bool(row["task"].strip())
-            and isinstance(row["input_action_semantics_id"], str)
-            and isinstance(row["input_action_semantics_sha256"], str)
-            and isinstance(row["watchdog_decision"], Mapping)
-            and has_exact_fields(row["hashes"], _FRAME_HASH_FIELDS)
-            and all(is_sha256(value) for value in row["hashes"].values()),
-            f"frame {index} schema/index mismatch",
-        )
-        command_id = int(arrays["command_sequence_ids"][index])
-        observation_id = int(arrays["observation_sequence_ids"][index])
-        captured = float(arrays["captured_at_s"][index])
-        issued = float(arrays["issued_at_s"][index])
-        evaluated = float(arrays["evaluated_at_s"][index])
-        reset_before = bool(arrays["reset_before"][index])
-        reset_at = float(arrays["reset_at_s"][index])
-        watchdog_gripper = float(arrays["watchdog_gripper_positions"][index])
-        _require(
-            row["command_sequence_id"] == command_id
-            and row["observation_sequence_id"] == observation_id
-            and row["captured_at_s"] == captured
-            and row["issued_at_s"] == issued
-            and row["evaluated_at_s"] == evaluated
-            and row["watchdog_gripper_position"] == watchdog_gripper
-            and row["reset_before"] is reset_before,
-            f"frame {index} scalar/array mismatch",
-        )
-        if reset_before:
-            _require(row["reset_at_s"] == reset_at, f"frame {index} reset mismatch")
-            watchdog.reset(evaluated_at_s=reset_at)
-            reset_events += 1
-        else:
-            _require(
-                row["reset_at_s"] is None and reset_at == -1.0,
-                f"frame {index} unexpected reset",
-            )
-        task = row["task"]
-        state = arrays["states"][index]
-        observation = VLAObservation(
-            exterior_image=arrays["exterior_images"][index],
-            wrist_image=arrays["wrist_images"][index],
-            joint_position=state[:7],
-            gripper_position=state[7:],
-            prompt=task,
-            sequence_id=observation_id,
-            captured_at_s=captured,
-        )
-        semantics_id = row["input_action_semantics_id"]
-        semantics_sha = row["input_action_semantics_sha256"]
-        decision = watchdog.evaluate(
-            arrays["requested_actions"][index],
-            command_sequence_id=command_id,
-            observation_sequence_id=observation_id,
-            captured_at_s=captured,
-            issued_at_s=issued,
-            evaluated_at_s=evaluated,
-            gripper_position=watchdog_gripper,
-            action_semantics_id=semantics_id,
-            action_semantics_sha256=semantics_sha,
-        )
-        _require(
-            np.isclose(float(state[7]), watchdog_gripper, atol=1e-7, rtol=0.0),
-            f"frame {index} LeRobot/watchdog gripper mismatch",
-        )
-        _require(
-            json_equal(row["watchdog_decision"], decision.to_dict()),
-            f"frame {index} watchdog decision is not reproducible",
-        )
-        _require(
-            np.array_equal(decision.action, arrays["dispatched_actions"][index]),
-            f"frame {index} dispatched action mismatch",
-        )
-        frame = adapter.to_frame(
-            observation,
-            decision.action,
-            action_semantics_id=PANDA_RUNTIME_ACTION_SPACE_ID,
-            action_semantics_sha256=PANDA_RUNTIME_ACTION_SEMANTICS_SHA256,
-        )
-        _require(tuple(frame) == LEROBOT_STYLE_FRAME_KEYS, "LeRobot frame keys changed")
-        _require(
-            np.array_equal(
-                frame["action"], decision.action.astype(np.float32)
-            ),
-            f"frame {index} LeRobot action projection mismatch",
-        )
-        hashes = {
-            "exterior_image_sha256": frame_array_sha256(
-                frame["observation.images.exterior"], dtype="uint8"
-            ),
-            "wrist_image_sha256": frame_array_sha256(
-                frame["observation.images.wrist"], dtype="uint8"
-            ),
-            "state_sha256": frame_array_sha256(
-                frame["observation.state"], dtype="<f4"
-            ),
-            "requested_action_sha256": frame_array_sha256(
-                arrays["requested_actions"][index], dtype="<f8"
-            ),
-            "dispatched_action_sha256": frame_array_sha256(
-                arrays["dispatched_actions"][index], dtype="<f8"
-            ),
-            "task_sha256": _text_sha256(task),
-        }
-        _require(
-            json_equal(row["hashes"], hashes),
-            f"frame {index} content hash mismatch",
-        )
+        decision = _replay_frame(index, row, arrays, watchdog, adapter)
         replayed_decisions.append(decision)
         reason_counts[decision.reason] += 1
+        reset_events += int(row["reset_before"])
     expected_summary = {
         "schema_version": LEROBOT_SUMMARY_SCHEMA,
         "episode_id": metadata["episode_id"],
