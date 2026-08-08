@@ -1,0 +1,47 @@
+{
+  "cases": [
+    {
+      "case_id": "single_block_goal",
+      "delay_ms": 0,
+      "feedback_mode": "delayed",
+      "kd": [
+        22.0,
+        22.0,
+        18.0,
+        18.0,
+        12.0,
+        8.0,
+        6.0
+      ],
+      "kp": [
+        120.0,
+        120.0,
+        100.0,
+        100.0,
+        60.0,
+        40.0,
+        30.0
+      ],
+      "payload_mass_kg": 0.0,
+      "planning_seed": 1,
+      "scenario": "single_block",
+      "speed_scale": 0.15,
+      "target_fraction": 1.0,
+      "target_is_scenario_goal": true
+    },
+    {
+      "case_id": "narrow_gate_payload_delay_goal",
+      "delay_ms": 80,
+      "feedback_mode": "velocity_prediction",
+      "kd": 2.0,
+      "kp": 5.0,
+      "payload_mass_kg": 0.5,
+      "planning_seed": 0,
+      "scenario": "narrow_gate",
+      "speed_scale": 0.1,
+      "target_fraction": 1.0,
+      "target_is_scenario_goal": true
+    }
+  ],
+  "schema_version": "armbench.integrated_panda_task.v1"
+}

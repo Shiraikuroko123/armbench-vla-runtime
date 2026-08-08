@@ -23,6 +23,14 @@ Run the self-locating check from any directory:
 & 'D:\arm-planning-control-project\project\scripts\vla_demo.cmd' -CheckOnly
 ```
 
+For the integrated Panda path, use the self-locating acceptance script instead
+of composing relative Python and report paths:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File `
+  'D:\arm-planning-control-project\project\scripts\accept_integrated_panda.ps1'
+```
+
 Or set explicit paths once per terminal:
 
 ```powershell
@@ -473,7 +481,56 @@ Use the isolated environment created by `scripts\setup_official_lerobot.ps1`
 for the latter. Do not install official LeRobot into the OpenPI environment;
 its NumPy 2 dependency is intentionally kept separate.
 
-## 8. Visual replay
+## 8. Debug the integrated Panda supervisor
+
+Start with the deterministic component smoke:
+
+```powershell
+& $ArmbenchPython -m armbench vla-integrated-guard-smoke
+```
+
+Set the primary breakpoint at
+`vla/integrated_panda_guard.py: IntegratedPandaSupervisor.supervise`. Follow the
+stages in order:
+
+1. `response_age_ms` and `state_mismatch_rad` at the temporal/state gate;
+2. `projection.feasible`, `failure_step`, and per-step OSQP status;
+3. each `edge_certificate.certified_safe` and rejected geometry pair;
+4. each `braking_certificate.validated` and `max_torque_ratio`;
+5. the final atomic status and the shape of `executable_actions`.
+
+For any status other than `accepted`, `executable_actions` must have zero rows.
+`verified_brake` and `hold` must carry a validated fallback. An
+`unrecoverable_stop` is an explicit inability to certify the model-based stop;
+it must not be changed into hold or partial execution merely to keep the demo
+moving.
+
+Recompute the preserved matrices while debugging:
+
+```powershell
+& $ArmbenchPython -m armbench vla-integrated-fault-validate `
+  reports\integrated_panda_fault_matrix_001
+& $ArmbenchPython -m armbench vla-integrated-task-validate `
+  reports\integrated_panda_task_001
+```
+
+The second command reruns planning, full-chunk supervision, torque physics, and
+trace comparison. A manifest or implementation-hash failure means the frozen
+artifact and current code no longer describe the same experiment; do not edit
+the JSON or resign the manifest to hide that mismatch.
+
+The task checker intentionally excludes only the fixed-open
+`left_finger`/`right_finger` body pair. The 36 reported exclusions are compiled
+geometry-pair combinations belonging to that one body pair. If another self
+pair disappears, inspect `make_integrated_task_checker` before trusting the
+task result.
+
+Supervision latency in the stored task cases is seconds, because every horizon
+edge and every boundary stop is checked before execution. Treat this as an
+offline reference path. A slow result is not a viewer defect, and it must not
+be described as online deadline compliance.
+
+## 9. Visual replay
 
 Replay a VLA case from its root-level NPZ:
 
@@ -495,7 +552,19 @@ Compare the protected command:
 
 The viewer is a kinematic replay. The recorded MP4 is the physics execution.
 
-## 9. VS Code debugging
+Replay the stored integrated task trace directly:
+
+```powershell
+& $ArmbenchPython -m armbench mujoco-view `
+  --scenario narrow_gate --clearance-mm 20 --payload 0.5 --play `
+  --trace 'reports\integrated_panda_task_001\traces\narrow_gate_payload_delay_goal.npz' `
+  --array actual_positions
+```
+
+The trace was measured during physics execution, but the viewer itself is a
+kinematic playback. Use `vla-integrated-task-validate` for formal acceptance.
+
+## 10. VS Code debugging
 
 Open `D:\arm-planning-control-project\project` as the VS Code workspace. The
 tracked `.vscode/launch.json` provides:
@@ -527,6 +596,9 @@ listed above, and press F5. Enter a new run directory name when prompted.
 | How are torques applied? | `mujoco_sim/execution.py: execute_trajectory` |
 | How are continuous edges checked? | `mujoco_sim/continuous_collision.py: ContinuousMuJoCoCollisionChecker` |
 | How are braking torques audited? | `mujoco_sim/dynamics_braking*.py` |
+| How is an action chunk accepted atomically? | `vla/integrated_panda_guard.py: IntegratedPandaSupervisor` |
+| How is the integrated fault matrix rebuilt? | `vla/integrated_panda_matrix.py` |
+| How are assured tasks planned and rerun? | `vla/integrated_panda_task.py` |
 | How is the official dataset reloaded? | `vla/official_lerobot.py: validate_official_lerobot_episode` |
 | Where are CLI commands wired? | `cli.py` |
 
@@ -536,7 +608,8 @@ listed above, and press F5. Enter a new run directory name when prompted.
 
 The relative path was resolved from the wrong directory. Use the absolute
 `$ArmbenchPython` value from section 1 or run
-`scripts\vla_demo.cmd`.
+`scripts\vla_demo.cmd`. For complete integrated acceptance from an arbitrary
+directory, run `scripts\accept_integrated_panda.ps1` by its absolute path.
 
 ### OpenPI client import fails
 

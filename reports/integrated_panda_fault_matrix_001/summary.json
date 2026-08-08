@@ -1,0 +1,164 @@
+{
+  "by_fault": {
+    "intermediate_self_collision": {
+      "accepted_plans": 0,
+      "cases": 1,
+      "conservative_rejections": 0,
+      "continuous_edges_checked": 88,
+      "expected_matches": 1,
+      "fallback_covered_cases": 1,
+      "holds": 1,
+      "maximum_inverse_dynamics_torque_ratio": 0.47317947835612245,
+      "maximum_supervision_latency_ms": 2972.395200000392,
+      "mean_accepted_task_progress_rad": 0.0,
+      "p95_supervision_latency_ms": 2972.395200000392,
+      "qp_intervention_steps": 120,
+      "unrecoverable_stops": 0,
+      "verified_brakes": 0
+    },
+    "near_limit_stop": {
+      "accepted_plans": 0,
+      "cases": 2,
+      "conservative_rejections": 0,
+      "continuous_edges_checked": 0,
+      "expected_matches": 2,
+      "fallback_covered_cases": 0,
+      "holds": 0,
+      "maximum_inverse_dynamics_torque_ratio": 0.8211352273240299,
+      "maximum_supervision_latency_ms": 7.163199999922654,
+      "mean_accepted_task_progress_rad": 0.0,
+      "p95_supervision_latency_ms": 7.111784999915471,
+      "qp_intervention_steps": 0,
+      "unrecoverable_stops": 2,
+      "verified_brakes": 0
+    },
+    "nominal": {
+      "accepted_plans": 6,
+      "cases": 6,
+      "conservative_rejections": 0,
+      "continuous_edges_checked": 18,
+      "expected_matches": 6,
+      "fallback_covered_cases": 6,
+      "holds": 0,
+      "maximum_inverse_dynamics_torque_ratio": 0.3452956414522304,
+      "maximum_supervision_latency_ms": 205.42649999970308,
+      "mean_accepted_task_progress_rad": 0.02795446018864922,
+      "p95_supervision_latency_ms": 195.54769999967903,
+      "qp_intervention_steps": 18,
+      "unrecoverable_stops": 0,
+      "verified_brakes": 0
+    },
+    "stale_response": {
+      "accepted_plans": 0,
+      "cases": 6,
+      "conservative_rejections": 0,
+      "continuous_edges_checked": 0,
+      "expected_matches": 6,
+      "fallback_covered_cases": 6,
+      "holds": 0,
+      "maximum_inverse_dynamics_torque_ratio": 0.34486679653424696,
+      "maximum_supervision_latency_ms": 56.15209999996296,
+      "mean_accepted_task_progress_rad": 0.0,
+      "p95_supervision_latency_ms": 53.30802499997844,
+      "qp_intervention_steps": 0,
+      "unrecoverable_stops": 0,
+      "verified_brakes": 6
+    },
+    "state_mismatch": {
+      "accepted_plans": 0,
+      "cases": 6,
+      "conservative_rejections": 0,
+      "continuous_edges_checked": 0,
+      "expected_matches": 6,
+      "fallback_covered_cases": 6,
+      "holds": 6,
+      "maximum_inverse_dynamics_torque_ratio": 0.3448373222373399,
+      "maximum_supervision_latency_ms": 12.02370000009978,
+      "mean_accepted_task_progress_rad": 0.0,
+      "p95_supervision_latency_ms": 11.562775000129477,
+      "qp_intervention_steps": 0,
+      "unrecoverable_stops": 0,
+      "verified_brakes": 0
+    },
+    "velocity_spike": {
+      "accepted_plans": 6,
+      "cases": 6,
+      "conservative_rejections": 0,
+      "continuous_edges_checked": 18,
+      "expected_matches": 6,
+      "fallback_covered_cases": 6,
+      "holds": 0,
+      "maximum_inverse_dynamics_torque_ratio": 0.3488637817837016,
+      "maximum_supervision_latency_ms": 596.5800999993007,
+      "mean_accepted_task_progress_rad": 0.1917200549673752,
+      "p95_supervision_latency_ms": 589.8376749994441,
+      "qp_intervention_steps": 18,
+      "unrecoverable_stops": 0,
+      "verified_brakes": 0
+    }
+  },
+  "claim_boundary": [
+    "Inputs are deterministic scripted joint-velocity chunks, not learned-policy outputs.",
+    "The supervisor is synchronous CPU code and does not claim hard-real-time scheduling.",
+    "Continuous certificates cover the registered MuJoCo geometry and linear joint edges.",
+    "Inverse dynamics checks model feasibility, not physical-robot emergency-stop safety.",
+    "This matrix does not execute a task in closed-loop MuJoCo physics."
+  ],
+  "configuration": {
+    "control_dt_s": 0.05,
+    "faults": [
+      "nominal",
+      "velocity_spike",
+      "stale_response",
+      "state_mismatch"
+    ],
+    "include_special_cases": true,
+    "intermediate_self_collision_horizon": 120,
+    "max_state_mismatch_rad": 0.05,
+    "nominal_horizon": 3,
+    "payload_masses_kg": [
+      0.0,
+      0.5
+    ],
+    "qp_step_budget_ms": 500.0,
+    "response_deadline_ms": 5000.0,
+    "scenarios": [
+      "free_space",
+      "single_block",
+      "narrow_gate"
+    ],
+    "supervision_budget_ms": 5000.0
+  },
+  "environment": {
+    "menagerie_commit": "71f066ad0be9cd271f7ed58c030243ef157af9f4",
+    "mujoco_version": "3.11.0",
+    "numpy_version": "1.26.4",
+    "osqp_version": "1.1.3"
+  },
+  "implementation_sha256": {
+    "armbench/mujoco_sim/continuous_collision.py": "4bdf6b26572b9754e40a870ec7ce5b72dfbeff341f033cf084f7638b32d224e7",
+    "armbench/mujoco_sim/dynamics_braking.py": "fb9894ec618a1cc9dd6f85af7babbf29ef55d45733c56826208330cbc8e63c8a",
+    "armbench/vla/integrated_panda_guard.py": "821d5e82b4db620aec4401bea6646bbc87111100e124fb3bd3ef31284b6d81fb",
+    "armbench/vla/integrated_panda_matrix.py": "e4b5a570493ea6c87b4fd84679cb3b6bb20cd28ba903ecf019b7e165d1b02dec",
+    "armbench/vla/qp_projection.py": "c68f37c9ee55fd2069522d4a05c5f7de930166b4cc3b4f8ca07c6de33fd990ae"
+  },
+  "overall": {
+    "accepted_plans": 12,
+    "cases": 27,
+    "conservative_rejections": 0,
+    "continuous_edges_checked": 124,
+    "expected_matches": 27,
+    "fallback_covered_cases": 25,
+    "holds": 7,
+    "maximum_inverse_dynamics_torque_ratio": 0.8211352273240299,
+    "maximum_supervision_latency_ms": 2972.395200000392,
+    "mean_accepted_task_progress_rad": 0.10983725757801222,
+    "p95_supervision_latency_ms": 588.4891899994727,
+    "qp_intervention_steps": 156,
+    "unrecoverable_stops": 2,
+    "verified_brakes": 6
+  },
+  "panda_scene_sha256": "60658e01f59909eadaffbb4eb98a98715f67f67e9ae49f42ac114567fddaf230",
+  "schema_version": "armbench.integrated_panda_fault_matrix.v1",
+  "scope": "registered_scripted_faults_through_integrated_cpu_supervisor"
+}

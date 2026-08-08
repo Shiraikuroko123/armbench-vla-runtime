@@ -32,6 +32,8 @@ to match later results.
 | [Panda continuous self-collision audit](MUJOCO_SELF_COLLISION_AUDIT.md) | Current | Registered self-collision certificate, dense-oracle comparison, and fail-closed boundary |
 | [Panda dynamics braking audit](DYNAMICS_BRAKING_AUDIT.md) | Current | MuJoCo inverse-dynamics stop feasibility across payload, damping, velocity, and continuous collision edges |
 | [Panda 动力学制动审计](DYNAMICS_BRAKING_AUDIT_ZH.md) | Current | 负载、阻尼、初速度矩阵中的逆动力学、连续碰撞边与主张边界 |
+| [Integrated Panda action assurance](INTEGRATED_PANDA_ASSURANCE.md) | Current | Atomic OSQP, continuous-collision, stop-invariant supervision plus rerunnable MuJoCo task evidence |
+| [Panda 集成动作保障链](INTEGRATED_PANDA_ASSURANCE_ZH.md) | Current | 原子动作监管、注册故障矩阵、闭环任务证据、本地验收与在线耗时边界 |
 | [Official LeRobotDataset round-trip](OFFICIAL_LEROBOT_ROUNDTRIP.md) | Current | Pinned LeRobot v3.0 dataset export, isolated loader reload, and exact Panda feature semantics |
 | [官方 LeRobotDataset round-trip](OFFICIAL_LEROBOT_ROUNDTRIP_ZH.md) | Current | 官方 loader 版本锁定、Panda Hx8 动作语义与逐字段 round-trip |
 | [MuJoCo swept 碰撞审计](MUJOCO_SWEPT_AUDIT_ZH.md) | Current | 基于 clearance 的静态障碍细分、dense 对照和主张边界 |

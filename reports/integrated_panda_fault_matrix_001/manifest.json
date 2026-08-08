@@ -1,0 +1,26 @@
+{
+  "files": [
+    {
+      "path": "cases.json",
+      "sha256": "bd7d983aade0bfdc8c00dffc9795898072471ea03e60fe08b84613e63baaac09",
+      "size_bytes": 72585
+    },
+    {
+      "path": "per_case.csv",
+      "sha256": "7bbe4e29db9f5e2dc783ffae9b5b3143be14ba9fefb2603c0ca98cfe254ffb4f",
+      "size_bytes": 10642
+    },
+    {
+      "path": "summary.json",
+      "sha256": "259c6760d4baa1a1ef7d016750a0f871bbbb09304588311b06ec35a1523e92ac",
+      "size_bytes": 6118
+    },
+    {
+      "path": "summary.md",
+      "sha256": "b07176559c578837463ff5d92f1b3409916b4f968896911d009cd6c4d6e78467",
+      "size_bytes": 737
+    }
+  ],
+  "inventory_sha256": "ccae29430e7f33072b12e9fbca3b83fd43ad7cb1007c53f7c2e6f0a38e9e0893",
+  "schema_version": "armbench.integrated_panda_fault_matrix.v1.manifest"
+}

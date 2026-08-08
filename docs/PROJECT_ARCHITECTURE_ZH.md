@@ -32,7 +32,8 @@ ArmBench 是一个研究动作块式 VLA 在“模型响应返回”和“机器
 
 这条路径用于验证七自由度机械臂上的运行时契约和受控失败行为。连续 checker 对
 编译后的 MuJoCo 几何和声明的关节线性插值给出保守判定；当前保留的审计矩阵已经
-覆盖静态障碍和注册的自碰边集，但实体模型精度和任务级接线仍需后续验证。
+覆盖静态障碍和注册的自碰边集，两个力矩控制 MuJoCo 关节路点任务也已完成离线
+任务级接线验证；在线学习策略接入和实体模型精度仍需后续验证。
 
 ### 2. `pi0.5 VLA` 时序评测路径
 
@@ -74,6 +75,8 @@ blocking inference 加 simulator catch-up evaluator。
 | 跨任务集验证 | Object、Goal、LIBERO-10，300 rollouts / 150 pairs：83/150 到 141/150 | 同一模型族和仿真套件内的确定性延迟证据 |
 | RTC-style sampler extension | 300 组匹配 triplet：baseline 96/100，hard projection 97/100，RTC 97/100 | 没有任务成功率优势；seam 是探索性指标 |
 | Panda 运行时 | 本地 MuJoCo 中的协议、guard 和故障 trace | 不是官方 `pi0.5` 的效果证据，也不是物理安全证明 |
+| Panda 集成 supervisor | 27/27 个故障结果可重算：12 个接受、6 个已验证制动、7 个 hold、2 个不可恢复停止；拒绝动作块均未泄漏部分前缀 | 同步 CPU 参考链；动作源为 scripted，耗时为离线参考，不是硬实时 |
+| 带保障的 Panda 任务执行 | 2/2 个 MuJoCo 目标到达；351/351 条运动边和制动边界通过证书；注册的接触、关节限位和力矩饱和均为 0 | 离线保障后进行力矩控制关节路点执行；不包含学习式 VLA、抓取、物体操作或真机主张 |
 | 分线程运行时验收 | 独立 worker/control 线程、持续 control tick、latest-only 替换与 deadline 测试 | Scripted 组件证据；不主张 LIBERO 或 Panda 任务成功率 |
 | 异步 Panda 闭环 | 27 案例采用 clearance-backed swept 静态障碍检查：制动不变量 9/9 满足物理谓词且 0 次突停；旧 guard 为 9/9、311 次；unguarded 为 8/9、289 次 | Scripted 单次工程矩阵；不是学习策略效果、统计优越性检验、硬实时或物理安全认证 |
 | 笛卡尔动作适配器 | 将 scripted `H x 7` LIBERO 风格动作经 Panda Jacobian 转为现有 `H x 8` guard 契约 | 仅为组件 smoke；不包含官方 checkpoint、任务成功率或控制器等价性主张 |
@@ -140,6 +143,17 @@ Panda 侧还加入动力学可达制动审计：构造采样的同步减速轨�
 力矩余量。45 条注册条件全部通过；这仍是编译 MuJoCo 模型的可行性证据，不是硬实时、
 急停或实体机器人安全认证。见[动力学制动审计](DYNAMICS_BRAKING_AUDIT_ZH.md)。
 
+集成 Panda supervisor 现在将这些原语组合为一个原子决策：deadline/状态检查、
+OSQP 运动学投影、投影后的连续静态/自碰撞证书，以及每个动作边界的动力学可行
+停止证书。注册的 27 案例矩阵和两案例 MuJoCo 任务 artifact 都可以根据 manifest
+独立重算。任务 checker 只排除固定张开夹爪的 `left_finger`/`right_finger` body
+pair（在编译模型中对应 36 个 geom pair），其余注册自碰撞对全部保留。详见
+[Panda 集成动作保障链](INTEGRATED_PANDA_ASSURANCE_ZH.md)。
+
+这条 supervisor 有意保持为同步 CPU 参考路径；保留任务案例的完整 horizon 检查
+分别耗时 5.27 s 和 10.20 s。因此它补齐的是本地“规划-保障-执行”接线，不能证明
+在线 deadline 可行。
+
 但它仍不是经过验证的“官方 `pi0.5` 在线推理直接控制 Panda”链路。尺度、坐标系、
 裁剪和夹爪语义已经与 LIBERO commit `f78abd68`、robosuite `1.4.1` 源码核对，
 但微分逆解在动力学上不等价于 robosuite 的 torque-level OSC。官方 checkpoint
@@ -159,10 +173,12 @@ evaluator，并评测：
 
 1. 用经过认证的 OpenVLA-OFT checkpoint 响应替换合成 fixture，并运行预注册的跨模型闭环矩阵；
 2. 将官方 LeRobot 数据集边界和 Panda watchdog 接到具体驱动前，先冻结动作语义和 reset 行为；
-3. 把连续自碰矩阵和动力学制动结果接入任务级在线执行，并量化保守拒绝代价；
-4. 增加标定后的硬件时序、急停集成和重复实体故障注入证据。
+3. 把集成 supervisor 接入带明确 deadline 的异步执行，降低或并行化证书耗时，
+   并量化保守拒绝代价；
+4. 用经过认证的学习策略输出替换 scripted 任务源，再增加标定后的硬件时序、
+   急停集成和重复实体故障注入证据。
 
 在此之前，准确的公开表述是：**七自由度受限执行基座 + `pi0.5 VLA`
 运行时评测路径 + provider-neutral 动作语义 + 官方 LeRobot 数据集 round-trip +
-MuJoCo 动力学制动审计，共用可审计运行时基础设施。第二学习模型和实体机器人证据
-仍是后续工作。**
+MuJoCo 动力学制动审计 + 可独立重算的 Panda 集成动作保障链，共用可审计运行时
+基础设施。学习策略任务接入、在线 deadline 证据和实体机器人证据仍是后续工作。**

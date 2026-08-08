@@ -540,6 +540,75 @@ Panda. It does not establish closed-loop tracking, bounded jerk, operating
 system hard real time, physical-model accuracy, an emergency-stop guarantee,
 or a safety certification.
 
+## Integrated Panda action assurance and task execution
+
+### Provenance and protocol
+
+- Supervisor implementation commit: `f5c161c`
+- Registered fault-matrix commit: `1d735b6`
+- Closed-loop task-execution commit: `7bcda1f`
+- Fault run ID: `integrated_panda_fault_matrix_001`
+- Task run ID: `integrated_panda_task_001`
+- Environment: MuJoCo 3.11.0, NumPy 1.26.4, OSQP 1.1.3, Menagerie
+  commit `71f066ad0be9cd271f7ed58c030243ef157af9f4`
+- Assurance order: response deadline and state alignment, OSQP kinematic
+  projection, fail-closed continuous static/self-collision edges, then a
+  sampled inverse-dynamics stop certificate at every action boundary
+- Decision contract: accept the complete chunk or expose no policy action;
+  rejection produces `verified_brake`, `hold`, or `unrecoverable_stop`
+- Task action source: scripted RRT-Connect reference, not a learned policy
+- Task execution: 10 ms torque-controlled MuJoCo physics after offline
+  full-horizon assurance
+
+The QP enforces joint position, per-joint velocity, acceleration, and declared
+linear constraints. Collision is a separate post-QP certificate, not a convex
+collision constraint inside OSQP.
+
+### Registered fault-matrix outcomes
+
+| Fault | Cases | Accepted | Verified brake | Hold | Unrecoverable stop |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Nominal | 6 | 6 | 0 | 0 | 0 |
+| Velocity spike | 6 | 6 | 0 | 0 | 0 |
+| Stale response | 6 | 0 | 6 | 0 | 0 |
+| State mismatch | 6 | 0 | 0 | 6 | 0 |
+| Intermediate self-collision | 1 | 0 | 0 | 1 | 0 |
+| Near-limit stop | 2 | 0 | 0 | 0 | 2 |
+
+All 27 registered outcomes were reproduced. Twelve complete plans were
+accepted, 124 continuous edges were checked, and no rejected case exposed a
+successful partial prefix. P95 supervision latency was 588.49 ms, the maximum
+was 2.972 s, and the maximum sampled inverse-dynamics torque ratio was
+0.821135. The recursive artifact and rerun validator are in
+[`reports/integrated_panda_fault_matrix_001`](../reports/integrated_panda_fault_matrix_001/summary.json).
+
+### Closed-loop task outcomes
+
+| Case | Payload / delay | Actions | Target error rad | Tracking RMSE rad | Registered physical outcome |
+| --- | --- | ---: | ---: | ---: | --- |
+| `single_block_goal` | 0 kg / 0 ms | 120 | 0.003433 | 0.006067 | target reached; zero registered violations |
+| `narrow_gate_payload_delay_goal` | 0.5 kg / 80 ms | 231 | 0.019624 | 0.030572 | target reached; zero registered violations |
+
+Across both task cases, all 351 motion edges and all 351 action-boundary stop
+states were certified. Torque execution recorded zero obstacle-contact steps,
+self-contact steps, joint-limit violation steps, and torque-saturation events.
+The task checker excludes only the fixed-open `left_finger`/`right_finger` body
+pair; that one body rule expands to 36 compiled geometry-pair combinations.
+Every other registered Panda self-collision pair remains enabled.
+
+Full-horizon supervision took 5.267 s for `single_block_goal` and 10.203 s for
+`narrow_gate_payload_delay_goal`. It completed before physics execution. The
+recursive artifact, including both NPZ traces, is in
+[`reports/integrated_panda_task_001`](../reports/integrated_panda_task_001/summary.json).
+Both validators rerun their registered decisions; the task validator also
+replans and re-executes MuJoCo physics. Commands and visual replay are documented
+in [integrated Panda action assurance](INTEGRATED_PANDA_ASSURANCE.md).
+
+This result closes the local planning-assurance-execution integration path for
+scripted joint-waypoint tasks. It does not run a learned VLA, prove grasp or
+object-manipulation performance, meet an online deadline, establish operating
+system hard real time, validate a physical model, or certify robot safety.
+
 ## Local scripted online VLA runtime result
 
 ### Provenance

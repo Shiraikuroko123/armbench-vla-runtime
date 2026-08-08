@@ -59,7 +59,21 @@ $env:ARMBENCH_MENAGERIE_ROOT = 'C:\models\mujoco_menagerie'
 & '.\.venv\Scripts\python.exe' -m armbench mujoco-validate
 & '.\.venv\Scripts\python.exe' -m armbench mujoco-self-collision-validate `
   reports\mujoco_self_collision_audit_001
+& '.\.venv\Scripts\python.exe' -m armbench vla-integrated-fault-validate `
+  reports\integrated_panda_fault_matrix_001
+& '.\.venv\Scripts\python.exe' -m armbench vla-integrated-task-validate `
+  reports\integrated_panda_task_001
 .\scripts\vla_demo.cmd -CheckOnly
+```
+
+两个集成 validator 都会重建注册的 supervisor 输入；任务 validator 还会重新规划
+并重新执行两个力矩控制 MuJoCo 案例，因此笔记本 CPU 上通常需要几十秒。当前嵌套
+Windows 工作区可以使用下面的一键脚本；它会自行寻找仓库内或工作区内的 `.venv`。
+从仓库外启动时，把脚本绝对路径传给 `-File`：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File `
+  '.\scripts\accept_integrated_panda.ps1'
 ```
 
 数字验收后，可打开固定自碰撞边的交互式回放：
@@ -72,6 +86,17 @@ $env:ARMBENCH_MENAGERIE_ROOT = 'C:\models\mujoco_menagerie'
 
 窗口中的接触点用于直观检查；正式结论仍以 validator 的 `false_safe`、
 `conservative_rejections` 和 manifest 校验为准。
+
+数字验收后，可以播放带 0.5 kg 负载和 80 ms 反馈延迟任务保存的实测轨迹：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File `
+  '.\scripts\accept_integrated_panda.ps1' `
+  -Visualize -Case narrow_gate_payload_delay_goal
+```
+
+动画读取的是 `actual_positions` 物理 trace；规划、保障、物理和保存指标是否一致，
+仍由 validator 判定。
 
 桌面环境中可以打开交互式 viewer：
 
@@ -91,6 +116,7 @@ $env:ARMBENCH_MENAGERIE_ROOT = 'C:\models\mujoco_menagerie'
 | --- | --- | --- | --- |
 | Panda 规划、控制和 viewer | 不需要 | 不需要 | 不需要 |
 | Scripted 运行时和故障检查 | 不需要 | 不需要 | 不需要 |
+| 集成 supervisor 与两任务物理重跑 | 不需要 | 不需要 | 不需要 |
 | Artifact 验证和 dashboard | 不需要 | 不需要 | 不需要 |
 | `pi0.5` 在线推理 | 需要 | 通常需要 | 需要 |
 

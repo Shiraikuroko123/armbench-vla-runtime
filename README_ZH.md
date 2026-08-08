@@ -38,7 +38,8 @@ Physical Intelligence pi0.5 VLA / OpenPI
             +--> LIBERO 闭环评测
             |
             +--> Panda 执行基座
-                 (规划、跟踪、guard、故障注入)
+                 (规划、OSQP 投影、连续碰撞、停止不变量、
+                  力矩执行和故障注入)
 ```
 
 Panda 与 LIBERO 的动作契约不同，实验结果不会混合统计。完整设计与边界见[架构与主张边界](docs/PROJECT_ARCHITECTURE_ZH.md)。
@@ -51,6 +52,8 @@ Panda 与 LIBERO 的动作契约不同，实验结果不会混合统计。完整
 | 跨任务集验证 | Object、Goal、LIBERO-10：300 rollouts / 150 pairs，83/150 到 141/150 | 将同一模型族和仿真套件内的确定性延迟证据扩展至三个任务集 |
 | RTC-style continuation | 300 rollouts / 100 matched triplets：baseline 96/100，hard projection 97/100，RTC guidance 97/100 | 没有任务成功率优势；motion seam 仅为探索性过程指标 |
 | 终端制动不变量修复 | 270 个成对离线案例：已注册约束从 264/270 提升到 270/270，6 个旧冲突全部解决，0 个回归 | 将冻结的 `pi0.5` 响应送入 Panda 适配器；不主张任务成功率或硬实时 |
+| Panda 集成 supervisor | 27/27 个注册故障结果可重算：12 个接受、6 个已验证制动、7 个 hold、2 个不可恢复停止；拒绝动作块均未泄漏部分前缀 | 将 OSQP 运动学投影、连续碰撞证书和停止不变量组合为原子 CPU 参考链；使用 scripted 动作，不是硬实时 |
+| 带保障的 Panda 任务执行 | nominal 与 0.5 kg/80 ms 条件下 2/2 到达 MuJoCo 目标；351/351 条运动边和停止边界通过证书，注册的接触/限位/力矩饱和均为 0 | 先离线保障，再执行力矩控制关节路点任务；不是学习式 VLA、物体操作或真机结果 |
 | 异步 Panda 闭环 | 27 个带 clearance-backed swept 静态障碍检查的 CPU 墙钟案例：制动不变量模式 9/9 通过物理谓词，突停违规 0，修复预算超限 0；legacy 为 311 次突停，unguarded 为 289 次 | 使用 scripted 非学习策略验证双相机、策略 worker、调度、修复和力矩控制集成；不是学习策略效果或实体安全认证 |
 | Clearance-backed swept 审计 | 三个场景 72 条固定 seed 边：相对更密采样 oracle 的 false-safe 为 0 | 静态障碍保守审计；自碰撞和连续实体安全仍不在范围内 |
 | 连续自碰撞审计 | Panda 关节空间 72 条固定 seed 边：70 条端点均有效，相对 0.002 rad 采样 oracle 的 false-safe 为 0，保守拒绝 21 条 | 针对线性插值的 fail-closed 几何审计；不是实体安全或硬实时证书 |
@@ -66,8 +69,8 @@ Panda 与 LIBERO 的动作契约不同，实验结果不会混合统计。完整
 - 没有训练或微调 `pi0.5`。
 - 官方 checkpoint 结果仅覆盖 LIBERO 仿真。
 - 时序实验使用 blocking inference 加 simulator catch-up，不是操作系统级硬实时控制。
-- Panda guard 只覆盖已注册的 MuJoCo 几何审计，不能替代实体碰撞安全认证，也不能证明
-  `pi0.5` 已控制 Panda。
+- Panda 集成保障是同步 CPU 参考路径；任务动作来自 scripted RRT-Connect，完整
+  horizon 检查耗时为秒级，不能替代实体碰撞安全认证，也不能证明 `pi0.5` 已控制 Panda。
 - 没有集成 Isaac Lab、ROS2、真实 Franka Panda 或安全 PLC。
 - LeRobot-style bridge 仍是 CPU-only 的内存接口契约；单独的官方
   `LeRobotDataset` round-trip 只验证数据集读写，不等于策略、驱动或真机集成。
@@ -97,6 +100,22 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup_local.ps1
 只有需要轻量 OpenPI 客户端时才使用 PowerShell 的 `-WithVla` 或 Linux
 的 `--with-vla`；该选项不会下载 `pi0.5` checkpoint。手动安装、模型路径
 覆盖和无桌面环境说明见[本地安装与支持](docs/LOCAL_SETUP_ZH.md)。
+
+当前最完整的本地 CPU 验收会重算 27 案例集成故障矩阵，并重新运行两条 Panda
+任务的规划、动作保障和 MuJoCo 物理。脚本会自行解析仓库和 Python 路径。在仓库
+根目录执行；若从其他目录启动，则向 `-File` 传入脚本的绝对路径：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File `
+  '.\scripts\accept_integrated_panda.ps1'
+
+powershell -NoProfile -ExecutionPolicy Bypass -File `
+  '.\scripts\accept_integrated_panda.ps1' `
+  -Visualize -Case narrow_gate_payload_delay_goal
+```
+
+第一条是数字验收，第二条还会播放保存的 MuJoCo 实测轨迹。方法、结果、固定夹爪
+allowed-collision 规则和耗时边界见[Panda 集成动作保障链](docs/INTEGRATED_PANDA_ASSURANCE_ZH.md)。
 
 Windows 上可以先执行一个有边界的本地验收：
 

@@ -1,6 +1,6 @@
 # ArmBench Architecture and Claim Boundaries
 
-Status: Current. Updated: 2026-08-07.
+Status: Current. Updated: 2026-08-08.
 
 ## Purpose
 
@@ -44,8 +44,10 @@ The local MuJoCo Panda path provides the classical robotics base:
 This path validates runtime contracts and controlled failure behavior on a
 seven-DoF arm model. The continuous checker is conservative for the compiled
 MuJoCo geometry and declared joint-linear interpolation. Preserved audits cover
-both static obstacles and a registered self-collision matrix; physical model
-accuracy and task-level integration remain open questions.
+both static obstacles and a registered self-collision matrix. Task-level
+integration is now validated offline in two torque-controlled MuJoCo waypoint
+cases; online learned-policy integration and physical-model accuracy remain
+open questions.
 
 ### 2. `pi0.5` VLA temporal-evaluation path
 
@@ -98,6 +100,8 @@ completed `pi0.5` studies.
 | Cross-suite validation | Object, Goal, and LIBERO-10, 300 rollouts / 150 pairs: 83/150 to 141/150 | Same model family and simulator suite; deterministic-delay evidence |
 | RTC-style sampler extension | 300 matched triplets: 96/100 baseline, 97/100 hard projection, 97/100 RTC | No task-success superiority; seam metrics are exploratory |
 | Panda runtime | Protocol/guard/fault traces in local MuJoCo | Not official `pi0.5` policy efficacy or physical safety proof |
+| Integrated Panda supervisor | 27/27 fault outcomes reproduced: 12 accepted, 6 verified brakes, 7 holds, 2 unrecoverable stops; no rejected chunk exposed a partial prefix | Synchronous CPU reference chain; scripted action source and offline timing, not hard real time |
+| Assured Panda task execution | 2/2 MuJoCo targets reached; 351/351 motion edges and braking boundaries certified; zero registered contact, joint-limit, or torque-saturation events | Offline assurance followed by torque-controlled joint-waypoint execution; no learned VLA, grasp, manipulation, or hardware claim |
 | Threaded runtime harness | Separate worker/control thread IDs, continued control ticks, latest-only replacement, and deadline tests | Scripted component evidence; no LIBERO or Panda task-success claim |
 | Asynchronous Panda closed loop | 27 cases with clearance-backed swept obstacle checks: braking invariant 9/9 physically safe and 0 abrupt stops; legacy 9/9 and 311 abrupt stops; unguarded 8/9 and 289 | Scripted single-run engineering matrix; not learned-policy efficacy, a statistical superiority test, hard real time, or physical safety certification |
 | Cartesian action adapter | Scripted `H x 7` LIBERO-style chunk mapped through the Panda Jacobian into the existing `H x 8` guard contract | Component smoke only; no official checkpoint, task-success, or controller-equivalence claim |
@@ -184,6 +188,20 @@ registered payload and damping changes. The preserved 45-case matrix is model
 feasibility evidence; it is not a hard-real-time, emergency-stop, or physical
 robot certificate. See [Panda dynamics braking audit](DYNAMICS_BRAKING_AUDIT.md).
 
+The integrated Panda supervisor now composes those primitives into one atomic
+decision: deadline/state checks, OSQP kinematic projection, post-projection
+continuous static/self-collision certificates, and a dynamics-feasible stop
+certificate at every action boundary. The registered 27-case matrix and the
+two-case MuJoCo task artifact are independently rerunnable from their manifests.
+The task checker excludes only the fixed-open `left_finger`/`right_finger` body
+pair (36 compiled geometry-pair combinations); all other registered self pairs
+remain enabled. See [integrated Panda action assurance](INTEGRATED_PANDA_ASSURANCE.md).
+
+This supervisor is intentionally a synchronous CPU reference path. Full-horizon
+checks took 5.27 s and 10.20 s in the preserved task cases, so the result closes
+the local planning-assurance-execution wiring but does not establish online
+deadline feasibility.
+
 This is still not a verified live control chain from official `pi0.5`
 inference to Panda execution. Scale, coordinate-frame, clipping, and gripper
 conventions are now attested against LIBERO commit `f78abd68` and robosuite
@@ -211,13 +229,17 @@ to connect the implemented component adapter to a complete evaluator and test:
    OpenVLA-OFT captures and run a preregistered cross-model closed-loop matrix;
 2. wire the official LeRobot dataset boundary and Panda watchdog to a concrete
    driver only after action semantics and reset behavior are specified;
-3. connect the continuous self-collision audit and dynamics-aware braking result
-   to task-level online execution, and quantify conservative rejection cost; and
-4. add calibrated hardware timing, emergency-stop integration, and repeated
+3. connect the integrated supervisor to asynchronous execution with a declared
+   deadline, reduce or parallelize certificate latency, and quantify
+   conservative rejection cost; and
+4. replace the scripted task source with attested learned-policy outputs, then
+   add calibrated hardware timing, emergency-stop integration, and repeated
    physical fault-injection evidence.
 
 Until then, the accurate public description is: a seven-DoF constrained
 execution base plus a `pi0.5` VLA runtime-evaluation path, with provider-neutral
 action semantics, an official LeRobot dataset round-trip, dynamics-aware
-MuJoCo braking audits, and shared auditable runtime infrastructure. Learned
-second-model and physical-robot evidence remain future work.
+MuJoCo braking audits, an independently rerunnable integrated Panda assurance
+chain, and shared auditable runtime infrastructure. Learned-policy task
+integration, online deadline evidence, and physical-robot evidence remain
+future work.

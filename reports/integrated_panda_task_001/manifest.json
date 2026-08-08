@@ -1,0 +1,36 @@
+{
+  "files": [
+    {
+      "path": "cases.json",
+      "sha256": "5973d23982458e292c46ae928480eaa87090a50fd0d12cea808c40da2d271bee",
+      "size_bytes": 1006
+    },
+    {
+      "path": "per_case.csv",
+      "sha256": "a2ed6bd9cc922c86f9134573bb19951e7278fb1cf0d1d926f054b7cbb40f97c9",
+      "size_bytes": 1369
+    },
+    {
+      "path": "summary.json",
+      "sha256": "ac1897794cf35765d070c5e6423cf4bbfaa279655fd1588f415f7cde700db89c",
+      "size_bytes": 6275
+    },
+    {
+      "path": "summary.md",
+      "sha256": "ee1683d7ef7486074bf125f14859a2010d12188c4e6f4003d184e3f645d3c98d",
+      "size_bytes": 543
+    },
+    {
+      "path": "traces/narrow_gate_payload_delay_goal.npz",
+      "sha256": "6455c6155c4b18dc220a3110711b261221e08a18e6dafde463194e2dc6d88fed",
+      "size_bytes": 213719
+    },
+    {
+      "path": "traces/single_block_goal.npz",
+      "sha256": "cca14677ef11d6ddeae8f4339a075ee3d7af01551dc2db6cd01043b46ceb97e8",
+      "size_bytes": 115426
+    }
+  ],
+  "inventory_sha256": "ed5ebfb0f3b89afa888deeb6aaf58b7a992219d7f8e6532ccdbb8115b13cedb6",
+  "schema_version": "armbench.integrated_panda_task.v1.manifest"
+}
