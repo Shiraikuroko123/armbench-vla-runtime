@@ -329,6 +329,99 @@ class ActuatorCommandWatchdog:
             action_semantics_sha256=action_semantics_sha256,
         )
 
+    def _validate_input_fields(
+        self,
+        *,
+        checked_action: FloatArray | None,
+        command_id: int | None,
+        observation_id: int | None,
+        captured: float | None,
+        issued: float | None,
+        evaluated: float | None,
+        hold_gripper: float | None,
+        action_semantics_id: object,
+        action_semantics_sha256: object,
+    ) -> str | None:
+        """Validate values that do not depend on watchdog history."""
+
+        if checked_action is None:
+            return "invalid_action"
+        if command_id is None:
+            return "invalid_command_sequence"
+        if observation_id is None:
+            return "invalid_observation_sequence"
+        if captured is None or issued is None or evaluated is None:
+            return "invalid_timestamp"
+        if (
+            action_semantics_id != self.config.action_semantics_id
+            or action_semantics_sha256 != self.config.action_semantics_sha256
+        ):
+            return "action_semantics_mismatch"
+        if hold_gripper is None or not 0.0 <= hold_gripper <= 1.0:
+            return "invalid_hold_gripper"
+        if not captured <= issued <= evaluated:
+            return "timestamp_order_violation"
+        return None
+
+    def _validate_monotonicity(
+        self,
+        *,
+        command_id: int,
+        observation_id: int,
+        captured: float,
+        issued: float,
+        evaluated: float,
+    ) -> str | None:
+        """Validate values that must increase across accepted commands."""
+
+        checks = (
+            (
+                self._last_evaluated_at_s is not None
+                and evaluated < self._last_evaluated_at_s,
+                "evaluation_time_regression",
+            ),
+            (
+                self._last_command_sequence_id is not None
+                and command_id <= self._last_command_sequence_id,
+                "command_sequence_not_increasing",
+            ),
+            (
+                self._last_observation_sequence_id is not None
+                and observation_id < self._last_observation_sequence_id,
+                "observation_sequence_regression",
+            ),
+            (
+                self._last_captured_at_s is not None
+                and captured < self._last_captured_at_s,
+                "capture_time_regression",
+            ),
+            (
+                self._last_issued_at_s is not None
+                and issued < self._last_issued_at_s,
+                "issue_time_regression",
+            ),
+            (
+                self._accept_not_before_s is not None
+                and issued < self._accept_not_before_s,
+                "command_predates_reset",
+            ),
+        )
+        for failed, reason in checks:
+            if failed:
+                return reason
+        return None
+
+    def _validate_deadlines(
+        self, *, captured: float, issued: float, evaluated: float
+    ) -> str | None:
+        """Validate observation and action freshness against configured limits."""
+
+        if evaluated - captured > self.config.max_observation_age_s:
+            return "observation_deadline_exceeded"
+        if evaluated - issued > self.config.max_action_age_s:
+            return "action_deadline_exceeded"
+        return None
+
     def evaluate(
         self,
         action: ArrayLike,
@@ -395,55 +488,35 @@ class ActuatorCommandWatchdog:
                 action_semantics_sha256=str(action_semantics_sha256),
             )
 
-        reason: str | None = None
-        if checked_action is None:
-            reason = "invalid_action"
-        elif command_id is None:
-            reason = "invalid_command_sequence"
-        elif observation_id is None:
-            reason = "invalid_observation_sequence"
-        elif captured is None or issued is None or evaluated is None:
-            reason = "invalid_timestamp"
-        elif (
-            action_semantics_id != self.config.action_semantics_id
-            or action_semantics_sha256 != self.config.action_semantics_sha256
-        ):
-            reason = "action_semantics_mismatch"
-        elif hold_gripper is None or not 0.0 <= hold_gripper <= 1.0:
-            reason = "invalid_hold_gripper"
-        elif not captured <= issued <= evaluated:
-            reason = "timestamp_order_violation"
-        elif (
-            self._last_evaluated_at_s is not None
-            and evaluated < self._last_evaluated_at_s
-        ):
-            reason = "evaluation_time_regression"
-        elif (
-            self._last_command_sequence_id is not None
-            and command_id <= self._last_command_sequence_id
-        ):
-            reason = "command_sequence_not_increasing"
-        elif (
-            self._last_observation_sequence_id is not None
-            and observation_id < self._last_observation_sequence_id
-        ):
-            reason = "observation_sequence_regression"
-        elif (
-            self._last_captured_at_s is not None
-            and captured < self._last_captured_at_s
-        ):
-            reason = "capture_time_regression"
-        elif (
-            self._last_issued_at_s is not None
-            and issued < self._last_issued_at_s
-        ):
-            reason = "issue_time_regression"
-        elif self._accept_not_before_s is not None and issued < self._accept_not_before_s:
-            reason = "command_predates_reset"
-        elif evaluated - captured > self.config.max_observation_age_s:
-            reason = "observation_deadline_exceeded"
-        elif evaluated - issued > self.config.max_action_age_s:
-            reason = "action_deadline_exceeded"
+        reason = self._validate_input_fields(
+            checked_action=checked_action,
+            command_id=command_id,
+            observation_id=observation_id,
+            captured=captured,
+            issued=issued,
+            evaluated=evaluated,
+            hold_gripper=hold_gripper,
+            action_semantics_id=action_semantics_id,
+            action_semantics_sha256=action_semantics_sha256,
+        )
+        if reason is None:
+            assert command_id is not None
+            assert observation_id is not None
+            assert captured is not None and issued is not None and evaluated is not None
+            reason = self._validate_monotonicity(
+                command_id=command_id,
+                observation_id=observation_id,
+                captured=captured,
+                issued=issued,
+                evaluated=evaluated,
+            )
+        if reason is None:
+            assert captured is not None and issued is not None and evaluated is not None
+            reason = self._validate_deadlines(
+                captured=captured,
+                issued=issued,
+                evaluated=evaluated,
+            )
         if reason is not None:
             return self._reject(reason, **decision_fields)
 
