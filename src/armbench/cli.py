@@ -22,6 +22,11 @@ from armbench.mujoco_sim.benchmark import (
 from armbench.mujoco_sim.continuous_collision import (
     run_continuous_collision_smoke,
 )
+from armbench.mujoco_sim.dynamics_braking import run_dynamics_braking_smoke
+from armbench.mujoco_sim.dynamics_braking_audit import (
+    run_dynamics_braking_audit,
+    validate_dynamics_braking_audit,
+)
 from armbench.mujoco_sim.swept_audit import (
     SweptAuditConfig,
     run_swept_collision_audit,
@@ -72,6 +77,10 @@ from armbench.vla.lerobot_episode import (
     replay_lerobot_episode,
     run_lerobot_episode_smoke,
     validate_lerobot_episode,
+)
+from armbench.vla.official_lerobot import (
+    run_official_lerobot_smoke,
+    validate_official_lerobot_episode,
 )
 from armbench.vla.probe_comparison import (
     execute_recorded_probe_comparison,
@@ -178,6 +187,20 @@ def build_parser() -> argparse.ArgumentParser:
         "mujoco-continuous-collision-smoke",
         help="run conservative continuous static/self-collision acceptance",
     )
+    subparsers.add_parser(
+        "mujoco-dynamics-braking-smoke",
+        help="run one inverse-dynamics Panda stopping check",
+    )
+    dynamics_audit = subparsers.add_parser(
+        "mujoco-dynamics-braking-audit",
+        help="run the registered payload, damping, and velocity stop matrix",
+    )
+    dynamics_audit.add_argument("--output-directory", type=Path, required=True)
+    dynamics_validate = subparsers.add_parser(
+        "mujoco-dynamics-braking-validate",
+        help="rerun and validate a preserved dynamics stopping matrix",
+    )
+    dynamics_validate.add_argument("directory", type=Path)
 
     async_panda = subparsers.add_parser(
         "vla-panda-async-run",
@@ -271,6 +294,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="offline-replay a validated LeRobot-style bridge episode",
     )
     lerobot_replay.add_argument("directory", type=Path)
+    official_lerobot_smoke = subparsers.add_parser(
+        "vla-lerobot-official-smoke",
+        help="round-trip one Panda episode through official LeRobotDataset",
+    )
+    official_lerobot_smoke.add_argument(
+        "--output-directory", type=Path, required=True
+    )
+    official_lerobot_validate = subparsers.add_parser(
+        "vla-lerobot-official-validate",
+        help="reload a preserved Panda episode with official LeRobotDataset",
+    )
+    official_lerobot_validate.add_argument("directory", type=Path)
 
     archive_replay = subparsers.add_parser(
         "vla-panda-archive-replay",
@@ -862,6 +897,20 @@ def main(arguments: list[str] | None = None) -> int:
         report = run_continuous_collision_smoke()
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0 if bool(report["passed"]) else 1
+    if args.command == "mujoco-dynamics-braking-smoke":
+        report = run_dynamics_braking_smoke()
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        return 0 if bool(report["validated"]) else 1
+    if args.command == "mujoco-dynamics-braking-audit":
+        output = run_dynamics_braking_audit(args.output_directory)
+        report = validate_dynamics_braking_audit(output)
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "mujoco-dynamics-braking-validate":
+        report = validate_dynamics_braking_audit(args.directory)
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        return 0
     if args.command == "vla-panda-async-run":
         if args.quick and (
             args.latencies_ms is not None
@@ -950,6 +999,16 @@ def main(arguments: list[str] | None = None) -> int:
         return 0
     if args.command == "vla-lerobot-replay":
         result = replay_lerobot_episode(args.directory)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0
+    if args.command == "vla-lerobot-official-smoke":
+        output = run_official_lerobot_smoke(args.output_directory)
+        result = validate_official_lerobot_episode(output)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-lerobot-official-validate":
+        result = validate_official_lerobot_episode(args.directory)
         print(json.dumps(result, indent=2, ensure_ascii=False))
         return 0
     if args.command == "vla-panda-archive-replay":

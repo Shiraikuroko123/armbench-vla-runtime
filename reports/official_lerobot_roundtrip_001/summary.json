@@ -1,0 +1,105 @@
+{
+  "claims": {
+    "hardware_driver_validated": false,
+    "learned_policy_checkpoint_executed": false,
+    "official_lerobot_dataset_loader_used": true,
+    "official_lerobot_package_used": true,
+    "official_lerobot_roundtrip_validated": true,
+    "panda_robot_connected": false,
+    "physical_robot_connected": false,
+    "so101_robot_connected": false
+  },
+  "dataset_directory": "dataset",
+  "embodiment_boundary": {
+    "dataset_robot_type": "panda_armbench_runtime",
+    "panda_joint_velocity_actions": true,
+    "panda_to_so101_conversion_performed": false,
+    "so101_joint_position_actions": false
+  },
+  "features": {
+    "action": {
+      "dtype": "float32",
+      "names": [
+        "panda_joint1_velocity_rad_s",
+        "panda_joint2_velocity_rad_s",
+        "panda_joint3_velocity_rad_s",
+        "panda_joint4_velocity_rad_s",
+        "panda_joint5_velocity_rad_s",
+        "panda_joint6_velocity_rad_s",
+        "panda_joint7_velocity_rad_s",
+        "gripper_position_normalized"
+      ],
+      "shape": [
+        8
+      ]
+    },
+    "observation.images.exterior": {
+      "dtype": "image",
+      "names": [
+        "height",
+        "width",
+        "channels"
+      ],
+      "shape": [
+        224,
+        224,
+        3
+      ]
+    },
+    "observation.images.wrist": {
+      "dtype": "image",
+      "names": [
+        "height",
+        "width",
+        "channels"
+      ],
+      "shape": [
+        224,
+        224,
+        3
+      ]
+    },
+    "observation.state": {
+      "dtype": "float32",
+      "names": [
+        "panda_joint1_position_rad",
+        "panda_joint2_position_rad",
+        "panda_joint3_position_rad",
+        "panda_joint4_position_rad",
+        "panda_joint5_position_rad",
+        "panda_joint6_position_rad",
+        "panda_joint7_position_rad",
+        "gripper_position_normalized"
+      ],
+      "shape": [
+        8
+      ]
+    }
+  },
+  "fps": 10,
+  "frames": 3,
+  "implementation_sha256": {
+    "armbench/vla/command_watchdog.py": "3cf328864246740452a38dc3d0f4aa4ac47c256c1a070f7605086dedd28e8fde",
+    "armbench/vla/lerobot_adapter.py": "8914d81997c359fa4237246f1d6b7ced244db9fe5029618058c64a0028418acf",
+    "armbench/vla/official_lerobot.py": "f058de5fe542e64e5e912680970b68c6f54a1f13ccf3156d8186df6e908ca48f"
+  },
+  "official_dataset_codebase_version": "v3.0",
+  "official_lerobot_version": "0.4.4",
+  "repo_id": "armbench/official-panda-roundtrip",
+  "robot_type": "panda_armbench_runtime",
+  "roundtrip_fields": {
+    "action": 3,
+    "images": 6,
+    "state": 3,
+    "task": 3,
+    "timestamp": 3
+  },
+  "runtime_action_contract": {
+    "action_dim": 8,
+    "action_kind": "seven_joint_velocity_plus_normalized_gripper_position",
+    "action_semantics_id": "armbench.panda.joint_velocity_gripper_position.v1",
+    "action_semantics_sha256": "f2133fdd533e6a50ebe18400b70a316b1c674dd0ddd5e788d13f5c39c5873ddd",
+    "embodiment": "franka_panda_7dof"
+  },
+  "schema_version": "armbench.official_lerobot_roundtrip.v1"
+}

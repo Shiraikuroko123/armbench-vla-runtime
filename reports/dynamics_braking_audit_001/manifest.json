@@ -1,0 +1,21 @@
+{
+  "files": [
+    {
+      "path": "per_case.csv",
+      "sha256": "c72ccf46f753e3d67874ab29f4d763c08b13a646c09694de76575c7dcc4123ab",
+      "size_bytes": 10158
+    },
+    {
+      "path": "summary.json",
+      "sha256": "5607745fd0f6a1ec0c07cc4197c98a9805d4976a9acbb67f4abbaa3f7c52f592",
+      "size_bytes": 3162
+    },
+    {
+      "path": "summary.md",
+      "sha256": "a5afdc9ca64ac2dccab07be15d3f34e50e764ac9513aeb5d4f30946481a7313c",
+      "size_bytes": 322
+    }
+  ],
+  "inventory_sha256": "5e88cd605f0cb2b862bdc2442c2a15bae50d6ca11e0723487a81ea1b4c9355b0",
+  "schema_version": "armbench.dynamics_braking_audit.v1.manifest"
+}

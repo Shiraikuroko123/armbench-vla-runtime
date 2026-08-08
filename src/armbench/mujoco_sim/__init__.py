@@ -7,6 +7,17 @@ from armbench.mujoco_sim.continuous_collision import (
     ContinuousMuJoCoCollisionChecker,
     run_continuous_collision_smoke,
 )
+from armbench.mujoco_sim.dynamics_braking import (
+    DynamicsBrakingConfig,
+    DynamicsBrakingResult,
+    generate_dynamics_validated_brake,
+    run_dynamics_braking_smoke,
+)
+from armbench.mujoco_sim.dynamics_braking_audit import (
+    DynamicsBrakingAuditConfig,
+    run_dynamics_braking_audit,
+    validate_dynamics_braking_audit,
+)
 from armbench.mujoco_sim.model import (
     MuJoCoPanda,
     default_panda_scene_path,
@@ -19,9 +30,16 @@ __all__ = [
     "ContinuousCollisionCertificate",
     "ContinuousCollisionConfig",
     "ContinuousMuJoCoCollisionChecker",
+    "DynamicsBrakingAuditConfig",
+    "DynamicsBrakingConfig",
+    "DynamicsBrakingResult",
     "MuJoCoPanda",
     "default_panda_scene_path",
+    "generate_dynamics_validated_brake",
     "mujoco_scenarios",
     "panda_scene_candidates",
     "run_continuous_collision_smoke",
+    "run_dynamics_braking_audit",
+    "run_dynamics_braking_smoke",
+    "validate_dynamics_braking_audit",
 ]

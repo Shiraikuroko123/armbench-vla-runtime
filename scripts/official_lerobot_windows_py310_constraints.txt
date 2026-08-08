@@ -1,0 +1,9 @@
+# ABI-sensitive versions exercised by the Windows/Python 3.10 round-trip.
+av==15.1.0
+datasets==4.8.5
+huggingface-hub==0.35.3
+numpy==2.2.6
+pyarrow==25.0.0
+rerun-sdk==0.26.2
+torch==2.10.0
+torchvision==0.25.0

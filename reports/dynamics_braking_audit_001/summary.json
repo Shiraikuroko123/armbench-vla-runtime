@@ -1,0 +1,90 @@
+{
+  "by_payload_kg": {
+    "0": {
+      "cases": 15,
+      "fail_closed_rejections": 0,
+      "maximum_stop_time_s": 0.2,
+      "maximum_stopping_distance_l2_rad": 0.1593737745050924,
+      "maximum_torque_ratio": 0.32458170023074157,
+      "maximum_validation_latency_ms": 88.11279997462407,
+      "p95_validation_latency_ms": 86.46114998846315,
+      "rejection_rate": 0.0,
+      "validated_stops": 15
+    },
+    "0.5": {
+      "cases": 15,
+      "fail_closed_rejections": 0,
+      "maximum_stop_time_s": 0.2,
+      "maximum_stopping_distance_l2_rad": 0.1593737745050924,
+      "maximum_torque_ratio": 0.3561053262520003,
+      "maximum_validation_latency_ms": 212.3338999808766,
+      "p95_validation_latency_ms": 206.03529999789316,
+      "rejection_rate": 0.0,
+      "validated_stops": 15
+    },
+    "1": {
+      "cases": 15,
+      "fail_closed_rejections": 0,
+      "maximum_stop_time_s": 0.2,
+      "maximum_stopping_distance_l2_rad": 0.1593737745050924,
+      "maximum_torque_ratio": 0.4245429389112456,
+      "maximum_validation_latency_ms": 267.9587999882642,
+      "p95_validation_latency_ms": 256.13103999348823,
+      "rejection_rate": 0.0,
+      "validated_stops": 15
+    }
+  },
+  "claim_boundary": [
+    "The candidate stop is sampled at the registered period.",
+    "Inverse dynamics uses the compiled MuJoCo Panda and actuator limits.",
+    "Collision edges use conservative MuJoCo pair-distance bounds.",
+    "No closed-loop tracking, hard-real-time, or hardware claim is made."
+  ],
+  "configuration": {
+    "acceleration_limit_rad_s2": 5.0,
+    "actuator_force_limit_scale": 0.8,
+    "joint_damping_scales": [
+      0.5,
+      1.0,
+      2.0
+    ],
+    "max_stop_time_s": 1.0,
+    "payload_masses_kg": [
+      0.0,
+      0.5,
+      1.0
+    ],
+    "sample_dt_s": 0.01,
+    "velocity_profiles": [
+      "stationary",
+      "low_forward",
+      "low_reverse",
+      "high_forward",
+      "high_reverse"
+    ]
+  },
+  "environment": {
+    "menagerie_commit": "71f066ad0be9cd271f7ed58c030243ef157af9f4",
+    "mujoco_version": "3.11.0",
+    "numpy_version": "1.26.4"
+  },
+  "implementation_sha256": {
+    "armbench/mujoco_sim/continuous_collision.py": "4bdf6b26572b9754e40a870ec7ce5b72dfbeff341f033cf084f7638b32d224e7",
+    "armbench/mujoco_sim/dynamics_braking.py": "fb9894ec618a1cc9dd6f85af7babbf29ef55d45733c56826208330cbc8e63c8a",
+    "armbench/mujoco_sim/dynamics_braking_audit.py": "22fbbf83546b9ac4fa06f25f5a640006c21813d8f40ffc3d0b1f4264046fddd9"
+  },
+  "overall": {
+    "cases": 45,
+    "fail_closed_rejections": 0,
+    "maximum_stop_time_s": 0.2,
+    "maximum_stopping_distance_l2_rad": 0.1593737745050924,
+    "maximum_torque_ratio": 0.4245429389112456,
+    "maximum_validation_latency_ms": 267.9587999882642,
+    "p95_validation_latency_ms": 229.98685998609287,
+    "rejection_rate": 0.0,
+    "validated_stops": 45
+  },
+  "panda_scene_sha256": "60658e01f59909eadaffbb4eb98a98715f67f67e9ae49f42ac114567fddaf230",
+  "schema_version": "armbench.dynamics_braking_audit.v1",
+  "scope": "sampled_inverse_dynamics_stop_with_continuous_collision_edges"
+}

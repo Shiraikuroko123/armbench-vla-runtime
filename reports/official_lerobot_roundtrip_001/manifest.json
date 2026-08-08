@@ -1,0 +1,41 @@
+{
+  "files": [
+    {
+      "path": "dataset/data/chunk-000/file-000.parquet",
+      "sha256": "38873813bc7b4acc161d897df7288031a7f9662e8451e8686ccd0d3a96299fc5",
+      "size_bytes": 16395
+    },
+    {
+      "path": "dataset/meta/episodes/chunk-000/file-000.parquet",
+      "sha256": "d8fafc0d131a8c5c6e6a40f1fa447352c967eb6558901f4460bdc94eeab91eab",
+      "size_bytes": 49669
+    },
+    {
+      "path": "dataset/meta/info.json",
+      "sha256": "35c51e3dd0d39a686b7aa4a185842e9b853fd02d427e327e7db4c2063f0331b5",
+      "size_bytes": 2921
+    },
+    {
+      "path": "dataset/meta/stats.json",
+      "sha256": "8e296edd873db98f9b3b4ba453acc8970d532bbf6e72ec650b0ab6d2c456b4b7",
+      "size_bytes": 14851
+    },
+    {
+      "path": "dataset/meta/tasks.parquet",
+      "sha256": "010bc34f2deaad7028ff1192543966aba2a10d006b4b4dbc88020971ff4db25f",
+      "size_bytes": 2407
+    },
+    {
+      "path": "expected.npz",
+      "sha256": "32f459ed2e4798ab6e39784c71fccbeafc8f528f60f6a2d4aae6c3c1eeabb547",
+      "size_bytes": 855863
+    },
+    {
+      "path": "summary.json",
+      "sha256": "4225be648693e1623d115a7ca4ac2acaf2d6299933ca6a6551838b863f4ba1b7",
+      "size_bytes": 3082
+    }
+  ],
+  "inventory_sha256": "73d96418a70464dbff188d465dc4a28796a5ddbe00d406640ba4f7db1a5ca72b",
+  "schema_version": "armbench.official_lerobot_roundtrip_manifest.v1"
+}

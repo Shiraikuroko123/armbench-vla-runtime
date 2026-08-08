@@ -1,0 +1,111 @@
+{
+    "codebase_version": "v3.0",
+    "robot_type": "panda_armbench_runtime",
+    "total_episodes": 1,
+    "total_frames": 3,
+    "total_tasks": 1,
+    "chunks_size": 1000,
+    "data_files_size_in_mb": 100,
+    "video_files_size_in_mb": 200,
+    "fps": 10,
+    "splits": {
+        "train": "0:1"
+    },
+    "data_path": "data/chunk-{chunk_index:03d}/file-{file_index:03d}.parquet",
+    "video_path": null,
+    "features": {
+        "observation.images.exterior": {
+            "dtype": "image",
+            "shape": [
+                224,
+                224,
+                3
+            ],
+            "names": [
+                "height",
+                "width",
+                "channels"
+            ]
+        },
+        "observation.images.wrist": {
+            "dtype": "image",
+            "shape": [
+                224,
+                224,
+                3
+            ],
+            "names": [
+                "height",
+                "width",
+                "channels"
+            ]
+        },
+        "observation.state": {
+            "dtype": "float32",
+            "shape": [
+                8
+            ],
+            "names": [
+                "panda_joint1_position_rad",
+                "panda_joint2_position_rad",
+                "panda_joint3_position_rad",
+                "panda_joint4_position_rad",
+                "panda_joint5_position_rad",
+                "panda_joint6_position_rad",
+                "panda_joint7_position_rad",
+                "gripper_position_normalized"
+            ]
+        },
+        "action": {
+            "dtype": "float32",
+            "shape": [
+                8
+            ],
+            "names": [
+                "panda_joint1_velocity_rad_s",
+                "panda_joint2_velocity_rad_s",
+                "panda_joint3_velocity_rad_s",
+                "panda_joint4_velocity_rad_s",
+                "panda_joint5_velocity_rad_s",
+                "panda_joint6_velocity_rad_s",
+                "panda_joint7_velocity_rad_s",
+                "gripper_position_normalized"
+            ]
+        },
+        "timestamp": {
+            "dtype": "float32",
+            "shape": [
+                1
+            ],
+            "names": null
+        },
+        "frame_index": {
+            "dtype": "int64",
+            "shape": [
+                1
+            ],
+            "names": null
+        },
+        "episode_index": {
+            "dtype": "int64",
+            "shape": [
+                1
+            ],
+            "names": null
+        },
+        "index": {
+            "dtype": "int64",
+            "shape": [
+                1
+            ],
+            "names": null
+        },
+        "task_index": {
+            "dtype": "int64",
+            "shape": [
+                1
+            ],
+            "names": null
+        }
+    }
+}
