@@ -1,132 +1,67 @@
 # ArmBench Website Product Brief
 
-## Primary Job
+## Primary job
 
-ArmBench is a small robotics engineering project page. It summarizes saved VLA
-experiments and Panda simulation checks without presenting the repository as a
-product, safety system, or complete research platform. The page helps a visitor
-answer three questions quickly:
+Show a reviewer or robotics hiring engineer exactly what the project currently
+does at the policy-to-controller boundary, how to reproduce it on CPU, and what
+the simulation evidence does not cover.
 
-1. What timing problem does ArmBench study?
-2. What experiments and software modules are included?
-3. What has not been implemented or tested?
+## One-sentence claim
 
-## Content Contract
+ArmBench is a CPU-recomputable reference supervisor that accepts a complete
+seven-DoF Panda action chunk only after timing, OSQP kinematic projection,
+continuous collision, and dynamics-feasible braking checks, then sends the
+accepted trajectory to MuJoCo torque execution.
 
-- **Identity:** ArmBench, a project for VLA action-chunk timing and Panda
-  simulation checks.
-- **Method:** skip the stale prefix of an action chunk; request a new action or
-  hold when the remaining horizon is invalid.
-- **Test paths:** the official Physical Intelligence π0.5 checkpoint in LIBERO
-  simulation, plus a separate seven-DoF Panda path in MuJoCo.
-- **Shown materials:** Panda rollout footage, a matched π0.5-LIBERO example,
-  paired statistics, and saved result files.
-- **Repository files:** source, result-file index, statistical scripts,
-  debugging guide, check commands, license, and third-party notices.
-- **Status:** simulation-only, no training or fine-tuning; official LeRobot
-  dataset round-trip and MuJoCo dynamics audit added 2026-08-08.
+## Information architecture
+
+1. Full-bleed Panda simulation hero with explicit `SIMULATION` and
+   `SCRIPTED RRT-CONNECT` boundary labels.
+2. Artifact bar linking source, asynchronous CPU report, fault report, and task
+   report.
+3. Current evidence strip and three artifact ledgers.
+4. Assurance flow and atomic decision table.
+5. Registered 27-case fault matrix with outcome distribution.
+6. Two assured MuJoCo tasks, physical predicates, gripper collision boundary,
+   and offline latency disclosure.
+7. Separate π0.5-LIBERO evidence with synchronized authentic comparison clips.
+8. Local CPU acceptance commands and a four-step acceptance path.
+9. Verified 17-case asynchronous CPU boundary disclosure.
+10. Proven / not-claimed scope block and architecture link.
 
 ## Audience
 
-- Embodied-AI and robotics hiring teams reviewing a student project.
-- VLA and robot-learning engineers checking experiment settings and statistics.
-- Developers deciding whether they can run or extend the repository.
-- Technical visitors who need the central timing issue without reading a paper.
+- Embodied-AI and robotics hiring teams assessing implementation depth.
+- Researchers checking whether a result is recomputable and correctly scoped.
+- Engineers who want to run the saved reports without a GPU or cloud host.
 
-The public page contains no resume, phone number, private email address, cloud
-credential, raw home path, or personally identifying data beyond the public
-GitHub account that owns the repository.
+## Results contract
 
-## Results Order
-
-The first viewport shows the project name, a plain description, a MuJoCo Panda
-rollout, its simulation conditions, and links to the results and repository.
-The file links remain visible as the next-scroll cue.
-
-The page then presents three result groups:
-
-| Study | Scope | Reported result |
+| Artifact | Exact result | Boundary |
 | --- | --- | --- |
-| Measured-age primary | Spatial, 120 matched pairs | 88/120 to 116/120; +23.33 pp |
-| Cross-suite extension | Object, Goal, LIBERO-10; 150 pairs | 83/150 to 141/150 |
-| Corrected-v3 RTC extension | 100 matched triplets | 96/97/97; Holm p = 1.0 |
+| `cpu_runtime_completion_001` | 17/17 expected outcomes; 6 complete plans, 10 holds, 1 unrecoverable stop; zero partial prefixes; assurance-worker P95 438 ms | scripted/frozen/contract fixtures; best-effort Python threads; no learned checkpoint |
+| `integrated_panda_fault_matrix_001` | 27/27 expected outcomes; 12 accepted, 6 verified brakes, 7 holds, 2 unrecoverable stops; 124 edges | scripted inputs; synchronous offline CPU |
+| `integrated_panda_task_001` | 2/2 target reaches; 351/351 motion edges and braking boundaries; zero registered contacts, self contacts, limit violations, or torque saturation | MuJoCo torque execution; joint-waypoint task |
+| π0.5 measured-age run | 88/120 baseline versus 116/120 aligned; +23.33 pp; exact McNemar p = 1.94e-6 | independent LIBERO experiment; no Panda adapter |
 
-The RTC row is intentionally a null result. It is not presented as another
-layer of support for the measured-age result.
+The task artifact reports 5.27 s and 10.20 s full-horizon offline supervision. The
+fixed-open `left_finger` / `right_finger` body pair is the only explicit allowed
+collision boundary and expands to 36 geom pairs. Neither fact is presented as a
+hard-real-time or physical safety guarantee.
 
-## Page Structure
+## Limitations shown on-page
 
-1. Full-bleed Panda simulation hero with explicit test conditions.
-2. Code, result files, statistics, and local-run file dock.
-3. Tabbed measured-age, cross-suite, and RTC results.
-4. Synchronized matched-video player with selection disclosure.
-5. Interactive observation-age timeline using the frozen 50 ms rule.
-6. Two independent testbeds and their unclosed integration gap.
-7. Implemented modules: provider adaptation, LeRobot-style watchdog replay,
-   official LeRobotDataset round-trip, constrained projection, trajectory
-   repair, asynchronous Panda control, continuous collision edges, dynamics
-   braking audit, continuous self-collision audit, and result-file checks.
-8. Scripted non-learned fault tests with links to saved files.
-9. Checked scope and unfinished work.
-10. GPU-free commands for checking saved measured-age and RTC results.
+- Panda task actions are scripted RRT-Connect references. The asynchronous CPU
+  matrix uses scripted, frozen, and provider-compatible fixtures, not learned
+  VLA outputs.
+- There is no real robot, grasping success, ROS2 deployment, or hard-real-time
+  scheduling claim.
+- π0.5-LIBERO and Panda-MuJoCo evidence remain separate tracks.
+- The asynchronous CPU artifact validates a provider-to-supervisor software
+  boundary; it is not a closed-loop task-success or deadline-guarantee result.
 
-## Reported Results
+## Deployment
 
-- Measured age: 120 matched pairs, 88/120 baseline and 116/120 aligned,
-  +23.33 percentage points, exact two-sided McNemar p = 1.94e-6, and pair
-  bootstrap 95% interval [+15.00, +31.67] pp.
-- Cross-suite: 300 rollouts / 150 matched pairs, 83/150 baseline and 141/150
-  aligned. The pooled row is descriptive; inference remains suite-level.
-- Corrected-v3 RTC: 300 rollouts / 100 matched triplets with 96/100, 97/100,
-  and 97/100 successes. Holm-adjusted p = 1.0; superiority is unsupported.
-- Panda: local planning, time parameterization, torque-limited joint PD,
-  action validation, collision sampling, and bounded scripted fault responses.
-- Provider-neutral action contract: a synthetic OpenVLA-OFT-named fixture maps
-  `6x7` to `6x8` and rejects 5/5 semantic mismatches; no OpenVLA-OFT checkpoint
-  was executed.
-- LeRobot-style boundary: a five-frame in-memory replay executes three valid
-  commands, holds a stale observation, preserves a fault latch, and recovers
-  only after explicit reset.
-- Official LeRobotDataset: an isolated `lerobot==0.4.4` / v3.0 loader reloads
-  a three-frame Panda Hx8 episode and matches images, state, action, task, and
-  timestamps. This is dataset serialization evidence, not a policy or driver.
-- MuJoCo dynamics braking: 45 registered payload, damping, and velocity cases
-  pass sampled inverse-dynamics effort and continuous-edge checks. This is
-  model feasibility evidence, not hard-real-time or hardware safety.
-- Braking repair and swept audit: 270 paired offline cases satisfy all
-  registered constraints after repair, while 72 seeded static-obstacle edges
-  produce zero false-safe decisions against a denser sampled oracle.
-- Self-collision audit: 72 seeded Panda edges include 70 endpoint-safe cases,
-  zero false-safe decisions, and 21 conservative rejections against a 0.002
-  rad sampled oracle.
-- Asynchronous Panda loop: 27 wall-clock CPU cases connect dual-camera capture,
-  a blocking scripted policy worker, temporal dispatch, trajectory repair, and
-  torque control. Braking-invariant mode records 9/9 physical predicates and
-  zero abrupt-stop violations, but reaches the target in only 1/9 cases.
-
-## Limits
-
-- No π0.5 training or fine-tuning.
-- No real robot, hard-real-time, or collision-safety certification.
-- Blocking inference with post-response catch-up simulation, not concurrent
-  inference and control.
-- No verified π0.5-to-Panda action adapter or end-to-end deployment.
-- Scripted fault cards do not run π0.5 and do not establish VLA safety.
-- No cross-checkpoint generalization, Isaac Lab, or ROS2 claim.
-- LIBERO and Panda outcomes remain separate evidence domains.
-- The provider, watchdog, projection, dynamics, and result-file modules are
-  software/model checks only; they are not hardware drivers or certified
-  safety-controller tests.
-
-## Delivery
-
-The site is dependency-free HTML, CSS, and JavaScript deployed with GitHub
-Pages. It is bilingual, keyboard accessible, responsive from 320 px upward,
-and usable with reduced motion or data saving enabled. No analytics, remote
-fonts, generated robot imagery, or third-party runtime assets are loaded.
-The deployment workflow checks JavaScript syntax and validates the HTML before
-publishing.
-
-The structure was informed by OpenVLA, Open X-Embodiment / RT-X, Diffusion
-Policy, Mobile ALOHA, Octo, 3D Diffusion Policy, and Physical Intelligence's
-π0.5 page. No template code or page media was copied.
+The site is static and dependency-free for GitHub Pages. All paths are relative
+to `site/`, metadata points to the public repository, and the page works with a
+local static server as well as the repository Pages path.
