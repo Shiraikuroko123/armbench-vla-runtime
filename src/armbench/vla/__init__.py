@@ -41,6 +41,11 @@ from armbench.vla.integrated_panda_guard import (
     IntegratedPandaSupervisor,
     run_integrated_panda_guard_smoke,
 )
+from armbench.vla.integrated_panda_matrix import (
+    IntegratedPandaMatrixConfig,
+    run_integrated_panda_fault_matrix,
+    validate_integrated_panda_fault_matrix,
+)
 from armbench.vla.online import (
     OnlineEpisodeResult,
     OnlineExecutionConfig,
@@ -171,6 +176,7 @@ __all__ = [
     "GuardResult",
     "IntegratedPandaDecision",
     "IntegratedPandaGuardConfig",
+    "IntegratedPandaMatrixConfig",
     "IntegratedPandaSupervisor",
     "DispatchUpdate",
     "LOOPBACK_FAULT_MODES",
@@ -251,11 +257,13 @@ __all__ = [
     "run_qp_projection_smoke",
     "run_cartesian_adapter_smoke",
     "run_integrated_panda_guard_smoke",
+    "run_integrated_panda_fault_matrix",
     "run_lerobot_episode_smoke",
     "run_official_lerobot_smoke",
     "load_recorded_openpi_request",
     "validate_online_artifact",
     "validate_frozen_provider_bundle",
+    "validate_integrated_panda_fault_matrix",
     "validate_lerobot_episode",
     "validate_official_lerobot_episode",
     "validate_provider_contract_audit",

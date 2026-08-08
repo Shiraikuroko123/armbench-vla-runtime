@@ -64,6 +64,10 @@ from armbench.vla.provider_contract import (
 )
 from armbench.vla.qp_projection import run_qp_projection_smoke
 from armbench.vla.integrated_panda_guard import run_integrated_panda_guard_smoke
+from armbench.vla.integrated_panda_matrix import (
+    run_integrated_panda_fault_matrix,
+    validate_integrated_panda_fault_matrix,
+)
 from armbench.vla.benchmark import (
     execute_openpi_probe,
     execute_vla_guard_benchmark,
@@ -193,6 +197,16 @@ def build_parser() -> argparse.ArgumentParser:
         "vla-integrated-guard-smoke",
         help="run QP, continuous collision, and dynamics-stop assurance",
     )
+    integrated_matrix = subparsers.add_parser(
+        "vla-integrated-fault-matrix",
+        help="run the registered integrated Panda CPU fault matrix",
+    )
+    integrated_matrix.add_argument("--output-directory", type=Path, required=True)
+    integrated_validate = subparsers.add_parser(
+        "vla-integrated-fault-validate",
+        help="rerun and validate an integrated Panda fault matrix",
+    )
+    integrated_validate.add_argument("directory", type=Path)
     subparsers.add_parser(
         "mujoco-continuous-collision-smoke",
         help="run conservative continuous static/self-collision acceptance",
@@ -950,6 +964,16 @@ def main(arguments: list[str] | None = None) -> int:
         report = run_integrated_panda_guard_smoke()
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0 if bool(report["passed"]) else 1
+    if args.command == "vla-integrated-fault-matrix":
+        output = run_integrated_panda_fault_matrix(args.output_directory)
+        report = validate_integrated_panda_fault_matrix(output)
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-integrated-fault-validate":
+        report = validate_integrated_panda_fault_matrix(args.directory)
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        return 0
     if args.command == "mujoco-continuous-collision-smoke":
         report = run_continuous_collision_smoke()
         print(json.dumps(report, indent=2, ensure_ascii=False))

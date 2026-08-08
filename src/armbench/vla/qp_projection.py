@@ -313,7 +313,7 @@ class QPActionProjector:
                 eps_abs=self.config.eps_abs,
                 eps_rel=self.config.eps_rel,
                 max_iter=self.config.max_iterations,
-                polishing=True,
+                polishing=False,
                 warm_starting=False,
                 time_limit=self.config.step_budget_ms / 1000.0,
             )
