@@ -72,6 +72,10 @@ from armbench.vla.integrated_panda_task import (
     run_integrated_panda_tasks,
     validate_integrated_panda_tasks,
 )
+from armbench.vla.cpu_runtime_completion import (
+    run_cpu_runtime_completion,
+    validate_cpu_runtime_completion,
+)
 from armbench.vla.benchmark import (
     execute_openpi_probe,
     execute_vla_guard_benchmark,
@@ -221,6 +225,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="rerun and validate assured Panda task evidence",
     )
     integrated_task_validate.add_argument("directory", type=Path)
+    cpu_runtime = subparsers.add_parser(
+        "vla-cpu-runtime-run",
+        help="run the provider-neutral asynchronous Panda CPU completion matrix",
+    )
+    cpu_runtime.add_argument("--output-directory", type=Path, required=True)
+    cpu_runtime_validate = subparsers.add_parser(
+        "vla-cpu-runtime-validate",
+        help="rerun and validate a saved CPU runtime completion matrix",
+    )
+    cpu_runtime_validate.add_argument("directory", type=Path)
     subparsers.add_parser(
         "mujoco-continuous-collision-smoke",
         help="run conservative continuous static/self-collision acceptance",
@@ -996,6 +1010,16 @@ def main(arguments: list[str] | None = None) -> int:
         return 0
     if args.command == "vla-integrated-task-validate":
         report = validate_integrated_panda_tasks(args.directory)
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        return 0
+    if args.command == "vla-cpu-runtime-run":
+        output = run_cpu_runtime_completion(args.output_directory)
+        report = validate_cpu_runtime_completion(output)
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-cpu-runtime-validate":
+        report = validate_cpu_runtime_completion(args.directory)
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0
     if args.command == "mujoco-continuous-collision-smoke":

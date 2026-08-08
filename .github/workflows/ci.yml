@@ -126,4 +126,6 @@ jobs:
           tests/test_pi05_archive_replay.py
           tests/test_trajectory_repair.py
           tests/test_async_runtime.py
+          tests/test_integrated_panda_async.py
+          tests/test_cpu_runtime_completion.py
           -k "not offscreen_render"

@@ -41,6 +41,18 @@ from armbench.vla.integrated_panda_guard import (
     IntegratedPandaSupervisor,
     run_integrated_panda_guard_smoke,
 )
+from armbench.vla.integrated_panda_async import (
+    AssuranceOutcome,
+    AssuranceSubmission,
+    AtomicAssuranceDecision,
+    AtomicPandaPlanGate,
+    LatestIntegratedPandaWorker,
+)
+from armbench.vla.cpu_runtime_completion import (
+    CPURuntimeMatrixConfig,
+    run_cpu_runtime_completion,
+    validate_cpu_runtime_completion,
+)
 from armbench.vla.integrated_panda_matrix import (
     IntegratedPandaMatrixConfig,
     run_integrated_panda_fault_matrix,
@@ -181,9 +193,15 @@ __all__ = [
     "GuardConfig",
     "GuardResult",
     "IntegratedPandaDecision",
+    "AssuranceOutcome",
+    "AssuranceSubmission",
+    "AtomicAssuranceDecision",
+    "AtomicPandaPlanGate",
+    "CPURuntimeMatrixConfig",
     "IntegratedPandaGuardConfig",
     "IntegratedPandaMatrixConfig",
     "IntegratedPandaSupervisor",
+    "LatestIntegratedPandaWorker",
     "IntegratedPandaTaskConfig",
     "DispatchUpdate",
     "LOOPBACK_FAULT_MODES",
@@ -266,6 +284,7 @@ __all__ = [
     "run_cartesian_adapter_smoke",
     "run_integrated_panda_guard_smoke",
     "run_integrated_panda_fault_matrix",
+    "run_cpu_runtime_completion",
     "run_integrated_panda_tasks",
     "run_lerobot_episode_smoke",
     "run_official_lerobot_smoke",
@@ -273,6 +292,7 @@ __all__ = [
     "validate_online_artifact",
     "validate_frozen_provider_bundle",
     "validate_integrated_panda_fault_matrix",
+    "validate_cpu_runtime_completion",
     "validate_integrated_panda_tasks",
     "validate_lerobot_episode",
     "validate_official_lerobot_episode",
