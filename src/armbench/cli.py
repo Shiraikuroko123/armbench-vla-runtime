@@ -19,6 +19,9 @@ from armbench.mujoco_sim.benchmark import (
     load_mujoco_config,
     validate_mujoco_scenarios,
 )
+from armbench.mujoco_sim.continuous_collision import (
+    run_continuous_collision_smoke,
+)
 from armbench.mujoco_sim.swept_audit import (
     SweptAuditConfig,
     run_swept_collision_audit,
@@ -170,6 +173,10 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(
         "vla-qp-smoke",
         help="run deterministic OSQP joint-velocity projection acceptance",
+    )
+    subparsers.add_parser(
+        "mujoco-continuous-collision-smoke",
+        help="run conservative continuous static/self-collision acceptance",
     )
 
     async_panda = subparsers.add_parser(
@@ -849,6 +856,10 @@ def main(arguments: list[str] | None = None) -> int:
         return 0 if bool(report["passed"]) else 1
     if args.command == "vla-qp-smoke":
         report = run_qp_projection_smoke()
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        return 0 if bool(report["passed"]) else 1
+    if args.command == "mujoco-continuous-collision-smoke":
+        report = run_continuous_collision_smoke()
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0 if bool(report["passed"]) else 1
     if args.command == "vla-panda-async-run":
