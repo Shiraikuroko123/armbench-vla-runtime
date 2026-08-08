@@ -1,190 +1,166 @@
-# ArmBench 完整改进路线与采购表
+# ArmBench 技术加强路线与资源预算
 
-状态：当前执行基线。最后核对日期：2026-08-08。
+状态：后续技术迭代的唯一执行表。最后核对日期：2026-08-08。
 
-这份文档是后续迭代的单一任务表。它回答四个问题：项目已经证明了什么，下一步解决什么问题，需要什么前置条件与资源，以及做到什么程度才算验收。现金预算均为人民币估算，不含个人时间；云平台价格、硬件套件和运费会波动，购买前必须重新询价。
+本文只保留技术工作。网页、措辞、简历包装、宣传材料和一般性仓库美化暂不进入路线。预算均为人民币估算，不含个人时间；云 GPU、硬件套件、运费和汇率会变化，实际购买前需要重新询价。
 
-## 一、先统一完成等级
+## 1. 当前资源与结论
 
-| 等级 | 含义 | 可以公开的表述 |
+| 资源 | 当前情况 | 能完成什么 | 缺口与处理方式 |
+| --- | --- | --- | --- |
+| CPU | i9-12900H，14 核 20 线程 | MuJoCo、规划控制、QP、碰撞检测、数据验证、官方 LeRobot loader | 足够，不需要购买 CPU 主机 |
+| 内存 | 约 16 GB | 当前 CPU 工程与小规模仿真 | 属于最低可用；只有并行仿真/WSL 经常内存不足时才考虑 32 GB，先确认笔记本是否可升级 |
+| GPU | Intel 集显，无 CUDA | 只能做渲染与普通 CPU 计算 | `pi0.5`、OpenVLA-OFT、Isaac Lab 和训练必须租 NVIDIA GPU |
+| 磁盘 | D 盘约 58 GB、C 盘约 69 GB 可用 | 保存代码和压缩后的核心 evidence | 不适合同时保存多个模型、Docker image 和全部视频；云端使用 200-350 GB 临时盘，必要时再买 1 TB 移动 SSD |
+| 实体设备 | 无机械臂、相机和急停 | 只能做仿真与离线验证 | 真机路线最后再采购，不影响前两阶段技术开发 |
+
+当前不需要购买任何东西。第一阶段全部可在本机完成；只有进入真实 checkpoint 运行时才租 GPU。
+
+## 2. 完成等级
+
+| 等级 | 技术含义 | 验收要求 |
 | --- | --- | --- |
-| L0：代码存在 | 接口或算法已经实现，有单元测试 | “实现了某模块” |
-| L1：组件验收 | 在 mock、scripted policy 或冻结响应上通过可重放测试 | “完成组件级验证”，不能说模型已端到端运行 |
-| L2：在线冒烟 | 真实 checkpoint、仿真器和运行时连通，完成少量注册案例 | “完成真实模型在线集成” |
-| L3：统计实验 | 冻结协议、多任务、配对随机源、置信区间和独立 validator 完整 | “在指定模型与基准上得到统计结果” |
-| L4：跨模型/跨仿真 | 至少两个真实 checkpoint 家族或有目的的第二仿真器复现 | “具备有限的跨模型或跨环境外部效度” |
-| L5：实体证据 | 标定后的机器人、硬件 watchdog/急停和重复故障注入 | “完成指定实体平台实验”，仍不等于安全认证 |
+| L0 | 代码实现 | 单元测试和明确输入输出契约 |
+| L1 | 组件验证 | mock、scripted policy 或冻结响应可重复运行 |
+| L2 | 真实模型 smoke | 真实 checkpoint 在线产生动作并进入执行循环 |
+| L3 | 正式仿真实验 | 冻结协议、多任务/seed、原始 trace、统计和独立 validator |
+| L4 | 跨模型或跨仿真 | 至少两个真实 checkpoint 家族，或有明确控制变量的第二仿真器 |
+| L5 | 实体实验 | 标定机器人、硬件 watchdog/急停和重复故障注入 |
 
-后续任何功能都不得把 L0/L1 写成 L2，也不得把一次 smoke 写成统计结论。
+实现接口不能自动升级为 L2；一次成功视频不能自动升级为 L3。
 
-## 二、当前已经拥有的基线
+## 3. 技术加强总表
 
-| ID | 已有能力 | 当前等级 | 已验证内容 | 仍然不能声称 |
-| --- | --- | --- | --- | --- |
-| B01 | 七自由度 Panda 规划与控制 | L1-L2 | MuJoCo、RRT-Connect/RRT*、时间参数化、PD/LQR、轨迹回放和故障注入 | 实体 Panda 部署或硬实时控制 |
-| B02 | 官方 `pi0.5` 时序对齐 | L3 | LIBERO measured-age 为 `88/120 -> 116/120`；另有三套件 `83/150 -> 141/150` | 跨 VLA 家族有效或真机有效 |
-| B03 | RTC-style 条件化对比 | L3 | 300 rollouts：`96/100、97/100、97/100`，没有建立任务成功率优势 | 已复现 RTC 全方法或候选显著更优 |
-| B04 | `pi0.5` 冻结响应到 Panda | L1 | 官方存档响应经语义核验、Cartesian adapter 和 Panda guard 离线回放 | 在线 `pi0.5 -> Panda` 闭环 |
-| B05 | 终端制动不变量修复 | L1 | 270 个成对离线案例从 `264/270` 到 `270/270`，无观察到的回归 | 任务成功率提升、连续碰撞证明或硬 deadline |
-| B06 | 异步 Panda 闭环 | L1 | 27 个 CPU 墙钟案例；双相机、独立 worker、调度、修复和力矩执行已连通 | 其中的 scripted policy 是学习式 VLA |
-| B07 | 静态障碍 swept 审计 | L1 | 72 条固定边相对更密采样参考为 0 false-safe | 连续自碰、动力学扫掠体或实体安全认证 |
-| B08 | Provider-neutral 契约 | L1 | 第二模型族命名 fixture、动作语义哈希与 fail-closed gate | 运行过 OpenVLA-OFT checkpoint |
-| B09 | LeRobot 风格边界 | L1 | 帧映射、命令 watchdog、锁存/reset 和确定性 episode 重放 | 使用了官方 LeRobot 包、数据集或机器人驱动 |
-| B10 | 证据工程 | L3 | 冻结协议、manifest/hash、独立 validator、配对统计、视频与 dashboard | validator 能替代外部复现或同行评审 |
+优先级：P0 为当前必须完成；P1 为核心竞争力阶段；P2 为完成 P1 后的扩展；P3 只在明确论文问题或实验室合作下进行。
 
-## 三、总改进表
+### 3.1 本地 CPU 核心
 
-优先级含义：P0 是当前主线；P1 是完成 P0 后的高收益工作；P2 需要明确实验问题后再做；P3 仅在实验室合作或论文路线下做。
+| ID | 技术加强与解决的问题 | 当前状态 | 前置条件 | 所需软件/数据 | 所需计算或设备 | 现金预算 | 开发时间 | 验收标准 | 优先级 |
+| --- | --- | --- | --- | --- | --- | ---: | --- | --- | --- |
+| C01 | 统一 live/frozen/mock provider，使真实模型与测试后端进入同一运行时 | Provider 语义 gate 和合成 fixture 已有；真实 provider 未接 Panda loop | 固定 observation、action semantics、checkpoint identity | Python 3.10、`openpi-client`、现有 provider contract | 当前电脑 | ¥0 | 2-4 天 | 三种 backend 可互换；动作语义、模型身份或响应 hash 不符时 fail closed；测试覆盖 worker/guard 链路 | P0 |
+| C02 | 独立进程/时钟运行时，使控制在阻塞推理期间继续 tick | Panda 有 threaded scripted loop；正式 LIBERO 仍是 blocking + catch-up | C01；统一 monotonic clock、序列号和 mailbox | `multiprocessing`/websocket、现有 trace schema | 当前电脑先用阻塞 mock 测试 | ¥0 | 3-6 天 | 推理阻塞 0/40/80/160 ms 时控制 tick 不停止；response age、跳步、hold 和 deadline 均可从 trace 重算 | P0 |
+| C03 | QP 动作投影，替代单纯缩放/greedy 回溯 | 现有 DLS IK、统一缩放、greedy guard 和 braking repair | 明确位置、速度、加速度、控制周期和不可行回退 | `OSQP`、`scipy`、NumPy | 当前电脑 | ¥0 | 3-7 天 | 1,000 个固定随机案例满足注册约束；报告 infeasible 率、任务误差、P95/max 求解时延；超预算进入 hold | P0 |
+| C04 | 连续静态碰撞与连续自碰，补上当前 sampled self-collision 缺口 | 静态障碍有 clearance-backed subdivision；自碰仍受采样分辨率限制 | 固定 Panda collision pairs、几何简化和独立 oracle | Ubuntu/WSL；`coal`/`hpp-fcl` 或等价 CCD | 当前电脑；可能需要 WSL2 | ¥0-100 | 5-10 天 | 注册边集相对独立 CCD/更密 oracle 为 0 false-safe；静态碰撞和自碰分别报告；性能 P95 可复现 | P0 |
+| C05 | 动力学可达停止，回答受限动作是否真的能在扭矩/负载下刹停 | 已有力矩执行与运动学 braking sequence，缺动力学可达性 | C03；Panda 质量、惯量、扭矩/速度限制和 payload 条件 | MuJoCo；可选 Pinocchio | 当前电脑 | ¥0 | 5-10 天 | 固定初速、payload、摩擦矩阵中，所有接受动作存在限时停止轨迹；报告停止时间/距离和保守拒绝率 | P0 |
+| C06 | 官方 LeRobot loader 与 episode round-trip，补上“LeRobot 风格但未使用官方包” | 自定义帧、watchdog 和 episode 已完成 L1 | 固定一个官方 LeRobot release；保持 Panda 与未来 SO-101 动作语义分离 | 官方 `lerobot`、公开小 fixture | 当前电脑；建议 WSL2/Ubuntu | ¥0 | 2-5 天 | 官方 loader 读取导出 episode；图像、状态、动作、task、时间戳 round-trip 一致；版本被锁定 | P1 |
+| C07 | 标准化 fault matrix，统一延迟、jitter、丢帧、旧响应、NaN、断连和模型失配 | 多数故障已有，但分散在多个 benchmark | C01-C05 的统一 runtime | 现有 fault/validator 模块 | 当前电脑 | ¥0 | 2-4 天 | 每类故障有注册输入、预期状态机转移和独立重放；任何旧命令均不能在 reset 后执行 | P1 |
+| C08 | MoveIt 2/Servo 或成熟控制器基线，避免只与自研 guard 比较 | 未完成 | C03-C05；Panda URDF/SRDF；ROS2 路径可运行 | ROS2 Humble、MoveIt 2 | WSL 不适合最终实时测试；Ubuntu 环境 | ¥0-300 | 4-8 天 | 同一任务/约束矩阵对比成功率、违规、干预率和控制时延；动作语义映射留存 | P2 |
 
-### A. 不需要 GPU 或硬件的工程主线
+### 3.2 真实 VLA 与云 GPU
 
-| ID | 改进项与解决的问题 | 当前状态 | 前置条件 | 软件/购买 | 预算 | 工期 | 验收标准 | 价值 | 优先级 |
-| --- | --- | --- | --- | --- | ---: | --- | --- | --- | --- |
-| A01 | 建立唯一路线、主张边界和状态台账，避免 README、网页和简历互相矛盾 | 本文完成第一版 | 每次实验记录 commit/run ID | 无 | ¥0 | 持续 | 每个新结果能追到协议、artifact、validator 和允许表述 | 简历中；研究高 | P0 |
-| A02 | 公共仓库隐私与许可证审计，避免密钥、用户路径、模型权重或受限数据进入历史 | 部分完成 | 仓库与 Git 历史扫描 | `gitleaks`/GitHub secret scan；无需购买 | ¥0 | 0.5-1 天 | 当前树和历史扫描通过；公开文件清单和第三方许可证可核对 | 简历中；研究中 | P0 |
-| A03 | 干净环境的一键安装与最小演示，解决面试官无法复现 | Windows/Linux 脚本已有，仍可增加发布验收 | 一台干净 Windows 或 Ubuntu 环境 | GitHub Actions/容器，免费额度即可 | ¥0-100 | 1-2 天 | 新克隆后 15 分钟内完成 `doctor`、测试和可视化 smoke；CI 双平台通过 | 简历高；研究中 | P0 |
-| A04 | 稳定配置 schema、版本迁移和运行 ID，避免参数漂移 | JSON 配置和 provenance 已有，缺显式 schema 版本迁移 | 冻结现有 artifact schema | `jsonschema` 或 dataclass 校验 | ¥0 | 1-2 天 | 缺字段、未知字段、旧版本迁移和非法单位均有测试；旧 artifact 仍可验证 | 简历中；研究高 | P1 |
-| A05 | 将 provider 抽象接入真实/冻结/mock 三种后端，解决 fixture 与真实模型代码分叉 | 语义契约已有；真实在线 provider 未接入 Panda loop | 固定 observation/action 语义与 checkpoint identity | `openpi-client`；CPU 可完成 mock/frozen 路径 | ¥0 | 2-4 天 | 同一 `ActionChunkPolicy` 可替换三种后端；语义、checkpoint、响应 hash 不符时 fail closed | 简历高；研究高 | P0 |
-| A06 | 官方 LeRobot 数据格式接入，解决“LeRobot 风格但没有使用 LeRobot” | 仅自定义内存帧与 episode | 选定并锁死一个官方 LeRobot release | 官方 `lerobot` 包；建议 Ubuntu/WSL 开发 | ¥0-100 | 2-5 天 | 导出 episode 被官方 loader 读取；round-trip 后图像、状态、动作、时间戳一致；CI 固定版本 | 简历高；研究中 | P0 |
-| A07 | QP 动作投影器，统一关节位置、速度、加速度和任务进度约束 | 当前是 DLS IK、统一缩放和 greedy/backtracking | 明确约束单位、控制周期和 infeasible fallback | `OSQP`/`scipy`，CPU | ¥0 | 3-7 天 | 1,000 个确定性随机案例全部满足注册约束；报告 infeasible 率、任务误差和求解 P95/max | 简历高；研究高 | P1 |
-| A08 | 连续静态碰撞和连续自碰检测，补上当前 sampled/self-collision 边界 | 静态障碍有 clearance-backed 细分；自碰仍是采样 | 固定 robot collision pairs、几何模型和 oracle | Ubuntu 上 `coal`/`hpp-fcl` 或等价 CCD；CPU | ¥0-200 | 5-10 天 | 对注册边集相对独立密集/CCD oracle 为 0 false-safe；单独报告静态碰撞与自碰 | 简历高；研究高 | P1 |
-| A09 | 动力学可达停止与扭矩约束，解决“运动学安全但来不及刹停” | 有力矩仿真和运动学制动序列，未形成动力学可达集 | Panda 惯量、扭矩/速度限制和 payload 条件 | MuJoCo/Pinocchio，CPU | ¥0-200 | 5-10 天 | 注册 payload/摩擦/初速矩阵中，接受动作均存在限时可执行停止；报告保守拒绝率 | 简历高；研究高 | P1 |
-| A10 | 代码质量门禁：覆盖率、类型检查、性能回归与公共 API 文档 | pytest/ruff/CI 已有；类型与覆盖率门槛不完整 | 先冻结公共 API | `pytest-cov`、`mypy`/`pyright`、benchmark | ¥0 | 2-4 天 | 核心 runtime/validator 覆盖率门槛；类型检查通过；关键 P95 不发生未解释回退 | 简历中；研究中 | P1 |
-| A11 | 发布可审计版本和一键验收包，解决面试现场依赖本机目录 | GitHub Pages 和证据已存在，尚无稳定 release 节奏 | 清理大文件和许可证 | GitHub Release；可选 Zenodo DOI | ¥0 | 1-2 天 | tag、source archive、checksums、最小 evidence、验收命令和已知限制完整 | 简历高；研究中 | P1 |
-| A12 | 作品展示闭环，解决面试官只能看文字、无法快速理解系统行为 | 网页、dashboard 和视频已有，但内容分散 | A01、A11；只使用已验证数字 | 现有 GitHub Pages/视频工具 | ¥0 | 1-2 天 | 90 秒内展示正常、延迟和 fail-closed 三条 trace；网页能跳到对应原始证据和复现命令 | 简历很高；研究低 | P1 |
+| ID | 技术加强与解决的问题 | 当前状态 | 前置条件 | 所需软件/数据 | 所需云资源 | 现金预算 | 开发/运行时间 | 验收标准 | 优先级 |
+| --- | --- | --- | --- | --- | --- | ---: | --- | --- | --- |
+| G01 | 官方在线 `pi0.5 -> Panda` smoke，补上当前最关键的端到端断点 | 只有官方冻结响应离线回放；在线 Panda 使用 scripted policy | C01-C02；Panda 双相机 observation adapter；checkpoint attestation | 固定 OpenPI commit、官方 `pi05_libero` checkpoint、Panda MuJoCo | RTX 4090 24 GB；16 vCPU；64 GB RAM；200 GB SSD；6-12 GPU 小时 | ¥50-300 | 2-4 天开发，0.5 天运行 | 至少 10 条真实 checkpoint episode；请求、响应、适配、repair、watchdog、执行和反馈时间戳闭合；无 fixture | P0 |
+| G02 | 真正独立时钟的 `pi0.5`-LIBERO pilot，替代 blocking inference + simulator catch-up | 未完成 | C02、G01；仿真与推理分进程；配对 jitter/noise | OpenPI、LIBERO、40-rollout 冻结 pilot 协议 | 4090 24 GB；16 vCPU；64 GB；200 GB；12-30 GPU 小时 | ¥100-600 | 4-8 天 | 仿真在推理期间持续推进；40 rollouts 完整；所有 age、offset、hold 和 failure 可独立重算 | P0 |
+| G03 | 独立时钟正式矩阵，确认时序方法是否仍有效 | 未开始 | G02 无基础设施故障且存在可评估干预 | 预注册不少于 100 matched pairs；固定随机源 | 4090 24 GB；30-80 GPU 小时 | ¥300-1,500 | 2-5 天运行与分析 | 全部 assigned rollouts 入统计；成功、deadline、query、干预、时延、CI 和失败分类完整；validator 通过 | P1 |
+| G04 | 在线任务级 QP/braking repair，验证满足约束的同时是否保留任务进度 | 只有 270 个离线案例与 scripted Panda loop | C03-C05、G02；候选与基线干预预算可比较 | 真实 `pi0.5` response、统一 fault matrix | 与 G03 共用或追加 20-50 GPU 小时 | ¥200-1,000 | 3-7 天 | 同一 policy 下报告任务成功、约束违规、hold、干预、进度和修复 P95/max；不筛除失败案例 | P1 |
+| G05 | 真实 OpenVLA-OFT 原生 smoke，增加第二 checkpoint 家族 | 当前只有 OpenVLA-OFT 命名合成 fixture | 固定官方 commit/checkpoint；先跑原生 LIBERO evaluator | OpenVLA-OFT 官方仓库、模型与 LIBERO 数据 | 最低约 16 GB VRAM，建议 4090 24 GB；200 GB SSD；6-12 GPU 小时 | ¥50-400 | 2-4 天 | checkpoint 内容 hash、真实模型输出、至少一条成功/失败 episode 和原生 evaluator 记录完整 | P1 |
+| G06 | OpenVLA-OFT 接入统一 provider/runtime，验证接口真正跨模型 | 未完成 | C01、G05；逐字段核对 frame、dt、rotation、gripper 和 normalization | 官方 action transform、现有 Panda adapter/guard | 16-24 GB GPU；10-30 GPU 小时 | ¥100-600 | 2-5 天 | 真实输出经过精确 semantic gate；任一不兼容字段 fail closed；完成小型在线矩阵 | P1 |
+| G07 | 两真实模型家族的冻结对照，建立有限跨模型外部效度 | 未开始 | G03、G06；每个模型使用原生 evaluator | `pi0.5`、OpenVLA-OFT、共同 fault protocol | 24 GB GPU；40-120 GPU 小时；250-350 GB 临时盘 | ¥500-2,500 | 1-2 周 | 每模型至少 20-50 matched pairs；结果按模型分层，不混合动作空间；报告跨模型一致与冲突 | P1 |
+| G08 | 忠实直接方法基线，避免把 RTC-style 近似写成论文方法 | 有内部条件化与 RTC-style 实验，但不是完整 RTC/VLASH/Action ControlNet | 对方公开实现/checkpoint 或可复现训练；统一独立时钟 | 固定上游 commit、真实实现所需模型 | 24-80 GB GPU；50-200 GPU 小时 | ¥500-3,000 | 1-3 周 | 真实实现与近似严格分名；在相同任务、噪声、时钟和统计协议下比较 | P2 |
 
-### B. 真实 VLA 与 GPU 主线
+`G01` 是系统连通性证据，不保证本地 Panda 任务成功。`pi05_libero` 的相机分布、控制点和本地场景不完全等同训练环境；任务效果必须通过 G02-G04 的注册实验判断。
 
-| ID | 改进项与解决的问题 | 当前状态 | 前置条件 | GPU/购买 | 预算 | 工期 | 验收标准 | 价值 | 优先级 |
-| --- | --- | --- | --- | --- | ---: | --- | --- | --- | --- |
-| G01 | 云端预检与可恢复下载，避免 GPU 时间浪费在环境和 checkpoint 上 | 旧 UCloud 流程可参考，服务器已到期 | A03、磁盘预算、国内网络/镜像方案、自动关机 | Ubuntu 22.04；100-200 GB 云盘；先用按量实例 | ¥20-150 | 0.5-1 天 | CPU 预检、镜像、checkpoint hash、磁盘余量和停止计费步骤在开 GPU 前通过 | 简历低；研究高 | P0 |
-| G02 | 官方在线 `pi0.5 -> Panda` 集成 smoke，补上最关键的软件断点 | 只有官方冻结响应离线回放；Panda loop 用 scripted policy | A05；Panda 双相机 observation adapter；OpenPI 服务端 attestation | 24 GB 级 NVIDIA GPU，约 6-12 GPU 小时 | ¥50-300 | 2-4 天开发 + 0.5 天运行 | 至少 10 条真实 checkpoint 在线 episode；请求、响应、动作和反馈时间戳闭合；无 fixture；artifact 可独立验证 | 简历很高；研究中 | P0 |
-| G03 | 独立时钟的 `pi0.5`-LIBERO 执行器，解决当前 blocking inference + catch-up 不等于真实异步 | 尚未完成 | G01；仿真线程与推理进程分离；共享单调时钟；可控 jitter | 24 GB GPU，约 12-30 GPU 小时做 pilot | ¥100-600 | 4-8 天 | 仿真在推理期间持续 tick；原始 trace 可重算 response age、跳步、hold 和 deadline；40-rollout pilot 完整 | 简历很高；研究很高 | P0 |
-| G04 | 冻结的独立时钟核心矩阵，回答时序调度是否在真实异步下仍有效 | 未开始 | G03 pilot 通过且效应/故障率支持扩大 | 24 GB GPU，约 30-80 GPU 小时 | ¥300-1,500 | 2-5 天运行与分析 | 预注册不少于 100 matched pairs；配对噪声/初态；CI、效应量、全部失败和 validator 完整 | 简历很高；研究很高 | P1 |
-| G05 | 在线任务级 braking repair 对比，回答修复是否只“满足约束”还是也保留任务进度 | 当前只有 270 个离线案例和 scripted loop | G03；A07-A09 至少完成两项；候选/基线干预预算可比较 | 与 G04 共用或追加 20-50 GPU 小时 | ¥200-1,000 | 3-7 天 | 同一真实 policy 下报告任务成功、违规、干预、hold、进度和时延；不能只选择成功案例 | 简历很高；研究很高 | P1 |
-| G06 | 真实 OpenVLA-OFT checkpoint 原生 smoke，补上第二模型家族 | 当前只有合成 ABI fixture | 固定官方 commit/checkpoint；先走其原生 LIBERO evaluator；核对 7D 动作语义 | 至少约 16 GB VRAM；100-200 GB 磁盘；6-12 GPU 小时 | ¥50-400 | 2-4 天 | checkpoint 内容 hash、真实输出与原生成功 episode 留存；报告明确 `checkpoint_executed=true` | 简历很高；研究高 | P1 |
-| G07 | OpenVLA-OFT 接入 provider/runtime，检验抽象是否真正跨模型 | 未开始 | A05、G06；不因同为 `H x 7` 就假定语义兼容 | 16-24 GB GPU，约 10-30 小时 | ¥100-600 | 2-5 天 | 原生动作经精确语义 gate/adapter 进入同一 runtime；不兼容字段必须拒绝；完成小型在线矩阵 | 简历很高；研究很高 | P1 |
-| G08 | 两模型家族的冻结对照矩阵，建立有限跨模型外部效度 | 未开始 | G04、G07；各模型使用正确原生 evaluator 和配对协议 | 约 40-120 GPU 小时 | ¥500-2,500 | 1-2 周 | 每模型不少于 20-50 matched pairs；分别报告结果，不混合动作空间；跨模型结论有区间 | 简历很高；研究很高 | P1 |
+### 3.3 不确定性、训练与仿真扩展
 
-`G02` 的价值是端到端系统集成，不保证任务成功。`pi05_libero` 的观测分布、控制点和本地 MuJoCo 场景并不完全等同于训练环境，因此任务效果必须在 `G03-G05` 的原生/注册协议中判断，不能从 Panda smoke 推断。
+| ID | 技术加强与解决的问题 | 当前状态 | 前置条件 | 所需软件/数据 | 所需资源 | 现金预算 | 时间 | 验收标准 | 优先级 |
+| --- | --- | --- | --- | --- | --- | ---: | --- | --- | --- |
+| A01 | 可校准拒绝执行，回答模型什么时候不应继续动作 | 只有规则 guard/watchdog，没有概率校准 | G03/G07 的成功与失败样本；独立 calibration/test split | 风险特征、统计校准、风险-覆盖评测 | CPU 可完成规则分数；模型特征/多采样需 20-80 GPU 小时 | ¥0-1,500 | 1-2 周 | 报告 risk-coverage、ECE/coverage、选择性成功/违规率与 CI；阈值只在 calibration 集确定 | P2 |
+| A02 | Isaac Lab 域随机化，检验负载、摩擦、视觉和并行故障的 robustness | 未集成；现有 MuJoCo 已覆盖 CPU 控制闭环 | 必须先确定新增控制变量；G04 方法稳定 | Isaac Lab、Panda asset、统一 action/fault adapter | 4090 24 GB；16 vCPU；64 GB；200 GB；20-80 GPU 小时 | ¥200-1,500 | 4-10 天 | 同一控制问题在 MuJoCo/Isaac Lab 均可运行；差异来自注册变量，不是画质；完整对照报告 | P2 |
+| A03 | 官方 LeRobot ACT 或 Diffusion Policy 训练，补足数据和策略训练链路 | 当前没有训练策略 | C06；公开或自采数据；train/val/test split | LeRobot dataset、ACT/DP recipe、50-150 GB 数据 | 12-24 GB GPU；20-80 GPU 小时 | ¥200-1,200 | 1-2 周 | 可复现训练曲线；至少 20-50 个未见初态 rollout；与未训练/BC 基线区分 | P2 |
+| A04 | LoRA 或延迟感知 adapter，研究训练式方法能否超过免训练调度 | 未开始 | G03/G07 基线；数千条匹配演示或 latency 数据 | OpenPI/OpenVLA-OFT 训练 recipe、数据卡 | 建议 24 GB 起；部分配置需 A100 40/80 GB；50-200 GPU 小时 | ¥500-3,000 | 2-4 周 | 与 frozen checkpoint、suffix selection 和 no-adapter 同协议比较；held-out 场景和多 seed | P3 |
+| A05 | 学习式恢复的行为克隆基线 | 未开始 | C07 失败分类；恢复 demonstration/oracle | LeRobot/自定义恢复数据 | 24 GB GPU；20-100 小时 | ¥200-1,500 | 1-3 周 | 与 hold、规则 repair 和 scripted recovery 比较；至少 3 个训练 seed | P3 |
+| A06 | RL 恢复或延迟适应 | 未开始 | A05、稳定 reward、并行仿真、BC 和 no-adaptation baseline | Isaac Lab/ManiSkill、PPO/DPPO 类实现 | 24 GB+ GPU；100-500 GPU 小时 | ¥1,500-8,000 | 3-8 周 | 3-5 个 seed、学习曲线、相同 env steps、held-out fault matrix 和训练成本完整 | P3 |
 
-### C. 仿真器、机器人生态与部署
+RL 只有在“学习恢复/适应”成为明确研究问题时才做。它不能替代 G01-G07 的真实在线 VLA 和跨模型验证。
 
-| ID | 改进项与解决的问题 | 当前状态 | 前置条件 | 软件/购买 | 预算 | 工期 | 验收标准 | 价值 | 优先级 |
-| --- | --- | --- | --- | --- | ---: | --- | --- | --- | --- |
-| E01 | Isaac Lab 交叉验证，用 GPU 并行物理/域随机化检验 robustness | 未集成；MuJoCo 已满足当前 CPU 基线 | 必须先写清新控制变量，例如摩擦、负载、相机噪声或并行 fault matrix | Isaac Lab 免费；Ubuntu + NVIDIA 16-24 GB；20-80 GPU 小时 | ¥200-1,500 | 4-10 天 | 同一已注册控制问题在两仿真器有语义映射、结果和差异分析；只换画面不算验收 | 简历高；研究中高 | P2 |
-| E02 | ManiSkill 轻量并行对照，作为 Isaac Lab 的低成本备选 | 未集成 | 需要明确跨任务或并行采样收益 | 开源；8-24 GB GPU 可选 | ¥0-600 | 3-7 天 | 至少一个任务族、相同 fault contract 和完整 provenance；否则不保留 | 简历中；研究中 | P2 |
-| E03 | ROS2 transport 与 lifecycle，解决真机消息、时钟、重连和进程边界 | 未开始 | 确定具体机器人驱动；Ubuntu 22.04/ROS2 Humble | 软件免费；本地/云 CPU | ¥0-300 | 4-10 天 | observation/policy/guard/actuator 分节点；rosbag 可重放；掉线、乱序、时钟回退 fail closed | 简历很高；研究中 | P1，真机前 |
-| E04 | MoveIt 2/Servo 或厂商控制器基线，避免只和自研 guard 比较 | 未开始 | E03；机器人 URDF/SRDF 和控制接口 | 软件免费；Ubuntu | ¥0-300 | 3-7 天 | 同一约束任务下与至少一个成熟基线比较成功、违规、干预和时延 | 简历高；研究高 | P2 |
-| E05 | 可观测性与现场调试：结构化日志、rosbag/trace、事件时间线和回放 | JSONL/NPZ/dashboard 已有，未接 ROS 工具 | E03 或保留现有 transport | Foxglove/Perfetto 等免费工具 | ¥0-200 | 2-4 天 | 面试官可从一次失败定位到 observation、provider、repair、watchdog、actuator 五层 | 简历高；研究中 | P1 |
+### 3.4 ROS2 与实体机器人
 
-Isaac Gym 不应单独新增。对本项目更合理的是仍维护 MuJoCo，并在确实需要 GPU 并行和 Omniverse 传感器时选择 Isaac Lab。仿真画质不是研究贡献。
+| ID | 技术加强与解决的问题 | 当前状态 | 前置条件 | 所需软件/数据 | 所需硬件 | 现金预算 | 时间 | 验收标准 | 优先级 |
+| --- | --- | --- | --- | --- | --- | ---: | --- | --- | --- |
+| H01 | ROS2 transport/lifecycle，补上消息时钟、重连和执行器进程边界 | 未完成 | C01-C07；确定目标机器人动作语义 | Ubuntu 22.04、ROS2 Humble、rosbag2 | 可先用本机/另一台 CPU 主机 | ¥0-300 | 4-10 天 | observation/provider/guard/actuator 分节点；乱序、掉线、时钟回退均 fail closed；rosbag 可重放 | P1，真机前 |
+| H02 | SO-101 类单 follower 实体接入 | 无硬件；Panda `H x 8` 不能直接驱动 SO-101 | C06、H01；新增 SO-101 position-action semantics 和 adapter | 官方 LeRobot driver、标定数据 | follower、双相机、支架、供电 hub、急停、备件 | ¥2,800-7,300 | 1-3 周 | 标定/限位/watchdog/断连/急停通过；至少 30 次重复 episode；旧命令不会恢复执行 | P2 |
+| H03 | leader-follower 遥操作与数据采集 | 未完成 | H02；任务与数据质量规范 | 官方 teleoperation 和 dataset recorder | 在 H02 上增加 leader 与桌夹 | 追加 ¥1,200-2,500 | 1-2 周 | 50-200 条合格 demonstrations；官方 loader 可读；失败标签、相机标定和数据质检完整 | P2 |
+| H04 | 实体学习策略/VLA 闭环 | 未完成 | H02-H03、A03 或可用 SO-101 checkpoint；远程 GPU 通道 | LeRobot/OpenPI client、ROS2/runtime | 复用机器人；远程 24 GB GPU | 追加 ¥300-1,500 | 1-3 周 | 真实策略、独立时钟、任务成功/违规/干预/时延全记录；断连进入硬件 hold/断电边界 | P2 |
+| H05 | 实体故障矩阵 | 未完成 | H04；书面安全流程和软质任务环境 | 网络故障代理、故障注入器 | 急停/继电器、软障碍物、可控负载 | 追加 ¥200-1,000 | 3-7 天 | 延迟、丢帧、断连、旧响应、负载变化每类至少 10 次；测停止时间/距离和人工干预 | P2 |
+| H06 | 七自由度 Panda/FR3 真机复现 | 无设备 | 实验室合作、libfranka、实时内核、场地与安全规范 | ROS2/libfranka、标定和真机协议 | Franka 本体及配套通常 ¥150,000+ | 不建议个人购买 | 2-6 个月 | MuJoCo 与实体使用同构任务；硬件时序、急停和多次故障实验完整 | P3，仅合作 |
 
-### D. 不确定性、拒绝执行和恢复
+SO-101 通常不是七自由度 Panda。使用它的技术意义是新增一个严格的 embodiment adapter，验证 provider、watchdog、数据和故障处理能否跨机器人迁移，不能把结果写成 Panda 真机实验。
 
-| ID | 改进项与解决的问题 | 当前状态 | 前置条件 | 软件/购买 | 预算 | 工期 | 验收标准 | 价值 | 优先级 |
-| --- | --- | --- | --- | --- | ---: | --- | --- | --- | --- |
-| S01 | 风险分数和可校准拒绝，回答“何时不应执行” | 只有规则 guard/watchdog，没有概率校准 | G04/G08 的失败样本；独立 calibration/test split | 统计阶段 CPU；特征抽取/多次采样可需 20-80 GPU 小时 | ¥0-1,500 | 1-2 周 | 风险-覆盖曲线、ECE/coverage、选择性成功/违规率和置信区间；阈值只在 calibration 集选择 | 简历很高；研究很高 | P2 |
-| S02 | 人工接管状态机与操作记录，解决拒绝后系统如何继续 | 未开始 | S01 或明确规则触发；真机时需物理输入设备 | 手柄 ¥100-400；可先键盘仿真 | ¥0-400 | 2-5 天 | 接管、超时、释放和恢复均有状态机；旧命令不能重放；事件完整记录 | 简历高；研究中高 | P2 |
-| S03 | 学习式恢复的行为克隆基线，避免直接跳到 RL | 未开始 | 失败分类、恢复示范或可生成 oracle | 24 GB GPU 20-100 小时；数据存储 | ¥200-1,500 | 1-3 周 | 与 hold、规则修复和 scripted recovery 在同一失败集对比；多训练 seed | 简历高；研究高 | P2 |
-| S04 | RL 恢复/延迟适应，只在奖励和交互问题明确时使用 | 未开始 | S03、可并行仿真、稳定奖励、BC/control baseline | Isaac Lab/ManiSkill；24 GB+ GPU 100-500 小时 | ¥1,500-8,000 | 3-8 周 | 至少 3-5 训练 seed、学习曲线、相同 env steps、BC 与 no-adaptation 对照、 held-out faults | 简历高；研究高但风险很高 | P3 |
-| S05 | 人在环在线学习或 HIL-SERL 类路线 | 未开始 | 稳定真机、操作者、示范、奖励分类器和安全流程 | 实验室机器人和大量操作时间 | 个人不建议购买 | 1-3 个月以上 | 实体重复实验、人工干预成本、学习曲线与安全事件完整；需导师/实验室审查 | 简历很高；研究很高 | P3 |
+## 4. 云服务器资源清单
 
-RL 不是“含金量插件”。如果研究问题仍是训练无关的 deadline 调度与动作修复，加入 PPO 会引入另一套问题，不能替代真实在线 VLA、多模型和真机证据。
+### 4.1 推荐的单机配置
 
-### E. 训练能力补充
-
-| ID | 改进项与解决的问题 | 当前状态 | 前置条件 | GPU/数据 | 预算 | 工期 | 验收标准 | 价值 | 优先级 |
-| --- | --- | --- | --- | --- | ---: | --- | --- | --- | --- |
-| T01 | 用官方 LeRobot 训练一个 ACT 或 Diffusion Policy 基线，补足数据管线和训练经验 | 未训练策略 | A06；公开或自采数据；划分 train/validation/test | 12-24 GB GPU 20-80 小时；50-150 GB 磁盘 | ¥200-1,200 | 1-2 周 | 可复现训练曲线、离线指标、至少 20-50 个未见初态 rollout；模型卡和数据卡完整 | 简历很高；研究中 | P2 |
-| T02 | OpenVLA-OFT/`pi0.5` 的 LoRA 适配，解决本地 Panda/SO-101 观测域与动作域不匹配 | 未开始 | 至少数千条合格演示或公开匹配数据；G06；训练许可证核对 | 建议 24 GB+；50-200 GPU 小时 | ¥500-3,000 | 2-4 周 | 与 frozen checkpoint、ACT/BC 比较；多 seed 或至少稳定复现；held-out task/scene 评测 | 简历很高；研究高 | P3 |
-| T03 | 延迟感知轻量 adapter，研究训练式方案是否超过训练无关调度 | 未开始 | G04 基线、带 timestamp/latency 的训练数据 | 24 GB GPU 50-200 小时 | ¥500-3,000 | 2-4 周 | 与 suffix selection、RTC-style 和 no-adapter 在同一时钟协议比较；参数/算力公平披露 | 简历很高；研究很高 | P3 |
-
-### F. 实体机器人路线
-
-| ID | 改进项与解决的问题 | 当前状态 | 前置条件 | 购买 | 预算 | 工期 | 验收标准 | 价值 | 优先级 |
-| --- | --- | --- | --- | --- | ---: | --- | --- | --- | --- |
-| H01 | 单台低成本 SO-101 类 follower，验证真实相机、USB/串口、舵机和 watchdog | 无硬件；现有 Panda `H x 8` 契约不能直接驱动 SO-101 | A06、E03、独立的 SO-101 position-action semantics/adapter | follower、双相机、支架、供电、带供电 USB hub、急停/断电、备件 | ¥2,800-5,800 | 1-3 周 | 官方驱动可用；标定、限位、watchdog、断连和急停通过；至少 30 次重复 episode | 简历很高；研究中 | P2 |
-| H02 | leader-follower 遥操作与自采数据，补足可训练数据 | H01；任务、场景和数据许可确定 | 再购 leader、桌面夹具和备件 | 在 H01 基础上追加 ¥1,500-3,000 | 1-2 周 | 官方 LeRobot 记录/回放；不少于 50-200 个合格 demonstrations；数据质检与失败标签完整 | 简历很高；研究中高 | P2 |
-| H03 | 低成本实体 VLA/ACT 闭环，证明 runtime 跨 embodiment | H01、T01 或可用 SO-101 checkpoint；E03 | 复用硬件；GPU 可远程 | 追加云 GPU ¥300-1,500 | 1-3 周 | 真实策略闭环、独立时钟、任务成功/违规/干预/时延；故障后 fail closed | 简历很高；研究高 | P2 |
-| H04 | 实体 fault matrix：延迟、丢帧、断连、旧响应、负载变化与急停 | H03；书面安全流程和可恢复场景 | 急停/继电器、软障碍物、可控网络代理 | ¥200-1,000 | 3-7 天 | 每类故障重复至少 10 次；无旧命令恢复执行；停止时间、距离和人工干预可测 | 简历很高；研究很高 | P2 |
-| H05 | Piper/xArm 类中端机械臂 | 不具备 | 实验室空间、厂商支持、控制权限、安全评审 | 机械臂、夹爪、相机、工作台和防护 | 约 ¥20,000-80,000+ | 1-2 个月 | 厂商驱动、标定、急停、ROS2、重复任务和故障矩阵齐全 | 简历很高；研究高 | P3，优先合作 |
-| H06 | Franka Panda/FR3 实体复现，保持七自由度平台连续性 | 不具备 | 实验室合作、libfranka、实时内核、场地与安全规范 | 机器人本体和配套通常 ¥150,000+ | 不建议个人购买 | 2-6 个月 | 与 MuJoCo 模型同构的任务、硬件时序和安全流程；正式多次实验 | 简历很高；研究很高 | P3，仅合作 |
-
-SO-101 类机械臂通常不是七自由度 Panda。购买它意味着新增一个明确的 embodiment adapter，用来证明运行时和数据边界可迁移；不能把 SO-101 结果写成 Panda 真机结果。
-
-### G. 论文级证据与公开交付
-
-| ID | 改进项与解决的问题 | 当前状态 | 前置条件 | 资源/购买 | 预算 | 工期 | 验收标准 | 价值 | 优先级 |
-| --- | --- | --- | --- | --- | ---: | --- | --- | --- | --- |
-| R01 | 预注册故障矩阵与功效/样本量设计，防止跑完再挑条件 | 现有研究已有冻结协议，未来模块尚未统一 | G03 pilot 或 H03 pilot 的方差/故障率 | CPU 统计工具 | ¥0 | 1-3 天 | 在正式 rollout 前锁定 primary metric、样本量、exclusion、seed 和停止规则 | 简历高；研究很高 | P1 |
-| R02 | 多模型、多 seed、多任务的统计闭环 | 只有单 checkpoint 家族的强统计证据 | G08；必要时 H03 | 主要是 GPU 与实验时间 | ¥1,000-5,000 | 2-6 周 | paired design、Wilson/Bootstrap、multiple-comparison correction、失败 taxonomy 和原始数据齐全 | 简历很高；研究很高 | P2 |
-| R03 | 运行时最坏情况分析，区分 P95 与硬 deadline | 目前只有软件 P95/max，没有 OS/WCET 保证 | 独立进程、固定硬件；若真机则实时内核 | 可借用 x86/实时控制机；不要求 GPU | ¥0-3,000 | 1-3 周 | 明确调度假设；压力负载下测 latency distribution；硬保证只在证明条件成立时使用 | 简历高；研究很高 | P2 |
-| R04 | 外部复现包与盲验收 | 本地 validator 很强，但缺独立机器/人员复现记录 | A11 和一个冻结核心实验 | 可借同学机器/CI；必要时少量云费 | ¥0-500 | 2-5 天 | 第三方只按文档完成安装、验证数据和重建表图；记录问题与修复 | 简历很高；研究高 | P1 |
-| R05 | workshop/preprint/主会稿件 | 尚无论文 | 至少 G04+G08，或 G04+H04；明确新颖性和对照 | 模板免费；会议注册/差旅另算 | 云实验约 ¥2,000-10,000；差旅不计 | 1-3 个月 | 方法、直接 baseline、消融、统计、限制、复现包完整；投稿级别由证据决定 | 简历很高；研究很高 | P3 |
-| R06 | 忠实强基线，解决当前 RTC-style 近似不能等同论文方法 | 有 OpenPI 内部条件化实验，但不能表述为完整 RTC/VLASH/Action ControlNet | 对方公开实现、checkpoint 或可复现训练路径；统一时钟协议 | 视方法需 24-80 GB GPU，约 50-200 GPU 小时 | ¥500-3,000 | 1-3 周 | 固定上游 commit；真实实现与近似分开命名；同任务、噪声、时钟和统计协议比较 | 简历高；研究很高 | P2 |
-
-## 四、GPU 云实例应该购买什么
-
-| 用途 | 最低合理配置 | 建议租用时长 | 购买前置检查 | 备注 |
-| --- | --- | ---: | --- | --- |
-| G02 `pi0.5 -> Panda` smoke | Ubuntu 22.04、1 x RTX 4090 24 GB、8-16 vCPU、32-64 GB RAM、150-200 GB SSD | 6-12 小时 | Docker/NVIDIA runtime、OpenPI commit、checkpoint hash、SSH 和下载通道 | 只做在线集成，不训练 |
-| G03/G04 独立时钟 LIBERO | 同上，建议 16 vCPU/64 GB RAM | pilot 12-30 小时；正式矩阵 30-80 小时 | pilot 运行时间、每 rollout 成本、剩余磁盘和自动停机脚本 | 先 pilot 后续费，不一次买满 |
-| G06/G07 OpenVLA-OFT | 至少 16 GB VRAM，建议 24 GB；16 vCPU、64 GB RAM、150-200 GB SSD | 6-30 小时 | 官方仓库/模型许可、模型下载、原生 evaluator 先通过 | 不从合成 fixture 推断显存或成功率 |
-| E01 Isaac Lab | 1 x RTX 3090/4090 24 GB、16 vCPU、64 GB RAM、200 GB SSD | 20-80 小时 | 驱动与 Isaac Lab 版本矩阵、headless 渲染测试 | 画质提升不是租用理由 |
-| T01 小策略训练 | 12-24 GB VRAM、64 GB RAM、100-200 GB SSD | 20-80 小时 | 数据集可读、单 batch overfit、断点续训 | 先在小数据上验证训练管线 |
-| T02/T03 VLA 适配 | 24 GB 是个人项目起点；具体 recipe 可能需要 A100 40/80 GB 或多卡 | 50-200 小时 | 数据质量、单卡可行性、显存 profile、checkpoint 许可 | 不能先买服务器再找研究问题 |
-
-预算表按 4090 约 ¥3-15/小时估算，磁盘、公网流量和镜像另计。若报价明显超过该范围，应换平台或缩短矩阵。实例必须关闭自动续费，开机后先设置预算告警与定时关机；重要 artifact 同步到本地/GitHub Release 后再释放云盘。
-
-## 五、硬件采购清单
-
-以下为低成本 SO-101 类路线的估算，不是指定商家报价。
-
-| 物品 | 是否现在购买 | 用途 | 估算 |
-| --- | --- | --- | ---: |
-| follower 机械臂套件（舵机、控制板、电源） | 仅在 A06/E03 完成后 | 实体执行 | ¥1,500-3,000 |
-| leader 机械臂套件 | 需要自采示范时再买 | 遥操作采集 | ¥1,200-2,500 |
-| 两个 1080p UVC USB 相机 | 真机时需要 | 外部/腕部视觉 | ¥300-1,000 |
-| 相机与机械臂支架、桌夹、标定板、照明 | 真机时需要 | 固定外参和可重复场景 | ¥300-900 |
-| 带供电 USB hub、线材、独立电源 | 真机时需要 | 降低掉线和供电故障 | ¥150-500 |
-| 物理急停或可锁存断电继电器 | 真机时必须 | 软件失效时切断执行器供电 | ¥200-800 |
-| 备用舵机、齿轮、夹爪件和线材 | 建议 | 降低停工风险 | ¥200-600 |
-| 软质任务物体、托盘、防滑垫和桌面防护 | 真机时需要 | 可重复且低风险的操作任务 | ¥100-500 |
-| RealSense 等深度相机 | 现在不买 | 仅当深度/3D 是明确实验变量 | ¥1,500-3,500 |
-| 力/力矩或触觉传感器 | 现在不买 | 仅当接触安全或触觉策略成为主问题 | ¥1,000-20,000+ |
-| Jetson Orin 类边缘计算 | 现在不买 | 只能作为传感/控制节点，不能自然解决大型 VLA 推理 | ¥2,000-8,000 |
-| 本地 RTX 3090/4090 工作站 | 现在不买 | 长期训练/推理 | 仅当预计 GPU 使用超过约 300-500 小时再重新核算 |
-
-## 六、三档预算方案
-
-| 方案 | 总预算 | 应完成的项目 | 最终合理定位 |
-| --- | ---: | --- | --- |
-| 零硬件强化 | ¥0-500 | A02-A11 中的核心项，重点是 A05-A09、官方 LeRobot loader 和 release | 很强的开源机器人运行时/评测工程；仍无新在线模型和真机 |
-| 推荐的云 GPU 方案 | ¥800-2,500 | G01-G07，至少完成真实 `pi0.5` 在线闭环、独立时钟 pilot 和真实 OpenVLA-OFT smoke | 对 VLA 岗位最具性价比；具备两真实模型家族和系统实验证据 |
-| 低成本真机方案 | 云方案 + ¥4,500-8,500 | H01-H04，最好同时完成 T01 或可用真实策略 | 很强的本科/硕士求职项目；有数据、训练/推理、runtime 和实体故障证据 |
-| 论文探索方案 | ¥3,000-10,000 云费 + 实验室设备 | G04/G05/G08、A07-A09、R01-R04，并争取借用 Panda/xArm | 可成为论文基础；是否达到主会仍取决于方法新颖性和结果，不由预算保证 |
-
-## 七、推荐执行顺序与停止条件
-
-1. **现在先做 A02、A05、A06、A07-A09。** 这些工作不需要 GPU，直接补强真实 provider 接口、官方生态和物理约束。
-2. **只有本地 preflight 全通过才租 GPU。** 第一笔 GPU 预算只做 G02 和 G03 的小型 smoke/pilot，完成后立刻下载 artifact 并关机。
-3. **G03 通过后再决定是否做 G04。** 如果独立时钟下几乎没有过期、candidate 没有有效干预或基础设施失败率高，先修协议，不扩大矩阵。
-4. **随后做 G06/G07。** 第二真实 checkpoint 比换仿真器、添加一个装饰性 RL baseline 更能支撑 VLA 岗位叙事。
-5. **求职优先时再选择 H01-H04。** 没有至少三周可用时间，先不买机械臂；硬件装配、标定和故障排查通常比下单更耗时。
-6. **E01、T02、T03、S04 由研究问题触发。** 没有明确假设、baseline 和验收指标时，不以“使用了 Isaac Lab/RL/LoRA”为完成目标。
-
-当前最高收益的下一里程碑固定为：
-
-> 用经过认证的官方 checkpoint，把在线 VLA 推理接入独立推进的执行循环，保留完整时间戳、故障和动作修复证据；然后用第二个真实 VLA 家族验证 provider/runtime 的可迁移性。
-
-## 八、简历与论文判断门槛
-
-| 达成范围 | 简历判断 | 论文判断 |
+| 配置项 | 推荐值 | 原因 |
 | --- | --- | --- |
-| 仅当前 B01-B10 | 已可作为较强、严谨的机器人运行时与评测项目；重点讲可复现证据，不讲端到端部署 | 是研究基础，不足以单独支撑顶会方法论文 |
-| 再完成 A05-A09 | 工业规范、动作安全边界和生态接口更完整 | 方法部件更扎实，但仍缺在线真实模型外部效度 |
-| 再完成 G02-G08 | 对 VLA/具身岗位具有明显竞争力，可讲真实模型、并发时钟和跨模型实验 | 具备 workshop/preprint 或继续打磨的实证基础 |
-| 再完成 H03-H04 或强跨仿真矩阵 | 有实体系统或跨环境证据，项目叙事完整 | 才接近主会审稿人期待的部署证据；仍需新颖方法和直接强基线 |
+| 操作系统 | Ubuntu 22.04 LTS | 与现有 OpenPI、LIBERO、ROS2 Humble 路径一致 |
+| GPU | RTX 4090 24 GB | 满足 `pi0.5` 推理、OpenVLA-OFT 推理和大部分个人实验 |
+| CPU | 16 vCPU，最低 8 vCPU | LIBERO/MuJoCo、视频、数据验证和模型服务并行 |
+| 内存 | 64 GB，最低 32 GB | Docker、仿真器、模型服务和缓存同时运行 |
+| 系统盘/数据盘 | 200 GB 起；两模型并存建议 300-350 GB | 镜像、checkpoint、缓存、视频和 artifact |
+| 网络 | 可访问 GitHub/Hugging Face/模型存储；至少 10 Mbps | 国内网络失败会直接浪费 GPU 计费时间 |
+| 计费 | 按小时；关闭自动续费 | 先 pilot，再决定是否扩大矩阵 |
 
-路线状态更新规则：完成代码但没有真实 checkpoint/硬件运行时只更新到 L0/L1；只有验收标准全部通过、artifact 入库且 validator 通过，才能把对应行改为“完成”。
+### 4.2 GPU 小时与费用
+
+以下按 4090 约 ¥3-15/小时并加入磁盘、下载和失败余量估算。
+
+| 实验包 | GPU 小时 | 预算 | 产出 |
+| --- | ---: | ---: | --- |
+| `pi0.5 -> Panda` 在线 smoke | 6-12 | ¥50-300 | G01，真实 checkpoint 端到端 trace |
+| 独立时钟 40-rollout pilot | 12-30 | ¥100-600 | G02，判断是否值得正式扩大 |
+| `pi0.5` 正式矩阵和在线 repair | 30-100 | ¥500-2,000 | G03-G04 |
+| OpenVLA-OFT smoke 与 provider 接入 | 16-42 | ¥150-800 | G05-G06 |
+| 两模型正式矩阵 | 40-120 | ¥500-2,500 | G07 |
+| Isaac Lab 对照 | 20-80 | ¥200-1,500 | A02，可选 |
+| ACT/DP 小策略训练 | 20-80 | ¥200-1,200 | A03，可选 |
+| LoRA/adapter | 50-200 | ¥500-3,000 | A04，可选 |
+| RL 恢复 | 100-500 | ¥1,500-8,000 | A06，不属于近期主线 |
+
+GPU 实例启动前必须在 CPU 环境完成：代码 checkout、配置生成、协议 freeze、容器构建检查、checkpoint 下载地址检查和自动关机脚本。重要 artifact 在释放云盘前至少保存到本地和一个远程仓库/对象存储。
+
+## 5. 实体硬件采购清单
+
+只在 H01 软件接口完成并决定进入 H02 后购买。
+
+| 物品 | 必需性 | 估算 | 技术用途 |
+| --- | --- | ---: | --- |
+| SO-101 类 follower 套件 | 必需 | ¥1,500-3,000 | 实体执行器与夹爪 |
+| SO-101 类 leader 套件 | 数据采集阶段必需 | ¥1,200-2,500 | 遥操作 demonstrations |
+| 两个 1080p UVC 相机 | 必需 | ¥300-1,000 | 外部与腕部视觉 |
+| 相机/机械臂支架、桌夹、标定板、照明 | 必需 | ¥300-900 | 固定外参与可重复场景 |
+| 带供电 USB hub、电源和线材 | 必需 | ¥150-500 | 降低通信与供电故障 |
+| 可锁存物理急停或断电继电器 | 必需 | ¥200-800 | 软件失效时切断执行器 |
+| 备用舵机、齿轮、夹爪件和线材 | 建议 | ¥200-600 | 降低维修停工时间 |
+| 软质任务物体、托盘和桌面防护 | 必需 | ¥100-500 | 低风险、可重复任务 |
+| 内存升级到 32 GB | 条件购买 | ¥300-800 | 只有确认笔记本可升级且 WSL/并行仿真实测内存不足时购买 |
+| 1 TB 移动 SSD | 条件购买 | ¥350-650 | 本机无法留出至少 150 GB 时保存数据 |
+| RealSense 深度相机 | 现在不买 | ¥1,500-3,500 | 只有深度/3D 成为实验变量时购买 |
+| Jetson Orin | 现在不买 | ¥2,000-8,000 | 大型 VLA 仍需云 GPU，当前没有必要 |
+| 本地 RTX 3090/4090 主机 | 现在不买 | 约 ¥6,000-20,000+ | 预计累计使用超过约 300-500 GPU 小时后再核算 |
+
+单 follower 完整路线约 ¥2,800-7,300；增加 leader 后约 ¥4,000-9,800。价格差异主要来自舵机套件、相机、急停方案和备件，不应只比较机械臂裸套件价格。
+
+## 6. 技术预算方案
+
+| 阶段 | 必做 ID | 所需资源 | 阶段预算 | 达成的技术等级 |
+| --- | --- | --- | ---: | --- |
+| 第一阶段：本地核心 | C01-C05，随后 C06-C07 | 当前电脑；可选 WSL2 | ¥0-100 | provider、独立时钟、QP、连续碰撞和动力学停止达到 L1 |
+| 第二阶段：首次 GPU | G01-G02 | 4090 24 GB，约 18-42 小时，200 GB 盘 | ¥150-900 | 真实 `pi0.5` 在线链路和独立时钟 pilot 达到 L2 |
+| 第三阶段：核心实验 | G03-G07 | 4090 24 GB，约 86-292 小时，250-350 GB 盘 | ¥1,150-6,000 | 正式独立时钟结果与第二真实模型达到 L3-L4 |
+| 第四阶段：低成本真机 | H01-H05；可选 A03 | SO-101 pair、双相机、急停、云 GPU | ¥4,500-12,300；训练另加 ¥200-1,200 | 数据采集、真实策略和故障矩阵达到 L5 |
+| 第五阶段：论文扩展 | A01-A06、G08、H06 中按问题选择 | 更多 GPU 或实验室机器人 | ¥2,000-10,000+ | 是否可投稿取决于新方法和实验结果，不由预算保证 |
+
+## 7. 固定执行顺序
+
+1. 先完成 C01-C05，不购买设备，不租 GPU。
+2. 完成 C06-C07，把官方 LeRobot loader 和统一 fault matrix 接入同一契约。
+3. 所有 CPU preflight 通过后，只租 6-12 小时 GPU 完成 G01。
+4. G01 artifact 可验证后扩展到 G02；pilot 失败时先修时钟/协议，不直接购买更长时长。
+5. G02 通过后再运行 G03-G04，形成真实异步核心实验。
+6. 随后完成 G05-G07，加入第二个真实 VLA 家族。
+7. 只有以上完成后，才在 Isaac Lab、训练、RL 和实体机器人之间按研究问题选择。
+
+近期技术目标固定为：
+
+> 在本地完成 provider、独立时钟、QP、连续碰撞和动力学停止；随后用一台 24 GB GPU 服务器完成真实 `pi0.5` 在线闭环与独立时钟 pilot，再接入真实 OpenVLA-OFT 做跨模型验证。
