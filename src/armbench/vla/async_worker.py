@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import os
 import threading
 import time
 from collections import deque
@@ -48,6 +49,7 @@ class PolicyOutcome:
     chunk: ActionChunk | None
     failure_type: str | None = None
     failure_message: str | None = None
+    worker_process_id: int | None = None
 
     def __post_init__(self) -> None:
         timing = np.asarray(
@@ -59,6 +61,10 @@ class PolicyOutcome:
             or not np.all(np.isfinite(timing))
             or self.started_at_s < self.submitted_at_s
             or self.finished_at_s < self.started_at_s
+            or (
+                self.worker_process_id is not None
+                and self.worker_process_id <= 0
+            )
         ):
             raise ValueError("policy outcome timing is invalid")
         has_chunk = self.chunk is not None
@@ -88,6 +94,7 @@ class PolicyOutcome:
             "queue_wait_ms": self.queue_wait_ms,
             "worker_latency_ms": self.worker_latency_ms,
             "worker_thread_id": self.worker_thread_id,
+            "worker_process_id": self.worker_process_id,
             "policy_source": self.chunk.source if self.chunk is not None else None,
             "failure_type": self.failure_type,
             "failure_message": self.failure_message,
@@ -255,6 +262,7 @@ class LatestPolicyWorker:
                 chunk=chunk,
                 failure_type=failure_type,
                 failure_message=failure_message,
+                worker_process_id=os.getpid(),
             )
             with self._condition:
                 if len(self._outcomes) >= self._max_outcomes:

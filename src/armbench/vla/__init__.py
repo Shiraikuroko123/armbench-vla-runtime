@@ -10,6 +10,7 @@ from armbench.vla.async_runtime import (
     PolicySubmission,
     run_async_runtime_smoke,
 )
+from armbench.vla.async_smoke import run_process_runtime_smoke
 from armbench.vla.artifact import (
     ArtifactValidationError,
     ArtifactValidationResult,
@@ -73,6 +74,10 @@ from armbench.vla.policy import (
     BoundedOpenPIBackend,
     OpenPIPolicyClient,
     ScriptedActionChunkPolicy,
+)
+from armbench.vla.process_worker import (
+    ActionChunkPolicyFactory,
+    ProcessPolicyWorker,
 )
 from armbench.vla.provider_contract import (
     ActionSemantics,
@@ -165,6 +170,7 @@ __all__ = [
     "ProbeBatchComparisonValidationResult",
     "PolicyOutcome",
     "PolicySubmission",
+    "ProcessPolicyWorker",
     "ProviderContractError",
     "ProviderIdentity",
     "PandaCartesianActionAdapter",
@@ -180,6 +186,7 @@ __all__ = [
     "RuntimeFailure",
     "RawActionChunk",
     "RawActionChunkProvider",
+    "ActionChunkPolicyFactory",
     "FrozenResponseProvider",
     "SemanticCompatibilityError",
     "ScriptedActionChunkPolicy",
@@ -202,6 +209,7 @@ __all__ = [
     "run_provider_contract_audit",
     "run_online_episode",
     "run_async_runtime_smoke",
+    "run_process_runtime_smoke",
     "run_cartesian_adapter_smoke",
     "run_lerobot_episode_smoke",
     "load_recorded_openpi_request",

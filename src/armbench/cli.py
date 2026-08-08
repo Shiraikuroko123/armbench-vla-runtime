@@ -26,6 +26,7 @@ from armbench.mujoco_sim.swept_audit import (
 )
 from armbench.scenario import benchmark_scenarios
 from armbench.vla.async_runtime import run_async_runtime_smoke
+from armbench.vla.async_smoke import run_process_runtime_smoke
 from armbench.vla.async_panda import ASYNC_PANDA_MODES
 from armbench.vla.async_panda_benchmark import (
     AsyncPandaCondition,
@@ -153,6 +154,17 @@ def build_parser() -> argparse.ArgumentParser:
         "--action-period-ms", type=float, default=1000.0 / 15.0
     )
     async_smoke.add_argument("--deadline-ms", type=float, default=200.0)
+
+    process_smoke = subparsers.add_parser(
+        "vla-process-smoke",
+        help="verify spawned policy inference against an independent control clock",
+    )
+    process_smoke.add_argument("--policy-latency-ms", type=float, default=160.0)
+    process_smoke.add_argument("--control-period-ms", type=float, default=10.0)
+    process_smoke.add_argument(
+        "--action-period-ms", type=float, default=1000.0 / 15.0
+    )
+    process_smoke.add_argument("--deadline-ms", type=float, default=200.0)
 
     async_panda = subparsers.add_parser(
         "vla-panda-async-run",
@@ -813,6 +825,15 @@ def main(arguments: list[str] | None = None) -> int:
         return 0 if report.ready else 1
     if args.command == "vla-async-smoke":
         report = run_async_runtime_smoke(
+            policy_latency_ms=args.policy_latency_ms,
+            control_period_ms=args.control_period_ms,
+            action_period_ms=args.action_period_ms,
+            deadline_ms=args.deadline_ms,
+        )
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        return 0 if bool(report["passed"]) else 1
+    if args.command == "vla-process-smoke":
+        report = run_process_runtime_smoke(
             policy_latency_ms=args.policy_latency_ms,
             control_period_ms=args.control_period_ms,
             action_period_ms=args.action_period_ms,
