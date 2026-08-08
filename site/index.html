@@ -22,8 +22,8 @@
     <title>ArmBench | Panda 动作块运行时保障</title>
     <link rel="canonical" href="https://shiraikuroko123.github.io/armbench-vla-runtime/">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="styles.css?v=20260809-2">
-    <script src="app.js?v=20260809-2" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260809-3">
+    <script src="app.js?v=20260809-3" defer></script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -305,6 +305,11 @@
             <label class="speed-select"><span data-lang-content="zh">速度</span><span data-lang-content="en">Speed</span><select data-comparison-speed aria-label="Playback speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label>
           </div>
           <p class="media-disclosure"><span data-lang-content="zh">定性视频是 32 个 aligned-only win 中选出的 1 组；聚合数字使用全部 120 组配对。两段录像均为 1×，较短的成功录像完成后停在末帧，基线继续到 22 秒。另有跨任务集扩展和一个不支持 RTC 优越性的 null result，均在 RESULTS.md 如实保留。</span><span data-lang-content="en">The qualitative pair is 1 selected case among 32 aligned-only wins; aggregate numbers use all 120 pairs. Both clips run at 1×; the shorter success clip holds its final frame while the baseline continues to 22 seconds. A cross-suite extension and a null result that does not support RTC superiority are preserved in RESULTS.md.</span></p>
+          <div class="inline-evidence lerobot-evidence reveal">
+            <span>v3.0</span>
+            <p><strong><span data-lang-content="zh">官方 LeRobotDataset roundtrip</span><span data-lang-content="en">Official LeRobotDataset roundtrip</span></strong><small><span data-lang-content="zh">LeRobot 0.4.4 · 3 帧 / 6 图像 · Panda H×8 语义 · 未做 SO-101 转换</span><span data-lang-content="en">LeRobot 0.4.4 · 3 frames / 6 images · Panda H×8 semantics · no SO-101 conversion</span></small></p>
+            <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/official_lerobot_roundtrip_001/summary.json" target="_blank" rel="noreferrer">summary.json <span aria-hidden="true">↗</span></a>
+          </div>
           <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/RESULTS.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">查看完整 VLA 统计与 null result</span><span data-lang-content="en">Inspect full VLA statistics and the null result</span><span aria-hidden="true">↗</span></a>
         </div>
       </section>

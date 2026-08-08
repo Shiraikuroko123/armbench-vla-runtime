@@ -24,7 +24,8 @@ accepted trajectory to MuJoCo torque execution.
 5. Registered 27-case fault matrix with outcome distribution.
 6. Two assured MuJoCo tasks, physical predicates, gripper collision boundary,
    and offline latency disclosure.
-7. Separate π0.5-LIBERO evidence with synchronized authentic comparison clips.
+7. Separate π0.5-LIBERO evidence with synchronized authentic comparison clips,
+   plus an official LeRobotDataset v3.0 Panda H×8 roundtrip.
 8. Local CPU acceptance commands and a four-step acceptance path.
 9. Verified 17-case asynchronous CPU boundary disclosure.
 10. Proven / not-claimed scope block and architecture link.
@@ -43,6 +44,7 @@ accepted trajectory to MuJoCo torque execution.
 | `integrated_panda_fault_matrix_001` | 27/27 expected outcomes; 12 accepted, 6 verified brakes, 7 holds, 2 unrecoverable stops; 124 edges | scripted inputs; synchronous offline CPU |
 | `integrated_panda_task_001` | 2/2 target reaches; 351/351 motion edges and braking boundaries; zero registered contacts, self contacts, limit violations, or torque saturation | MuJoCo torque execution; joint-waypoint task |
 | π0.5 measured-age run | 88/120 baseline versus 116/120 aligned; +23.33 pp; exact McNemar p = 1.94e-6 | independent LIBERO experiment; no Panda adapter |
+| `official_lerobot_roundtrip_001` | official LeRobot 0.4.4 / LeRobotDataset v3.0 reload; 3 frames, 6 image fields, Panda H×8 semantics | CPU dataset-interface roundtrip; no SO-101 conversion, policy training, or robot connection |
 
 The task artifact reports 5.27 s and 10.20 s full-horizon offline supervision. The
 fixed-open `left_finger` / `right_finger` body pair is the only explicit allowed

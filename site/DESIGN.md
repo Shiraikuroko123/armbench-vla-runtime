@@ -22,7 +22,8 @@ does not use generated robot imagery, a generic VLA hero, or a marketing claim.
   certificate; rejection is atomic.
 - **Evidence:** `panda-narrow-gate.mp4`, the 17-case asynchronous provider
   boundary, the 27-case fault matrix, two saved MuJoCo task traces, and the
-  separate π0.5-LIBERO comparison pair.
+  separate π0.5-LIBERO comparison pair, plus the official LeRobotDataset v3.0
+  Panda H×8 roundtrip.
 - **Current facts:** 17/17 asynchronous boundary outcomes, 6 complete plans,
   10 holds, 1 unrecoverable stop, and zero partial prefixes; 27/27 expected
   fault outcomes, 12 accepted, 6 verified
@@ -84,7 +85,8 @@ column and long case identifiers remain inspectable on mobile.
   `docs/RESULTS.md`, and manifests under
   `reports/cpu_runtime_completion_001/`,
   `reports/integrated_panda_fault_matrix_001/` and
-  `reports/integrated_panda_task_001/`.
+  `reports/integrated_panda_task_001/`, plus
+  `reports/official_lerobot_roundtrip_001/`.
 - Code and artifact links point to the public repository
   `Shiraikuroko123/armbench-vla-runtime`.
 - Code license and third-party asset terms are linked in the footer.

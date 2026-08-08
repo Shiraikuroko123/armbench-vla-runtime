@@ -1274,6 +1274,10 @@ html[data-lang="en"] [data-lang-content="zh"] {
   font-size: 13px;
 }
 
+.lerobot-evidence {
+  margin: 24px 0 16px;
+}
+
 /* Reproduction */
 
 .command-console {
