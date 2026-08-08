@@ -21,7 +21,7 @@ role. The page helps a robotics reviewer answer three questions quickly:
   pair, exact paired statistics, and immutable evidence artifacts.
 - **Artifacts:** source, generated evidence catalog, result protocol, debugging
   guide, acceptance commands, license, and third-party notices.
-- **Status:** simulation-only, no training or fine-tuning, updated 2026-08-07.
+- **Status:** simulation-only, no training or fine-tuning, updated 2026-08-08.
 
 ## Audience
 
@@ -60,9 +60,12 @@ layer of support for the measured-age result.
 4. Synchronized matched-video player with selection disclosure.
 5. Interactive observation-age timeline using the frozen 50 ms rule.
 6. Two independent testbeds and their unclosed integration gap.
-7. Scripted non-learned fault artifacts with direct provenance links.
-8. Established and unsupported claim boundaries.
-9. GPU-free catalog, measured-age, and RTC acceptance commands.
+7. Runtime extensions: provider ABI, LeRobot-style watchdog replay, trajectory
+   repair, asynchronous Panda control, artifact integrity, and
+   clearance-backed swept auditing.
+8. Scripted non-learned fault artifacts with direct provenance links.
+9. Established and unsupported claim boundaries.
+10. GPU-free catalog, measured-age, RTC, and component acceptance commands.
 
 ## Verified Claims
 
@@ -75,6 +78,19 @@ layer of support for the measured-age result.
   and 97/100 successes. Holm-adjusted p = 1.0; superiority is unsupported.
 - Panda: local planning, time parameterization, torque-limited joint PD,
   action validation, collision sampling, and bounded scripted fault responses.
+- Provider-neutral action contract: a synthetic OpenVLA-OFT-named fixture maps
+  `6x7` to `6x8` and rejects 5/5 semantic mismatches; no OpenVLA-OFT checkpoint
+  was executed.
+- LeRobot-style boundary: a five-frame in-memory replay executes three valid
+  commands, holds a stale observation, preserves a fault latch, and recovers
+  only after explicit reset; no official LeRobot runtime is used.
+- Braking repair and swept audit: 270 paired offline cases satisfy all
+  registered constraints after repair, while 72 seeded static-obstacle edges
+  produce zero false-safe decisions against a denser sampled oracle.
+- Asynchronous Panda loop: 27 wall-clock CPU cases connect dual-camera capture,
+  a blocking scripted policy worker, temporal dispatch, trajectory repair, and
+  torque control. Braking-invariant mode records 9/9 physical predicates and
+  zero abrupt-stop violations, but reaches the target in only 1/9 cases.
 
 ## Claim Boundaries
 
@@ -86,6 +102,8 @@ layer of support for the measured-age result.
 - Scripted fault cards do not run π0.5 and do not establish VLA safety.
 - No cross-checkpoint generalization, Isaac Lab, or ROS2 claim.
 - LIBERO and Panda outcomes remain separate evidence domains.
+- The new provider, watchdog, and artifact components are software contracts
+  and replayable diagnostics; they are not hardware driver or safety-PLC proof.
 
 ## Delivery
 

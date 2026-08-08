@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0b0d0d">
-    <meta name="description" content="ArmBench：π0.5-LIBERO 观测年龄对齐证据与脚本化 MuJoCo 故障响应 artifact。">
+    <meta name="description" content="ArmBench：π0.5-LIBERO 观测年龄对齐、Panda 运行时修复，以及 provider 与 LeRobot 风格接口审计。">
     <meta property="og:type" content="website">
     <meta property="og:title" content="ArmBench | Runtime supervision for action-chunk VLA">
-    <meta property="og:description" content="Measured-age π0.5-LIBERO evidence plus scripted MuJoCo fault-response artifacts.">
+    <meta property="og:description" content="Measured-age π0.5-LIBERO evidence with auditable Panda repair, provider contracts, and LeRobot-style watchdog replay.">
     <meta property="og:url" content="https://shiraikuroko123.github.io/armbench-vla-runtime/">
     <meta property="og:image" content="https://shiraikuroko123.github.io/armbench-vla-runtime/assets/og-armbench.png">
     <meta property="og:image:alt" content="ArmBench runtime supervision view with Panda simulation evidence.">
@@ -15,10 +15,10 @@
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="ArmBench | Runtime supervision for action-chunk VLA">
-    <meta name="twitter:description" content="Measured-age π0.5-LIBERO evidence plus scripted MuJoCo fault-response artifacts.">
+    <meta name="twitter:description" content="Measured-age π0.5-LIBERO evidence with auditable Panda repair, provider contracts, and LeRobot-style watchdog replay.">
     <meta name="twitter:image" content="https://shiraikuroko123.github.io/armbench-vla-runtime/assets/og-armbench.png">
     <meta name="twitter:image:alt" content="ArmBench runtime supervision view with Panda simulation evidence.">
-    <meta name="last-modified" content="2026-08-07">
+    <meta name="last-modified" content="2026-08-08">
     <title>ArmBench | VLA 运行时监督</title>
     <link rel="canonical" href="https://shiraikuroko123.github.io/armbench-vla-runtime/">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -27,17 +27,17 @@
         "@context": "https://schema.org",
         "@type": "SoftwareSourceCode",
         "name": "ArmBench",
-        "description": "Runtime supervision and audit-ready evaluation for action-chunk VLA policies.",
+        "description": "Runtime supervision, provider contracts, and audit-ready evaluation for action-chunk VLA policies.",
         "url": "https://shiraikuroko123.github.io/armbench-vla-runtime/",
         "codeRepository": "https://github.com/Shiraikuroko123/armbench-vla-runtime",
         "programmingLanguage": ["Python", "JavaScript"],
         "runtimePlatform": "LIBERO and MuJoCo simulation",
         "license": "https://opensource.org/licenses/MIT",
-        "dateModified": "2026-08-07"
+        "dateModified": "2026-08-08"
       }
     </script>
-    <link rel="stylesheet" href="styles.css?v=20260807-5">
-    <script src="app.js?v=20260807-4" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260808-2">
+    <script src="app.js?v=20260808-1" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">
@@ -55,6 +55,7 @@
           <a href="#evidence"><span data-lang-content="zh">证据</span><span data-lang-content="en">Evidence</span></a>
           <a href="#method"><span data-lang-content="zh">时间监督</span><span data-lang-content="en">Timing</span></a>
           <a href="#system"><span data-lang-content="zh">系统</span><span data-lang-content="en">System</span></a>
+          <a href="#runtime"><span data-lang-content="zh">运行时扩展</span><span data-lang-content="en">Extensions</span></a>
           <a href="#scope"><span data-lang-content="zh">边界</span><span data-lang-content="en">Scope</span></a>
           <a href="#review"><span data-lang-content="zh">复验</span><span data-lang-content="en">Reproduce</span></a>
         </nav>
@@ -110,6 +111,12 @@
           <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/EVIDENCE_CATALOG.md" target="_blank" rel="noreferrer"><span class="artifact-key">EVIDENCE</span><strong><span data-lang-content="zh">分类、清单与哈希</span><span data-lang-content="en">Catalog, manifests, hashes</span></strong></a>
           <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/RESULTS.md" target="_blank" rel="noreferrer"><span class="artifact-key">RESULTS</span><strong><span data-lang-content="zh">协议与统计复算</span><span data-lang-content="en">Protocol and statistics</span></strong></a>
           <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/DEBUGGING.md" target="_blank" rel="noreferrer"><span class="artifact-key">RUN</span><strong><span data-lang-content="zh">本地调试路径</span><span data-lang-content="en">Local debugging path</span></strong></a>
+        </div>
+        <div class="shell status-line">
+          <span class="status-key">STATUS</span>
+          <strong><span data-lang-content="zh">CI 全部通过</span><span data-lang-content="en">CI passing</span></strong>
+          <span class="status-copy"><span data-lang-content="zh">CPU / MuJoCo / LIBERO 仿真；当前无真机安全声明</span><span data-lang-content="en">CPU / MuJoCo / LIBERO simulation; no physical-safety claim</span></span>
+          <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/actions" target="_blank" rel="noreferrer"><span data-lang-content="zh">查看 Actions</span><span data-lang-content="en">Open Actions</span><span aria-hidden="true">↗</span></a>
         </div>
       </section>
 
@@ -238,6 +245,59 @@
         </div>
       </section>
 
+      <section class="section runtime-section" id="runtime" aria-labelledby="runtime-title">
+        <div class="shell">
+          <div class="section-heading reveal">
+            <h2 id="runtime-title"><span data-lang-content="zh">新增的运行时边界，都可以独立复验。</span><span data-lang-content="en">Every new runtime boundary is independently replayable.</span></h2>
+            <p><span data-lang-content="zh">2026-08-08 的迭代把 provider 语义、动作修复、执行器 watchdog 和 artifact 重放拆成可替换、可验证的组件。下列结果是工程验收证据，不是新的模型能力或真机安全认证。</span><span data-lang-content="en">The 2026-08-08 iteration separates provider semantics, trajectory repair, actuator watchdogs, and artifact replay into replaceable, verifiable components. These are engineering acceptance artifacts, not new model capability or physical-safety certification.</span></p>
+          </div>
+
+          <div class="runtime-capability-grid reveal">
+            <article class="runtime-capability">
+              <div class="runtime-capability-head"><span>PROVIDER ABI</span><strong>SEMANTIC GATE</strong></div>
+              <div class="runtime-capability-metric"><strong>6×7 → 6×8</strong><span>5/5 semantic mismatches rejected</span></div>
+              <p><span data-lang-content="zh">provider 身份、动作顺序、坐标系、归一化和观测绑定进入 canonical contract。OpenVLA-OFT 仅作为合成 ABI fixture，未执行 checkpoint。</span><span data-lang-content="en">Provider identity, ordering, frames, normalization, and observation binding are part of a canonical contract. OpenVLA-OFT is a synthetic ABI fixture; no checkpoint was executed.</span></p>
+              <a class="runtime-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/PROVIDER_CONTRACT.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">查看 contract 与 validator</span><span data-lang-content="en">Inspect contract and validator</span><span aria-hidden="true">↗</span></a>
+            </article>
+
+            <article class="runtime-capability">
+              <div class="runtime-capability-head"><span>ACTUATOR BOUNDARY</span><strong>LEROBOT-STYLE</strong></div>
+              <div class="runtime-capability-metric"><strong>5 frames</strong><span>3 commands / hold / reset replayed</span></div>
+              <p><span data-lang-content="zh">把受保护的 Panda 命令映射为 LeRobot 风格的 in-memory frame，并重放 watchdog 的过期保持、故障锁存和显式 reset。</span><span data-lang-content="en">Guarded Panda commands are mapped to LeRobot-style in-memory frames, then the watchdog's stale hold, fault latch, and explicit reset are replayed.</span></p>
+              <a class="runtime-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/LEROBOT_RUNTIME_BRIDGE.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">查看 episode replay</span><span data-lang-content="en">Inspect episode replay</span><span aria-hidden="true">↗</span></a>
+            </article>
+
+            <article class="runtime-capability">
+              <div class="runtime-capability-head"><span>TRAJECTORY REPAIR</span><strong>OFFLINE PANDA DIAGNOSTIC</strong></div>
+              <div class="runtime-capability-metric"><strong>264/270 → 270/270</strong><span>6 conflicts removed / 0 regressions</span></div>
+              <p><span data-lang-content="zh">对已验证的 π0.5 响应归档执行有界 braking-invariant scale search，同时检查速度、加速度、关节限位、碰撞边和终端制动路径。</span><span data-lang-content="en">A bounded braking-invariant scale search replays attested π0.5 responses while checking velocity, acceleration, joint limits, collision edges, and terminal braking.</span></p>
+              <a class="runtime-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/PI05_PANDA_BRAKING_REPAIR.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">查看 270-case report</span><span data-lang-content="en">Inspect the 270-case report</span><span aria-hidden="true">↗</span></a>
+            </article>
+
+            <article class="runtime-capability">
+              <div class="runtime-capability-head"><span>SWEPT EDGE AUDIT</span><strong>MUJOCO GEOMETRY</strong></div>
+              <div class="runtime-capability-metric"><strong>72 seeded edges</strong><span>0 false-safe decisions</span></div>
+              <p><span data-lang-content="zh">根据 clearance 推导关节空间运动上界并细分每条边，与更密采样 oracle 对照。该结论只覆盖静态障碍，不等同于连续自碰或真机安全证明。</span><span data-lang-content="en">Clearance-derived joint-motion bounds subdivide every edge and are checked against a denser sampled oracle. The result covers static obstacles only, not continuous self-collision or hardware safety.</span></p>
+              <a class="runtime-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/MUJOCO_SWEPT_AUDIT.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">查看几何审计协议</span><span data-lang-content="en">Inspect swept-audit protocol</span><span aria-hidden="true">↗</span></a>
+            </article>
+
+            <article class="runtime-capability">
+              <div class="runtime-capability-head"><span>ASYNC PANDA LOOP</span><strong>SCRIPTED CPU POLICY</strong></div>
+              <div class="runtime-capability-metric"><strong>27 wall-clock cases</strong><span>braking mode: 9/9 physical predicate / 0 abrupt stops</span></div>
+              <p><span data-lang-content="zh">双相机采集、阻塞 policy worker、观测年龄调度、制动修复与力矩控制进入同一 MuJoCo 闭环，并覆盖 jitter、丢响应、负载和动作故障。braking 模式仅 1/9 到达目标，安全/进度代价被明确保留。</span><span data-lang-content="en">Dual-camera capture, a blocking policy worker, age-aware dispatch, braking repair, and torque control run in one MuJoCo loop across jitter, response loss, payload, and action faults. Braking reaches the target in only 1/9 cases, preserving the safety/progress tradeoff.</span></p>
+              <a class="runtime-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/ASYNC_PANDA_CLOSED_LOOP.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">查看异步闭环矩阵</span><span data-lang-content="en">Inspect asynchronous matrix</span><span aria-hidden="true">↗</span></a>
+            </article>
+
+            <article class="runtime-capability">
+              <div class="runtime-capability-head"><span>ARTIFACT INTEGRITY</span><strong>BYTE-BOUND EVIDENCE</strong></div>
+              <div class="runtime-capability-metric"><strong>SHA-256 + replay</strong><span>canonical JSON / staged validation / indexed audit</span></div>
+              <p><span data-lang-content="zh">严格序列化、分阶段 watchdog 校验和在线 audit 行索引让每个数字都能回到原始字节与 validator；这些改进提升可复现性，不改变既有实验主张。</span><span data-lang-content="en">Strict serialization, staged watchdog validation, and indexed online-audit rows trace every number back to bytes and a validator; these changes improve reproducibility without changing the existing study claims.</span></p>
+              <a class="runtime-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/EVIDENCE_CATALOG.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">查看证据目录</span><span data-lang-content="en">Inspect evidence catalog</span><span aria-hidden="true">↗</span></a>
+            </article>
+          </div>
+        </div>
+      </section>
+
       <section class="section fault-section" aria-labelledby="fault-title">
         <div class="shell">
           <div class="section-heading reveal">
@@ -259,7 +319,7 @@
             <h2 id="scope-title"><span data-lang-content="zh">这项工程证明了什么，也明确没有证明什么。</span><span data-lang-content="en">What this work proves, and what it does not.</span></h2>
           </div>
           <div class="scope-columns reveal">
-            <div class="scope-column scope-proven"><h3><span data-lang-content="zh">当前已建立</span><span data-lang-content="en">ESTABLISHED NOW</span></h3><ul><li><span data-lang-content="zh">冻结官方 π0.5 checkpoint 的 LIBERO 仿真时间结果</span><span data-lang-content="en">Frozen official π0.5 checkpoint timing results in LIBERO simulation</span></li><li><span data-lang-content="zh">匹配随机性、exact test 与 artifact 完整性</span><span data-lang-content="en">Paired randomness, exact tests, and artifact integrity</span></li><li><span data-lang-content="zh">Panda 本地规划、跟踪、guard 与故障路径</span><span data-lang-content="en">Local Panda planning, tracking, guards, and fault paths</span></li><li><span data-lang-content="zh">无需 GPU 的离线 evidence acceptance</span><span data-lang-content="en">GPU-free offline evidence acceptance</span></li></ul></div>
+            <div class="scope-column scope-proven"><h3><span data-lang-content="zh">当前已建立</span><span data-lang-content="en">ESTABLISHED NOW</span></h3><ul><li><span data-lang-content="zh">冻结官方 π0.5 checkpoint 的 LIBERO 仿真时间结果</span><span data-lang-content="en">Frozen official π0.5 checkpoint timing results in LIBERO simulation</span></li><li><span data-lang-content="zh">匹配随机性、exact test 与 artifact 完整性</span><span data-lang-content="en">Paired randomness, exact tests, and artifact integrity</span></li><li><span data-lang-content="zh">Panda 本地规划、异步闭环、guard 与故障路径</span><span data-lang-content="en">Local Panda planning, asynchronous control, guards, and fault paths</span></li><li><span data-lang-content="zh">provider-neutral contract 与 LeRobot 风格 watchdog replay</span><span data-lang-content="en">Provider-neutral contracts and LeRobot-style watchdog replay</span></li><li><span data-lang-content="zh">swept edge 审计与 braking-invariant 离线修复</span><span data-lang-content="en">Swept-edge auditing and braking-invariant offline repair</span></li><li><span data-lang-content="zh">无需 GPU 的离线 evidence acceptance</span><span data-lang-content="en">GPU-free offline evidence acceptance</span></li></ul></div>
             <div class="scope-column scope-open"><h3><span data-lang-content="zh">当前未建立</span><span data-lang-content="en">NOT ESTABLISHED</span></h3><ul><li><span data-lang-content="zh">真机、硬实时或碰撞安全认证</span><span data-lang-content="en">Real robot, hard real time, or collision-safety certification</span></li><li><span data-lang-content="zh">π0.5 控制 Panda，或两条路径结果可以合并</span><span data-lang-content="en">π0.5 controls Panda, or the two paths can be pooled</span></li><li><span data-lang-content="zh">跨 VLA checkpoint 的普适性</span><span data-lang-content="en">Generality across VLA checkpoints</span></li><li><span data-lang-content="zh">训练、微调、Isaac Lab 或 ROS2 集成</span><span data-lang-content="en">Training, fine-tuning, Isaac Lab, or ROS2 integration</span></li></ul></div>
           </div>
         </div>

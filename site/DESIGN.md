@@ -66,6 +66,10 @@ There are no gradients, decorative orbs, neon circuitry, or stock imagery.
   execution window, and execute/refresh state from the frozen protocol.
 - **Testbed split:** π0.5-LIBERO and Panda-MuJoCo stay visually and
   semantically separate, followed by the integration gap.
+- **Runtime extensions:** provider ABI, LeRobot-style frame replay,
+  braking-invariant repair, asynchronous Panda control, artifact integrity,
+  and clearance-backed swept auditing are shown as independently replayable
+  engineering artifacts.
 - **Fault map:** scripted non-learned detection and response rows with direct
   artifact links.
 - **Claim boundary:** established and unsupported claims receive equal visual
@@ -129,4 +133,8 @@ the first viewport without horizontal overflow.
   `evidence/pi05_libero_measured_age_confirmatory_001`.
 - Numerical claims: `docs/RESULTS.md`, repository evidence manifests, and the
   cross-suite evidence Release.
+- Runtime extension claims: `docs/PROVIDER_CONTRACT.md`,
+  `docs/LEROBOT_RUNTIME_BRIDGE.md`, `docs/PI05_PANDA_BRAKING_REPAIR.md`, and
+  `docs/MUJOCO_SWEPT_AUDIT.md`, `docs/ASYNC_PANDA_CLOSED_LOOP.md`, plus their
+  checked-in reports.
 - Licensing: repository `LICENSE` and `THIRD_PARTY_NOTICES.md`.
