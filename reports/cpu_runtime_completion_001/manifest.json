@@ -1,0 +1,31 @@
+{
+  "files": [
+    {
+      "path": "cases.json",
+      "sha256": "73b8316e7727a6dccc6f3abe6d3994a6b4553d8a3c03df295993c626541e0f4b",
+      "size_bytes": 4018
+    },
+    {
+      "path": "per_case.csv",
+      "sha256": "b2406df9e233e95aa7a13f9b5c5d2a86e142e2d23bd53e20f1d9eb563fa09e12",
+      "size_bytes": 5145
+    },
+    {
+      "path": "provenance.json",
+      "sha256": "03f80e462ff733c0dbbebb8531d41784ea5978dad042bb85486512794bce4b72",
+      "size_bytes": 2414
+    },
+    {
+      "path": "summary.json",
+      "sha256": "8c6af09de6603226a373e13487eac34b70e9b750403eaf8fc37dceb6946c941f",
+      "size_bytes": 18918
+    },
+    {
+      "path": "summary.md",
+      "sha256": "713a312f567bc7670948355db49b87f8083e8dc4747f227b54e9509f852dc574",
+      "size_bytes": 2398
+    }
+  ],
+  "inventory_sha256": "8eeeff20c2f8643d2fb937dbd336df8bd0496a8765a32f98f20e59b05d1ecd68",
+  "schema_version": "armbench.cpu_runtime_completion_manifest.v1"
+}

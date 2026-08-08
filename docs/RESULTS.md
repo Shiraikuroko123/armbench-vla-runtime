@@ -604,6 +604,32 @@ Both validators rerun their registered decisions; the task validator also
 replans and re-executes MuJoCo physics. Commands and visual replay are documented
 in [integrated Panda action assurance](INTEGRATED_PANDA_ASSURANCE.md).
 
+### Provider-neutral asynchronous publication boundary
+
+The CPU completion matrix adds a separate policy worker and a separate
+integrated-assurance worker in front of a generation-aware atomic publication
+gate. It covers fixed 0/40/80/160 ms provider delay, mock/frozen/interface
+provider modes, malformed and non-finite actions, disconnect, timeout, response
+sequence mismatch, stale observation, robot-state mismatch, reset replay,
+supervision-budget exhaustion, a near-limit unrecoverable stop, and an
+endpoint-safe edge with an intermediate Panda self-collision.
+
+All 17 registered outcomes reproduced: six complete plans were published, ten
+cases held, one entered `unrecoverable_stop`, and no rejected result exposed a
+partial policy-action prefix. All 17 policy calls ran away from the control
+thread; all 12 successful provider responses continued through a separate
+assurance worker. The OpenPI-compatible row is explicitly a synthetic interface
+fixture and does not execute a checkpoint.
+
+The artifact validator checks an exact recursive file set, implementation
+SHA-256 values, fixed source-registered cases, CSV/JSON/Markdown agreement and
+provider aggregates before rerunning every case. Tests also show that unsigned
+tampering, re-signed semantic tampering, re-signed case changes and re-signed
+source-hash changes fail validation. The artifact is in
+[`reports/cpu_runtime_completion_001`](../reports/cpu_runtime_completion_001/summary.json),
+with commands and breakpoints in
+[the Chinese CPU completion guide](CPU_RUNTIME_COMPLETION_ZH.md).
+
 This result closes the local planning-assurance-execution integration path for
 scripted joint-waypoint tasks. It does not run a learned VLA, prove grasp or
 object-manipulation performance, meet an online deadline, establish operating

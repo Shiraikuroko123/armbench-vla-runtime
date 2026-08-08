@@ -21,6 +21,7 @@ to match later results.
 | --- | --- | --- |
 | [Architecture and claim boundaries](PROJECT_ARCHITECTURE.md) | Current | Two execution paths, shared runtime layer, terminology, and integration boundary |
 | [架构与主张边界](PROJECT_ARCHITECTURE_ZH.md) | Current | 中文架构、术语和可公开主张范围 |
+| [中文代码导读](CODE_WALKTHROUGH_ZH.md) | Operational | 从 CLI、provider/worker、调度器到 Panda 保障链和 artifact validator 的断点地图 |
 | [完整改进路线与采购表](ROADMAP_ZH.md) | Current | 后续工作、前置条件、预算、验收标准、优先级与采购边界 |
 | [Results](RESULTS.md) | Current | Verified outcomes, provenance, statistics, and study-specific limitations |
 | [Evidence catalog](EVIDENCE_CATALOG.md) | Current | Complete artifact inventory, evidence classes, review links, validators, and claim boundaries |
@@ -34,6 +35,7 @@ to match later results.
 | [Panda 动力学制动审计](DYNAMICS_BRAKING_AUDIT_ZH.md) | Current | 负载、阻尼、初速度矩阵中的逆动力学、连续碰撞边与主张边界 |
 | [Integrated Panda action assurance](INTEGRATED_PANDA_ASSURANCE.md) | Current | Atomic OSQP, continuous-collision, stop-invariant supervision plus rerunnable MuJoCo task evidence |
 | [Panda 集成动作保障链](INTEGRATED_PANDA_ASSURANCE_ZH.md) | Current | 原子动作监管、注册故障矩阵、闭环任务证据、本地验收与在线耗时边界 |
+| [Panda 异步动作保障 CPU 收口](CPU_RUNTIME_COMPLETION_ZH.md) | Operational | provider、双 worker、完整监督与 reset-safe 原子发布的 17 案例验收 |
 | [Official LeRobotDataset round-trip](OFFICIAL_LEROBOT_ROUNDTRIP.md) | Current | Pinned LeRobot v3.0 dataset export, isolated loader reload, and exact Panda feature semantics |
 | [官方 LeRobotDataset round-trip](OFFICIAL_LEROBOT_ROUNDTRIP_ZH.md) | Current | 官方 loader 版本锁定、Panda Hx8 动作语义与逐字段 round-trip |
 | [MuJoCo swept 碰撞审计](MUJOCO_SWEPT_AUDIT_ZH.md) | Current | 基于 clearance 的静态障碍细分、dense 对照和主张边界 |
@@ -52,6 +54,7 @@ to match later results.
 | [Measured-age temporal alignment](MEASURED_LATENCY_RUNTIME.md) | Current | Timestamp-based suffix selection and held-out confirmation |
 | [Non-blocking runtime harness](ASYNC_RUNTIME.md) | Current | Threaded inference mailbox, latest-only queue, deadline dispatch, and limitations |
 | [非阻塞运行时验收](ASYNC_RUNTIME_ZH.md) | Current | 独立推理线程、latest-only 队列、deadline 调度与证据边界 |
+| [Panda 异步动作保障 CPU 收口](CPU_RUNTIME_COMPLETION_ZH.md) | Current | provider-neutral 输入、异步集成监督、原子发布与可重算故障矩阵 |
 | [Asynchronous Panda closed loop](ASYNC_PANDA_CLOSED_LOOP.md) | Current | Live dual-camera capture, blocking policy worker, measured-age dispatch, braking fallback, and torque-level MuJoCo execution |
 | [异步 Panda 闭环运行时](ASYNC_PANDA_CLOSED_LOOP_ZH.md) | Current | 双相机采集、异步策略、观测年龄调度、制动回退与 MuJoCo 力矩执行的本地验收 |
 | [LIBERO-to-Panda Cartesian adapter](PANDA_CARTESIAN_ADAPTER.md) | Current | Jacobian-based component bridge from 7-D Cartesian chunks to guarded Panda joint velocity |

@@ -96,10 +96,14 @@ pair，并不是任意关闭 36 对机械臂自碰撞；其余注册的 Panda �
 
 & '.\.venv\Scripts\python.exe' -m armbench vla-integrated-task-validate `
   reports\integrated_panda_task_001
+
+& '.\.venv\Scripts\python.exe' -m armbench vla-cpu-runtime-validate `
+  reports\cpu_runtime_completion_001
 ```
 
 第一个 validator 会重建注册输入并重跑 27 个 supervisor 决策；第二个会重新运行
-规划、动作保障、MuJoCo 物理、轨迹数组与汇总指标，而不只是读取 JSON。
+规划、动作保障、MuJoCo 物理、轨迹数组与汇总指标；第三个会重放 17 个 provider、
+异步保障和原子发布场景。它们都不只是读取 JSON。
 
 仓库还提供与启动目录无关的一键脚本。在仓库根目录执行；若从其他目录启动，则向
 `-File` 传入脚本的绝对路径，不再依赖容易出错的 `..\.venv`：

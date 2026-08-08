@@ -71,12 +71,15 @@ and then the legacy workspace-level `upstream/mujoco_menagerie` directory.
   reports\integrated_panda_fault_matrix_001
 & '.\.venv\Scripts\python.exe' -m armbench vla-integrated-task-validate `
   reports\integrated_panda_task_001
+& '.\.venv\Scripts\python.exe' -m armbench vla-cpu-runtime-validate `
+  reports\cpu_runtime_completion_001
 .\scripts\vla_demo.cmd -CheckOnly
 ```
 
-The two integrated validators rebuild the registered supervisor inputs. The
-task validator also replans and re-executes both torque-controlled MuJoCo cases,
-so it normally takes tens of seconds on a laptop CPU. On the current nested
+The three integrated validators rebuild their registered inputs. The
+asynchronous validator replays both workers and the atomic gate; the task
+validator also replans and re-executes both torque-controlled MuJoCo cases, so
+the complete acceptance normally takes tens of seconds on a laptop CPU. On the current nested
 Windows workspace, run both through a script that resolves the repository and
 virtual-environment paths. Use an absolute `-File` path when launching outside
 the repository root:

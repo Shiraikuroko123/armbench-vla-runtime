@@ -1,6 +1,6 @@
 # ArmBench Architecture and Claim Boundaries
 
-Status: Current. Updated: 2026-08-08.
+Status: Current. Updated: 2026-08-09.
 
 ## Purpose
 
@@ -92,6 +92,13 @@ measured-state terminal braking, and trace-derived validation. It has not
 replaced the blocking-inference plus simulator-catch-up evaluator used by the
 completed `pi0.5` studies.
 
+A CPU completion path now places the full integrated Panda supervisor on a
+second worker after provider inference. A generation-aware atomic gate rechecks
+deadline, state drift, request order, and reset epoch immediately before a
+complete plan can be published. Its current providers are mock, frozen, or
+interface fixtures; this closes a runtime boundary without claiming learned
+checkpoint execution.
+
 ## Current evidence
 
 | Component | Validated result | Claim boundary |
@@ -101,6 +108,7 @@ completed `pi0.5` studies.
 | RTC-style sampler extension | 300 matched triplets: 96/100 baseline, 97/100 hard projection, 97/100 RTC | No task-success superiority; seam metrics are exploratory |
 | Panda runtime | Protocol/guard/fault traces in local MuJoCo | Not official `pi0.5` policy efficacy or physical safety proof |
 | Integrated Panda supervisor | 27/27 fault outcomes reproduced: 12 accepted, 6 verified brakes, 7 holds, 2 unrecoverable stops; no rejected chunk exposed a partial prefix | Synchronous CPU reference chain; scripted action source and offline timing, not hard real time |
+| Asynchronous assurance publication | 17/17 provider/timing/state/reset/budget/collision outcomes reproduced: 6 complete plans, 10 holds, 1 unrecoverable stop, 0 partial prefixes | Separate policy and assurance workers with an activation-time gate; fixtures only, not a learned checkpoint or hard real time |
 | Assured Panda task execution | 2/2 MuJoCo targets reached; 351/351 motion edges and braking boundaries certified; zero registered contact, joint-limit, or torque-saturation events | Offline assurance followed by torque-controlled joint-waypoint execution; no learned VLA, grasp, manipulation, or hardware claim |
 | Threaded runtime harness | Separate worker/control thread IDs, continued control ticks, latest-only replacement, and deadline tests | Scripted component evidence; no LIBERO or Panda task-success claim |
 | Asynchronous Panda closed loop | 27 cases with clearance-backed swept obstacle checks: braking invariant 9/9 physically safe and 0 abrupt stops; legacy 9/9 and 311 abrupt stops; unguarded 8/9 and 289 | Scripted single-run engineering matrix; not learned-policy efficacy, a statistical superiority test, hard real time, or physical safety certification |

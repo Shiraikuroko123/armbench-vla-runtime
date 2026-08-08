@@ -1,0 +1,138 @@
+[
+  {
+    "case_id": "mock_latency_000ms",
+    "expected_reason_prefix": "qp_continuous_collision_and_braking",
+    "expected_status": "execute",
+    "fault": "none",
+    "latency_ms": 0.0,
+    "provider": "mock_hx8"
+  },
+  {
+    "case_id": "mock_latency_040ms",
+    "expected_reason_prefix": "qp_continuous_collision_and_braking",
+    "expected_status": "execute",
+    "fault": "none",
+    "latency_ms": 40.0,
+    "provider": "mock_hx8"
+  },
+  {
+    "case_id": "mock_latency_080ms",
+    "expected_reason_prefix": "qp_continuous_collision_and_braking",
+    "expected_status": "execute",
+    "fault": "none",
+    "latency_ms": 80.0,
+    "provider": "mock_hx8"
+  },
+  {
+    "case_id": "mock_latency_160ms",
+    "expected_reason_prefix": "qp_continuous_collision_and_braking",
+    "expected_status": "execute",
+    "fault": "none",
+    "latency_ms": 160.0,
+    "provider": "mock_hx8"
+  },
+  {
+    "case_id": "frozen_provider_nominal",
+    "expected_reason_prefix": "qp_continuous_collision_and_braking",
+    "expected_status": "execute",
+    "fault": "none",
+    "latency_ms": 0.0,
+    "provider": "frozen_hx7_adapter"
+  },
+  {
+    "case_id": "provider_interface_fixture_nominal",
+    "expected_reason_prefix": "qp_continuous_collision_and_braking",
+    "expected_status": "execute",
+    "fault": "none",
+    "latency_ms": 0.0,
+    "provider": "openpi_interface_fixture"
+  },
+  {
+    "case_id": "provider_fault_malformed_shape",
+    "expected_reason_prefix": "provider_failure",
+    "expected_status": "hold",
+    "fault": "malformed_shape",
+    "latency_ms": 0.0,
+    "provider": "fault_injector"
+  },
+  {
+    "case_id": "provider_fault_nonfinite",
+    "expected_reason_prefix": "provider_failure",
+    "expected_status": "hold",
+    "fault": "nonfinite",
+    "latency_ms": 0.0,
+    "provider": "fault_injector"
+  },
+  {
+    "case_id": "provider_fault_disconnect",
+    "expected_reason_prefix": "provider_failure",
+    "expected_status": "hold",
+    "fault": "disconnect",
+    "latency_ms": 0.0,
+    "provider": "fault_injector"
+  },
+  {
+    "case_id": "provider_fault_timeout",
+    "expected_reason_prefix": "provider_failure",
+    "expected_status": "hold",
+    "fault": "timeout",
+    "latency_ms": 0.0,
+    "provider": "fault_injector"
+  },
+  {
+    "case_id": "provider_fault_sequence_mismatch",
+    "expected_reason_prefix": "provider_failure",
+    "expected_status": "hold",
+    "fault": "sequence_mismatch",
+    "latency_ms": 0.0,
+    "provider": "fault_injector"
+  },
+  {
+    "case_id": "stale_observation",
+    "expected_reason_prefix": "response_deadline_exceeded_before_supervision",
+    "expected_status": "hold",
+    "fault": "stale",
+    "latency_ms": 0.0,
+    "provider": "mock_hx8"
+  },
+  {
+    "case_id": "state_mismatch",
+    "expected_reason_prefix": "observation_state_mismatch",
+    "expected_status": "hold",
+    "fault": "state_mismatch",
+    "latency_ms": 0.0,
+    "provider": "mock_hx8"
+  },
+  {
+    "case_id": "reset_replay",
+    "expected_reason_prefix": "reset_generation_mismatch",
+    "expected_status": "hold",
+    "fault": "reset_before_commit",
+    "latency_ms": 0.0,
+    "provider": "mock_hx8"
+  },
+  {
+    "case_id": "supervision_budget_fail_closed",
+    "expected_reason_prefix": "supervision_budget_exceeded",
+    "expected_status": "hold",
+    "fault": "tiny_supervision_budget",
+    "latency_ms": 0.0,
+    "provider": "mock_hx8"
+  },
+  {
+    "case_id": "near_limit_unrecoverable_stop",
+    "expected_reason_prefix": "response_deadline_exceeded_before_supervision",
+    "expected_status": "unrecoverable_stop",
+    "fault": "near_limit_stop",
+    "latency_ms": 0.0,
+    "provider": "mock_hx8"
+  },
+  {
+    "case_id": "intermediate_collision_fail_closed",
+    "expected_reason_prefix": "continuous_edge_rejected",
+    "expected_status": "hold",
+    "fault": "intermediate_self_collision",
+    "latency_ms": 0.0,
+    "provider": "mock_hx8"
+  }
+]

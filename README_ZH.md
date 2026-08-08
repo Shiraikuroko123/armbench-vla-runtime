@@ -1,4 +1,4 @@
-[项目网页](https://shiraikuroko123.github.io/armbench-vla-runtime/) | [English](README.md) | [文档索引](docs/README.md) | [改进路线与采购表](docs/ROADMAP_ZH.md)
+[项目网页](https://shiraikuroko123.github.io/armbench-vla-runtime/) | [English](README.md) | [文档索引](docs/README.md) | [代码导读](docs/CODE_WALKTHROUGH_ZH.md) | [改进路线与采购表](docs/ROADMAP_ZH.md)
 
 [![CPU CI](https://github.com/Shiraikuroko123/armbench-vla-runtime/actions/workflows/ci.yml/badge.svg)](https://github.com/Shiraikuroko123/armbench-vla-runtime/actions/workflows/ci.yml)
 
@@ -101,9 +101,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup_local.ps1
 的 `--with-vla`；该选项不会下载 `pi0.5` checkpoint。手动安装、模型路径
 覆盖和无桌面环境说明见[本地安装与支持](docs/LOCAL_SETUP_ZH.md)。
 
-当前最完整的本地 CPU 验收会重算 27 案例集成故障矩阵，并重新运行两条 Panda
-任务的规划、动作保障和 MuJoCo 物理。脚本会自行解析仓库和 Python 路径。在仓库
-根目录执行；若从其他目录启动，则向 `-File` 传入脚本的绝对路径：
+当前最完整的本地 CPU 验收会重算 27 案例同步故障矩阵、17 案例异步原子发布矩阵，
+并重新运行两条 Panda 任务的规划、动作保障和 MuJoCo 物理。脚本会自行解析仓库和
+Python 路径。在仓库根目录执行；若从其他目录启动，则向 `-File` 传入脚本的绝对路径：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File `
@@ -116,6 +116,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File `
 
 第一条是数字验收，第二条还会播放保存的 MuJoCo 实测轨迹。方法、结果、固定夹爪
 allowed-collision 规则和耗时边界见[Panda 集成动作保障链](docs/INTEGRATED_PANDA_ASSURANCE_ZH.md)。
+
+新增的异步矩阵把 mock、冻结响应和 OpenPI-compatible 接口 fixture 接入同一条
+provider -> policy worker -> 集成保障 worker -> 原子发布链。17/17 个注册结果匹配，
+6 个完整计划被发布、10 个进入 hold、1 个进入不可恢复停止，拒绝结果暴露的部分动作
+前缀为 0。它不执行学习式 checkpoint；完整调用图、调试断点和主张边界见
+[Panda 异步动作保障 CPU 收口](docs/CPU_RUNTIME_COMPLETION_ZH.md)。
 
 Windows 上可以先执行一个有边界的本地验收：
 

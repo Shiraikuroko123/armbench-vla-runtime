@@ -63,11 +63,14 @@ $env:ARMBENCH_MENAGERIE_ROOT = 'C:\models\mujoco_menagerie'
   reports\integrated_panda_fault_matrix_001
 & '.\.venv\Scripts\python.exe' -m armbench vla-integrated-task-validate `
   reports\integrated_panda_task_001
+& '.\.venv\Scripts\python.exe' -m armbench vla-cpu-runtime-validate `
+  reports\cpu_runtime_completion_001
 .\scripts\vla_demo.cmd -CheckOnly
 ```
 
-两个集成 validator 都会重建注册的 supervisor 输入；任务 validator 还会重新规划
-并重新执行两个力矩控制 MuJoCo 案例，因此笔记本 CPU 上通常需要几十秒。当前嵌套
+三个集成 validator 都会重建注册输入；异步 validator 会重放双 worker 与原子 gate，
+任务 validator 还会重新规划并执行两个力矩控制 MuJoCo 案例，因此笔记本 CPU 上通常
+需要几十秒。当前嵌套
 Windows 工作区可以使用下面的一键脚本；它会自行寻找仓库内或工作区内的 `.venv`。
 从仓库外启动时，把脚本绝对路径传给 `-File`：
 

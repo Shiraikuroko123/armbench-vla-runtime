@@ -37,13 +37,13 @@
 
 | ID | 技术加强与解决的问题 | 当前状态 | 前置条件 | 所需软件/数据 | 所需计算或设备 | 现金预算 | 开发时间 | 验收标准 | 优先级 |
 | --- | --- | --- | --- | --- | --- | ---: | --- | --- | --- |
-| C01 | 统一 live/frozen/mock provider，使真实模型与测试后端进入同一运行时 | 已有语义 gate、合成 ABI fixture 和带身份/响应 hash 的 attested live OpenPI provider；尚未接入 Panda loop | 固定 observation、action semantics、checkpoint identity | Python 3.10、`openpi-client`、现有 provider contract | 当前电脑 | ¥0 | 2-4 天 | 三种 backend 可互换；动作语义、模型身份或响应 hash 不符时 fail closed；测试覆盖 worker/guard 链路 | P0 |
-| C02 | 独立进程/时钟运行时，使控制在阻塞推理期间继续 tick | 已完成 spawn-safe process worker、latest-only mailbox 和 deadline smoke；正式 LIBERO 仍是 blocking + catch-up | C01；统一 monotonic clock、序列号和 mailbox | `multiprocessing`/websocket、现有 trace schema | 当前电脑先用阻塞 mock 测试 | ¥0 | 3-6 天 | 推理阻塞 0/40/80/160 ms 时控制 tick 不停止；response age、跳步、hold 和 deadline 均可从 trace 重算 | P0 |
-| C03 | QP 动作投影，替代单纯缩放/greedy 回溯 | 已完成 OSQP 组件投影与 fail-closed infeasible smoke；尚未接入任务级在线 evaluator | 明确位置、速度、加速度、控制周期和不可行回退 | `OSQP`、`scipy`、NumPy | 当前电脑 | ¥0 | 3-7 天 | 1,000 个固定随机案例满足注册约束；报告 infeasible 率、任务误差、P95/max 求解时延；超预算进入 hold | P0 |
-| C04 | 连续静态碰撞与连续自碰，补上当前 sampled self-collision 缺口 | 已完成保守 MuJoCo 连续边 checker、72 条静态障碍审计和 72 条自碰审计；仍未接入任务级在线执行 | 固定 Panda collision pairs、几何简化和独立 oracle | MuJoCo continuous pair-distance checker；可选独立 CCD oracle | 当前电脑 | ¥0-100 | 5-10 天 | 注册边集相对独立 CCD/更密 oracle 为 0 false-safe；静态碰撞和自碰分别报告；性能 P95 可复现 | P0 |
+| C01 | 统一 live/frozen/mock provider，使真实模型与测试后端进入同一运行时 | **CPU 接线完成**：mock、冻结 provider 和 OpenPI-compatible 接口 fixture 进入同一 Panda 异步保障链；attested live provider 已实现，真实 checkpoint 执行归 G01 | 固定 observation、action semantics、checkpoint identity | Python 3.10、`openpi-client`、现有 provider contract | 当前电脑 | ¥0 | 已完成 | 17 案例 artifact 验证 shape、NaN、断连、超时和 sequence mismatch 均 fail closed；接口 fixture 不冒充真实模型 | P0 |
+| C02 | 独立进程/时钟运行时，使控制在阻塞推理期间继续 tick | **本地 CPU 完成**：policy 与完整保障各自独立 worker，latest-only mailbox、0/40/80/160 ms 和激活二次检查均可重放；硬实时/独立仿真进程归 G02/H01 | C01；统一 monotonic clock、序列号和 mailbox | `multiprocessing`/websocket、现有 trace schema | 当前电脑 | ¥0 | 已完成 | 阻塞期间控制轮询持续推进；deadline、状态漂移、顺序和 reset generation 在原子 gate 重查 | P0 |
+| C03 | QP 动作投影，替代单纯缩放/greedy 回溯 | **本地 CPU 完成**：OSQP 已接入 27 案例 supervisor、17 案例异步发布和 2 条任务；1,000 步确定性约束压力测试及 infeasible/超预算 fail-closed 测试通过 | 明确位置、速度、加速度、控制周期和不可行回退 | `OSQP`、`scipy`、NumPy | 当前电脑 | ¥0 | 已完成 | 位置、速度、加速度和耦合约束逐步检查；任务级结果保存干预、P95/max 和失败阶段 | P0 |
+| C04 | 连续静态碰撞与连续自碰，补上当前 sampled self-collision 缺口 | **本地 CPU 完成**：72 条静态边、72 条自碰边 dense-oracle 审计均为 0 false-safe；已接入 27 案例、17 案例与 351 条任务运动边 | 固定 Panda collision pairs、几何简化和独立 oracle | MuJoCo continuous pair-distance checker；可选独立 CCD oracle | 当前电脑 | ¥0 | 已完成 | 静态/自碰分别留存 witness、保守拒绝和 P95；端点安全但中间自碰撞机制控制 fail closed | P0 |
 | C05 | 动力学可达停止，回答受限动作是否真的能在扭矩/负载下刹停 | 已完成：45 条注册条件通过 MuJoCo 逆动力学与连续碰撞边验证 | C03；Panda 质量、惯量、扭矩/速度限制和 payload 条件 | MuJoCo；可选 Pinocchio | 当前电脑 | ¥0 | 5-10 天 | 固定初速、payload、摩擦矩阵中，所有接受动作存在限时停止轨迹；报告停止时间/距离和保守拒绝率 | P0 |
 | C06 | 官方 LeRobot loader 与 episode round-trip，补上“LeRobot 风格但未使用官方包” | 已完成：隔离 `lerobot==0.4.4`/v3.0 loader 对 3 帧 Panda episode 逐字段 round-trip | 固定一个官方 LeRobot release；保持 Panda 与未来 SO-101 动作语义分离 | 官方 `lerobot`、公开小 fixture | 当前电脑；建议 WSL2/Ubuntu | ¥0 | 2-5 天 | 官方 loader 读取导出 episode；图像、状态、动作、task、时间戳 round-trip 一致；版本被锁定 | P1 |
-| C07 | 标准化 fault matrix，统一延迟、jitter、丢帧、旧响应、NaN、断连和模型失配 | 多数故障已有，但分散在多个 benchmark | C01-C05 的统一 runtime | 现有 fault/validator 模块 | 当前电脑 | ¥0 | 2-4 天 | 每类故障有注册输入、预期状态机转移和独立重放；任何旧命令均不能在 reset 后执行 | P1 |
+| C07 | 标准化 fault matrix，统一延迟、jitter、丢帧、旧响应、NaN、断连和模型失配 | **本地 CPU 完成**：既有 27 案例闭环矩阵覆盖 jitter/丢失/负载/动作故障；新增 17 案例矩阵统一 provider 失败、时序/状态、reset replay、监督预算与连续自碰撞 | C01-C05 的统一 runtime | 现有 fault/validator 模块 | 当前电脑 | ¥0 | 已完成 | 注册输入、预期状态和源码 hash 均可重放；重新签名后的结果/场景/源码 hash 篡改测试均被拒绝；reset 后旧计划发布 0 个动作 | P1 |
 | C08 | MoveIt 2/Servo 或成熟控制器基线，避免只与自研 guard 比较 | 未完成 | C03-C05；Panda URDF/SRDF；ROS2 路径可运行 | ROS2 Humble、MoveIt 2 | WSL 不适合最终实时测试；Ubuntu 环境 | ¥0-300 | 4-8 天 | 同一任务/约束矩阵对比成功率、违规、干预率和控制时延；动作语义映射留存 | P2 |
 
 ### 3.2 真实 VLA 与云 GPU
@@ -153,8 +153,8 @@ GPU 实例启动前必须在 CPU 环境完成：代码 checkout、配置生成�
 
 ## 7. 固定执行顺序
 
-1. 先完成 C01-C05，不购买设备，不租 GPU。
-2. 完成 C06-C07，把官方 LeRobot loader 和统一 fault matrix 接入同一契约。
+1. C01-C07 的本地 CPU 收口已经完成；继续使用一键脚本回归，不购买设备。
+2. C08 需要 Ubuntu/ROS2/MoveIt，不在当前 Windows CPU 收口中伪造完成。
 3. 所有 CPU preflight 通过后，只租 6-12 小时 GPU 完成 G01。
 4. G01 artifact 可验证后扩展到 G02；pilot 失败时先修时钟/协议，不直接购买更长时长。
 5. G02 通过后再运行 G03-G04，形成真实异步核心实验。
@@ -163,4 +163,4 @@ GPU 实例启动前必须在 CPU 环境完成：代码 checkout、配置生成�
 
 近期技术目标固定为：
 
-> 在本地完成 provider、独立时钟、QP、连续碰撞和动力学停止；随后用一台 24 GB GPU 服务器完成真实 `pi0.5` 在线闭环与独立时钟 pilot，再接入真实 OpenVLA-OFT 做跨模型验证。
+> 本地 provider 契约、异步保障、QP、连续碰撞、动力学停止和可重放故障矩阵已经收口；下一步用一台 24 GB GPU 服务器执行真实 `pi0.5` checkpoint 与独立时钟 pilot，再接入真实 OpenVLA-OFT 做跨模型验证。

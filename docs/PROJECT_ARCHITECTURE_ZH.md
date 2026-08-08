@@ -67,6 +67,12 @@ ArmBench 是一个研究动作块式 VLA 在“模型响应返回”和“机器
 实测状态的终端制动和 trace 重算验证。它尚未替换既有 `pi0.5` 实验采用的
 blocking inference 加 simulator catch-up evaluator。
 
+CPU 收口路径进一步增加了独立的集成保障 worker：provider 返回完整 `ActionChunk`
+后，OSQP、连续碰撞和动力学制动在非控制线程完成，`AtomicPandaPlanGate` 在激活时
+重新检查 deadline、状态漂移、请求顺序和 reset generation。该路径把 provider 契约
+与正式 `IntegratedPandaSupervisor` 接到一起，但当前输入仍为 mock、冻结响应或
+接口 fixture，不应写成学习式 VLA 闭环。
+
 ## 当前证据
 
 | 组件 | 已验证结果 | 主张边界 |
@@ -76,6 +82,7 @@ blocking inference 加 simulator catch-up evaluator。
 | RTC-style sampler extension | 300 组匹配 triplet：baseline 96/100，hard projection 97/100，RTC 97/100 | 没有任务成功率优势；seam 是探索性指标 |
 | Panda 运行时 | 本地 MuJoCo 中的协议、guard 和故障 trace | 不是官方 `pi0.5` 的效果证据，也不是物理安全证明 |
 | Panda 集成 supervisor | 27/27 个故障结果可重算：12 个接受、6 个已验证制动、7 个 hold、2 个不可恢复停止；拒绝动作块均未泄漏部分前缀 | 同步 CPU 参考链；动作源为 scripted，耗时为离线参考，不是硬实时 |
+| 异步集成发布边界 | 17/17 个 provider/时序/状态/碰撞结果可重放：6 个完整计划、10 个 hold、1 个不可恢复停止、0 个部分前缀 | mock、冻结响应和接口 fixture；未执行学习式 checkpoint，不是硬实时 |
 | 带保障的 Panda 任务执行 | 2/2 个 MuJoCo 目标到达；351/351 条运动边和制动边界通过证书；注册的接触、关节限位和力矩饱和均为 0 | 离线保障后进行力矩控制关节路点执行；不包含学习式 VLA、抓取、物体操作或真机主张 |
 | 分线程运行时验收 | 独立 worker/control 线程、持续 control tick、latest-only 替换与 deadline 测试 | Scripted 组件证据；不主张 LIBERO 或 Panda 任务成功率 |
 | 异步 Panda 闭环 | 27 案例采用 clearance-backed swept 静态障碍检查：制动不变量 9/9 满足物理谓词且 0 次突停；旧 guard 为 9/9、311 次；unguarded 为 8/9、289 次 | Scripted 单次工程矩阵；不是学习策略效果、统计优越性检验、硬实时或物理安全认证 |

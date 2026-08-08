@@ -1,0 +1,38 @@
+{
+  "claim_boundary": [
+    "Policy sources are scripted, frozen, or provider-compatible fixtures; no learned checkpoint is executed here.",
+    "Supervisor and assurance workers run on CPU and use best-effort Python scheduling.",
+    "A rejected result exposes zero policy actions; a hardware actuator must consume the separate brake certificate.",
+    "The interface fixture does not establish pi0.5 task success or real-robot safety."
+  ],
+  "implementation_files": [
+    "armbench/vla/cpu_runtime_completion.py",
+    "armbench/vla/integrated_panda_async.py",
+    "armbench/vla/integrated_panda_guard.py",
+    "armbench/vla/integrated_panda_task.py",
+    "armbench/vla/async_worker.py",
+    "armbench/vla/provider_contract.py",
+    "armbench/vla/cartesian_adapter.py",
+    "armbench/vla/qp_projection.py",
+    "armbench/mujoco_sim/continuous_collision.py",
+    "armbench/mujoco_sim/dynamics_braking.py"
+  ],
+  "implementation_sha256": {
+    "armbench/mujoco_sim/continuous_collision.py": "4bdf6b26572b9754e40a870ec7ce5b72dfbeff341f033cf084f7638b32d224e7",
+    "armbench/mujoco_sim/dynamics_braking.py": "fb9894ec618a1cc9dd6f85af7babbf29ef55d45733c56826208330cbc8e63c8a",
+    "armbench/vla/async_worker.py": "be7f9345aa2d62403386bb489c4147f430f94c82c211bcd5f388db18cebefa29",
+    "armbench/vla/cartesian_adapter.py": "f067cfa1d84eed27acb7e3be190ed7fd43aafb7a5e187d9d3b951f63c06205af",
+    "armbench/vla/cpu_runtime_completion.py": "0a4012009e9538c081cb2f6297ac6ee8447c147f5623bb237130eceea023a88c",
+    "armbench/vla/integrated_panda_async.py": "f1098b2e5bf71006511754092e815a61c5882ef21f4154606394c66d7d3a1610",
+    "armbench/vla/integrated_panda_guard.py": "821d5e82b4db620aec4401bea6646bbc87111100e124fb3bd3ef31284b6d81fb",
+    "armbench/vla/integrated_panda_task.py": "2d9f8a11d53387f1be081306bce1c5ccb2666a63d32a2563b1c3b84825f31141",
+    "armbench/vla/provider_contract.py": "c6e72c075706722f1c86316304af902652f157daaf04260e9b076bd13c14ea2e",
+    "armbench/vla/qp_projection.py": "c68f37c9ee55fd2069522d4a05c5f7de930166b4cc3b4f8ca07c6de33fd990ae"
+  },
+  "provider_modes": {
+    "frozen_hx7_adapter": "validated frozen Hx7 provider plus Panda Jacobian adapter",
+    "mock_hx8": "direct scripted Hx8 test policy",
+    "openpi_interface_fixture": "OpenPI-compatible contract fixture; checkpoint not loaded"
+  },
+  "schema_version": "armbench.cpu_runtime_completion.v1"
+}

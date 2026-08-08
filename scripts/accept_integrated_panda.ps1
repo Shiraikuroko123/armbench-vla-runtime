@@ -29,17 +29,21 @@ function Invoke-Armbench([string[]]$CommandArguments) {
 }
 
 $FaultArtifact = Join-Path $ProjectRoot "reports\integrated_panda_fault_matrix_001"
+$CpuRuntimeArtifact = Join-Path $ProjectRoot "reports\cpu_runtime_completion_001"
 $TaskArtifact = Join-Path $ProjectRoot "reports\integrated_panda_task_001"
 
 Push-Location $ProjectRoot
 try {
-    Write-Host "[1/3] Checking the local runtime"
+    Write-Host "[1/4] Checking the local runtime"
     Invoke-Armbench @("doctor")
 
-    Write-Host "[2/3] Recomputing the 27-case integrated fault matrix"
+    Write-Host "[2/4] Recomputing the 27-case integrated fault matrix"
     Invoke-Armbench @("vla-integrated-fault-validate", $FaultArtifact)
 
-    Write-Host "[3/3] Replanning and re-executing the two MuJoCo task cases"
+    Write-Host "[3/4] Replaying the 17-case asynchronous publication matrix"
+    Invoke-Armbench @("vla-cpu-runtime-validate", $CpuRuntimeArtifact)
+
+    Write-Host "[4/4] Replanning and re-executing the two MuJoCo task cases"
     Invoke-Armbench @("vla-integrated-task-validate", $TaskArtifact)
 
     Write-Host "Integrated Panda acceptance passed."

@@ -65,6 +65,7 @@ for the full design and the current integration gap.
 | RTC-style continuation | 300 rollouts / 100 matched triplets: 96/100 baseline, 97/100 hard projection, 97/100 RTC guidance | No task-success superiority; motion-seam measurements remain exploratory |
 | Braking-invariant Panda repair | 270 paired offline cases: 264/270 to 270/270 registered constraints, all 6 legacy conflicts resolved, 0 regressions | Frozen `pi0.5` responses replayed through the Panda adapter; no task-success or hard-real-time claim |
 | Integrated Panda supervisor | 27/27 registered fault outcomes reproduced: 12 accepted plans, 6 verified brakes, 7 holds, 2 unrecoverable stops; no rejected chunk exposed a partial prefix | Atomic CPU reference chain combining OSQP kinematic projection, continuous collision certificates, and a stop invariant; scripted actions, not hard real time |
+| Asynchronous assurance publication | 17/17 provider, timing, state, reset, budget, and collision outcomes reproduced: 6 complete plans, 10 holds, 1 unrecoverable stop, 0 partial prefixes | Separate policy/assurance workers and activation-time atomic gate; mock, frozen, and interface fixtures only, not a learned checkpoint |
 | Assured Panda task execution | 2/2 MuJoCo targets reached under nominal and 0.5 kg/80 ms conditions; 351/351 motion edges and stop boundaries certified, zero registered contact/limit/saturation events | Offline assurance followed by torque-controlled joint-waypoint execution; not a learned VLA, manipulation, or hardware result |
 | Asynchronous Panda closed loop | 27 CPU wall-clock cases with clearance-backed swept obstacle checks: braking invariant was physically safe in 9/9 with 0 abrupt stops and 0 repair-budget misses; legacy recorded 311 abrupt stops and unguarded 289 | Live dual-camera, policy-worker, dispatcher, repair, and torque-control integration using a scripted non-learned policy; not learned-policy efficacy or physical certification |
 | Clearance-backed swept audit | 72 seeded MuJoCo edges across three scenes: 0 false-safe decisions against a denser sampled oracle | Conservative static-obstacle audit; self-collision and continuous physical safety remain out of scope |
@@ -83,10 +84,10 @@ Full protocols, validators, statistics, and limitations are in
 - Official-checkpoint results are simulation-only LIBERO evidence.
 - The temporal studies use blocking inference plus simulator catch-up, not an
   operating-system-level hard-real-time control loop.
-- Integrated Panda assurance is a synchronous CPU reference path. Its task
-  action source is scripted RRT-Connect, full-horizon checks take seconds, and
-  it does not certify physical collision safety or show that `pi0.5` controls
-  a Panda robot.
+- Integrated Panda assurance has synchronous task evidence and an asynchronous
+  worker/publication boundary. Its task action source is scripted RRT-Connect,
+  full-horizon checks take seconds, and it does not certify physical collision
+  safety or show that `pi0.5` controls a Panda robot.
 - No Isaac Lab, ROS2, real Franka Panda, or safety PLC integration is claimed.
 - The LeRobot bridge is an in-memory, CPU-only compatibility contract. A
   separate isolated environment validates one three-frame export through the
@@ -119,9 +120,10 @@ only when the lightweight OpenPI client is needed; this does not download a
 manual installation, model overrides, and headless environments.
 
 The strongest local CPU acceptance path now recomputes the 27-case integrated
-fault matrix and reruns planning, assurance, and MuJoCo physics for two saved
-Panda tasks. The script resolves its own repository and Python paths. Run it
-from the repository root, or pass its absolute path when launching elsewhere:
+fault matrix, replays the 17-case asynchronous publication matrix, and reruns
+planning, assurance, and MuJoCo physics for two saved Panda tasks. The script
+resolves its own repository and Python paths. Run it from the repository root,
+or pass its absolute path when launching elsewhere:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File `
@@ -135,6 +137,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File `
 The first command is numeric acceptance; the second also replays the recorded
 MuJoCo trajectory. See [integrated Panda action assurance](docs/INTEGRATED_PANDA_ASSURANCE.md)
 for the method, results, fixed-gripper collision rule, and latency boundary.
+The provider-to-assurance threading and atomic activation path is documented in
+[the CPU completion guide](docs/CPU_RUNTIME_COMPLETION_ZH.md).
 
 For a bounded local acceptance check on Windows:
 
