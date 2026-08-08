@@ -53,6 +53,9 @@ class AsyncPandaConfig:
     control_period_s: float = 0.01
     response_deadline_s: float = 0.2
     warmup_s: float = 0.1
+    # EGL/software-renderer startup can take several seconds on a fresh host.
+    # This one-time budget ends before wall-clock control metrics begin.
+    observation_prewarm_timeout_s: float = 15.0
     settle_s: float = 0.3
     max_action_steps: int = 45
     action_horizon: int = 15
@@ -74,6 +77,7 @@ class AsyncPandaConfig:
                 self.control_period_s,
                 self.response_deadline_s,
                 self.warmup_s,
+                self.observation_prewarm_timeout_s,
                 self.settle_s,
                 self.goal_tolerance_rad,
                 self.clearance_m,
@@ -92,6 +96,7 @@ class AsyncPandaConfig:
             or self.control_period_s <= 0.0
             or self.response_deadline_s < 0.0
             or self.warmup_s < 0.0
+            or self.observation_prewarm_timeout_s <= 0.0
             or self.settle_s < 0.0
             or self.goal_tolerance_rad < 0.0
             or self.clearance_m < 0.0
@@ -323,6 +328,8 @@ class LatestObservationWorker:
         self._cancelled_pending = 0
         self._dropped_outcomes = 0
         self._worker_thread_id: int | None = None
+        self._terminal_failure_type: str | None = None
+        self._terminal_failure_message: str | None = None
         self._thread = threading.Thread(
             target=self._run,
             name="armbench-observation-worker",
@@ -388,6 +395,8 @@ class LatestObservationWorker:
                 "worker_thread_id": self._worker_thread_id,
                 "worker_alive": self._thread.is_alive(),
                 "closed": self._closed,
+                "terminal_failure_type": self._terminal_failure_type,
+                "terminal_failure_message": self._terminal_failure_message,
             }
 
     def close(self, *, timeout_s: float = 2.0) -> bool:
@@ -456,11 +465,15 @@ class LatestObservationWorker:
                         self._completed += 1
                         self._failed += int(not outcome.succeeded)
                         self._condition.notify_all()
-        except Exception:
+        except Exception as error:
             # Renderer initialization failures remain observable in metrics and
             # cannot silently turn into a blank-image policy input.
             with self._condition:
                 self._failed += 1
+                self._terminal_failure_type = type(error).__name__
+                self._terminal_failure_message = (
+                    str(error).strip() or "no error message"
+                )[:500]
                 self._closed = True
                 self._condition.notify_all()
 
@@ -1189,7 +1202,10 @@ def run_async_panda_episode(
             gripper_position=1.0,
             prompt=task_prompt,
         )
-        prewarm_deadline = time.monotonic() + 3.0
+        prewarm_started = time.monotonic()
+        prewarm_deadline = (
+            prewarm_started + config.observation_prewarm_timeout_s
+        )
         prewarm_complete = False
         while time.monotonic() < prewarm_deadline and not prewarm_complete:
             for sensor_outcome in observation_worker.drain():
@@ -1200,10 +1216,22 @@ def run_async_panda_episode(
                         f"{sensor_outcome.failure_message}"
                     )
                 prewarm_complete = True
+            worker_metrics = observation_worker.metrics()
+            if worker_metrics["terminal_failure_type"] is not None:
+                raise RuntimeError(
+                    "observation renderer prewarm worker terminated: "
+                    f"{worker_metrics['terminal_failure_type']}: "
+                    f"{worker_metrics['terminal_failure_message']}"
+                )
             if not prewarm_complete:
                 time.sleep(0.005)
         if not prewarm_complete:
-            raise TimeoutError("observation renderer prewarm timed out")
+            elapsed_s = time.monotonic() - prewarm_started
+            raise TimeoutError(
+                "observation renderer prewarm timed out after "
+                f"{elapsed_s:.3f}s; worker_metrics="
+                f"{observation_worker.metrics()}"
+            )
     except Exception:
         observation_worker.close(timeout_s=2.0)
         worker.close(timeout_s=2.0)

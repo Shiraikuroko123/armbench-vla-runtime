@@ -48,6 +48,8 @@ def _config(*, steps: int = 8) -> AsyncPandaConfig:
 def test_async_panda_configuration_rejects_invalid_faults() -> None:
     with pytest.raises(ValueError, match="deadline"):
         AsyncPandaConfig(response_deadline_s=0.01)
+    with pytest.raises(ValueError, match="configuration"):
+        AsyncPandaConfig(observation_prewarm_timeout_s=0.0)
     with pytest.raises(ValueError, match="fault"):
         ScriptedPolicyFaults(latency_schedule_ms=())
     with pytest.raises(ValueError, match="fault"):
