@@ -2,46 +2,47 @@
 
 ## Primary Job
 
-ArmBench is an evidence-first research project page. Its primary archetype is a
-research/model project, with a secondary benchmark and engineering-artifact
-role. The page helps a robotics reviewer answer three questions quickly:
+ArmBench is a small robotics engineering project page. It summarizes saved VLA
+experiments and Panda simulation checks without presenting the repository as a
+product, safety system, or complete research platform. The page helps a visitor
+answer three questions quickly:
 
 1. What timing problem does ArmBench study?
-2. What measured evidence supports the result?
-3. Which claims are explicitly outside the current project?
+2. What experiments and software modules are included?
+3. What has not been implemented or tested?
 
 ## Content Contract
 
-- **Identity:** ArmBench, runtime supervision for action-chunk VLA policies.
-- **Claim:** dispatch only the action suffix that still belongs to the current
-  observation age; refresh or hold when the usable horizon is invalid.
-- **Embodiments:** the official Physical Intelligence π0.5 checkpoint in
-  LIBERO simulation, plus a separately validated seven-DoF Panda in MuJoCo.
-- **Proof:** authentic Panda rollout footage, a matched π0.5-LIBERO qualitative
-  pair, exact paired statistics, and immutable evidence artifacts.
-- **Artifacts:** source, generated evidence catalog, result protocol, debugging
-  guide, acceptance commands, license, and third-party notices.
+- **Identity:** ArmBench, a project for VLA action-chunk timing and Panda
+  simulation checks.
+- **Method:** skip the stale prefix of an action chunk; request a new action or
+  hold when the remaining horizon is invalid.
+- **Test paths:** the official Physical Intelligence π0.5 checkpoint in LIBERO
+  simulation, plus a separate seven-DoF Panda path in MuJoCo.
+- **Shown materials:** Panda rollout footage, a matched π0.5-LIBERO example,
+  paired statistics, and saved result files.
+- **Repository files:** source, result-file index, statistical scripts,
+  debugging guide, check commands, license, and third-party notices.
 - **Status:** simulation-only, no training or fine-tuning, updated 2026-08-08.
 
 ## Audience
 
-- Embodied-AI and robotics hiring teams evaluating engineering depth.
-- VLA and robot-learning researchers checking protocol and statistics.
-- Engineers deciding whether the repository is reproducible and extensible.
+- Embodied-AI and robotics hiring teams reviewing a student project.
+- VLA and robot-learning engineers checking experiment settings and statistics.
+- Developers deciding whether they can run or extend the repository.
 - Technical visitors who need the central timing issue without reading a paper.
 
 The public page contains no resume, phone number, private email address, cloud
 credential, raw home path, or personally identifying data beyond the public
 GitHub account that owns the repository.
 
-## Evidence Order
+## Results Order
 
-The first viewport shows the literal project name, the runtime proposition, an
-authentic MuJoCo Panda rollout, its exact simulation conditions, and links to
-the measured result and repository. The artifact dock remains visible as the
-next-scroll cue.
+The first viewport shows the project name, a plain description, a MuJoCo Panda
+rollout, its simulation conditions, and links to the results and repository.
+The file links remain visible as the next-scroll cue.
 
-The page then presents three separately scoped studies:
+The page then presents three result groups:
 
 | Study | Scope | Reported result |
 | --- | --- | --- |
@@ -55,19 +56,19 @@ layer of support for the measured-age result.
 ## Page Structure
 
 1. Full-bleed Panda simulation hero with explicit test conditions.
-2. Code, evidence, results, and local-run artifact dock.
-3. Tabbed measured-age, cross-suite, and RTC studies.
+2. Code, result files, statistics, and local-run file dock.
+3. Tabbed measured-age, cross-suite, and RTC results.
 4. Synchronized matched-video player with selection disclosure.
 5. Interactive observation-age timeline using the frozen 50 ms rule.
 6. Two independent testbeds and their unclosed integration gap.
-7. Runtime extensions: provider ABI, LeRobot-style watchdog replay, trajectory
-   repair, asynchronous Panda control, artifact integrity, and
-   clearance-backed swept auditing.
-8. Scripted non-learned fault artifacts with direct provenance links.
-9. Established and unsupported claim boundaries.
-10. GPU-free catalog, measured-age, RTC, and component acceptance commands.
+7. Implemented modules: provider adaptation, LeRobot-style watchdog replay,
+   trajectory repair, asynchronous Panda control, result-file checks, and
+   clearance-based collision sampling.
+8. Scripted non-learned fault tests with links to saved files.
+9. Checked scope and unfinished work.
+10. GPU-free commands for checking saved measured-age and RTC results.
 
-## Verified Claims
+## Reported Results
 
 - Measured age: 120 matched pairs, 88/120 baseline and 116/120 aligned,
   +23.33 percentage points, exact two-sided McNemar p = 1.94e-6, and pair
@@ -92,7 +93,7 @@ layer of support for the measured-age result.
   torque control. Braking-invariant mode records 9/9 physical predicates and
   zero abrupt-stop violations, but reaches the target in only 1/9 cases.
 
-## Claim Boundaries
+## Limits
 
 - No π0.5 training or fine-tuning.
 - No real robot, hard-real-time, or collision-safety certification.
@@ -102,8 +103,8 @@ layer of support for the measured-age result.
 - Scripted fault cards do not run π0.5 and do not establish VLA safety.
 - No cross-checkpoint generalization, Isaac Lab, or ROS2 claim.
 - LIBERO and Panda outcomes remain separate evidence domains.
-- The new provider, watchdog, and artifact components are software contracts
-  and replayable diagnostics; they are not hardware driver or safety-PLC proof.
+- The provider, watchdog, and result-file modules are software checks only;
+  they are not hardware drivers or safety-controller tests.
 
 ## Delivery
 

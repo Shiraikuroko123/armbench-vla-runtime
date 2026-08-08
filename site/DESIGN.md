@@ -4,14 +4,14 @@
 
 **Graphite runtime console with signal-yellow timing marks.**
 
-The interface behaves like a compact robotics review surface rather than a
-paper template or a generic AI landing page. Authentic MuJoCo and LIBERO media
-lead; controller ticks, action indices, exact statistics, manifests, and claim
-boundaries form the visual language.
+The interface is a compact project report rather than a paper template or a
+generic AI landing page. MuJoCo and LIBERO media lead; controller ticks, action
+indices, exact statistics, result files, and project limits form the visual
+language.
 
 ## Palette
 
-The production theme is consistently dark so media, measurements, and state
+The site theme is consistently dark so media, measurements, and state
 changes can be compared without a visual mode switch. Yellow is reserved for
 timing, selection, and provenance. Red and green are semantic only.
 
@@ -45,7 +45,7 @@ There are no gradients, decorative orbs, neon circuitry, or stock imagery.
 
 ## Layout
 
-- Maximum evidence rail: 1240 px with 32 px desktop gutters.
+- Maximum content rail: 1240 px with 32 px desktop gutters.
 - Full-bleed hero footage with identity and capability over the actual scene.
 - Unframed full-width sections separated by one-pixel rules.
 - A four-cell artifact dock supplies the visible next-section cue.
@@ -56,9 +56,9 @@ There are no gradients, decorative orbs, neon circuitry, or stock imagery.
 
 ## Core Components
 
-- **Artifact dock:** direct entry to code, the generated evidence catalog,
+- **File dock:** direct entry to code, the generated result-file index,
   results, and debugging.
-- **Study tabs:** measured-age primary, cross-suite extension, RTC null result.
+- **Result tabs:** measured-age experiment, cross-suite run, RTC null result.
 - **Matched player:** aligned square videos, one play state, restart, progress,
   and speed control. The seven-second clip holds its final frame on the shared
   22-second timeline.
@@ -66,13 +66,12 @@ There are no gradients, decorative orbs, neon circuitry, or stock imagery.
   execution window, and execute/refresh state from the frozen protocol.
 - **Testbed split:** π0.5-LIBERO and Panda-MuJoCo stay visually and
   semantically separate, followed by the integration gap.
-- **Runtime extensions:** provider ABI, LeRobot-style frame replay,
-  braking-invariant repair, asynchronous Panda control, artifact integrity,
-  and clearance-backed swept auditing are shown as independently replayable
-  engineering artifacts.
-- **Fault map:** scripted non-learned detection and response rows with direct
-  artifact links.
-- **Claim boundary:** established and unsupported claims receive equal visual
+- **Implemented modules:** provider adaptation, LeRobot-style frame replay,
+  braking repair, asynchronous Panda control, result-file checks, and
+  clearance-based collision sampling.
+- **Fault map:** scripted non-learned detection and response rows with links to
+  saved files.
+- **Scope block:** checked items and unfinished items receive equal visual
   weight.
 
 ## Media Rules

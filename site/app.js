@@ -40,8 +40,8 @@
     root.dataset.lang = activeLanguage;
     root.lang = activeLanguage === "zh" ? "zh-CN" : "en";
     document.title = activeLanguage === "zh"
-      ? "ArmBench | VLA 运行时监督"
-      : "ArmBench | Runtime supervision for action-chunk VLA";
+      ? "ArmBench | VLA 延迟与 Panda 仿真"
+      : "ArmBench | VLA timing and Panda simulation";
 
     document.querySelectorAll("[data-set-lang]").forEach(function (button) {
       button.setAttribute("aria-pressed", String(button.dataset.setLang === activeLanguage));
