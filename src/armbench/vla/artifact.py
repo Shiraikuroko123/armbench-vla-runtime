@@ -4,18 +4,19 @@ from __future__ import annotations
 
 import csv
 from dataclasses import dataclass
-import hashlib
-import json
+from collections.abc import Sequence
 from pathlib import Path
 
 import imageio.v2 as imageio
 import numpy as np
 
+from armbench.vla.serialization import sha256_bytes, strict_json_load
+
 ONLINE_ARTIFACT_SCHEMA_VERSION = 5
 
 
 class ArtifactValidationError(ValueError):
-    pass
+    """Raised when a cross-file online-run artifact is inconsistent."""
 
 
 @dataclass(frozen=True)
@@ -57,8 +58,8 @@ def _require(condition: bool, message: str) -> None:
 def _json(path: Path) -> object:
     _require(path.is_file() and path.stat().st_size > 0, f"missing file: {path}")
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
+        return strict_json_load(path)
+    except (OSError, TypeError, ValueError) as error:
         raise ArtifactValidationError(f"invalid JSON: {path}") from error
 
 
@@ -84,6 +85,17 @@ def _key(row: dict[str, object] | dict[str, str]) -> tuple[str, float, int]:
         raise ArtifactValidationError("artifact row has an invalid episode key") from error
 
 
+def _index_csv_rows(
+    rows: Sequence[dict[str, str]],
+) -> dict[tuple[str, float, int], list[dict[str, str]]]:
+    """Group CSV rows once so validation scales linearly with artifact size."""
+
+    grouped: dict[tuple[str, float, int], list[dict[str, str]]] = {}
+    for row in rows:
+        grouped.setdefault(_key(row), []).append(row)
+    return grouped
+
+
 def _bool(value: object) -> bool:
     if isinstance(value, bool):
         return value
@@ -101,7 +113,7 @@ def _image_hash(path: Path) -> str:
     except Exception as error:
         raise ArtifactValidationError(f"image cannot be decoded: {path}") from error
     _require(image.shape == (224, 224, 3), f"unexpected image shape: {path}")
-    return hashlib.sha256(image.tobytes(order="C")).hexdigest()
+    return sha256_bytes(image.tobytes(order="C"))
 
 
 def _array_image_hash(image: np.ndarray, label: str) -> str:
@@ -109,7 +121,7 @@ def _array_image_hash(image: np.ndarray, label: str) -> str:
         image.shape == (224, 224, 3) and image.dtype == np.uint8,
         f"unexpected recorded image shape/dtype: {label}",
     )
-    return hashlib.sha256(image.tobytes(order="C")).hexdigest()
+    return sha256_bytes(image.tobytes(order="C"))
 
 
 def _decode_video(path: Path) -> None:
@@ -164,12 +176,14 @@ def validate_online_artifact(
         "per_episode keys do not match aggregate.json",
     )
     known_keys = set(row_keys)
+    chunks_by_key = _index_csv_rows(chunk_rows)
+    actions_by_key = _index_csv_rows(action_rows)
     _require(
-        all(_key(row) in known_keys for row in chunk_rows),
+        set(chunks_by_key).issubset(known_keys),
         "per_chunk contains an unknown episode key",
     )
     _require(
-        all(_key(row) in known_keys for row in action_rows),
+        set(actions_by_key).issubset(known_keys),
         "per_action contains an unknown episode key",
     )
 
@@ -181,8 +195,8 @@ def validate_online_artifact(
     request_metadata_traces = 0
     replayable_requests = 0
     for row, episode_key in zip(rows, row_keys, strict=True):
-        chunks = [item for item in chunk_rows if _key(item) == episode_key]
-        actions = [item for item in action_rows if _key(item) == episode_key]
+        chunks = chunks_by_key.get(episode_key, [])
+        actions = actions_by_key.get(episode_key, [])
         cycles = int(row["observation_cycles"])
         policy_queries = int(row["policy_queries"])
         action_steps = int(row["action_steps"])
@@ -483,7 +497,7 @@ def validate_online_artifact(
     for required in ("overview.png", "summary.md"):
         path = root / required
         _require(path.is_file() and path.stat().st_size > 0, f"missing file: {path}")
-    aggregate_sha256 = hashlib.sha256(aggregate_path.read_bytes()).hexdigest()
+    aggregate_sha256 = sha256_bytes(aggregate_path.read_bytes())
     checks = (
         "required_files_nonempty",
         "episode_keys_aligned",
