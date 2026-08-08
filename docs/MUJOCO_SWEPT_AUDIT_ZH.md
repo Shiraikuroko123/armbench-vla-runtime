@@ -7,8 +7,9 @@ Menagerie 几何，为每个机械臂关节计算保守的工作空间位移半�
 每个子边的最大位移上界不超过静态 clearance 的一半，同时保留 joint-resolution
 下界。
 
-这是针对该 clearance 所表示静态障碍的保守证书。自碰撞仍在采样构型上检查，不能
-表述成连续证书。下面的 dense 对照是更密的采样 oracle，不是解析证明。
+这是针对该 clearance 所表示静态障碍的保守证书。本 artifact 不包含独立的连续自碰撞
+矩阵，见[Panda 连续自碰撞审计](MUJOCO_SELF_COLLISION_AUDIT_ZH.md)。下面的 dense
+对照是更密的采样 oracle，不是解析证明。
 
 ## 运行
 

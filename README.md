@@ -65,6 +65,7 @@ for the full design and the current integration gap.
 | Braking-invariant Panda repair | 270 paired offline cases: 264/270 to 270/270 registered constraints, all 6 legacy conflicts resolved, 0 regressions | Frozen `pi0.5` responses replayed through the Panda adapter; no task-success or hard-real-time claim |
 | Asynchronous Panda closed loop | 27 CPU wall-clock cases with clearance-backed swept obstacle checks: braking invariant was physically safe in 9/9 with 0 abrupt stops and 0 repair-budget misses; legacy recorded 311 abrupt stops and unguarded 289 | Live dual-camera, policy-worker, dispatcher, repair, and torque-control integration using a scripted non-learned policy; not learned-policy efficacy or physical certification |
 | Clearance-backed swept audit | 72 seeded MuJoCo edges across three scenes: 0 false-safe decisions against a denser sampled oracle | Conservative static-obstacle audit; self-collision and continuous physical safety remain out of scope |
+| Continuous self-collision audit | 72 seeded Panda joint-space edges: 70 with valid endpoints, 0 false-safe decisions, 21 conservative rejections against a 0.002 rad sampled oracle | Fail-closed geometry audit for linear interpolation; not a physical or hard-real-time safety certificate |
 | Provider-neutral action contract | OpenVLA-OFT-named CPU fixture: `6x7` to `6x8`, exact observation binding, 5/5 semantic mismatches rejected | Second-model-family ABI evidence only; no OpenVLA-OFT checkpoint was executed |
 | LeRobot-style actuator boundary | 5-frame replay: 3 commands executed, stale observation held, latch preserved, explicit reset recovered | API-shaped frame and software-watchdog evidence; separate official-loader result is reported below |
 | Official LeRobotDataset round-trip | Pinned `lerobot==0.4.4`, v3.0 `LeRobotDataset`, 3 frames, images/state/action/task/timestamp all round-tripped | Isolated dataset serialization evidence for Panda Hx8 semantics; no policy checkpoint or robot driver |
@@ -79,8 +80,9 @@ Full protocols, validators, statistics, and limitations are in
 - Official-checkpoint results are simulation-only LIBERO evidence.
 - The temporal studies use blocking inference plus simulator catch-up, not an
   operating-system-level hard-real-time control loop.
-- Panda guard evidence does not certify collision safety and is not evidence
-  that `pi0.5` controls a Panda robot.
+- Panda guard evidence is limited to the registered MuJoCo geometry audits and
+  does not certify physical collision safety or show that `pi0.5` controls a
+  Panda robot.
 - No Isaac Lab, ROS2, real Franka Panda, or safety PLC integration is claimed.
 - The LeRobot bridge is an in-memory, CPU-only compatibility contract. A
   separate isolated environment validates one three-frame export through the
@@ -206,10 +208,24 @@ uses five fixed latencies plus jitter, response loss, payload, and persistent
 action-fault conditions. Braking-invariant execution recorded 0 abrupt-stop
 violations and 9/9 physically safe traces, with 7.81 ms P95 and 19.01 ms
 maximum repair latency. Its static-obstacle edges use the recorded 20 mm
-clearance-backed swept subdivision; self-collision remains sampled. It reached
+clearance-backed swept subdivision; the separate self-collision audit is
+reported below. It reached
 the target in only 1/9 conditions, making the safety/progress and local CPU-
 throughput limits explicit rather than hiding them behind an aggregate success
 claim.
+
+The separate [continuous self-collision audit](reports/mujoco_self_collision_audit_001/summary.md)
+rechecks 72 seeded Panda joint-space edges against a 0.002 rad sampled oracle:
+70 edges have valid endpoints, false-safe is 0, and 21 edges are conservatively
+rejected. Recompute it without a GPU:
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m armbench mujoco-self-collision-validate `
+  reports\mujoco_self_collision_audit_001
+```
+
+The certificate is limited to linear interpolation and compiled MuJoCo
+geometry; it is not a physical safety or hard-real-time result.
 
 The provider-neutral CPU audit demonstrates how a second action-chunk model
 family reaches the existing runtime without treating every `Hx7` tensor as the

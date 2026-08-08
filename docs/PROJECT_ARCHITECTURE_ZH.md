@@ -31,8 +31,8 @@ ArmBench 是一个研究动作块式 VLA 在“模型响应返回”和“机器
 - 双相机观测、传输测试和确定性故障注入。
 
 这条路径用于验证七自由度机械臂上的运行时契约和受控失败行为。连续 checker 对
-编译后的 MuJoCo 几何和声明的关节线性插值给出保守判定；当前保留的审计矩阵主要
-覆盖静态障碍，自碰广泛覆盖和实体模型精度仍需后续验证。
+编译后的 MuJoCo 几何和声明的关节线性插值给出保守判定；当前保留的审计矩阵已经
+覆盖静态障碍和注册的自碰边集，但实体模型精度和任务级接线仍需后续验证。
 
 ### 2. `pi0.5 VLA` 时序评测路径
 
@@ -79,7 +79,8 @@ blocking inference 加 simulator catch-up evaluator。
 | 笛卡尔动作适配器 | 将 scripted `H x 7` LIBERO 风格动作经 Panda Jacobian 转为现有 `H x 8` guard 契约 | 仅为组件 smoke；不包含官方 checkpoint、任务成功率或控制器等价性主张 |
 | 冻结响应 Panda 回放 | 核验 7,934 个官方响应哈希，并将 90 个动作块送入 3 个 Panda 场景 | 跨控制器离线诊断；未执行 checkpoint、反馈闭环或任务成功率评测 |
 | 终端制动不变量修复 | 270 个冻结响应成对案例：已注册约束从 264/270 到 270/270，6 个旧冲突全部解决，0 个回归 | 不训练模型的轨迹修复诊断；软件预算测量，不是硬实时或物理安全证明 |
-| 连续碰撞边 | 三个场景 72 条静态障碍边相对更密采样 oracle 的 false-safe 为 0 | 编译几何的保守审计；自碰尚未完成广泛矩阵审计 |
+| 连续碰撞边 | 三个场景 72 条静态障碍边相对更密采样 oracle 的 false-safe 为 0 | 编译几何的静态障碍保守审计；自碰另行报告 |
+| 连续自碰撞边 | Panda 72 条固定 seed 边：70 条端点均有效，false-safe 为 0，保守拒绝 21 条 | 关节线性边几何审计；不是实体安全或硬实时证明 |
 | 动力学可达制动 | 45 条负载、阻尼和初速度条件全部通过逆动力学力矩与连续边检查 | MuJoCo 模型可行性；不主张闭环跟踪或真机安全 |
 | Provider-neutral ABI | OpenVLA-OFT 命名的合成 `6x7` fixture 与观测绑定并适配为 `6x8`，5/5 类语义冲突均被拒绝 | 只证明接口可迁移；没有执行 OpenVLA-OFT checkpoint 或得到跨模型任务结果 |
 | LeRobot 风格执行器边界 | 5 帧可重放记录：3 次执行、1 次过期观测 hold、1 次锁存 hold、1 次显式 reset | 只证明内存帧接口和软件 watchdog；没有官方 LeRobot runtime、驱动或机器人 |
@@ -104,10 +105,11 @@ guard。确定性 CPU smoke 见
 270 个保留案例中，它解决了旧 guard 的 6 个避碰/加速度冲突，且没有观察到修复回归。
 详见[延迟有界的终端制动不变量修复](PI05_PANDA_BRAKING_REPAIR_ZH.md)。
 
-本地 MuJoCo checker 现在还提供基于 clearance 的静态障碍 swept 审计：为每个关节
-计算保守工作空间位移半径，按配置余量细分边，并与更密的采样 oracle 对照。保留的
-72 条边审计 false-safe 为 0。自碰撞仍是采样检查，这不是连续或实体机器人安全证书。
-详见[MuJoCo swept 碰撞审计](MUJOCO_SWEPT_AUDIT_ZH.md)。
+本地 MuJoCo checker 现在还提供基于 clearance 的静态障碍 swept 审计和连续自碰撞审计：
+为每个关节计算保守工作空间位移半径、细分关节空间边，并与更密的采样 oracle 对照。
+保留的静态障碍 72 条边和自碰撞 72 条边审计均 false-safe 为 0；自碰撞审计有 21 条
+保守拒绝。这些是实现审计，不是解析或实体机器人安全证书。详见[MuJoCo swept 碰撞审计](MUJOCO_SWEPT_AUDIT_ZH.md)
+和[Panda 连续自碰撞审计](MUJOCO_SELF_COLLISION_AUDIT_ZH.md)。
 
 异步 Panda 运行时现在补齐了本地链路。latest-only 相机 worker 为实时 Panda 状态和
 两路仿真图像加时间戳，独立阻塞 scripted 策略返回 action chunk；每个 control tick
@@ -115,7 +117,8 @@ guard。确定性 CPU smoke 见
 响应超时或失败时，从实测状态重建并检查停止序列。事件、NPZ trace、provenance、
 哈希和重算指标共同构成可独立验收的 artifact。当前 checker 还会计算逐关节
 workspace 运动上界并细分带 clearance 的边；仓库保留的 v3 矩阵在 provenance
-中记录这些上界与 20 mm 余量。自碰撞仍为采样检查，动力学也没有得到认证。详见
+中记录这些上界与 20 mm 余量。连续自碰撞审计单独记录证书与 dense oracle 的差异，
+动力学仍没有得到实体认证。详见
 [异步 Panda 闭环运行时](ASYNC_PANDA_CLOSED_LOOP_ZH.md)。
 
 策略边界现在在 ABI 层面是 provider-neutral 的。冻结响应 bundle 记录模型族身份、
@@ -156,7 +159,7 @@ evaluator，并评测：
 
 1. 用经过认证的 OpenVLA-OFT checkpoint 响应替换合成 fixture，并运行预注册的跨模型闭环矩阵；
 2. 将官方 LeRobot 数据集边界和 Panda watchdog 接到具体驱动前，先冻结动作语义和 reset 行为；
-3. 扩展连续自碰矩阵，并把动力学制动结果接入任务级在线执行；
+3. 把连续自碰矩阵和动力学制动结果接入任务级在线执行，并量化保守拒绝代价；
 4. 增加标定后的硬件时序、急停集成和重复实体故障注入证据。
 
 在此之前，准确的公开表述是：**七自由度受限执行基座 + `pi0.5 VLA`

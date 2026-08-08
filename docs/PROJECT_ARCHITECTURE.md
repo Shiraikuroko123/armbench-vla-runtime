@@ -43,9 +43,9 @@ The local MuJoCo Panda path provides the classical robotics base:
 
 This path validates runtime contracts and controlled failure behavior on a
 seven-DoF arm model. The continuous checker is conservative for the compiled
-MuJoCo geometry and declared joint-linear interpolation. The preserved audit
-matrix covers static obstacles; broad self-collision coverage and physical
-model accuracy remain open questions.
+MuJoCo geometry and declared joint-linear interpolation. Preserved audits cover
+both static obstacles and a registered self-collision matrix; physical model
+accuracy and task-level integration remain open questions.
 
 ### 2. `pi0.5` VLA temporal-evaluation path
 
@@ -103,7 +103,8 @@ completed `pi0.5` studies.
 | Cartesian action adapter | Scripted `H x 7` LIBERO-style chunk mapped through the Panda Jacobian into the existing `H x 8` guard contract | Component smoke only; no official checkpoint, task-success, or controller-equivalence claim |
 | Frozen-response Panda replay | 7,934 official response hashes verified; 90 chunks replayed across three Panda scenes | Offline cross-controller diagnostic; no checkpoint execution, feedback loop, or task-success claim |
 | Braking-invariant repair | 270 paired frozen-response cases: 264/270 to 270/270 registered constraints, all 6 legacy conflicts resolved, zero regressions | Training-free trajectory repair diagnostic; measured software budget, not hard real time or physical safety |
-| Continuous collision edges | 72 seeded static-obstacle edges: 0 false-safe decisions against a denser sampled oracle | Conservative compiled-geometry audit; self-collision is not broadly audited |
+| Continuous collision edges | 72 seeded static-obstacle edges: 0 false-safe decisions against a denser sampled oracle | Conservative compiled-geometry static-obstacle audit; self-collision is reported separately |
+| Continuous self-collision edges | 72 seeded Panda edges: 70 endpoint-safe, 0 false-safe, 21 conservative rejections against a 0.002 rad oracle | Linear-edge geometry audit; not physical safety or hard real time |
 | Dynamics-feasible braking | 45/45 registered payload, damping, and velocity cases pass inverse-dynamics effort and edge checks | Sampled MuJoCo model feasibility; no closed-loop or hardware claim |
 | Provider-neutral ABI | Synthetic OpenVLA-OFT-named `6x7` fixture bound to one observation, adapted to `6x8`, with 5/5 registered semantic mismatches rejected | Interface portability only; no OpenVLA-OFT checkpoint execution or cross-model task result |
 | LeRobot-style actuator boundary | Five replayable frames: three executes, one stale-observation hold, one latched hold, one explicit reset | In-memory frame compatibility and software watchdog only; no official LeRobot runtime, driver, or robot |
@@ -135,13 +136,14 @@ candidate. On the preserved 270-case matrix it resolves all six legacy
 collision/acceleration conflicts with zero repair regressions. See
 [deadline-bounded braking-invariant repair](PI05_PANDA_BRAKING_REPAIR.md).
 
-The local MuJoCo checker now also exposes a clearance-backed swept static-
-obstacle audit. It derives conservative per-joint workspace displacement
-radii, subdivides edges against the configured static clearance, and compares
-the result with a denser sampled oracle. The preserved 72-edge audit has zero
-false-safe decisions. Self-collision remains sampled, and the audit is not a
-continuous or physical-robot safety certificate. See
-[MuJoCo swept collision audit](MUJOCO_SWEPT_AUDIT.md).
+The local MuJoCo checker now also exposes clearance-backed swept static-
+obstacle and continuous self-collision audits. It derives conservative
+per-joint workspace displacement radii, subdivides edges, and compares the
+result with denser sampled oracles. The preserved 72-edge static audit and
+72-edge self-collision audit both have zero false-safe decisions; the latter
+has 21 conservative rejections. These are implementation audits, not analytic
+or physical-robot safety certificates. See [MuJoCo swept collision audit](MUJOCO_SWEPT_AUDIT.md)
+and [Panda continuous self-collision audit](MUJOCO_SELF_COLLISION_AUDIT.md).
 
 The asynchronous Panda runtime now integrates the local half of the chain. A
 latest-only camera worker timestamps live Panda state and two simulated images;
@@ -153,7 +155,8 @@ events, NPZ traces, provenance, hashes, and recomputed metrics form a
 self-validating artifact. The current checker also derives a conservative
 per-joint workspace-motion bound and subdivides each clearance-backed edge;
 the preserved v3 matrix records these bounds and the 20 mm margin in its
-provenance. Self-collision remains sampled and dynamics are not certified. See
+provenance. The separate self-collision audit covers the compiled geometry, while
+dynamics are not physically certified. See
 [asynchronous Panda closed-loop runtime](ASYNC_PANDA_CLOSED_LOOP.md).
 
 The policy boundary is now provider-neutral at the ABI level. Frozen response
@@ -208,8 +211,8 @@ to connect the implemented component adapter to a complete evaluator and test:
    OpenVLA-OFT captures and run a preregistered cross-model closed-loop matrix;
 2. wire the official LeRobot dataset boundary and Panda watchdog to a concrete
    driver only after action semantics and reset behavior are specified;
-3. expand the continuous self-collision audit and connect the dynamics-aware
-   braking result to task-level online execution; and
+3. connect the continuous self-collision audit and dynamics-aware braking result
+   to task-level online execution, and quantify conservative rejection cost; and
 4. add calibrated hardware timing, emergency-stop integration, and repeated
    physical fault-injection evidence.
 

@@ -53,6 +53,7 @@ Panda 与 LIBERO 的动作契约不同，实验结果不会混合统计。完整
 | 终端制动不变量修复 | 270 个成对离线案例：已注册约束从 264/270 提升到 270/270，6 个旧冲突全部解决，0 个回归 | 将冻结的 `pi0.5` 响应送入 Panda 适配器；不主张任务成功率或硬实时 |
 | 异步 Panda 闭环 | 27 个带 clearance-backed swept 静态障碍检查的 CPU 墙钟案例：制动不变量模式 9/9 通过物理谓词，突停违规 0，修复预算超限 0；legacy 为 311 次突停，unguarded 为 289 次 | 使用 scripted 非学习策略验证双相机、策略 worker、调度、修复和力矩控制集成；不是学习策略效果或实体安全认证 |
 | Clearance-backed swept 审计 | 三个场景 72 条固定 seed 边：相对更密采样 oracle 的 false-safe 为 0 | 静态障碍保守审计；自碰撞和连续实体安全仍不在范围内 |
+| 连续自碰撞审计 | Panda 关节空间 72 条固定 seed 边：70 条端点均有效，相对 0.002 rad 采样 oracle 的 false-safe 为 0，保守拒绝 21 条 | 针对线性插值的 fail-closed 几何审计；不是实体安全或硬实时证书 |
 | MuJoCo 动力学制动审计 | 0/0.5/1 kg 负载、0.5/1/2 倍阻尼和 5 类初速度共 45 条条件，45/45 通过逆动力学与连续碰撞边检查 | 编译 MuJoCo Panda 的采样可行性证据；不是闭环跟踪、硬实时或真机急停证明 |
 | Provider-neutral 动作契约 | OpenVLA-OFT 命名的 CPU fixture：`6x7` 转 `6x8`，精确绑定观测，5/5 类语义冲突均被拒绝 | 仅证明第二模型族 ABI；没有执行 OpenVLA-OFT checkpoint |
 | LeRobot 风格执行器边界 | 5 帧确定性重放：执行 3 条命令，拒绝过期观测，保持锁存，并在显式 reset 后恢复 | 仅证明帧接口与软件 watchdog；未运行官方 LeRobot 或实体机器人 |
@@ -65,7 +66,8 @@ Panda 与 LIBERO 的动作契约不同，实验结果不会混合统计。完整
 - 没有训练或微调 `pi0.5`。
 - 官方 checkpoint 结果仅覆盖 LIBERO 仿真。
 - 时序实验使用 blocking inference 加 simulator catch-up，不是操作系统级硬实时控制。
-- Panda guard 不是碰撞安全认证，也不能证明 `pi0.5` 已控制 Panda。
+- Panda guard 只覆盖已注册的 MuJoCo 几何审计，不能替代实体碰撞安全认证，也不能证明
+  `pi0.5` 已控制 Panda。
 - 没有集成 Isaac Lab、ROS2、真实 Franka Panda 或安全 PLC。
 - LeRobot-style bridge 仍是 CPU-only 的内存接口契约；单独的官方
   `LeRobotDataset` round-trip 只验证数据集读写，不等于策略、驱动或真机集成。
@@ -166,8 +168,19 @@ deadline 回退、制动修复和力矩控制 Panda 物理执行接到同一个�
 覆盖五档固定延迟、jitter、响应丢失、负载和持续动作故障。制动不变量模式记录到
 0 次突停违规、9/9 条 trace 满足项目物理谓词，修复 P95 为 7.81 ms、最大值为
 19.01 ms。静态障碍边使用记录在 provenance 中的 20 mm clearance-backed swept
-细分，自碰撞仍为采样检查。它只在 1/9 个条件中到达目标，因此报告明确保留了
+细分；独立的连续自碰撞审计见下文。它只在 1/9 个条件中到达目标，因此报告明确保留了
 安全/进度代价和本地 CPU 吞吐限制，而不是用汇总成功率掩盖。
+
+独立的[连续自碰撞审计](reports/mujoco_self_collision_audit_001/summary.md)对 72 条
+固定 seed Panda 关节空间边与 0.002 rad 采样 oracle 对照：70 条边的两个端点均有效，
+false-safe 为 0，保守拒绝 21 条。无需 GPU 即可重新验收：
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m armbench mujoco-self-collision-validate `
+  reports\mujoco_self_collision_audit_001
+```
+
+证书只覆盖关节空间线性插值和编译后的 MuJoCo 几何，不是实体安全或硬实时结果。
 
 Provider-neutral CPU 审计演示第二个 action-chunk 模型族如何进入现有 runtime，
 并避免把所有 `Hx7` 张量误认为相同动作空间：

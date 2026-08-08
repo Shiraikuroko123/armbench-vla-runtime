@@ -65,6 +65,8 @@ and then the legacy workspace-level `upstream/mujoco_menagerie` directory.
 ```powershell
 & '.\.venv\Scripts\python.exe' -m armbench doctor
 & '.\.venv\Scripts\python.exe' -m armbench mujoco-validate
+& '.\.venv\Scripts\python.exe' -m armbench mujoco-self-collision-validate `
+  reports\mujoco_self_collision_audit_001
 .\scripts\vla_demo.cmd -CheckOnly
 ```
 

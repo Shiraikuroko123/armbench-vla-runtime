@@ -1,0 +1,21 @@
+{
+  "files": [
+    {
+      "bytes": 37943,
+      "path": "per_edge.csv",
+      "sha256": "b2edf20d5b27c43553fa4fc60e13cf8e26dc650f31b3210055ea58cf7b8bc8b5"
+    },
+    {
+      "bytes": 2311,
+      "path": "summary.json",
+      "sha256": "3e763524ffcfa41940e6b1100f4da22c833220b8cb2b1dbe18d913d7b1c4a7da"
+    },
+    {
+      "bytes": 331,
+      "path": "summary.md",
+      "sha256": "d0df1382b45186baed1a9e14ea97a668272baad198f8d74565e33b8d9c289fb8"
+    }
+  ],
+  "inventory_sha256": "a560816065f268e890af2d6bb72425a446aa0f289d92eada86438f3c3e3d387f",
+  "schema_version": "armbench.mujoco_self_collision_audit.v1.manifest"
+}

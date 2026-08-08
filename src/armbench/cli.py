@@ -32,6 +32,11 @@ from armbench.mujoco_sim.swept_audit import (
     run_swept_collision_audit,
     validate_swept_collision_audit,
 )
+from armbench.mujoco_sim.self_collision_audit import (
+    SelfCollisionAuditConfig,
+    run_self_collision_audit,
+    validate_self_collision_audit,
+)
 from armbench.scenario import benchmark_scenarios
 from armbench.vla.async_runtime import run_async_runtime_smoke
 from armbench.vla.async_smoke import run_process_runtime_smoke
@@ -417,6 +422,29 @@ def build_parser() -> argparse.ArgumentParser:
         help="validate a preserved swept-collision audit",
     )
     swept_validate.add_argument("directory", type=Path)
+
+    self_collision_audit = subparsers.add_parser(
+        "mujoco-self-collision-audit",
+        help="audit continuous self-collision checks against a dense sampled oracle",
+    )
+    self_collision_audit.add_argument("--output-directory", type=Path, required=True)
+    self_collision_audit.add_argument(
+        "--strata",
+        nargs="+",
+        choices=("known_intermediate", "local", "global"),
+        default=("known_intermediate", "local", "global"),
+    )
+    self_collision_audit.add_argument("--samples-per-stratum", type=int, default=24)
+    self_collision_audit.add_argument("--seed", type=int, default=20260808)
+    self_collision_audit.add_argument("--dense-resolution-rad", type=float, default=0.002)
+    self_collision_audit.add_argument("--continuous-max-depth", type=int, default=16)
+    self_collision_audit.add_argument("--continuous-max-pair-evaluations", type=int, default=250000)
+    self_collision_audit.add_argument("--quick", action="store_true")
+    self_collision_validate = subparsers.add_parser(
+        "mujoco-self-collision-validate",
+        help="validate a preserved continuous self-collision audit",
+    )
+    self_collision_validate.add_argument("directory", type=Path)
 
     mujoco_run = subparsers.add_parser(
         "mujoco-run", help="run mesh planning and MuJoCo rigid-body experiments"
@@ -1086,6 +1114,28 @@ def main(arguments: list[str] | None = None) -> int:
         return 0
     if args.command == "mujoco-swept-validate":
         result = validate_swept_collision_audit(args.directory)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0
+    if args.command == "mujoco-self-collision-audit":
+        if args.quick and args.samples_per_stratum != 24:
+            parser.error("--quick cannot be combined with --samples-per-stratum")
+        output = run_self_collision_audit(
+            args.output_directory,
+            config=SelfCollisionAuditConfig(
+                strata=tuple(args.strata),
+                samples_per_stratum=(8 if args.quick else args.samples_per_stratum),
+                seed=args.seed,
+                dense_resolution_rad=args.dense_resolution_rad,
+                continuous_max_depth=args.continuous_max_depth,
+                continuous_max_pair_evaluations=args.continuous_max_pair_evaluations,
+            ),
+        )
+        result = validate_self_collision_audit(output)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "mujoco-self-collision-validate":
+        result = validate_self_collision_audit(args.directory)
         print(json.dumps(result, indent=2, ensure_ascii=False))
         return 0
     if args.command == "mujoco-run":

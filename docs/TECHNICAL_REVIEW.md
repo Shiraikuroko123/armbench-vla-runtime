@@ -52,6 +52,7 @@ Evidence from one path is not used to establish claims about the other.
 | Local runtime fault matrix | Deterministic protocol and safety-fault handling with explicitly non-learned fixtures |
 | Official LeRobotDataset round-trip | Isolated `lerobot==0.4.4`/v3.0 loader reloads a three-frame Panda episode field by field |
 | Dynamics braking audit | 45/45 payload, damping, and velocity cases pass sampled inverse-dynamics and continuous-edge checks |
+| Continuous self-collision audit | 72 seeded Panda edges: 70 endpoint-safe, 0 false-safe, and 21 conservative rejections against a 0.002 rad sampled oracle |
 
 These studies answer different questions and must not be pooled.
 
@@ -176,12 +177,13 @@ general semantic sensor validity.
 ### Safety interpretation
 
 The local guard demonstrates bounded response to registered faults in MuJoCo.
-It is not a formal safety controller. The current checker provides a
-clearance-backed continuous edge certificate for the declared static-obstacle
-geometry, while self-collision remains sampled in the preserved runtime
-matrix. The separate dynamics audit recomputes sampled inverse-dynamics effort
-for registered braking trajectories; neither result certifies physical
-acceleration, jerk, emergency stopping, or hardware safety.
+It is not a formal safety controller. The checker provides clearance-backed
+continuous edge certificates for declared static-obstacle and self-collision
+geometry under linear joint interpolation. The preserved self-collision audit
+still compares the certificate with a dense sampled oracle rather than an
+analytic proof. The separate dynamics audit recomputes sampled
+inverse-dynamics effort for registered braking trajectories; neither result
+certifies physical acceleration, jerk, emergency stopping, or hardware safety.
 
 A held episode may remain collision-free while failing its task. Safety and
 task completion are reported as separate outcomes.
@@ -280,8 +282,8 @@ Negative and invalid results are handled differently:
 1. Wire the independently scheduled runtime, constrained projection, and
    braking repair into an end-to-end evaluator, recording observation, action,
    and commitment age at each control tick.
-2. Expand the continuous checker audit to a registered self-collision matrix
-   and connect its fail-closed result to task-level online execution.
+2. Connect the continuous self-collision certificate and braking repair to
+   task-level online execution, and measure the resulting conservatism.
 3. Reproduce the runtime method on a second open VLA family without forcing
    incompatible action semantics into the existing adapter.
 4. Evaluate calibrated abstention or takeover under registered faults.

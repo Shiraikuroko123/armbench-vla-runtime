@@ -65,7 +65,7 @@ layer of support for the measured-age result.
 7. Implemented modules: provider adaptation, LeRobot-style watchdog replay,
    official LeRobotDataset round-trip, constrained projection, trajectory
    repair, asynchronous Panda control, continuous collision edges, dynamics
-   braking audit, and result-file checks.
+   braking audit, continuous self-collision audit, and result-file checks.
 8. Scripted non-learned fault tests with links to saved files.
 9. Checked scope and unfinished work.
 10. GPU-free commands for checking saved measured-age and RTC results.
@@ -96,6 +96,9 @@ layer of support for the measured-age result.
 - Braking repair and swept audit: 270 paired offline cases satisfy all
   registered constraints after repair, while 72 seeded static-obstacle edges
   produce zero false-safe decisions against a denser sampled oracle.
+- Self-collision audit: 72 seeded Panda edges include 70 endpoint-safe cases,
+  zero false-safe decisions, and 21 conservative rejections against a 0.002
+  rad sampled oracle.
 - Asynchronous Panda loop: 27 wall-clock CPU cases connect dual-camera capture,
   a blocking scripted policy worker, temporal dispatch, trajectory repair, and
   torque control. Braking-invariant mode records 9/9 physical predicates and

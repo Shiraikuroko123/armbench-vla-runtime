@@ -24,6 +24,11 @@ from armbench.mujoco_sim.model import (
     panda_scene_candidates,
 )
 from armbench.mujoco_sim.scenarios import mujoco_scenarios
+from armbench.mujoco_sim.self_collision_audit import (
+    SelfCollisionAuditConfig,
+    run_self_collision_audit,
+    validate_self_collision_audit,
+)
 
 __all__ = [
     "MuJoCoCollisionChecker",
@@ -41,5 +46,8 @@ __all__ = [
     "run_continuous_collision_smoke",
     "run_dynamics_braking_audit",
     "run_dynamics_braking_smoke",
+    "run_self_collision_audit",
+    "SelfCollisionAuditConfig",
     "validate_dynamics_braking_audit",
+    "validate_self_collision_audit",
 ]

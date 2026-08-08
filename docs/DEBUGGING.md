@@ -449,13 +449,17 @@ Run the independent edge smoke and dynamics audit with new output directories:
 
 ```powershell
 & $ArmbenchPython -m armbench mujoco-continuous-collision-smoke
+& $ArmbenchPython -m armbench mujoco-self-collision-validate `
+  reports\mujoco_self_collision_audit_001
 & $ArmbenchPython -m armbench mujoco-dynamics-braking-validate `
   reports\dynamics_braking_audit_001
 ```
 
-The dynamics command replays inverse-dynamics effort, joint limits, and
-continuous edge decisions. A successful result is model-feasibility evidence;
-it is not a hard-real-time or emergency-stop certificate.
+The self-collision command recomputes all 72 registered edge decisions and
+checks the protected manifest. The dynamics command replays inverse-dynamics
+effort, joint limits, and continuous edge decisions. Successful results are
+model-feasibility evidence; they are not hard-real-time or emergency-stop
+certificates.
 
 The in-memory LeRobot watchdog and the official dataset loader are separate
 boundaries. Use the main environment for the former:

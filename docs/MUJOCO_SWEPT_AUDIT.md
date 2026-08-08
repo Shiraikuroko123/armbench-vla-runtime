@@ -9,9 +9,9 @@ subdivided until the maximum bound for one subedge is at most half the static
 clearance, while retaining the configured joint-resolution lower bound.
 
 This is a conservative certificate for static obstacles represented by that
-clearance. Self-collision is still checked at the sampled configurations and
-is not a continuous certificate. The dense comparison below is a stronger
-sampled oracle, not an analytic proof.
+clearance. This artifact does not include the separate continuous self-
+collision matrix; see [Panda continuous self-collision audit](MUJOCO_SELF_COLLISION_AUDIT.md).
+The dense comparison below is a stronger sampled oracle, not an analytic proof.
 
 ## Run
 

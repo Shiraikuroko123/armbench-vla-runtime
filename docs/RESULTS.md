@@ -322,8 +322,9 @@ safety, or worst-case hard-real-time behavior.
   modes crossed with 0/40/80/160/240 ms fixed delay, 80 +/- 25 ms jitter, 10%
   response loss, 0.5 kg payload, and a persistent 2.5 rad/s joint-0 fault
 - Geometry: 20 mm planning clearance inherited by runtime checks; static-
-  obstacle edges use per-joint workspace-motion subdivision at half the margin,
-  while self-collision remains sampled
+  obstacle edges use per-joint workspace-motion subdivision at half the margin.
+  A separate 72-edge self-collision audit uses the same continuous checker
+  with static obstacles disabled
 - Artifact: 27 NPZ traces, 18.43 MB JSONL event log, CSV, summaries,
   provenance, and manifest; 23,827,218 manifest-protected bytes
 - Manifest inventory SHA-256:
@@ -373,7 +374,8 @@ and the implementation/claim boundary is documented in
 - Swept checker: 0.05 rad joint-resolution lower bound plus per-joint workspace
   displacement subdivision at half of the 20 mm static-obstacle clearance
 - Comparison oracle: the same inflated MuJoCo geometry sampled at 0.002 rad
-- Scope: static-obstacle certificate only; self-collision remains sampled
+- Scope: static-obstacle certificate; self-collision is covered separately by
+  `mujoco_self_collision_audit_001`
 
 ### Outcomes
 
@@ -393,6 +395,42 @@ proof. The self-validating artifact is
 [`reports/mujoco_swept_audit_001`](../reports/mujoco_swept_audit_001/summary.json),
 and the method boundary is documented in
 [clearance-backed swept collision audit](MUJOCO_SWEPT_AUDIT.md).
+
+## Panda continuous self-collision audit
+
+### Provenance and protocol
+
+- Run ID: `mujoco_self_collision_audit_001`
+- Source: pinned MuJoCo Menagerie Panda scene and implementation hashes in the
+  self-validating report manifest
+- Matrix: three edge strata x 24 edges = 72 seeded joint-space edges
+- Strata: one fixed intermediate-collision control, local perturbations around
+  the nominal start, and global joint-limit interior samples
+- Certificate: continuous distance-bound checker over linear joint interpolation
+  with self-collision pairs enabled and static obstacles disabled
+- Comparison oracle: the same compiled model sampled at 0.002 rad
+- Validator: `python -m armbench mujoco-self-collision-validate
+  reports/mujoco_self_collision_audit_001`
+
+### Outcomes
+
+| Metric | Result |
+| --- | ---: |
+| Edges | 72 |
+| Edges with both endpoints valid | 70 |
+| Continuous / dense accepted | 48 / 69 |
+| False-safe edges | 0 |
+| Conservative rejections | 21 |
+| P95 continuous / dense latency | 2132.86 / 413.73 ms |
+| Maximum continuous pair evaluations | 187,575 |
+
+The zero false-safe count is relative to the declared sampled oracle. The 21
+conservative rejections quantify the cost of the bound on broad joint-space
+edges; they are not task-level success failures. The certificate covers only
+linear interpolation and the compiled MuJoCo geometry, not physical hardware,
+hard real-time behavior, dynamics, or emergency stopping. The self-validating
+artifact is [`reports/mujoco_self_collision_audit_001`](../reports/mujoco_self_collision_audit_001/summary.json),
+and the protocol is documented in [Panda continuous self-collision audit](MUJOCO_SELF_COLLISION_AUDIT.md).
 
 ## Provider-neutral second-family contract audit
 

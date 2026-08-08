@@ -1,0 +1,67 @@
+{
+  "by_stratum": {
+    "global": {
+      "conservative_rejections": 10,
+      "continuous_safe": 13,
+      "dense_safe": 23,
+      "edges": 24,
+      "endpoint_safe_edges": 23,
+      "false_safe": 0
+    },
+    "known_intermediate": {
+      "conservative_rejections": 10,
+      "continuous_safe": 12,
+      "dense_safe": 22,
+      "edges": 24,
+      "endpoint_safe_edges": 23,
+      "false_safe": 0
+    },
+    "local": {
+      "conservative_rejections": 1,
+      "continuous_safe": 23,
+      "dense_safe": 24,
+      "edges": 24,
+      "endpoint_safe_edges": 24,
+      "false_safe": 0
+    }
+  },
+  "claim_boundary": [
+    "The continuous checker covers linear joint interpolation and compiled MuJoCo geometry.",
+    "The dense comparison is a sampled oracle, not an analytic proof.",
+    "The result does not establish physical robot safety, hard real-time behavior, or emergency stopping."
+  ],
+  "configuration": {
+    "continuous_max_depth": 16,
+    "continuous_max_pair_evaluations": 250000,
+    "continuous_minimum_interval_rad": 1e-06,
+    "dense_resolution_rad": 0.002,
+    "samples_per_stratum": 24,
+    "seed": 20260808,
+    "strata": [
+      "known_intermediate",
+      "local",
+      "global"
+    ]
+  },
+  "implementation_sha256": {
+    "armbench/mujoco_sim/collision.py": "48e8ccf40fc4b5ecbe426b454c38104561e861d88c1d4be09636efe664c08f29",
+    "armbench/mujoco_sim/continuous_collision.py": "4bdf6b26572b9754e40a870ec7ce5b72dfbeff341f033cf084f7638b32d224e7",
+    "armbench/mujoco_sim/self_collision_audit.py": "a3272fca573f85e2798d25c2f9bf5cfe4c7ab8f8f70daa6b02e043298712b293"
+  },
+  "overall": {
+    "conservative_rejections": 21,
+    "continuous_safe": 48,
+    "dense_safe": 69,
+    "edges": 72,
+    "endpoint_safe_edges": 70,
+    "false_safe": 0,
+    "maximum_continuous_latency_ms": 2475.1192000112496,
+    "maximum_dense_latency_ms": 943.8757000025362,
+    "maximum_pair_evaluations": 187575,
+    "p95_continuous_latency_ms": 2132.859125001414,
+    "p95_dense_latency_ms": 413.7271300001893
+  },
+  "panda_scene_sha256": "60658e01f59909eadaffbb4eb98a98715f67f67e9ae49f42ac114567fddaf230",
+  "schema_version": "armbench.mujoco_self_collision_audit.v1",
+  "scope": "continuous_self_collision_certificate_vs_dense_sampled_oracle"
+}

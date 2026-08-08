@@ -68,8 +68,8 @@ There are no gradients, decorative orbs, neon circuitry, or stock imagery.
   semantically separate, followed by the integration gap.
 - **Implemented modules:** provider adaptation, LeRobot-style frame replay,
   official LeRobotDataset round-trip, constrained projection, braking repair,
-  asynchronous Panda control, continuous collision edges, dynamics braking
-  audit, and result-file checks.
+  asynchronous Panda control, continuous collision edges, self-collision audit,
+  dynamics braking audit, and result-file checks.
 - **Fault map:** scripted non-learned detection and response rows with links to
   saved files.
 - **Scope block:** checked items and unfinished items receive equal visual
