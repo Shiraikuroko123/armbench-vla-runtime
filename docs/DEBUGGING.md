@@ -439,7 +439,35 @@ If the predicted path is valid but physics contacts an obstacle:
 4. check command discontinuities around a repaired/held action;
 5. increase model fidelity or clearance only after identifying the mechanism.
 
-Do not call the current sampled edge check continuous collision detection.
+The legacy action guard still uses resolution-bounded checks and must not be
+described as continuous collision detection. The separate
+`ContinuousMuJoCoCollisionChecker` is a fail-closed distance-bound checker for
+the declared compiled geometry and linear joint-space edge; its preserved
+static-obstacle audit is still compared against a denser sampled oracle.
+
+Run the independent edge smoke and dynamics audit with new output directories:
+
+```powershell
+& $ArmbenchPython -m armbench mujoco-continuous-collision-smoke
+& $ArmbenchPython -m armbench mujoco-dynamics-braking-validate `
+  reports\dynamics_braking_audit_001
+```
+
+The dynamics command replays inverse-dynamics effort, joint limits, and
+continuous edge decisions. A successful result is model-feasibility evidence;
+it is not a hard-real-time or emergency-stop certificate.
+
+The in-memory LeRobot watchdog and the official dataset loader are separate
+boundaries. Use the main environment for the former:
+
+```powershell
+& $ArmbenchPython -m armbench vla-lerobot-replay `
+  reports\lerobot_style_watchdog_001
+```
+
+Use the isolated environment created by `scripts\setup_official_lerobot.ps1`
+for the latter. Do not install official LeRobot into the OpenPI environment;
+its NumPy 2 dependency is intentionally kept separate.
 
 ## 8. Visual replay
 
@@ -493,6 +521,9 @@ listed above, and press F5. Enter a new run directory name when prompted.
 | Where is a remote closed loop run? | `vla/online_benchmark.py: execute_openpi_online_run` |
 | Which geom caused contact? | `mujoco_sim/model.py: obstacle_contacts` |
 | How are torques applied? | `mujoco_sim/execution.py: execute_trajectory` |
+| How are continuous edges checked? | `mujoco_sim/continuous_collision.py: ContinuousMuJoCoCollisionChecker` |
+| How are braking torques audited? | `mujoco_sim/dynamics_braking*.py` |
+| How is the official dataset reloaded? | `vla/official_lerobot.py: validate_official_lerobot_episode` |
 | Where are CLI commands wired? | `cli.py` |
 
 ## Common failures

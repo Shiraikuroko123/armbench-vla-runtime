@@ -35,16 +35,17 @@ The local MuJoCo Panda path provides the classical robotics base:
 
 - RRT-Connect/RRT* planning, path smoothing, and time parameterization;
 - PD/LQR trajectory tracking and disturbance-oriented execution checks;
-- sampled configuration and interpolated-edge collision checks, with the
-  asynchronous runtime additionally using clearance-backed swept subdivision
-  for static obstacles;
+- sampled configuration checks plus a fail-closed, clearance-backed continuous
+  edge certificate for the declared static-obstacle and self-collision pairs;
 - joint, velocity, gripper, and state-consistency checks;
+- constrained QP action projection and sampled inverse-dynamics braking checks;
 - dual-camera observations, transport tests, and deterministic fault injection.
 
 This path validates runtime contracts and controlled failure behavior on a
-seven-DoF arm model. The clearance-backed runtime subdivision bounds downstream
-geometry motion between samples for static obstacles under the declared model;
-self-collision and torque-level dynamics remain sampled/uncertified.
+seven-DoF arm model. The continuous checker is conservative for the compiled
+MuJoCo geometry and declared joint-linear interpolation. The preserved audit
+matrix covers static obstacles; broad self-collision coverage and physical
+model accuracy remain open questions.
 
 ### 2. `pi0.5` VLA temporal-evaluation path
 
@@ -102,8 +103,11 @@ completed `pi0.5` studies.
 | Cartesian action adapter | Scripted `H x 7` LIBERO-style chunk mapped through the Panda Jacobian into the existing `H x 8` guard contract | Component smoke only; no official checkpoint, task-success, or controller-equivalence claim |
 | Frozen-response Panda replay | 7,934 official response hashes verified; 90 chunks replayed across three Panda scenes | Offline cross-controller diagnostic; no checkpoint execution, feedback loop, or task-success claim |
 | Braking-invariant repair | 270 paired frozen-response cases: 264/270 to 270/270 registered constraints, all 6 legacy conflicts resolved, zero regressions | Training-free trajectory repair diagnostic; measured software budget, not hard real time or physical safety |
+| Continuous collision edges | 72 seeded static-obstacle edges: 0 false-safe decisions against a denser sampled oracle | Conservative compiled-geometry audit; self-collision is not broadly audited |
+| Dynamics-feasible braking | 45/45 registered payload, damping, and velocity cases pass inverse-dynamics effort and edge checks | Sampled MuJoCo model feasibility; no closed-loop or hardware claim |
 | Provider-neutral ABI | Synthetic OpenVLA-OFT-named `6x7` fixture bound to one observation, adapted to `6x8`, with 5/5 registered semantic mismatches rejected | Interface portability only; no OpenVLA-OFT checkpoint execution or cross-model task result |
 | LeRobot-style actuator boundary | Five replayable frames: three executes, one stale-observation hold, one latched hold, one explicit reset | In-memory frame compatibility and software watchdog only; no official LeRobot runtime, driver, or robot |
+| Official LeRobotDataset round-trip | Isolated `lerobot==0.4.4`/v3.0 loader reloads three Panda frames with images, state, action, task, and timestamps | Dataset serialization only; no policy checkpoint, SO-101 conversion, or driver |
 
 Detailed results are in [Results](RESULTS.md). Frozen protocols and audits are
 listed in the [documentation index](README.md).
@@ -164,8 +168,18 @@ See [provider-neutral action contract](PROVIDER_CONTRACT.md).
 The actuator boundary now also exposes LeRobot-style in-memory frame keys and
 a fail-closed command watchdog. Hash-manifested episode records preserve input
 and dispatched commands, time/sequence metadata, latch/reset events, and enough
-bytes for deterministic decision replay. This is not official LeRobotDataset
-storage or a robot driver. See [LeRobot-style runtime bridge](LEROBOT_RUNTIME_BRIDGE.md).
+bytes for deterministic decision replay. A separate isolated exporter now writes
+the same Panda Hx8 semantics through the official `LeRobotDataset` v3.0 loader
+and checks the round-trip fields. This is dataset compatibility evidence, not a
+policy, SO-101, or robot-driver integration. See [LeRobot-style runtime bridge](LEROBOT_RUNTIME_BRIDGE.md)
+and [official LeRobotDataset round-trip](OFFICIAL_LEROBOT_ROUNDTRIP.md).
+
+The Panda safety boundary also includes a dynamics-feasible braking audit. It
+constructs sampled constant-deceleration stops, checks joint limits and
+continuous collision edges, and recomputes MuJoCo inverse-dynamics effort under
+registered payload and damping changes. The preserved 45-case matrix is model
+feasibility evidence; it is not a hard-real-time, emergency-stop, or physical
+robot certificate. See [Panda dynamics braking audit](DYNAMICS_BRAKING_AUDIT.md).
 
 This is still not a verified live control chain from official `pi0.5`
 inference to Panda execution. Scale, coordinate-frame, clipping, and gripper
@@ -192,15 +206,15 @@ to connect the implemented component adapter to a complete evaluator and test:
 
 1. replace the second-family synthetic fixture with attested, checkpoint-backed
    OpenVLA-OFT captures and run a preregistered cross-model closed-loop matrix;
-2. pin an official LeRobot release, validate records with its loader, and bind
-   the watchdog to a concrete driver before any hardware claim;
-3. extend the static-obstacle swept bound to continuous self-collision and
-   dynamics-aware reachability, with separately reported limits; and
+2. wire the official LeRobot dataset boundary and Panda watchdog to a concrete
+   driver only after action semantics and reset behavior are specified;
+3. expand the continuous self-collision audit and connect the dynamics-aware
+   braking result to task-level online execution; and
 4. add calibrated hardware timing, emergency-stop integration, and repeated
    physical fault-injection evidence.
 
 Until then, the accurate public description is: a seven-DoF constrained
 execution base plus a `pi0.5` VLA runtime-evaluation path, with provider-neutral
-action semantics, a LeRobot-style software boundary, and shared auditable
-runtime infrastructure. Learned second-model and physical-robot evidence remain
-future work.
+action semantics, an official LeRobot dataset round-trip, dynamics-aware
+MuJoCo braking audits, and shared auditable runtime infrastructure. Learned
+second-model and physical-robot evidence remain future work.

@@ -66,7 +66,9 @@ for the full design and the current integration gap.
 | Asynchronous Panda closed loop | 27 CPU wall-clock cases with clearance-backed swept obstacle checks: braking invariant was physically safe in 9/9 with 0 abrupt stops and 0 repair-budget misses; legacy recorded 311 abrupt stops and unguarded 289 | Live dual-camera, policy-worker, dispatcher, repair, and torque-control integration using a scripted non-learned policy; not learned-policy efficacy or physical certification |
 | Clearance-backed swept audit | 72 seeded MuJoCo edges across three scenes: 0 false-safe decisions against a denser sampled oracle | Conservative static-obstacle audit; self-collision and continuous physical safety remain out of scope |
 | Provider-neutral action contract | OpenVLA-OFT-named CPU fixture: `6x7` to `6x8`, exact observation binding, 5/5 semantic mismatches rejected | Second-model-family ABI evidence only; no OpenVLA-OFT checkpoint was executed |
-| LeRobot-style actuator boundary | 5-frame replay: 3 commands executed, stale observation held, latch preserved, explicit reset recovered | API-shaped frame and software-watchdog evidence; no official LeRobot runtime or physical robot |
+| LeRobot-style actuator boundary | 5-frame replay: 3 commands executed, stale observation held, latch preserved, explicit reset recovered | API-shaped frame and software-watchdog evidence; separate official-loader result is reported below |
+| Official LeRobotDataset round-trip | Pinned `lerobot==0.4.4`, v3.0 `LeRobotDataset`, 3 frames, images/state/action/task/timestamp all round-tripped | Isolated dataset serialization evidence for Panda Hx8 semantics; no policy checkpoint or robot driver |
+| MuJoCo dynamics braking audit | 45/45 registered payload, damping, and velocity cases passed inverse-dynamics and continuous-edge checks; max torque ratio 0.424543 | Sampled model feasibility evidence; no hard-real-time or emergency-stop certification |
 
 Full protocols, validators, statistics, and limitations are in
 [Results](docs/RESULTS.md).
@@ -80,8 +82,10 @@ Full protocols, validators, statistics, and limitations are in
 - Panda guard evidence does not certify collision safety and is not evidence
   that `pi0.5` controls a Panda robot.
 - No Isaac Lab, ROS2, real Franka Panda, or safety PLC integration is claimed.
-- The LeRobot bridge is an in-memory, CPU-only compatibility contract; it is
-  not an official LeRobotDataset or hardware integration claim.
+- The LeRobot bridge is an in-memory, CPU-only compatibility contract. A
+  separate isolated environment validates one three-frame export through the
+  pinned official `LeRobotDataset` v3.0 API; this is dataset serialization
+  evidence, not a policy, driver, or hardware claim.
 
 ## Local CPU quickstart
 
@@ -231,8 +235,26 @@ hash-manifested episode whose decisions are recomputed during offline replay:
 ```
 
 This validates the software interface, stale-command hold, latch, and reset
-path. It does not use the official LeRobot package or a physical robot. See
-[LeRobot-style runtime bridge](docs/LEROBOT_RUNTIME_BRIDGE.md).
+path. It does not execute a learned policy or connect a robot. The separate
+official loader round-trip can be checked with:
+
+```powershell
+& '.\.venv-lerobot-0.4.4\Scripts\python.exe' -m armbench `
+  vla-lerobot-official-validate reports\official_lerobot_roundtrip_001
+```
+
+See [LeRobot-style runtime bridge](docs/LEROBOT_RUNTIME_BRIDGE.md) and
+[official LeRobotDataset round-trip](docs/OFFICIAL_LEROBOT_ROUNDTRIP.md).
+
+The dynamics feasibility artifact is checked independently with:
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m armbench `
+  mujoco-dynamics-braking-validate reports\dynamics_braking_audit_001
+```
+
+It is sampled MuJoCo evidence, not a physical emergency-stop certificate. See
+[Panda dynamics braking audit](docs/DYNAMICS_BRAKING_AUDIT.md).
 
 ## Review preserved evidence
 

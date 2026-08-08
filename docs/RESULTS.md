@@ -435,13 +435,72 @@ fault latching, and reset replay protection. Validation reconstructs every
 observation, replays the watchdog state machine, regenerates all frame hashes,
 and recomputes the summary even after a manifest has been re-signed.
 
-Neither the official `lerobot` package nor a physical robot was used. This is
-not official LeRobotDataset storage validation, a driver integration, a
-hardware emergency stop, hard-real-time behavior, or safety certification. The
-artifact is
+This particular artifact still does not use the official `lerobot` package or
+connect a physical robot. It is not official LeRobotDataset storage validation,
+a driver integration, a hardware emergency stop, hard-real-time behavior, or
+safety certification. The artifact is
 [`reports/lerobot_style_watchdog_001`](../reports/lerobot_style_watchdog_001/summary.json)
 and the implementation boundary is documented in
 [LeRobot-style runtime bridge](LEROBOT_RUNTIME_BRIDGE.md).
+
+## Official LeRobotDataset v3.0 round-trip
+
+### Provenance and protocol
+
+- Run ID: `official_lerobot_roundtrip_001`
+- Loader: official `lerobot==0.4.4`, dataset codebase `v3.0`, isolated from the
+  NumPy 1.26/OpenPI environment
+- Dataset: three deterministic Panda frames at 10 Hz, with exterior and wrist
+  RGB images, state, action, task, and episode-relative timestamp
+- Robot type: `panda_armbench_runtime`; action is seven joint velocities plus a
+  normalized gripper position (`Hx8`)
+- Manifest inventory SHA-256:
+  `73d96418a70464dbff188d465dc4a28796a5ddbe00d406640ba4f7db1a5ca72b`
+
+### Outcomes
+
+The independent official `LeRobotDataset` loader reloaded the exported episode
+and matched every registered field: six image streams, three state vectors,
+three action vectors, three task values, and three timestamps. The artifact
+also binds the Panda action-semantics hash and the implementation hashes for
+the exporter, adapter, and watchdog. The self-validating result is in
+[`reports/official_lerobot_roundtrip_001`](../reports/official_lerobot_roundtrip_001/summary.json),
+with the setup and command contract in
+[official LeRobotDataset round-trip](OFFICIAL_LEROBOT_ROUNDTRIP.md).
+
+This establishes a dataset serialization/loader boundary only. It does not
+execute a learned policy, connect a LeRobot driver, convert Panda commands to
+SO-101 actions, or demonstrate a physical robot.
+
+## MuJoCo dynamics-feasible Panda braking audit
+
+### Provenance and protocol
+
+- Run ID: `dynamics_braking_audit_001`
+- Matrix: 3 payload masses (0, 0.5, 1 kg) x 3 arm-damping scales (0.5, 1, 2)
+  x 5 registered initial-velocity profiles = 45 cases
+- Stop construction: synchronized constant-deceleration trajectories sampled
+  at 10 ms, with joint position/velocity/acceleration limits
+- Physics check: MuJoCo inverse dynamics against 80% of compiled actuator force
+  ranges, plus continuous collision-edge checks
+- Environment: MuJoCo 3.11.0, Menagerie commit
+  `71f066ad0be9cd271f7ed58c030243ef157af9f4`
+
+### Outcomes
+
+All 45 registered cases validated and none entered the fail-closed rejection
+path. The maximum stop time was 0.20 s, maximum joint-space stopping distance
+was 0.159374 rad, and maximum actuator-limit ratio was 0.424543. The artifact
+records per-case decisions, latency, implementation hashes, and a recursive
+manifest in
+[`reports/dynamics_braking_audit_001`](../reports/dynamics_braking_audit_001/summary.json).
+The independent validator and claim boundary are documented in
+[Panda dynamics braking audit](DYNAMICS_BRAKING_AUDIT.md).
+
+This is sampled, model-based feasibility evidence for the compiled MuJoCo
+Panda. It does not establish closed-loop tracking, bounded jerk, operating
+system hard real time, physical-model accuracy, an emergency-stop guarantee,
+or a safety certification.
 
 ## Local scripted online VLA runtime result
 

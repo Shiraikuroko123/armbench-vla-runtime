@@ -1,6 +1,6 @@
 # ArmBench 架构与主张边界
 
-状态：Current。更新日期：2026-08-07。
+状态：Current。更新日期：2026-08-08。
 
 ## 项目目的
 
@@ -24,14 +24,15 @@ ArmBench 是一个研究动作块式 VLA 在“模型响应返回”和“机器
 
 - RRT-Connect/RRT* 规划、路径平滑和时间参数化；
 - PD/LQR 轨迹跟踪与扰动下的执行检查；
-- 构型采样和边插值的碰撞检查；异步运行时另外对静态障碍使用带 clearance
-  的保守扫掠细分；
+- 构型检查，以及对声明的 MuJoCo 几何和关节线性插值使用 fail-closed 的
+  clearance 保守连续边检查；
+- 受约束 QP 动作投影和带负载/阻尼矩阵的采样逆动力学制动检查；
 - 关节、速度、夹爪和状态一致性检查；
 - 双相机观测、传输测试和确定性故障注入。
 
-这条路径用于验证七自由度机械臂上的运行时契约和受控失败行为。带 clearance 的
-运行时细分会在声明的模型假设下约束静态障碍之间的下游几何运动；自碰和力矩级
-动力学仍是采样/未认证的。
+这条路径用于验证七自由度机械臂上的运行时契约和受控失败行为。连续 checker 对
+编译后的 MuJoCo 几何和声明的关节线性插值给出保守判定；当前保留的审计矩阵主要
+覆盖静态障碍，自碰广泛覆盖和实体模型精度仍需后续验证。
 
 ### 2. `pi0.5 VLA` 时序评测路径
 
@@ -78,8 +79,11 @@ blocking inference 加 simulator catch-up evaluator。
 | 笛卡尔动作适配器 | 将 scripted `H x 7` LIBERO 风格动作经 Panda Jacobian 转为现有 `H x 8` guard 契约 | 仅为组件 smoke；不包含官方 checkpoint、任务成功率或控制器等价性主张 |
 | 冻结响应 Panda 回放 | 核验 7,934 个官方响应哈希，并将 90 个动作块送入 3 个 Panda 场景 | 跨控制器离线诊断；未执行 checkpoint、反馈闭环或任务成功率评测 |
 | 终端制动不变量修复 | 270 个冻结响应成对案例：已注册约束从 264/270 到 270/270，6 个旧冲突全部解决，0 个回归 | 不训练模型的轨迹修复诊断；软件预算测量，不是硬实时或物理安全证明 |
+| 连续碰撞边 | 三个场景 72 条静态障碍边相对更密采样 oracle 的 false-safe 为 0 | 编译几何的保守审计；自碰尚未完成广泛矩阵审计 |
+| 动力学可达制动 | 45 条负载、阻尼和初速度条件全部通过逆动力学力矩与连续边检查 | MuJoCo 模型可行性；不主张闭环跟踪或真机安全 |
 | Provider-neutral ABI | OpenVLA-OFT 命名的合成 `6x7` fixture 与观测绑定并适配为 `6x8`，5/5 类语义冲突均被拒绝 | 只证明接口可迁移；没有执行 OpenVLA-OFT checkpoint 或得到跨模型任务结果 |
 | LeRobot 风格执行器边界 | 5 帧可重放记录：3 次执行、1 次过期观测 hold、1 次锁存 hold、1 次显式 reset | 只证明内存帧接口和软件 watchdog；没有官方 LeRobot runtime、驱动或机器人 |
+| 官方 LeRobotDataset round-trip | 隔离 `lerobot==0.4.4`/数据集代码 `v3.0` loader 逐字段重载 3 帧 Panda episode | 只证明数据集序列化；不包含策略、SO-101 转换或驱动 |
 
 详细结果见[结果说明](RESULTS.md)，冻结协议和审计记录见[文档索引](README.md)。
 
@@ -123,8 +127,15 @@ checkpoint 认证状态、观测绑定和规范化动作语义哈希。provider 
 
 执行器边界还增加了 LeRobot 风格内存字段和 fail-closed command watchdog。带哈希清单
 的 episode 保存输入/下发命令、时序、序列、锁存/reset 事件以及确定性重放所需数据。
-它不是官方 LeRobotDataset 磁盘格式，也不是机器人驱动。见
-[LeRobot 风格运行时桥接](LEROBOT_RUNTIME_BRIDGE_ZH.md)。
+另有隔离环境将相同 Panda Hx8 语义导出并用官方 `LeRobotDataset` v3.0 loader
+逐字段重载；这只证明数据集兼容性，不是策略或机器人驱动。见
+[LeRobot 风格运行时桥接](LEROBOT_RUNTIME_BRIDGE_ZH.md)和
+[官方 LeRobotDataset round-trip](OFFICIAL_LEROBOT_ROUNDTRIP_ZH.md)。
+
+Panda 侧还加入动力学可达制动审计：构造采样的同步减速轨迹，检查关节限位和连续
+碰撞边，再用 `mj_inverse` 在 0/0.5/1 kg 负载、0.5/1/2 倍阻尼和五类初速度下重算
+力矩余量。45 条注册条件全部通过；这仍是编译 MuJoCo 模型的可行性证据，不是硬实时、
+急停或实体机器人安全认证。见[动力学制动审计](DYNAMICS_BRAKING_AUDIT_ZH.md)。
 
 但它仍不是经过验证的“官方 `pi0.5` 在线推理直接控制 Panda”链路。尺度、坐标系、
 裁剪和夹爪语义已经与 LIBERO commit `f78abd68`、robosuite `1.4.1` 源码核对，
@@ -144,10 +155,11 @@ worker 仍未接入该 Panda loop 或独立推进的 LIBERO actuator loop。只�
 evaluator，并评测：
 
 1. 用经过认证的 OpenVLA-OFT checkpoint 响应替换合成 fixture，并运行预注册的跨模型闭环矩阵；
-2. 固定官方 LeRobot 版本，用其 loader 验证记录，并将 watchdog 绑定到具体驱动；
-3. 将静态障碍 swept 上界扩展到连续自碰和动力学可达性，并分别报告适用边界；
+2. 将官方 LeRobot 数据集边界和 Panda watchdog 接到具体驱动前，先冻结动作语义和 reset 行为；
+3. 扩展连续自碰矩阵，并把动力学制动结果接入任务级在线执行；
 4. 增加标定后的硬件时序、急停集成和重复实体故障注入证据。
 
 在此之前，准确的公开表述是：**七自由度受限执行基座 + `pi0.5 VLA`
-运行时评测路径 + provider-neutral 动作语义 + LeRobot 风格软件边界，共用可审计
-运行时基础设施。第二学习模型和实体机器人证据仍是后续工作。**
+运行时评测路径 + provider-neutral 动作语义 + 官方 LeRobot 数据集 round-trip +
+MuJoCo 动力学制动审计，共用可审计运行时基础设施。第二学习模型和实体机器人证据
+仍是后续工作。**

@@ -50,6 +50,8 @@ Evidence from one path is not used to establish claims about the other.
 | Cross-suite validation | Prespecified Object, Goal, and LIBERO-10 tests each remain significant after Holm correction |
 | Corrected-v3 RTC overlap | 96/100 unconditioned and 97/100 for each conditioned method; no success advantage, Holm-adjusted p=1.0 |
 | Local runtime fault matrix | Deterministic protocol and safety-fault handling with explicitly non-learned fixtures |
+| Official LeRobotDataset round-trip | Isolated `lerobot==0.4.4`/v3.0 loader reloads a three-frame Panda episode field by field |
+| Dynamics braking audit | 45/45 payload, damping, and velocity cases pass sampled inverse-dynamics and continuous-edge checks |
 
 These studies answer different questions and must not be pooled.
 
@@ -67,6 +69,10 @@ These studies answer different questions and must not be pooled.
 | Runtime supervision and deadline latch | src/armbench/vla/runtime.py |
 | Action-chunk guard | src/armbench/vla/guard.py |
 | MuJoCo closed-loop execution | src/armbench/vla/online.py |
+| Official LeRobotDataset export/reload | src/armbench/vla/official_lerobot.py |
+| Constrained action projection | src/armbench/vla/qp_projection.py |
+| Continuous MuJoCo collision edges | src/armbench/mujoco_sim/continuous_collision.py |
+| Dynamics-feasible braking audit | src/armbench/mujoco_sim/dynamics_braking*.py |
 | Artifact integrity | src/armbench/vla/artifact.py and study-specific validators |
 
 ## Review topics
@@ -170,9 +176,12 @@ general semantic sensor validity.
 ### Safety interpretation
 
 The local guard demonstrates bounded response to registered faults in MuJoCo.
-It is not a formal safety controller. Collision checks use MuJoCo geometry at
-sampled configurations and interpolated joint-space edges; command slew limits
-do not certify physical acceleration or jerk.
+It is not a formal safety controller. The current checker provides a
+clearance-backed continuous edge certificate for the declared static-obstacle
+geometry, while self-collision remains sampled in the preserved runtime
+matrix. The separate dynamics audit recomputes sampled inverse-dynamics effort
+for registered braking trajectories; neither result certifies physical
+acceleration, jerk, emergency stopping, or hardware safety.
 
 A held episode may remain collision-free while failing its task. Safety and
 task completion are reported as separate outcomes.
@@ -259,16 +268,20 @@ Negative and invalid results are handled differently:
 - no learned fallback, takeover, or recovery policy;
 - the braking-invariant repair is validated only on frozen responses and does
   not yet run in the task-level online evaluator;
+- the official LeRobot result covers a three-frame Panda dataset round-trip,
+  not a policy, driver, or SO-101 integration;
+- the dynamics audit covers a registered MuJoCo model matrix, not closed-loop
+  tracking or a physical payload;
 - RTC success comparison is underpowered for small effects and currently
   supports no superiority claim.
 
 ## Recommended next milestones
 
-1. Wire the independently scheduled runtime and braking repair into an
-   end-to-end evaluator, recording observation, action, and commitment age at
-   each control tick.
-2. Replace resolution-bounded edge sampling with a validated continuous or
-   conservative swept-volume collision check and report dynamics limits.
+1. Wire the independently scheduled runtime, constrained projection, and
+   braking repair into an end-to-end evaluator, recording observation, action,
+   and commitment age at each control tick.
+2. Expand the continuous checker audit to a registered self-collision matrix
+   and connect its fail-closed result to task-level online execution.
 3. Reproduce the runtime method on a second open VLA family without forcing
    incompatible action semantics into the existing adapter.
 4. Evaluate calibrated abstention or takeover under registered faults.

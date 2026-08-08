@@ -29,6 +29,10 @@ to match later results.
 | [Local CPU setup](LOCAL_SETUP.md) | Operational | Portable Windows/Linux installation, model resolution, and offline commands |
 | [本地 CPU 安装](LOCAL_SETUP_ZH.md) | Operational | Windows/Linux 安装、模型路径解析与离线运行说明 |
 | [MuJoCo swept collision audit](MUJOCO_SWEPT_AUDIT.md) | Current | Clearance-backed static-obstacle subdivision, dense-oracle audit, and claim boundary |
+| [Panda dynamics braking audit](DYNAMICS_BRAKING_AUDIT.md) | Current | MuJoCo inverse-dynamics stop feasibility across payload, damping, velocity, and continuous collision edges |
+| [Panda 动力学制动审计](DYNAMICS_BRAKING_AUDIT_ZH.md) | Current | 负载、阻尼、初速度矩阵中的逆动力学、连续碰撞边与主张边界 |
+| [Official LeRobotDataset round-trip](OFFICIAL_LEROBOT_ROUNDTRIP.md) | Current | Pinned LeRobot v3.0 dataset export, isolated loader reload, and exact Panda feature semantics |
+| [官方 LeRobotDataset round-trip](OFFICIAL_LEROBOT_ROUNDTRIP_ZH.md) | Current | 官方 loader 版本锁定、Panda Hx8 动作语义与逐字段 round-trip |
 | [MuJoCo swept 碰撞审计](MUJOCO_SWEPT_AUDIT_ZH.md) | Current | 基于 clearance 的静态障碍细分、dense 对照和主张边界 |
 | [Provider-neutral action contract](PROVIDER_CONTRACT.md) | Current | Frozen provider identity, exact action semantics, fail-closed gate, and second-family ABI audit |
 | [Provider-neutral 动作契约](PROVIDER_CONTRACT_ZH.md) | Current | 冻结 provider 身份、精确动作语义、fail-closed 门禁与第二模型族 ABI 审计 |
