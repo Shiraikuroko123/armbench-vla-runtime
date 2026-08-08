@@ -35,6 +35,12 @@ from armbench.vla.command_watchdog import (
 )
 from armbench.vla.fault_matrix import execute_loopback_fault_matrix
 from armbench.vla.guard import ActionChunkGuard, GuardConfig, GuardResult
+from armbench.vla.integrated_panda_guard import (
+    IntegratedPandaDecision,
+    IntegratedPandaGuardConfig,
+    IntegratedPandaSupervisor,
+    run_integrated_panda_guard_smoke,
+)
 from armbench.vla.online import (
     OnlineEpisodeResult,
     OnlineExecutionConfig,
@@ -163,6 +169,9 @@ __all__ = [
     "BoundedOpenPIBackend",
     "GuardConfig",
     "GuardResult",
+    "IntegratedPandaDecision",
+    "IntegratedPandaGuardConfig",
+    "IntegratedPandaSupervisor",
     "DispatchUpdate",
     "LOOPBACK_FAULT_MODES",
     "LOOPBACK_POLICY_PROVENANCE",
@@ -241,6 +250,7 @@ __all__ = [
     "run_process_runtime_smoke",
     "run_qp_projection_smoke",
     "run_cartesian_adapter_smoke",
+    "run_integrated_panda_guard_smoke",
     "run_lerobot_episode_smoke",
     "run_official_lerobot_smoke",
     "load_recorded_openpi_request",

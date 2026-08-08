@@ -77,6 +77,44 @@ def test_qp_projects_long_chunk_into_position_velocity_and_acceleration_bounds()
     assert result.solve_p95_ms < config.step_budget_ms
 
 
+def test_qp_applies_explicit_per_joint_velocity_limits() -> None:
+    absolute_limits = (0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70)
+    config = QPProjectionConfig(
+        control_dt_s=0.05,
+        joint_velocity_limit_scale=1.0,
+        absolute_joint_velocity_limits_rad_s=absolute_limits,
+        joint_acceleration_limit_rad_s2=100.0,
+        step_budget_ms=100.0,
+    )
+    projector, start = _projector(config, check_collision=False)
+    actions = np.full((4, 8), 5.0, dtype=float)
+    actions[:, 7] = 0.5
+
+    result = projector.project_chunk(start, _chunk(actions))
+
+    assert result.feasible
+    np.testing.assert_allclose(projector.velocity_limits, absolute_limits)
+    assert np.all(
+        np.abs(result.projected_actions[:, :7])
+        <= np.asarray(absolute_limits)[None, :] + 1e-7
+    )
+    assert result.intervention_steps == 4
+
+
+@pytest.mark.parametrize(
+    "limits",
+    [
+        (1.0,) * 6,
+        (1.0,) * 6 + (0.0,),
+        (1.0,) * 6 + (float("nan"),),
+        ("1.0",) * 7,
+    ],
+)
+def test_qp_rejects_invalid_explicit_velocity_limits(limits: object) -> None:
+    with pytest.raises(ValueError, match="velocity limits"):
+        QPProjectionConfig(absolute_joint_velocity_limits_rad_s=limits)
+
+
 def test_qp_enforces_coupled_linear_constraint() -> None:
     projector, start = _projector()
     actions = np.ones((3, 8), dtype=float)

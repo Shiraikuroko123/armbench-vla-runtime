@@ -63,6 +63,7 @@ from armbench.vla.provider_contract import (
     validate_provider_contract_audit,
 )
 from armbench.vla.qp_projection import run_qp_projection_smoke
+from armbench.vla.integrated_panda_guard import run_integrated_panda_guard_smoke
 from armbench.vla.benchmark import (
     execute_openpi_probe,
     execute_vla_guard_benchmark,
@@ -187,6 +188,10 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(
         "vla-qp-smoke",
         help="run deterministic OSQP joint-velocity projection acceptance",
+    )
+    subparsers.add_parser(
+        "vla-integrated-guard-smoke",
+        help="run QP, continuous collision, and dynamics-stop assurance",
     )
     subparsers.add_parser(
         "mujoco-continuous-collision-smoke",
@@ -939,6 +944,10 @@ def main(arguments: list[str] | None = None) -> int:
         return 0 if bool(report["passed"]) else 1
     if args.command == "vla-qp-smoke":
         report = run_qp_projection_smoke()
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        return 0 if bool(report["passed"]) else 1
+    if args.command == "vla-integrated-guard-smoke":
+        report = run_integrated_panda_guard_smoke()
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0 if bool(report["passed"]) else 1
     if args.command == "mujoco-continuous-collision-smoke":

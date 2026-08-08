@@ -22,6 +22,7 @@ FloatArray = NDArray[np.float64]
 class QPProjectionConfig:
     control_dt_s: float = 0.05
     joint_velocity_limit_scale: float = 0.5
+    absolute_joint_velocity_limits_rad_s: tuple[float, ...] | None = None
     joint_acceleration_limit_rad_s2: float = 15.0
     joint_limit_margin_rad: float = 0.02
     tracking_weight: float = 1.0
@@ -45,6 +46,24 @@ class QPProjectionConfig:
             raise ValueError("QP timing, limits, weights, and tolerances must be positive")
         if self.joint_velocity_limit_scale > 1.0:
             raise ValueError("joint_velocity_limit_scale cannot exceed one")
+        if self.absolute_joint_velocity_limits_rad_s is not None:
+            raw_limits = np.asarray(self.absolute_joint_velocity_limits_rad_s)
+            if raw_limits.dtype.kind not in {"i", "u", "f"}:
+                raise ValueError("absolute joint velocity limits must be numeric")
+            limits = np.asarray(raw_limits, dtype=float)
+            if (
+                limits.shape != (7,)
+                or not np.all(np.isfinite(limits))
+                or np.any(limits <= 0.0)
+            ):
+                raise ValueError(
+                    "absolute joint velocity limits must be seven positive values"
+                )
+            object.__setattr__(
+                self,
+                "absolute_joint_velocity_limits_rad_s",
+                tuple(float(value) for value in limits),
+            )
         if (
             not np.isfinite(self.joint_limit_margin_rad)
             or self.joint_limit_margin_rad < 0.0
@@ -209,7 +228,11 @@ class QPActionProjector:
 
     @property
     def velocity_limits(self) -> FloatArray:
-        return self.robot.velocity_limits * self.config.joint_velocity_limit_scale
+        scaled = self.robot.velocity_limits * self.config.joint_velocity_limit_scale
+        absolute = self.config.absolute_joint_velocity_limits_rad_s
+        if absolute is None:
+            return scaled
+        return np.minimum(scaled, np.asarray(absolute, dtype=float))
 
     def _box_bounds(
         self,
