@@ -121,16 +121,21 @@ def test_wall_clock_panda_loop_handles_stale_response_off_policy_thread() -> Non
 
 
 def test_policy_drop_fails_closed_without_stopping_control_ticks() -> None:
+    # Leave enough measured time for a software EGL renderer to deliver the
+    # first observation on shared CI. A shorter episode can correctly remain
+    # in hold:no_policy_response without ever exercising the injected drop.
+    steps = 20
     result = run_async_panda_episode(
         "free_space",
         "braking_invariant",
-        _short_reference(steps=6),
-        config=_config(steps=6),
+        _short_reference(steps=steps),
+        config=_config(steps=steps),
         policy_faults=ScriptedPolicyFaults(
             latency_schedule_ms=(20.0,), drop_probability=1.0
         ),
     )
 
+    assert result.observation_frames_completed > 0
     assert result.policy_failures > 0
     assert result.accepted_responses == 0
     assert result.hold_boundaries == result.action_boundaries
