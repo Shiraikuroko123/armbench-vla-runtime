@@ -68,6 +68,10 @@ from armbench.vla.integrated_panda_matrix import (
     run_integrated_panda_fault_matrix,
     validate_integrated_panda_fault_matrix,
 )
+from armbench.vla.integrated_panda_task import (
+    run_integrated_panda_tasks,
+    validate_integrated_panda_tasks,
+)
 from armbench.vla.benchmark import (
     execute_openpi_probe,
     execute_vla_guard_benchmark,
@@ -207,6 +211,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="rerun and validate an integrated Panda fault matrix",
     )
     integrated_validate.add_argument("directory", type=Path)
+    integrated_task = subparsers.add_parser(
+        "vla-integrated-task-run",
+        help="run assured Panda waypoint tasks in closed-loop MuJoCo physics",
+    )
+    integrated_task.add_argument("--output-directory", type=Path, required=True)
+    integrated_task_validate = subparsers.add_parser(
+        "vla-integrated-task-validate",
+        help="rerun and validate assured Panda task evidence",
+    )
+    integrated_task_validate.add_argument("directory", type=Path)
     subparsers.add_parser(
         "mujoco-continuous-collision-smoke",
         help="run conservative continuous static/self-collision acceptance",
@@ -972,6 +986,16 @@ def main(arguments: list[str] | None = None) -> int:
         return 0
     if args.command == "vla-integrated-fault-validate":
         report = validate_integrated_panda_fault_matrix(args.directory)
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        return 0
+    if args.command == "vla-integrated-task-run":
+        output = run_integrated_panda_tasks(args.output_directory)
+        report = validate_integrated_panda_tasks(output)
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-integrated-task-validate":
+        report = validate_integrated_panda_tasks(args.directory)
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0
     if args.command == "mujoco-continuous-collision-smoke":
