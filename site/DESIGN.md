@@ -67,8 +67,9 @@ There are no gradients, decorative orbs, neon circuitry, or stock imagery.
 - **Testbed split:** π0.5-LIBERO and Panda-MuJoCo stay visually and
   semantically separate, followed by the integration gap.
 - **Implemented modules:** provider adaptation, LeRobot-style frame replay,
-  braking repair, asynchronous Panda control, result-file checks, and
-  clearance-based collision sampling.
+  official LeRobotDataset round-trip, constrained projection, braking repair,
+  asynchronous Panda control, continuous collision edges, dynamics braking
+  audit, and result-file checks.
 - **Fault map:** scripted non-learned detection and response rows with links to
   saved files.
 - **Scope block:** checked items and unfinished items receive equal visual
@@ -133,7 +134,8 @@ the first viewport without horizontal overflow.
 - Numerical claims: `docs/RESULTS.md`, repository evidence manifests, and the
   cross-suite evidence Release.
 - Runtime extension claims: `docs/PROVIDER_CONTRACT.md`,
-  `docs/LEROBOT_RUNTIME_BRIDGE.md`, `docs/PI05_PANDA_BRAKING_REPAIR.md`, and
-  `docs/MUJOCO_SWEPT_AUDIT.md`, `docs/ASYNC_PANDA_CLOSED_LOOP.md`, plus their
-  checked-in reports.
+  `docs/LEROBOT_RUNTIME_BRIDGE.md`, `docs/OFFICIAL_LEROBOT_ROUNDTRIP.md`,
+  `docs/PI05_PANDA_BRAKING_REPAIR.md`, `docs/MUJOCO_SWEPT_AUDIT.md`,
+  `docs/DYNAMICS_BRAKING_AUDIT.md`, and `docs/ASYNC_PANDA_CLOSED_LOOP.md`,
+  plus their checked-in reports.
 - Licensing: repository `LICENSE` and `THIRD_PARTY_NOTICES.md`.

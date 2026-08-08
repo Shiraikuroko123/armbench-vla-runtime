@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0b0d0d">
-    <meta name="description" content="ArmBench：用于检查 VLA 动作块延迟、Panda 轨迹修复和仿真故障响应的小型工程项目。">
+    <meta name="description" content="ArmBench：检查 VLA 动作块延迟，并在 MuJoCo Panda 中验证动作投影、连续碰撞边和动力学制动边界。">
     <meta property="og:type" content="website">
     <meta property="og:title" content="ArmBench | VLA timing and Panda simulation checks">
-    <meta property="og:description" content="A small engineering project for action-chunk timing checks, saved π0.5-LIBERO results, and Panda simulation tests.">
+    <meta property="og:description" content="An evidence-first engineering project for action-chunk timing, official LeRobotDataset round-trips, and MuJoCo Panda constraint audits.">
     <meta property="og:url" content="https://shiraikuroko123.github.io/armbench-vla-runtime/">
     <meta property="og:image" content="https://shiraikuroko123.github.io/armbench-vla-runtime/assets/og-armbench.png">
     <meta property="og:image:alt" content="ArmBench project page with a Panda simulation run and saved experiment results.">
@@ -15,7 +15,7 @@
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="ArmBench | VLA timing and Panda simulation checks">
-    <meta name="twitter:description" content="A small engineering project for action-chunk timing checks, saved π0.5-LIBERO results, and Panda simulation tests.">
+    <meta name="twitter:description" content="An evidence-first engineering project for action-chunk timing, official LeRobotDataset round-trips, and MuJoCo Panda constraint audits.">
     <meta name="twitter:image" content="https://shiraikuroko123.github.io/armbench-vla-runtime/assets/og-armbench.png">
     <meta name="twitter:image:alt" content="ArmBench project page with a Panda simulation run and saved experiment results.">
     <meta name="last-modified" content="2026-08-08">
@@ -27,7 +27,7 @@
         "@context": "https://schema.org",
         "@type": "SoftwareSourceCode",
         "name": "ArmBench",
-        "description": "An engineering project for action-chunk timing checks, saved VLA results, and Panda simulation tests.",
+        "description": "An evidence-first engineering project for action-chunk timing, LeRobotDataset compatibility, and MuJoCo Panda constraint audits.",
         "url": "https://shiraikuroko123.github.io/armbench-vla-runtime/",
         "codeRepository": "https://github.com/Shiraikuroko123/armbench-vla-runtime",
         "programmingLanguage": ["Python", "JavaScript"],
@@ -249,7 +249,7 @@
         <div class="shell">
           <div class="section-heading reveal">
             <h2 id="runtime-title"><span data-lang-content="zh">当前实现和测试。</span><span data-lang-content="en">Implemented modules and saved checks.</span></h2>
-            <p><span data-lang-content="zh">这些模块用于检查动作格式、修复离线轨迹、处理过期命令，并保存可重复检查的结果。它们没有增加模型能力，也没有在真实机器人上测试。</span><span data-lang-content="en">These modules check action formats, repair saved trajectories, handle stale commands, and save results that can be checked again. They do not add model capability and have not been tested on a real robot.</span></p>
+            <p><span data-lang-content="zh">这些模块把动作语义、数据集边界、约束修复和 MuJoCo 模型检查变成可重放的证据。它们没有增加模型能力，也没有在真实机器人上测试。</span><span data-lang-content="en">These modules turn action semantics, dataset boundaries, constraint repair, and MuJoCo model checks into replayable evidence. They do not add model capability and have not been tested on a real robot.</span></p>
           </div>
 
           <div class="runtime-capability-grid reveal">
@@ -263,8 +263,15 @@
             <article class="runtime-capability">
               <div class="runtime-capability-head"><span>FRAME ADAPTER</span><strong>LEROBOT-STYLE API</strong></div>
               <div class="runtime-capability-metric"><strong>5 frames</strong><span>3 commands / hold / reset replayed</span></div>
-              <p><span data-lang-content="zh">把受保护的 Panda 命令映射为 LeRobot 风格的 in-memory frame，并重放 watchdog 的过期保持、故障锁存和显式 reset。</span><span data-lang-content="en">Guarded Panda commands are mapped to LeRobot-style in-memory frames, then the watchdog's stale hold, fault latch, and explicit reset are replayed.</span></p>
+              <p><span data-lang-content="zh">把受保护的 Panda 命令映射为 LeRobot 风格的 in-memory frame，并重放 watchdog 的过期保持、故障锁存和显式 reset。它与下面的官方数据集 round-trip 分开验收。</span><span data-lang-content="en">Guarded Panda commands are mapped to LeRobot-style in-memory frames, then the watchdog's stale hold, fault latch, and explicit reset are replayed. The official dataset round-trip below is a separate check.</span></p>
               <a class="runtime-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/LEROBOT_RUNTIME_BRIDGE.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">查看 episode replay</span><span data-lang-content="en">Inspect episode replay</span><span aria-hidden="true">↗</span></a>
+            </article>
+
+            <article class="runtime-capability">
+              <div class="runtime-capability-head"><span>OFFICIAL DATASET</span><strong>LEROBOT V3.0</strong></div>
+              <div class="runtime-capability-metric"><strong>3 frames</strong><span>images / state / action / task / time</span></div>
+              <p><span data-lang-content="zh">在隔离的 `lerobot==0.4.4` 环境中，用官方 `LeRobotDataset` loader 重载 Panda Hx8 episode，并逐字段比对图像、状态、动作、任务和时间戳。</span><span data-lang-content="en">In an isolated `lerobot==0.4.4` environment, the official `LeRobotDataset` loader reloads a Panda Hx8 episode and checks images, state, action, task, and timestamps field by field.</span></p>
+              <a class="runtime-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/OFFICIAL_LEROBOT_ROUNDTRIP.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">查看官方 loader 证据</span><span data-lang-content="en">Inspect official loader evidence</span><span aria-hidden="true">↗</span></a>
             </article>
 
             <article class="runtime-capability">
@@ -279,6 +286,13 @@
               <div class="runtime-capability-metric"><strong>72 seeded edges</strong><span>0 false-safe decisions</span></div>
               <p><span data-lang-content="zh">根据 clearance 细分每条关节空间边，并与更密的参考采样对照。测试只覆盖静态障碍，不包含连续自碰或真机安全。</span><span data-lang-content="en">Each joint-space edge is subdivided from its clearance and compared with denser reference sampling. The test covers static obstacles only, not continuous self-collision or hardware safety.</span></p>
               <a class="runtime-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/MUJOCO_SWEPT_AUDIT.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">查看碰撞采样说明</span><span data-lang-content="en">Open collision-sampling notes</span><span aria-hidden="true">↗</span></a>
+            </article>
+
+            <article class="runtime-capability">
+              <div class="runtime-capability-head"><span>DYNAMICS BRAKING</span><strong>MUJOCO INVERSE DYNAMICS</strong></div>
+              <div class="runtime-capability-metric"><strong>45 / 45</strong><span>payload / damping / velocity cases</span></div>
+              <p><span data-lang-content="zh">对同步减速轨迹检查关节约束、连续碰撞边和 MuJoCo 逆动力学力矩余量，覆盖 0、0.5、1 kg 负载与 0.5、1、2 倍阻尼。</span><span data-lang-content="en">Synchronized braking trajectories are checked for joint limits, continuous collision edges, and MuJoCo inverse-dynamics effort across 0, 0.5, and 1 kg payloads and 0.5, 1, and 2x damping.</span></p>
+              <a class="runtime-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/DYNAMICS_BRAKING_AUDIT.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">查看动力学审计</span><span data-lang-content="en">Open dynamics audit</span><span aria-hidden="true">↗</span></a>
             </article>
 
             <article class="runtime-capability">
@@ -319,7 +333,7 @@
             <h2 id="scope-title"><span data-lang-content="zh">已测试范围与未完成部分。</span><span data-lang-content="en">Checked scope and unfinished work.</span></h2>
           </div>
           <div class="scope-columns reveal">
-            <div class="scope-column scope-proven"><h3><span data-lang-content="zh">本项目已测试</span><span data-lang-content="en">CHECKED IN THIS PROJECT</span></h3><ul><li><span data-lang-content="zh">官方 π0.5 checkpoint 在 LIBERO 仿真中的延迟实验</span><span data-lang-content="en">Latency experiments with the official π0.5 checkpoint in LIBERO simulation</span></li><li><span data-lang-content="zh">成对随机条件、exact test 与结果文件完整性</span><span data-lang-content="en">Paired random conditions, exact tests, and result-file integrity</span></li><li><span data-lang-content="zh">Panda 本地规划、异步循环、动作检查与故障路径</span><span data-lang-content="en">Local Panda planning, asynchronous loops, action checks, and fault paths</span></li><li><span data-lang-content="zh">provider 动作适配与 LeRobot 风格 watchdog 重放</span><span data-lang-content="en">Provider action adaptation and LeRobot-style watchdog replay</span></li><li><span data-lang-content="zh">碰撞边采样与离线制动修复</span><span data-lang-content="en">Collision-edge sampling and offline braking repair</span></li><li><span data-lang-content="zh">无需 GPU 即可检查已保存结果</span><span data-lang-content="en">Saved results can be checked without a GPU</span></li></ul></div>
+            <div class="scope-column scope-proven"><h3><span data-lang-content="zh">本项目已测试</span><span data-lang-content="en">CHECKED IN THIS PROJECT</span></h3><ul><li><span data-lang-content="zh">官方 π0.5 checkpoint 在 LIBERO 仿真中的延迟实验</span><span data-lang-content="en">Latency experiments with the official π0.5 checkpoint in LIBERO simulation</span></li><li><span data-lang-content="zh">成对随机条件、exact test 与结果文件完整性</span><span data-lang-content="en">Paired random conditions, exact tests, and result-file integrity</span></li><li><span data-lang-content="zh">Panda 本地规划、异步循环、动作检查与故障路径</span><span data-lang-content="en">Local Panda planning, asynchronous loops, action checks, and fault paths</span></li><li><span data-lang-content="zh">provider 动作适配与 LeRobot 风格 watchdog 重放</span><span data-lang-content="en">Provider action adaptation and LeRobot-style watchdog replay</span></li><li><span data-lang-content="zh">官方 LeRobotDataset v3.0 Panda episode round-trip</span><span data-lang-content="en">Official LeRobotDataset v3.0 Panda episode round-trip</span></li><li><span data-lang-content="zh">连续碰撞边与负载/阻尼矩阵中的动力学制动审计</span><span data-lang-content="en">Continuous collision edges and dynamics braking across payload/damping cases</span></li><li><span data-lang-content="zh">无需 GPU 即可检查已保存结果</span><span data-lang-content="en">Saved results can be checked without a GPU</span></li></ul></div>
             <div class="scope-column scope-open"><h3><span data-lang-content="zh">本项目未完成</span><span data-lang-content="en">NOT DONE</span></h3><ul><li><span data-lang-content="zh">真机实验、硬实时保证或安全认证</span><span data-lang-content="en">Real-robot experiments, hard-real-time guarantees, or safety certification</span></li><li><span data-lang-content="zh">π0.5 控制 Panda 的端到端路径</span><span data-lang-content="en">An end-to-end path from π0.5 to Panda control</span></li><li><span data-lang-content="zh">多个 VLA checkpoint 的对比</span><span data-lang-content="en">Comparison across multiple VLA checkpoints</span></li><li><span data-lang-content="zh">训练、微调、Isaac Lab 或 ROS2 集成</span><span data-lang-content="en">Training, fine-tuning, Isaac Lab, or ROS2 integration</span></li></ul></div>
           </div>
         </div>

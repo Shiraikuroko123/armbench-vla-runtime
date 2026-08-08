@@ -23,7 +23,8 @@ answer three questions quickly:
   paired statistics, and saved result files.
 - **Repository files:** source, result-file index, statistical scripts,
   debugging guide, check commands, license, and third-party notices.
-- **Status:** simulation-only, no training or fine-tuning, updated 2026-08-08.
+- **Status:** simulation-only, no training or fine-tuning; official LeRobot
+  dataset round-trip and MuJoCo dynamics audit added 2026-08-08.
 
 ## Audience
 
@@ -62,8 +63,9 @@ layer of support for the measured-age result.
 5. Interactive observation-age timeline using the frozen 50 ms rule.
 6. Two independent testbeds and their unclosed integration gap.
 7. Implemented modules: provider adaptation, LeRobot-style watchdog replay,
-   trajectory repair, asynchronous Panda control, result-file checks, and
-   clearance-based collision sampling.
+   official LeRobotDataset round-trip, constrained projection, trajectory
+   repair, asynchronous Panda control, continuous collision edges, dynamics
+   braking audit, and result-file checks.
 8. Scripted non-learned fault tests with links to saved files.
 9. Checked scope and unfinished work.
 10. GPU-free commands for checking saved measured-age and RTC results.
@@ -84,7 +86,13 @@ layer of support for the measured-age result.
   was executed.
 - LeRobot-style boundary: a five-frame in-memory replay executes three valid
   commands, holds a stale observation, preserves a fault latch, and recovers
-  only after explicit reset; no official LeRobot runtime is used.
+  only after explicit reset.
+- Official LeRobotDataset: an isolated `lerobot==0.4.4` / v3.0 loader reloads
+  a three-frame Panda Hx8 episode and matches images, state, action, task, and
+  timestamps. This is dataset serialization evidence, not a policy or driver.
+- MuJoCo dynamics braking: 45 registered payload, damping, and velocity cases
+  pass sampled inverse-dynamics effort and continuous-edge checks. This is
+  model feasibility evidence, not hard-real-time or hardware safety.
 - Braking repair and swept audit: 270 paired offline cases satisfy all
   registered constraints after repair, while 72 seeded static-obstacle edges
   produce zero false-safe decisions against a denser sampled oracle.
@@ -103,8 +111,9 @@ layer of support for the measured-age result.
 - Scripted fault cards do not run π0.5 and do not establish VLA safety.
 - No cross-checkpoint generalization, Isaac Lab, or ROS2 claim.
 - LIBERO and Panda outcomes remain separate evidence domains.
-- The provider, watchdog, and result-file modules are software checks only;
-  they are not hardware drivers or safety-controller tests.
+- The provider, watchdog, projection, dynamics, and result-file modules are
+  software/model checks only; they are not hardware drivers or certified
+  safety-controller tests.
 
 ## Delivery
 
