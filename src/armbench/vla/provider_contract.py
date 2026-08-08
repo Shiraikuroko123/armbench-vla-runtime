@@ -10,7 +10,6 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass, replace
 import hashlib
-import json
 from pathlib import Path
 import re
 from typing import Protocol
@@ -24,6 +23,13 @@ from armbench.vla.cartesian_adapter import (
     LIBERO_CONTROLLER_SEMANTICS_ID,
     CartesianAdapterConfig,
     PandaCartesianActionAdapter,
+)
+from armbench.vla.serialization import (
+    canonical_json,
+    sha256_bytes,
+    sha256_file,
+    strict_json_load,
+    write_json,
 )
 from armbench.vla.types import ActionChunk, VLAObservation
 
@@ -90,23 +96,6 @@ class SemanticCompatibilityError(ProviderContractError):
 def _require(condition: bool, message: str) -> None:
     if not condition:
         raise ProviderContractError(message)
-
-
-def _canonical_json(value: object) -> bytes:
-    return json.dumps(
-        value,
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=True,
-    ).encode("ascii")
-
-
-def _sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for block in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
 
 
 def canonical_action_sha256(actions: ArrayLike) -> str:
@@ -240,7 +229,7 @@ class ActionSemantics:
 
     @property
     def semantic_sha256(self) -> str:
-        return hashlib.sha256(_canonical_json(self.to_dict())).hexdigest()
+        return sha256_bytes(canonical_json(self.to_dict()))
 
 
 def libero_cartesian_semantics(
@@ -459,7 +448,7 @@ def _inventory(
             {
                 "path": relative,
                 "size_bytes": path.stat().st_size,
-                "sha256": _sha256_file(path),
+                "sha256": sha256_file(path),
             }
         )
     return records
@@ -473,7 +462,7 @@ def _write_manifest(root: Path, *, schema: str, recursive: bool) -> None:
             {
                 "path": name,
                 "size_bytes": (root / name).stat().st_size,
-                "sha256": _sha256_file(root / name),
+                "sha256": sha256_file(root / name),
             }
             for name in ("provider.json", "responses.npz")
         ]
@@ -481,18 +470,15 @@ def _write_manifest(root: Path, *, schema: str, recursive: bool) -> None:
     manifest = {
         "schema_version": schema,
         "files": files,
-        "inventory_sha256": hashlib.sha256(_canonical_json(files)).hexdigest(),
+        "inventory_sha256": sha256_bytes(canonical_json(files)),
     }
-    (root / "manifest.json").write_text(
-        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    write_json(root / "manifest.json", manifest)
 
 
 def _validate_manifest(root: Path, *, schema: str, recursive: bool) -> None:
     try:
-        manifest = json.loads((root / "manifest.json").read_text("utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
+        manifest = strict_json_load(root / "manifest.json")
+    except (OSError, TypeError, ValueError) as error:
         raise ProviderContractError(
             "provider manifest is missing or invalid"
         ) from error
@@ -513,7 +499,7 @@ def _validate_manifest(root: Path, *, schema: str, recursive: bool) -> None:
             {
                 "path": name,
                 "size_bytes": (root / name).stat().st_size,
-                "sha256": _sha256_file(root / name),
+                "sha256": sha256_file(root / name),
             }
             for name in ("provider.json", "responses.npz")
             if (root / name).is_file()
@@ -522,7 +508,7 @@ def _validate_manifest(root: Path, *, schema: str, recursive: bool) -> None:
     _require(files == expected, "provider manifest file inventory mismatch")
     _require(
         manifest.get("inventory_sha256")
-        == hashlib.sha256(_canonical_json(expected)).hexdigest(),
+        == sha256_bytes(canonical_json(expected)),
         "provider manifest inventory hash mismatch",
     )
 
@@ -571,10 +557,7 @@ def write_frozen_provider_bundle(
         "semantics_sha256": semantics.semantic_sha256,
         "responses": response_rows,
     }
-    (root / "provider.json").write_text(
-        json.dumps(descriptor, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    write_json(root / "provider.json", descriptor)
     _write_manifest(root, schema=PROVIDER_MANIFEST_SCHEMA, recursive=False)
     validate_frozen_provider_bundle(root)
     return root
@@ -590,8 +573,8 @@ def validate_frozen_provider_bundle(directory: Path) -> dict[str, object]:
         "provider directory contains undeclared files",
     )
     try:
-        descriptor = json.loads((root / "provider.json").read_text("utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
+        descriptor = strict_json_load(root / "provider.json")
+    except (OSError, TypeError, ValueError) as error:
         raise ProviderContractError("provider descriptor is invalid") from error
     _require(
         isinstance(descriptor, Mapping)
@@ -732,7 +715,7 @@ class FrozenResponseProvider:
     def from_directory(cls, directory: Path) -> "FrozenResponseProvider":
         validate_frozen_provider_bundle(directory)
         root = directory.resolve()
-        descriptor = json.loads((root / "provider.json").read_text("utf-8"))
+        descriptor = strict_json_load(root / "provider.json")
         identity = ProviderIdentity.from_dict(descriptor["identity"])
         semantics = ActionSemantics.from_dict(descriptor["semantics"])
         rows = descriptor["responses"]
@@ -973,10 +956,7 @@ def run_provider_contract_audit(directory: Path) -> Path:
         "claims": _audit_claims(),
         "limitations": _audit_limitations(),
     }
-    (root / "summary.json").write_text(
-        json.dumps(summary, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    write_json(root / "summary.json", summary)
     _write_manifest(
         root,
         schema=PROVIDER_AUDIT_MANIFEST_SCHEMA,
@@ -995,8 +975,8 @@ def validate_provider_contract_audit(directory: Path) -> dict[str, object]:
         recursive=True,
     )
     try:
-        summary = json.loads((root / "summary.json").read_text("utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
+        summary = strict_json_load(root / "summary.json")
+    except (OSError, TypeError, ValueError) as error:
         raise ProviderContractError("provider audit summary is invalid") from error
     _require(
         isinstance(summary, Mapping)

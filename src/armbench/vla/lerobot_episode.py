@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections import Counter
 from collections.abc import Mapping
 from dataclasses import dataclass
-import hashlib
 import json
 import math
 from pathlib import Path
@@ -26,6 +25,16 @@ from armbench.vla.lerobot_adapter import (
     LEROBOT_STYLE_FRAME_KEYS,
     LeRobotFrameAdapter,
     frame_array_sha256,
+)
+from armbench.vla.serialization import (
+    canonical_json,
+    has_exact_fields,
+    is_sha256,
+    json_equal,
+    sha256_bytes,
+    sha256_file,
+    strict_json_loads,
+    write_json,
 )
 from armbench.vla.types import DROID_IMAGE_SHAPE, VLAObservation
 
@@ -125,49 +134,6 @@ def _require(condition: bool, message: str) -> None:
         raise LeRobotEpisodeError(message)
 
 
-def _canonical_json(value: object) -> bytes:
-    return json.dumps(
-        value,
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=True,
-        allow_nan=False,
-    ).encode("ascii")
-
-
-def _strict_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
-    result: dict[str, Any] = {}
-    for key, value in pairs:
-        if key in result:
-            raise ValueError(f"duplicate JSON field: {key}")
-        result[key] = value
-    return result
-
-
-def _reject_json_constant(value: str) -> None:
-    raise ValueError(f"non-standard JSON constant: {value}")
-
-
-def _strict_json_loads(value: str) -> Any:
-    return json.loads(
-        value,
-        object_pairs_hook=_strict_object,
-        parse_constant=_reject_json_constant,
-    )
-
-
-def _has_exact_fields(value: object, fields: set[str]) -> bool:
-    return isinstance(value, Mapping) and set(value) == fields
-
-
-def _is_sha256(value: object) -> bool:
-    return (
-        isinstance(value, str)
-        and len(value) == 64
-        and all(character in "0123456789abcdef" for character in value)
-    )
-
-
 def _is_json_float(value: object) -> bool:
     return type(value) is float and math.isfinite(value)
 
@@ -183,23 +149,8 @@ def _runtime_float(value: object, label: str) -> float:
     return result
 
 
-def _json_exact(left: object, right: object) -> bool:
-    try:
-        return _canonical_json(left) == _canonical_json(right)
-    except (TypeError, ValueError):
-        return False
-
-
-def _sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for block in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
-
-
 def _text_sha256(value: str) -> str:
-    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+    return sha256_bytes(value.encode("utf-8"))
 
 
 def _write_manifest(root: Path) -> None:
@@ -207,7 +158,7 @@ def _write_manifest(root: Path) -> None:
         {
             "path": path.name,
             "size_bytes": path.stat().st_size,
-            "sha256": _sha256_file(path),
+            "sha256": sha256_file(path),
         }
         for path in sorted(root.iterdir())
         if path.is_file() and path.name != "manifest.json"
@@ -215,12 +166,9 @@ def _write_manifest(root: Path) -> None:
     document = {
         "schema_version": LEROBOT_MANIFEST_SCHEMA,
         "files": files,
-        "inventory_sha256": hashlib.sha256(_canonical_json(files)).hexdigest(),
+        "inventory_sha256": sha256_bytes(canonical_json(files)),
     }
-    (root / "manifest.json").write_text(
-        json.dumps(document, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    write_json(root / "manifest.json", document)
 
 
 def _validate_manifest(root: Path) -> str:
@@ -230,41 +178,39 @@ def _validate_manifest(root: Path) -> str:
         "LeRobot-style episode file set is invalid",
     )
     try:
-        manifest = _strict_json_loads(
-            (root / "manifest.json").read_text("utf-8")
-        )
+        manifest = strict_json_loads((root / "manifest.json").read_text("utf-8"))
     except (OSError, TypeError, ValueError) as error:
         raise LeRobotEpisodeError("episode manifest is invalid") from error
     _require(
-        _has_exact_fields(manifest, _MANIFEST_FIELDS)
+        has_exact_fields(manifest, _MANIFEST_FIELDS)
         and manifest["schema_version"] == LEROBOT_MANIFEST_SCHEMA
         and isinstance(manifest["files"], list)
-        and _is_sha256(manifest["inventory_sha256"]),
+        and is_sha256(manifest["inventory_sha256"]),
         "episode manifest schema mismatch",
     )
     for entry in manifest["files"]:
         _require(
-            _has_exact_fields(entry, _MANIFEST_FILE_FIELDS)
+            has_exact_fields(entry, _MANIFEST_FILE_FIELDS)
             and isinstance(entry["path"], str)
             and type(entry["size_bytes"]) is int
             and entry["size_bytes"] >= 0
-            and _is_sha256(entry["sha256"]),
+            and is_sha256(entry["sha256"]),
             "episode manifest entry schema mismatch",
         )
     expected = [
         {
             "path": path.name,
             "size_bytes": path.stat().st_size,
-            "sha256": _sha256_file(path),
+            "sha256": sha256_file(path),
         }
         for path in sorted(root.iterdir())
         if path.is_file() and path.name != "manifest.json"
     ]
     _require(
-        _json_exact(manifest["files"], expected),
+        json_equal(manifest["files"], expected),
         "episode manifest inventory mismatch",
     )
-    inventory_sha = hashlib.sha256(_canonical_json(expected)).hexdigest()
+    inventory_sha = sha256_bytes(canonical_json(expected))
     _require(
         manifest["inventory_sha256"] == inventory_sha,
         "episode manifest inventory hash mismatch",
@@ -274,7 +220,7 @@ def _validate_manifest(root: Path) -> str:
 
 def _json(path: Path) -> dict[str, Any]:
     try:
-        value = _strict_json_loads(path.read_text("utf-8"))
+        value = strict_json_loads(path.read_text("utf-8"))
     except (OSError, TypeError, ValueError) as error:
         raise LeRobotEpisodeError(f"invalid JSON: {path.name}") from error
     _require(isinstance(value, dict), f"{path.name} must contain an object")
@@ -286,7 +232,7 @@ def _jsonl(path: Path) -> list[dict[str, Any]]:
     try:
         with path.open("r", encoding="utf-8") as handle:
             for line_number, line in enumerate(handle, start=1):
-                value = _strict_json_loads(line)
+                value = strict_json_loads(line)
                 _require(
                     isinstance(value, dict),
                     f"frames.jsonl line {line_number} is not an object",
@@ -574,10 +520,7 @@ class LeRobotEpisodeRecorder:
                 "learned_policy_checkpoint_executed": False,
             },
         }
-        (root / "metadata.json").write_text(
-            json.dumps(metadata, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
+        write_json(root / "metadata.json", metadata)
         reason_counts = Counter(record.decision.reason for record in self._records)
         summary = {
             "schema_version": LEROBOT_SUMMARY_SCHEMA,
@@ -594,10 +537,7 @@ class LeRobotEpisodeRecorder:
             "watchdog_metrics": self.watchdog.metrics(),
             "deterministic_replay_required": True,
         }
-        (root / "summary.json").write_text(
-            json.dumps(summary, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
+        write_json(root / "summary.json", summary)
         _write_manifest(root)
         validate_lerobot_episode(root)
         return root
@@ -721,7 +661,7 @@ def _validate_array_contract(arrays: Mapping[str, np.ndarray], count: int) -> No
 
 def _config_from_metadata(value: object) -> CommandWatchdogConfig:
     _require(
-        _has_exact_fields(value, _WATCHDOG_CONFIG_FIELDS),
+        has_exact_fields(value, _WATCHDOG_CONFIG_FIELDS),
         "watchdog configuration is invalid",
     )
     try:
@@ -746,14 +686,14 @@ def validate_lerobot_episode(directory: Path) -> dict[str, object]:
     summary = _json(root / "summary.json")
     rows = _jsonl(root / "frames.jsonl")
     _require(
-        _has_exact_fields(metadata, _METADATA_FIELDS)
+        has_exact_fields(metadata, _METADATA_FIELDS)
         and metadata["schema_version"] == LEROBOT_EPISODE_SCHEMA
         and metadata["scope"]
         == "cpu_only_lerobot_style_frame_and_actuator_boundary",
         "episode metadata schema/scope mismatch",
     )
     _require(
-        _has_exact_fields(summary, _SUMMARY_FIELDS)
+        has_exact_fields(summary, _SUMMARY_FIELDS)
         and summary["schema_version"] == LEROBOT_SUMMARY_SCHEMA,
         "episode summary schema mismatch",
     )
@@ -774,14 +714,14 @@ def validate_lerobot_episode(directory: Path) -> dict[str, object]:
     )
     interface = metadata["lerobot_style_interface"]
     _require(
-        _has_exact_fields(interface, _INTERFACE_FIELDS)
+        has_exact_fields(interface, _INTERFACE_FIELDS)
         and interface["add_frame_keys"] == list(LEROBOT_STYLE_FRAME_KEYS)
         and interface["official_lerobot_dataset_storage"] is False
         and interface["official_lerobot_runtime_validated"] is False,
         "LeRobot-style interface claim is invalid",
     )
     _require(
-        _json_exact(
+        json_equal(
             metadata["runtime_action_semantics"], runtime_action_semantics()
         )
         and metadata["runtime_action_semantics_sha256"]
@@ -790,7 +730,7 @@ def validate_lerobot_episode(directory: Path) -> dict[str, object]:
     )
     claims = metadata["claims"]
     _require(
-        _has_exact_fields(claims, _CLAIM_FIELDS)
+            has_exact_fields(claims, _CLAIM_FIELDS)
         and all(value is False for value in claims.values()),
         "episode claim boundary is invalid",
     )
@@ -804,7 +744,7 @@ def validate_lerobot_episode(directory: Path) -> dict[str, object]:
     reset_events = 0
     for index, row in enumerate(rows):
         _require(
-            _has_exact_fields(row, _FRAME_FIELDS)
+            has_exact_fields(row, _FRAME_FIELDS)
             and row["schema_version"] == LEROBOT_FRAME_SCHEMA
             and type(row["frame_index"]) is int
             and row["frame_index"] == index
@@ -824,8 +764,8 @@ def validate_lerobot_episode(directory: Path) -> dict[str, object]:
             and isinstance(row["input_action_semantics_id"], str)
             and isinstance(row["input_action_semantics_sha256"], str)
             and isinstance(row["watchdog_decision"], Mapping)
-            and _has_exact_fields(row["hashes"], _FRAME_HASH_FIELDS)
-            and all(_is_sha256(value) for value in row["hashes"].values()),
+            and has_exact_fields(row["hashes"], _FRAME_HASH_FIELDS)
+            and all(is_sha256(value) for value in row["hashes"].values()),
             f"frame {index} schema/index mismatch",
         )
         command_id = int(arrays["command_sequence_ids"][index])
@@ -884,7 +824,7 @@ def validate_lerobot_episode(directory: Path) -> dict[str, object]:
             f"frame {index} LeRobot/watchdog gripper mismatch",
         )
         _require(
-            _json_exact(row["watchdog_decision"], decision.to_dict()),
+            json_equal(row["watchdog_decision"], decision.to_dict()),
             f"frame {index} watchdog decision is not reproducible",
         )
         _require(
@@ -923,7 +863,7 @@ def validate_lerobot_episode(directory: Path) -> dict[str, object]:
             "task_sha256": _text_sha256(task),
         }
         _require(
-            _json_exact(row["hashes"], hashes),
+            json_equal(row["hashes"], hashes),
             f"frame {index} content hash mismatch",
         )
         replayed_decisions.append(decision)
@@ -944,7 +884,7 @@ def validate_lerobot_episode(directory: Path) -> dict[str, object]:
         "deterministic_replay_required": True,
     }
     _require(
-        _json_exact(summary, expected_summary),
+        json_equal(summary, expected_summary),
         "episode summary is not reproducible",
     )
     return {
