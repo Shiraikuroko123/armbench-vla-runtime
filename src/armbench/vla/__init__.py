@@ -79,6 +79,13 @@ from armbench.vla.process_worker import (
     ActionChunkPolicyFactory,
     ProcessPolicyWorker,
 )
+from armbench.vla.qp_projection import (
+    QPActionProjector,
+    QPLinearConstraint,
+    QPProjectionConfig,
+    QPProjectionResult,
+    run_qp_projection_smoke,
+)
 from armbench.vla.provider_contract import (
     ActionSemantics,
     AdaptedActionChunkPolicy,
@@ -187,6 +194,10 @@ __all__ = [
     "RawActionChunk",
     "RawActionChunkProvider",
     "ActionChunkPolicyFactory",
+    "QPActionProjector",
+    "QPLinearConstraint",
+    "QPProjectionConfig",
+    "QPProjectionResult",
     "FrozenResponseProvider",
     "SemanticCompatibilityError",
     "ScriptedActionChunkPolicy",
@@ -210,6 +221,7 @@ __all__ = [
     "run_online_episode",
     "run_async_runtime_smoke",
     "run_process_runtime_smoke",
+    "run_qp_projection_smoke",
     "run_cartesian_adapter_smoke",
     "run_lerobot_episode_smoke",
     "load_recorded_openpi_request",

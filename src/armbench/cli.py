@@ -49,6 +49,7 @@ from armbench.vla.provider_contract import (
     validate_frozen_provider_bundle,
     validate_provider_contract_audit,
 )
+from armbench.vla.qp_projection import run_qp_projection_smoke
 from armbench.vla.benchmark import (
     execute_openpi_probe,
     execute_vla_guard_benchmark,
@@ -165,6 +166,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--action-period-ms", type=float, default=1000.0 / 15.0
     )
     process_smoke.add_argument("--deadline-ms", type=float, default=200.0)
+
+    subparsers.add_parser(
+        "vla-qp-smoke",
+        help="run deterministic OSQP joint-velocity projection acceptance",
+    )
 
     async_panda = subparsers.add_parser(
         "vla-panda-async-run",
@@ -839,6 +845,10 @@ def main(arguments: list[str] | None = None) -> int:
             action_period_ms=args.action_period_ms,
             deadline_ms=args.deadline_ms,
         )
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        return 0 if bool(report["passed"]) else 1
+    if args.command == "vla-qp-smoke":
+        report = run_qp_projection_smoke()
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0 if bool(report["passed"]) else 1
     if args.command == "vla-panda-async-run":
