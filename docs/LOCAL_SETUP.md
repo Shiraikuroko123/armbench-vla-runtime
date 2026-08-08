@@ -70,6 +70,18 @@ and then the legacy workspace-level `upstream/mujoco_menagerie` directory.
 .\scripts\vla_demo.cmd -CheckOnly
 ```
 
+After the numeric check, replay the registered self-collision edge with the
+contact-point overlay:
+
+```powershell
+& 'D:\arm-planning-control-project\.venv\Scripts\python.exe' -m armbench mujoco-self-collision-view `
+  'D:\arm-planning-control-project\project\reports\mujoco_self_collision_audit_001' `
+  --stratum known_intermediate --edge-index 0 --speed 0.75 --skip-validation
+```
+
+Treat the viewer as visual evidence only; the manifest-backed validator remains
+the acceptance authority.
+
 Open the interactive viewer only from a desktop session:
 
 ```powershell

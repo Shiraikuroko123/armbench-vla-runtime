@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import csv
+from dataclasses import dataclass
+import json
 import time
 from pathlib import Path
+from typing import Any
 
 import mujoco
 import mujoco.viewer
@@ -24,6 +28,118 @@ TRACE_ARRAY_KEYS = (
     "legacy_positions",
     "repair_positions",
 )
+
+
+@dataclass(frozen=True)
+class SelfCollisionEdgeRecord:
+    """One registered edge from a preserved self-collision audit."""
+
+    stratum: str
+    edge_index: int
+    q_start: FloatArray
+    q_end: FloatArray
+    endpoint_start_valid: bool
+    endpoint_end_valid: bool
+    continuous_status: str
+    continuous_reason: str
+    continuous_collision_pair: str | None
+    continuous_valid: bool
+    dense_valid: bool
+    false_safe: bool
+    conservative_rejection: bool
+
+
+def _parse_csv_bool(value: str, field: str) -> bool:
+    if value == "True":
+        return True
+    if value == "False":
+        return False
+    raise ValueError(f"{field} must be True or False")
+
+
+def _parse_joint_vector(value: str, field: str) -> FloatArray:
+    try:
+        parsed = np.asarray(json.loads(value), dtype=float)
+    except (TypeError, ValueError, json.JSONDecodeError) as error:
+        raise ValueError(f"{field} is not a JSON numeric vector") from error
+    if parsed.shape != (7,) or not np.all(np.isfinite(parsed)):
+        raise ValueError(f"{field} must be a finite seven-joint vector")
+    return parsed
+
+
+def load_self_collision_edge(
+    report_directory: Path,
+    *,
+    stratum: str,
+    edge_index: int,
+) -> SelfCollisionEdgeRecord:
+    """Load one edge without changing the preserved audit artifact."""
+
+    if not stratum.strip():
+        raise ValueError("self-collision stratum must not be empty")
+    if edge_index < 0:
+        raise ValueError("self-collision edge index must be nonnegative")
+    csv_path = Path(report_directory) / "per_edge.csv"
+    if not csv_path.is_file():
+        raise FileNotFoundError(f"self-collision edge CSV not found: {csv_path}")
+    with csv_path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        required = {
+            "stratum",
+            "edge_index",
+            "q_start",
+            "q_end",
+            "endpoint_start_valid",
+            "endpoint_end_valid",
+            "continuous_status",
+            "continuous_reason",
+            "continuous_collision_pair",
+            "continuous_valid",
+            "dense_valid",
+            "false_safe",
+            "conservative_rejection",
+        }
+        fields = set(reader.fieldnames or ())
+        if not required.issubset(fields):
+            missing = ", ".join(sorted(required - fields))
+            raise ValueError(f"self-collision CSV is missing fields: {missing}")
+        matches: list[dict[str, str]] = []
+        for row in reader:
+            if row.get("stratum") != stratum:
+                continue
+            try:
+                row_index = int(row.get("edge_index", ""))
+            except ValueError as error:
+                raise ValueError("self-collision edge_index is invalid") from error
+            if row_index == edge_index:
+                matches.append(row)
+    if not matches:
+        raise KeyError(f"self-collision edge not found: {stratum}/{edge_index}")
+    if len(matches) != 1:
+        raise ValueError(f"self-collision edge is duplicated: {stratum}/{edge_index}")
+    row = matches[0]
+    pair = row["continuous_collision_pair"].strip() or None
+    return SelfCollisionEdgeRecord(
+        stratum=stratum,
+        edge_index=edge_index,
+        q_start=_parse_joint_vector(row["q_start"], "q_start"),
+        q_end=_parse_joint_vector(row["q_end"], "q_end"),
+        endpoint_start_valid=_parse_csv_bool(
+            row["endpoint_start_valid"], "endpoint_start_valid"
+        ),
+        endpoint_end_valid=_parse_csv_bool(
+            row["endpoint_end_valid"], "endpoint_end_valid"
+        ),
+        continuous_status=row["continuous_status"],
+        continuous_reason=row["continuous_reason"],
+        continuous_collision_pair=pair,
+        continuous_valid=_parse_csv_bool(row["continuous_valid"], "continuous_valid"),
+        dense_valid=_parse_csv_bool(row["dense_valid"], "dense_valid"),
+        false_safe=_parse_csv_bool(row["false_safe"], "false_safe"),
+        conservative_rejection=_parse_csv_bool(
+            row["conservative_rejection"], "conservative_rejection"
+        ),
+    )
 
 
 def load_pose_sequence(
@@ -177,3 +293,75 @@ def launch_trajectory_viewer(
             viewer.sync()
             time.sleep(1.0 / 60.0)
     return record
+
+
+def launch_self_collision_audit_viewer(
+    *,
+    report_directory: Path,
+    stratum: str = "known_intermediate",
+    edge_index: int = 0,
+    sample_count: int = 240,
+    playback_speed: float = 1.0,
+    loop: bool = False,
+) -> dict[str, Any]:
+    """Play one audited joint-space edge with MuJoCo contact points enabled."""
+
+    if sample_count < 2:
+        raise ValueError("sample_count must be at least two")
+    if playback_speed <= 0.0 or not np.isfinite(playback_speed):
+        raise ValueError("playback_speed must be finite and positive")
+    edge = load_self_collision_edge(
+        report_directory,
+        stratum=stratum,
+        edge_index=edge_index,
+    )
+    positions = np.linspace(edge.q_start, edge.q_end, sample_count)
+    robot = MuJoCoPanda.create(obstacles=())
+    data = mujoco.MjData(robot.model)
+    robot.set_configuration(data, positions[0])
+    frame_rate = 60.0
+    duration_s = max((sample_count - 1) / frame_rate, 0.1)
+    contact_frames: set[int] = set()
+    contact_pairs: set[str] = set()
+    last_frame = -1
+    with mujoco.viewer.launch_passive(robot.model, data) as viewer:
+        viewer.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTPOINT] = 1
+        viewer.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTFORCE] = 1
+        started = time.perf_counter()
+        while viewer.is_running():
+            elapsed = (time.perf_counter() - started) * playback_speed
+            if loop:
+                elapsed = elapsed % duration_s
+            else:
+                elapsed = min(elapsed, duration_s)
+            frame = min(sample_count - 1, int(elapsed * frame_rate))
+            if frame != last_frame:
+                robot.set_configuration(data, positions[frame])
+                contacts = robot.self_contacts(data)
+                if contacts:
+                    contact_frames.add(frame)
+                    contact_pairs.update(
+                        f"self:{first}:{second}" for _, first, second in contacts
+                    )
+                last_frame = frame
+            viewer.sync()
+            time.sleep(1.0 / frame_rate)
+    return {
+        "report_directory": str(Path(report_directory).resolve()),
+        "stratum": edge.stratum,
+        "edge_index": edge.edge_index,
+        "samples": sample_count,
+        "continuous_valid": edge.continuous_valid,
+        "dense_valid": edge.dense_valid,
+        "false_safe": edge.false_safe,
+        "conservative_rejection": edge.conservative_rejection,
+        "continuous_status": edge.continuous_status,
+        "continuous_reason": edge.continuous_reason,
+        "registered_collision_pair": edge.continuous_collision_pair,
+        "observed_contact_frames": len(contact_frames),
+        "observed_contact_pairs": sorted(contact_pairs),
+        "visual_scope": (
+            "kinematic linear interpolation over compiled MuJoCo Panda geometry; "
+            "contact markers are visual evidence, not a hardware safety certificate"
+        ),
+    }

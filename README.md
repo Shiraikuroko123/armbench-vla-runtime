@@ -224,6 +224,18 @@ rejected. Recompute it without a GPU:
   reports\mujoco_self_collision_audit_001
 ```
 
+For a visual check of the registered intermediate-collision control, open the
+same edge in the MuJoCo viewer after validation:
+
+```powershell
+& 'D:\arm-planning-control-project\.venv\Scripts\python.exe' -m armbench mujoco-self-collision-view `
+  'D:\arm-planning-control-project\project\reports\mujoco_self_collision_audit_001' `
+  --stratum known_intermediate --edge-index 0 --speed 0.75 --skip-validation
+```
+
+The contact overlay is kinematic visual evidence; the manifest-backed validator
+remains the acceptance authority.
+
 The certificate is limited to linear interpolation and compiled MuJoCo
 geometry; it is not a physical safety or hard-real-time result.
 

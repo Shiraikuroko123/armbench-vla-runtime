@@ -62,6 +62,17 @@ $env:ARMBENCH_MENAGERIE_ROOT = 'C:\models\mujoco_menagerie'
 .\scripts\vla_demo.cmd -CheckOnly
 ```
 
+数字验收后，可打开固定自碰撞边的交互式回放：
+
+```powershell
+& 'D:\arm-planning-control-project\.venv\Scripts\python.exe' -m armbench mujoco-self-collision-view `
+  'D:\arm-planning-control-project\project\reports\mujoco_self_collision_audit_001' `
+  --stratum known_intermediate --edge-index 0 --speed 0.75 --skip-validation
+```
+
+窗口中的接触点用于直观检查；正式结论仍以 validator 的 `false_safe`、
+`conservative_rejections` 和 manifest 校验为准。
+
 桌面环境中可以打开交互式 viewer：
 
 ```powershell

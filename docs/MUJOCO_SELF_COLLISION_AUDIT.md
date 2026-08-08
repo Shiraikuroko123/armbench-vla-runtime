@@ -38,3 +38,20 @@ This is an audit of linear interpolation and the pinned compiled MuJoCo
 geometry. The dense oracle is sampled evidence, not an analytic proof. The
 result does not establish physical-robot safety, hard-real-time behavior,
 emergency stopping, or dynamics under a real payload.
+
+## Visual acceptance
+
+After the numeric validator passes, replay the registered mechanism-control edge
+with contact markers enabled:
+
+```powershell
+& 'D:\arm-planning-control-project\.venv\Scripts\python.exe' -m armbench mujoco-self-collision-view `
+  'D:\arm-planning-control-project\project\reports\mujoco_self_collision_audit_001' `
+  --stratum known_intermediate --edge-index 0 --speed 0.75
+```
+
+The MuJoCo window linearly interpolates `q_start -> q_end`. Contact points show
+the observed self-contact interval; the console prints the registered
+certificate decision and observed contact pairs when the window closes. Use
+`--skip-validation` only after running the validator above. This is a kinematic
+visual replay and does not replace the manifest-backed result.

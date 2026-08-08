@@ -13,6 +13,7 @@ from armbench.mujoco_sim.self_collision_audit import (
     run_self_collision_audit,
     validate_self_collision_audit,
 )
+from armbench.mujoco_sim.viewer import load_self_collision_edge
 
 
 def _config() -> SelfCollisionAuditConfig:
@@ -33,6 +34,14 @@ def test_self_collision_audit_recomputes_registered_edges(tmp_path: Path) -> Non
     assert "edge_endpoints_and_decisions_recomputed" in result["checks"]
     summary = json.loads((output / "summary.json").read_text(encoding="utf-8"))
     assert summary["by_stratum"]["known_intermediate"]["conservative_rejections"] >= 0
+    edge = load_self_collision_edge(
+        output,
+        stratum="known_intermediate",
+        edge_index=0,
+    )
+    assert edge.q_start.shape == (7,)
+    assert edge.q_end.shape == (7,)
+    assert edge.continuous_collision_pair is not None
 
 
 def test_self_collision_audit_rejects_manifest_tampering(tmp_path: Path) -> None:

@@ -32,3 +32,18 @@ dense oracle 判定以及两种耗时；`manifest.json` 保护所有生成文件
 
 这只是对关节空间线性插值和固定 MuJoCo 几何的实现审计。dense oracle 是采样证据，
 不是解析证明；结果不等于实体机器人安全、硬实时、急停或真实负载动力学验证。
+
+## 可视化验收
+
+先运行上面的数字 validator，再播放固定的机制控制边：
+
+```powershell
+& 'D:\arm-planning-control-project\.venv\Scripts\python.exe' -m armbench mujoco-self-collision-view `
+  'D:\arm-planning-control-project\project\reports\mujoco_self_collision_audit_001' `
+  --stratum known_intermediate --edge-index 0 --speed 0.75
+```
+
+窗口会沿 `q_start -> q_end` 做关节空间线性插值，并打开 MuJoCo 接触点显示。
+关闭窗口后，控制台会输出证书判定、采样判定和实际观察到的自碰撞 pair。已经完成
+数字验收后可以加 `--skip-validation` 跳过重复重算。这个窗口是运动学回放，不能替代
+manifest 保护的数字结果，也不是实体机器人安全证明。

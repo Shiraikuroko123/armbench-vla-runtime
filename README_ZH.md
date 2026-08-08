@@ -180,6 +180,16 @@ false-safe 为 0，保守拒绝 21 条。无需 GPU 即可重新验收：
   reports\mujoco_self_collision_audit_001
 ```
 
+数字验收后，可以在 MuJoCo viewer 中播放固定的“边中间自碰撞”机制控制边：
+
+```powershell
+& 'D:\arm-planning-control-project\.venv\Scripts\python.exe' -m armbench mujoco-self-collision-view `
+  'D:\arm-planning-control-project\project\reports\mujoco_self_collision_audit_001' `
+  --stratum known_intermediate --edge-index 0 --speed 0.75 --skip-validation
+```
+
+接触点叠加只提供运动学可视证据，正式结论仍以 manifest 保护的 validator 为准。
+
 证书只覆盖关节空间线性插值和编译后的 MuJoCo 几何，不是实体安全或硬实时结果。
 
 Provider-neutral CPU 审计演示第二个 action-chunk 模型族如何进入现有 runtime，

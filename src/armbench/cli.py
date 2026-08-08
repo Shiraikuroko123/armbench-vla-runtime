@@ -497,6 +497,26 @@ def build_parser() -> argparse.ArgumentParser:
     mujoco_view.add_argument("--speed", type=float, default=1.0)
     mujoco_view.add_argument("--loop", action="store_true")
 
+    self_collision_view = subparsers.add_parser(
+        "mujoco-self-collision-view",
+        help="visually replay one preserved Panda self-collision audit edge",
+    )
+    self_collision_view.add_argument("directory", type=Path)
+    self_collision_view.add_argument(
+        "--stratum",
+        choices=("known_intermediate", "local", "global"),
+        default="known_intermediate",
+    )
+    self_collision_view.add_argument("--edge-index", type=int, default=0)
+    self_collision_view.add_argument("--samples", type=int, default=240)
+    self_collision_view.add_argument("--speed", type=float, default=1.0)
+    self_collision_view.add_argument("--loop", action="store_true")
+    self_collision_view.add_argument(
+        "--skip-validation",
+        action="store_true",
+        help="skip the manifest and numerical validator after a prior validation",
+    )
+
     vla_guard = subparsers.add_parser(
         "vla-guard-run",
         help="evaluate OpenPI-compatible action chunks with runtime validation",
@@ -1171,6 +1191,24 @@ def main(arguments: list[str] | None = None) -> int:
             playback_speed=args.speed,
             loop=args.loop,
         )
+        print(json.dumps(record, indent=2, ensure_ascii=False))
+        return 0
+    if args.command == "mujoco-self-collision-view":
+        from armbench.mujoco_sim.viewer import launch_self_collision_audit_viewer
+
+        validation: dict[str, object] | None = None
+        if not args.skip_validation:
+            validation = validate_self_collision_audit(args.directory)
+        record = launch_self_collision_audit_viewer(
+            report_directory=args.directory,
+            stratum=args.stratum,
+            edge_index=args.edge_index,
+            sample_count=args.samples,
+            playback_speed=args.speed,
+            loop=args.loop,
+        )
+        if validation is not None:
+            record["validation"] = validation
         print(json.dumps(record, indent=2, ensure_ascii=False))
         return 0
     if args.command == "vla-guard-run":
