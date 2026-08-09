@@ -174,6 +174,7 @@ class MuJoCoPanda:
     ) -> "MuJoCoPanda":
         if payload_mass < 0.0:
             raise ValueError("payload mass cannot be negative")
+        goal_position: np.ndarray | None = None
         if goal_marker is not None:
             goal_position = np.asarray(goal_marker, dtype=float)
             if goal_position.shape != (3,) or not np.all(np.isfinite(goal_position)):
@@ -218,7 +219,7 @@ class MuJoCoPanda:
                 quat=[0.66961113, -0.63053439, -0.26906847, 0.28574372],
                 fovy=100.0,
             )
-        if goal_marker is not None:
+        if goal_position is not None:
             spec.worldbody.add_geom(
                 name="armbench_visual_goal",
                 type=mujoco.mjtGeom.mjGEOM_SPHERE,

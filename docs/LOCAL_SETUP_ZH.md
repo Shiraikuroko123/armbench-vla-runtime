@@ -126,3 +126,20 @@ powershell -NoProfile -ExecutionPolicy Bypass -File `
 `doctor` 输出 `BLOCKED` 时，应先处理标为 `FAIL` 的必需项。缺少
 `openpi_client` 或 FFmpeg 默认只是提示，只有在线 VLA 传输或视频编码命令
 才会要求这些组件。
+
+## VS Code 与 Pylance
+
+推荐直接打开仓库中的 `ArmBench.code-workspace`，不要把
+`D:\arm-planning-control-project` 外层目录当作 Python 包根目录。工作区会选择外层
+`.venv\Scripts\python.exe`，并把 `src/` 与仓库根目录加入分析路径。
+
+仓库的 `pyrightconfig.json` 只分析 `src/`、`integrations/` 和 `scripts/`；构建副本、
+实验报告、视频与缓存不会再被 Pylance 重复扫描。项目级配置覆盖用户设置中的
+`python.analysis.typeCheckingMode = strict`。这是针对 NumPy、MuJoCo 与可选
+OpenPI/LIBERO 依赖的静态分析策略；Ruff、pytest 和双平台 CI 仍是代码质量门禁。
+
+修改工作区后，在命令面板运行 `Developer: Reload Window`。底部状态栏应显示：
+
+```text
+Python 3.10.x  D:\arm-planning-control-project\.venv\Scripts\python.exe
+```

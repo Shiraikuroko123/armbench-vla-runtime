@@ -140,3 +140,18 @@ Stored evidence can be validated without model inference:
 If `doctor` reports `BLOCKED`, resolve its required `FAIL` entries first.
 Missing `openpi_client` or FFmpeg is informational unless a command explicitly
 requires live VLA transport or video encoding.
+
+## VS Code and Pylance
+
+Open `ArmBench.code-workspace` instead of treating the outer
+`D:\arm-planning-control-project` directory as the Python package root. The
+workspace selects the sibling `.venv\Scripts\python.exe` interpreter and adds
+`src/` plus the repository root to the analysis path.
+
+The checked-in `pyrightconfig.json` analyzes maintained Python sources under
+`src/`, `integrations/`, and `scripts`; build copies, evidence, reports, videos,
+and caches are excluded. It also overrides a user-level Pylance `strict` mode
+that would otherwise report dynamic NumPy, MuJoCo, and optional OpenPI/LIBERO
+interfaces as project errors. Ruff, pytest, and the Windows/Ubuntu CI jobs
+remain the executable quality gates. Run `Developer: Reload Window` after
+opening the workspace.
