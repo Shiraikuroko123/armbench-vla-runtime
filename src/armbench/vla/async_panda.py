@@ -1388,6 +1388,11 @@ def run_async_panda_episode(
                         "dispatch_reason": update.reason,
                         "observation_age_ms": update.observation_age_ms,
                         "action_offset": update.action_offset,
+                        "policy_server_timing": (
+                            None
+                            if outcome.chunk is None
+                            else dict(outcome.chunk.server_timing)
+                        ),
                     }
                 )
 
