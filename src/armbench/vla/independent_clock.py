@@ -157,6 +157,7 @@ class _WorkerMessage:
     completed_at_s: float | None = None
     actions: np.ndarray | None = None
     source: str | None = None
+    response_metadata: Mapping[str, object] | None = None
     failure_type: str | None = None
     failure_message: str | None = None
 
@@ -209,10 +210,11 @@ def _normalise_provider_result(
     result: Any,
     *,
     action_dim: int,
-) -> tuple[np.ndarray, str]:
+) -> tuple[np.ndarray, str, Mapping[str, object] | None]:
     """Accept an ndarray, ``{"actions": ...}``, or an ActionChunk-like value."""
 
     source = "provider"
+    response_metadata: Mapping[str, object] | None = None
     candidate = result
     if isinstance(result, Mapping):
         if "actions" not in result:
@@ -220,6 +222,11 @@ def _normalise_provider_result(
         candidate = result["actions"]
         if result.get("source") is not None:
             source = str(result["source"])
+        supplied_metadata = result.get("response_metadata")
+        if supplied_metadata is not None:
+            if not isinstance(supplied_metadata, Mapping):
+                raise ValueError("provider response_metadata must be a mapping")
+            response_metadata = dict(supplied_metadata)
     elif hasattr(result, "actions"):
         candidate = getattr(result, "actions")
         if getattr(result, "source", None) is not None:
@@ -238,7 +245,7 @@ def _normalise_provider_result(
             "provider actions must be finite with shape (horizon, %d)"
             % action_dim
         )
-    return np.ascontiguousarray(actions), source
+    return np.ascontiguousarray(actions), source, response_metadata
 
 
 def _worker_main(
@@ -293,11 +300,12 @@ def _worker_main(
             )
             actions: np.ndarray | None = None
             source: str | None = None
+            response_metadata: Mapping[str, object] | None = None
             failure_type: str | None = None
             failure_message: str | None = None
             try:
                 result = _provider_infer(provider, request.observation)
-                actions, source = _normalise_provider_result(
+                actions, source, response_metadata = _normalise_provider_result(
                     result, action_dim=action_dim
                 )
             except Exception as error:
@@ -322,6 +330,7 @@ def _worker_main(
                     completed_at_s=finished_at,
                     actions=actions,
                     source=source,
+                    response_metadata=response_metadata,
                     failure_type=failure_type,
                     failure_message=failure_message,
                 ),
@@ -561,6 +570,7 @@ class RequestLifecycle:
     response_status: str = "submitted"
     source: str | None = None
     actions: tuple[tuple[float, ...], ...] | None = None
+    response_metadata: Mapping[str, object] | None = None
     failure_type: str | None = None
     failure_message: str | None = None
 
@@ -580,6 +590,11 @@ class RequestLifecycle:
                 None
                 if self.actions is None
                 else [list(action) for action in self.actions]
+            ),
+            "response_metadata": (
+                None
+                if self.response_metadata is None
+                else dict(self.response_metadata)
             ),
             "failure_type": self.failure_type,
             "failure_message": self.failure_message,
@@ -858,6 +873,7 @@ def run_independent_clock(
             record.completed_at_s = message.completed_at_s or message.at_s
             record.worker_process_id = message.worker_process_id
             record.source = message.source
+            record.response_metadata = message.response_metadata
             if message.actions is not None:
                 record.actions = tuple(
                     tuple(float(value) for value in action)
