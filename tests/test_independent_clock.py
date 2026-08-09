@@ -203,16 +203,17 @@ def test_independent_clock_deadline_fails_closed() -> None:
 
 
 def test_independent_clock_provider_failure_is_auditable() -> None:
-    environment = _FakeEnvironment(max_steps=3)
+    environment = _FakeEnvironment(max_steps=60)
     result = run_independent_clock(
         environment,
         _FailingFactory(),
         config=IndependentClockConfig(
             control_period_s=0.005,
             action_period_s=0.01,
-            deadline_s=0.1,
-            max_ticks=3,
+            deadline_s=1.0,
+            max_ticks=60,
             action_dim=1,
+            submit_every_ticks=60,
         ),
         observation_builder=_builder,
     )
