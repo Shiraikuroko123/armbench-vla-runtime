@@ -105,6 +105,22 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup_local.ps1
 并重新运行两条 Panda 任务的规划、动作保障和 MuJoCo 物理。脚本会自行解析仓库和
 Python 路径。在仓库根目录执行；若从其他目录启动，则向 `-File` 传入脚本的绝对路径：
 
+如果需要一次检查全部已保存的本地证据，运行：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File `
+  '.\scripts\accept_cpu.ps1'
+```
+
+该入口会依次验证连续静态/自碰撞、动力学制动、provider 语义契约、LeRobot
+watchdog、冻结 `pi0.5` 响应回放、Panda 任务、异步闭环与证据目录，并把不纳入 Git
+的结果写入 `output/cpu_acceptance/summary.md` 和 `summary.json`。检测到隔离的官方
+`lerobot==0.4.4` 环境时还会自动加入官方 Dataset round-trip；没有该环境时只将此项
+标为 skipped，不影响其余 CPU 验收。提交前可追加 `--full-tests` 运行完整 pytest。
+
+这是一条证据重算入口，不是 `pi0.5` 到 Panda 的端到端部署、真机实验、硬实时保证或
+安全认证。
+
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File `
   '.\scripts\accept_integrated_panda.ps1'

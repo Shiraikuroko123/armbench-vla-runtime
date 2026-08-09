@@ -319,11 +319,12 @@
           <div class="section-heading reveal">
             <p class="section-index">06 / ONE-CLICK LOCAL ACCEPTANCE</p>
             <h2 id="reproduce-title"><span data-lang-content="zh">无需 GPU；从仓库根目录即可重算结果。</span><span data-lang-content="en">No GPU required; recompute the results from the repository root.</span></h2>
-            <p><span data-lang-content="zh">一键脚本重算同步故障矩阵和任务物理；独立 validator 重跑 17 个异步边界案例；加上 <code>-Visualize</code> 后播放保存的实测关节轨迹。</span><span data-lang-content="en">The acceptance script recomputes the synchronous fault matrix and task physics; a separate validator reruns the 17 asynchronous boundary cases; <code>-Visualize</code> replays saved measured joint positions.</span></p>
+            <p><span data-lang-content="zh">总验收入口会重跑全部已保存的本地 CPU artifact；集成脚本仍可单独重算同步故障矩阵和任务物理，加上 <code>-Visualize</code> 后播放保存的实测关节轨迹。</span><span data-lang-content="en">The one-command acceptance entry reruns every saved local CPU artifact; the focused integration script remains available for the synchronous fault matrix and task physics, and <code>-Visualize</code> replays saved measured joint positions.</span></p>
           </div>
 
           <div class="command-console reveal">
-            <div class="console-head"><span>POWERSHELL · LOCAL CPU</span><span>scripts/accept_integrated_panda.ps1</span></div>
+            <div class="console-head"><span>POWERSHELL · LOCAL CPU</span><span>scripts/accept_cpu.ps1</span></div>
+            <div class="command-row"><div><span>FULL LOCAL EVIDENCE</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_cpu.ps1'</code></div><button type="button" class="copy-button" data-copy="powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_cpu.ps1'"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-row"><div><span>RECOMPUTE</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_integrated_panda.ps1'</code></div><button type="button" class="copy-button" data-copy="powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_integrated_panda.ps1'"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-row"><div><span>ASYNC BOUNDARY</span><code>&amp; '.\.venv\Scripts\python.exe' -m armbench vla-cpu-runtime-validate '.\reports\cpu_runtime_completion_001'</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m armbench vla-cpu-runtime-validate '.\reports\cpu_runtime_completion_001'"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-row"><div><span>RECOMPUTE + VIEW</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_integrated_panda.ps1' -Visualize -Case narrow_gate_payload_delay_goal</code></div><button type="button" class="copy-button" data-copy="powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_integrated_panda.ps1' -Visualize -Case narrow_gate_payload_delay_goal"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
@@ -331,7 +332,7 @@
 
           <ol class="acceptance-path reveal">
             <li><span>01</span><p><strong><span data-lang-content="zh">验证保存清单</span><span data-lang-content="en">Validate saved manifests</span></strong><small>artifact hashes · implementation hashes · scene hash</small></p></li>
-            <li><span>02</span><p><strong><span data-lang-content="zh">重算 17 + 27 个边界决策</span><span data-lang-content="en">Recompute 17 + 27 boundary decisions</span></strong><small>async providers · supervisor faults · no partial prefix</small></p></li>
+            <li><span>02</span><p><strong><span data-lang-content="zh">重算全部 CPU 边界</span><span data-lang-content="en">Recompute every CPU boundary</span></strong><small>collision · dynamics · provider · LeRobot · async matrices</small></p></li>
             <li><span>03</span><p><strong><span data-lang-content="zh">重跑规划、保障与物理</span><span data-lang-content="en">Rerun planning, assurance, and physics</span></strong><small>RRT-Connect · OSQP · certificates · MuJoCo torque execution</small></p></li>
             <li><span>04</span><p><strong><span data-lang-content="zh">可选可视化实测轨迹</span><span data-lang-content="en">Optionally replay measured traces</span></strong><small>actual_positions · 1,216-frame narrow-gate trace</small></p></li>
           </ol>

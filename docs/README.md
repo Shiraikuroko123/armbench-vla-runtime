@@ -22,6 +22,7 @@ to match later results.
 | [Architecture and claim boundaries](PROJECT_ARCHITECTURE.md) | Current | Two execution paths, shared runtime layer, terminology, and integration boundary |
 | [架构与主张边界](PROJECT_ARCHITECTURE_ZH.md) | Current | 中文架构、术语和可公开主张范围 |
 | [中文代码导读](CODE_WALKTHROUGH_ZH.md) | Operational | 从 CLI、provider/worker、调度器到 Panda 保障链和 artifact validator 的断点地图 |
+| [本地 CPU 一键验收](CPU_ACCEPTANCE_ZH.md) | Operational | 单命令重跑碰撞、动力学、provider、LeRobot、Panda 与异步证据，输出本地汇总 |
 | [完整改进路线与采购表](ROADMAP_ZH.md) | Current | 后续工作、前置条件、预算、验收标准、优先级与采购边界 |
 | [Results](RESULTS.md) | Current | Verified outcomes, provenance, statistics, and study-specific limitations |
 | [Evidence catalog](EVIDENCE_CATALOG.md) | Current | Complete artifact inventory, evidence classes, review links, validators, and claim boundaries |
@@ -75,6 +76,7 @@ to match later results.
 
 | Document | Status | Purpose |
 | --- | --- | --- |
+| [Local CPU acceptance — 中文](CPU_ACCEPTANCE_ZH.md) | Operational | Rerun every saved local CPU validator, optionally including official LeRobot and the full test suite |
 | [RTC corrected-v3 acceptance](RTC_OVERLAP_PRIMARY_V3_ACCEPTANCE.md) | Operational | Validate two raw v3 artifacts, rebuild the combined analysis, and open the dashboard |
 | [RTC corrected-v3 acceptance — 中文](RTC_OVERLAP_PRIMARY_V3_ACCEPTANCE_ZH.md) | Operational | Corrected-v3 中文验收与结果边界 |
 | [Temporal-alignment evidence acceptance — 中文](ALIGNMENT_ACCEPTANCE_ZH.md) | Operational | 验证确定性时序对齐 artifact 并检查匹配视频 |

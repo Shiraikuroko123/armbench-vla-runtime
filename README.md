@@ -140,6 +140,21 @@ for the method, results, fixed-gripper collision rule, and latency boundary.
 The provider-to-assurance threading and atomic activation path is documented in
 [the CPU completion guide](docs/CPU_RUNTIME_COMPLETION_ZH.md).
 
+To rerun every saved local CPU artifact with one cross-platform command, use
+`scripts/accept_cpu.py`. It validates collision, dynamics, provider, LeRobot,
+frozen-response, Panda task, asynchronous, and evidence-catalog artifacts and
+writes an ignored summary under `output/cpu_acceptance/`:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File `
+  '.\scripts\accept_cpu.ps1'
+```
+
+The official LeRobotDataset check is automatically included when an isolated
+`lerobot==0.4.4` interpreter is available. Add `--full-tests` before a release
+to run the complete CPU test suite as well. See [one-click CPU acceptance](docs/CPU_ACCEPTANCE_ZH.md)
+for the environment and claim boundary.
+
 For a bounded local acceptance check on Windows:
 
 ```powershell
