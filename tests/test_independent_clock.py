@@ -96,6 +96,10 @@ def _builder(raw: dict[str, int], sequence: int, captured_at_s: float):
     return {"step": raw["step"], "sequence_id": sequence}
 
 
+def _incrementing_hold(previous: np.ndarray) -> np.ndarray:
+    return previous + 0.25
+
+
 def test_spawned_worker_records_latest_only_supersession() -> None:
     context = mp.get_context("spawn")
     manager = context.Manager()
@@ -173,6 +177,38 @@ def test_independent_clock_parent_keeps_stepping_and_records_suffix() -> None:
     assert all(tick.response_age_ms is not None for tick in executed)
     assert all(tick.deadline_ms == 1000.0 for tick in result.ticks)
     assert len(environment.actions) == result.environment_steps
+    completed = [request for request in result.requests if request.actions is not None]
+    assert completed
+    assert len(completed[0].actions) == 8
+
+
+def test_independent_clock_dynamic_hold_receives_previous_command() -> None:
+    environment = _FakeEnvironment(max_steps=4)
+    result = run_independent_clock(
+        environment,
+        _DelayedFactory(0.5),
+        config=IndependentClockConfig(
+            control_period_s=0.005,
+            action_period_s=0.01,
+            deadline_s=1.0,
+            max_ticks=4,
+            action_dim=1,
+        ),
+        observation_builder=_builder,
+        hold_action=_incrementing_hold,
+    )
+
+    assert result.holds == 4
+    np.testing.assert_allclose(
+        [action[0] for action in environment.actions],
+        [0.25, 0.50, 0.75, 1.00],
+    )
+    assert [tick.action for tick in result.ticks] == [
+        (0.25,),
+        (0.50,),
+        (0.75,),
+        (1.00,),
+    ]
 
 
 def test_independent_clock_deadline_fails_closed() -> None:

@@ -560,6 +560,7 @@ class RequestLifecycle:
     response_age_ms: float | None = None
     response_status: str = "submitted"
     source: str | None = None
+    actions: tuple[tuple[float, ...], ...] | None = None
     failure_type: str | None = None
     failure_message: str | None = None
 
@@ -575,6 +576,11 @@ class RequestLifecycle:
             "response_age_ms": self.response_age_ms,
             "response_status": self.response_status,
             "source": self.source,
+            "actions": (
+                None
+                if self.actions is None
+                else [list(action) for action in self.actions]
+            ),
             "failure_type": self.failure_type,
             "failure_message": self.failure_message,
             "parent_process_id": self.parent_process_id,
@@ -746,7 +752,12 @@ def run_independent_clock(
     config: IndependentClockConfig = IndependentClockConfig(),
     observation_builder: Callable[[Any, int, float], Any] | None = None,
     action_adapter: Callable[[np.ndarray], Any] | None = None,
-    hold_action: Sequence[float] | np.ndarray | None = None,
+    hold_action: (
+        Sequence[float]
+        | np.ndarray
+        | Callable[[np.ndarray], Sequence[float] | np.ndarray]
+        | None
+    ) = None,
     clock: Callable[[], float] = time.monotonic,
     sleeper: Callable[[float], None] = time.sleep,
 ) -> IndependentClockResult:
@@ -776,10 +787,11 @@ def run_independent_clock(
         def action_adapter(action: np.ndarray) -> Any:
             return action
 
-    if hold_action is None:
+    hold_builder = hold_action if callable(hold_action) else None
+    if hold_builder is None:
         hold = np.zeros(config.action_dim, dtype=np.float64)
-    else:
-        hold = np.asarray(hold_action, dtype=np.float64)
+        if hold_action is not None:
+            hold = np.asarray(hold_action, dtype=np.float64)
         if (
             hold.shape != (config.action_dim,)
             or not np.all(np.isfinite(hold))
@@ -788,6 +800,10 @@ def run_independent_clock(
                 "hold_action must be finite with shape (%d,)" % config.action_dim
             )
         hold = hold.copy()
+    else:
+        # A dynamic hold derives its first command from a finite zero action.
+        # Embodiment adapters can map that seed to a robot-specific idle pose.
+        hold = np.zeros(config.action_dim, dtype=np.float64)
 
     parent_pid = os.getpid()
     worker = IndependentClockWorker(
@@ -842,6 +858,11 @@ def run_independent_clock(
             record.completed_at_s = message.completed_at_s or message.at_s
             record.worker_process_id = message.worker_process_id
             record.source = message.source
+            if message.actions is not None:
+                record.actions = tuple(
+                    tuple(float(value) for value in action)
+                    for action in message.actions
+                )
             record.failure_type = message.failure_type
             record.failure_message = message.failure_message
             completed_at = record.completed_at_s
@@ -978,10 +999,28 @@ def run_independent_clock(
                     status = "execute"
                     reason = "fresh_suffix_available"
             if status == "hold":
-                action = hold
+                if hold_builder is not None:
+                    try:
+                        candidate_hold = np.asarray(
+                            hold_builder(hold.copy()), dtype=np.float64
+                        )
+                    except Exception as error:
+                        raise ValueError("dynamic hold_action failed") from error
+                    if (
+                        candidate_hold.shape != (config.action_dim,)
+                        or not np.all(np.isfinite(candidate_hold))
+                    ):
+                        raise ValueError(
+                            "dynamic hold_action must return finite shape (%d,)"
+                            % config.action_dim
+                        )
+                    action = candidate_hold.copy()
+                else:
+                    action = hold
             action_for_env = action_adapter(np.asarray(action, dtype=np.float64).copy())
             step_result = environment.step(action_for_env)
             done, _next_raw = _parse_step_result(step_result)
+            hold = np.asarray(action, dtype=np.float64).copy()
             ticks.append(
                 ControlTickRecord(
                     tick_index=tick_index,
