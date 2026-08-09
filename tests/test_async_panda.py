@@ -60,6 +60,7 @@ class _InjectedActionPolicy:
             source=self.policy_source,
             observation_sequence_id=observation.sequence_id,
             inference_latency_ms=0.0,
+            server_timing={"test_policy_ms": 1.0},
         )
 
 
@@ -86,6 +87,11 @@ def test_async_panda_accepts_injected_policy_factory_and_preserves_metadata() ->
     metrics = result.metrics()
     assert metrics["scripted_policy"] is False
     assert metrics["policy_checkpoint_executed"] is False
+    policy_events = [
+        event for event in result.events if event["event"] == "policy_outcome"
+    ]
+    assert policy_events
+    assert policy_events[0]["policy_server_timing"] == {"test_policy_ms": 1.0}
 
 
 def test_async_panda_rejects_conflicting_policy_injection_arguments() -> None:
