@@ -7,17 +7,23 @@ import time
 
 import numpy as np
 
-from armbench.vla.cartesian_adapter import LIBERO_ACTION_DIM
+from armbench.vla.cartesian_adapter import (
+    LIBERO_ACTION_DIM,
+    CartesianAdapterConfig,
+    PandaCartesianActionAdapter,
+    PandaCartesianKinematics,
+)
 from armbench.vla.policy import PolicyBackend
 from armbench.vla.provider_contract import (
     ActionSemantics,
     ProviderContractError,
     ProviderIdentity,
+    RawActionChunkProvider,
     RawActionChunk,
     canonical_action_sha256,
     libero_cartesian_semantics,
 )
-from armbench.vla.types import VLAObservation
+from armbench.vla.types import ActionChunk, VLAObservation
 
 
 PI05_LIBERO_POLICY_CONFIG = "pi05_libero"
@@ -149,3 +155,118 @@ class OpenPILiberoRawProvider:
         close = getattr(self._backend, "close", None)
         if callable(close):
             close()
+
+
+class OpenPILiberoPandaPolicy:
+    """Adapt an attested live ``pi05_libero`` provider to Panda Hx8 actions.
+
+    OpenPI's LIBERO policy emits seven normalized Cartesian/axis-angle values
+    (Hx7).  The Panda runtime consumes seven joint velocities plus a gripper
+    position (Hx8).  This wrapper keeps that conversion at an explicit,
+    auditable boundary and reports the full provider-plus-adapter latency to
+    the deadline-aware worker.
+    """
+
+    def __init__(
+        self,
+        provider: RawActionChunkProvider,
+        robot: PandaCartesianKinematics,
+        *,
+        adapter_config: CartesianAdapterConfig = CartesianAdapterConfig(),
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        if not callable(getattr(provider, "infer_raw", None)):
+            raise TypeError("provider must provide infer_raw(observation)")
+        if not hasattr(provider, "identity") or not hasattr(provider, "semantics"):
+            raise TypeError("provider must expose identity and semantics")
+        identity = provider.identity
+        if not isinstance(identity, ProviderIdentity):
+            raise TypeError("provider.identity must be a ProviderIdentity")
+        if identity.response_origin != "live_checkpoint_inference":
+            raise ProviderContractError(
+                "OpenPILiberoPandaPolicy requires a live checkpoint provider"
+            )
+        self.provider = provider
+        self.adapter = PandaCartesianActionAdapter(robot, adapter_config)
+        self._clock = clock
+        self._last_metrics: dict[str, object] = {}
+
+    @property
+    def identity(self) -> ProviderIdentity:
+        return self.provider.identity
+
+    @property
+    def policy_source(self) -> str:
+        return (
+            f"live:{self.identity.provider_id}"
+            "|libero_hx7_to_panda_hx8_cartesian_adapter"
+        )
+
+    @property
+    def provenance(self) -> dict[str, object]:
+        """Expose immutable provider/semantic identity to episode artifacts."""
+
+        return {
+            "identity": self.identity.to_dict(),
+            "source_semantics": self.provider.semantics.to_dict(),
+            "source_semantics_sha256": self.provider.semantics.semantic_sha256,
+            "adapter": "PandaCartesianActionAdapter",
+            "adapter_contract": "libero.ee_delta_pose_gripper.v1->panda.droid_hx8.v1",
+            "checkpoint_executed_this_run": (
+                self.identity.checkpoint_executed_this_run
+            ),
+        }
+
+    def infer(self, observation: VLAObservation) -> ActionChunk:
+        started_at_s = float(self._clock())
+        if not np.isfinite(started_at_s):
+            raise ProviderContractError("policy clock returned a non-finite value")
+        raw = self.provider.infer_raw(observation)
+        if raw.observation_sequence_id != observation.sequence_id:
+            raise ProviderContractError(
+                "provider response sequence does not match observation"
+            )
+        adapted = self.adapter.adapt(
+            raw.actions,
+            observation.joint_position,
+            source=raw.source,
+            observation_sequence_id=raw.observation_sequence_id,
+            inference_latency_ms=raw.inference_latency_ms,
+            received_at_s=raw.received_at_s,
+        )
+        finished_at_s = float(self._clock())
+        if not np.isfinite(finished_at_s) or finished_at_s < started_at_s:
+            raise ProviderContractError("policy clock moved backwards")
+        total_latency_ms = (finished_at_s - started_at_s) * 1000.0
+        self._last_metrics = {
+            "provider_id": self.identity.provider_id,
+            "implementation_revision": self.identity.implementation_revision,
+            "checkpoint_reference": self.identity.checkpoint_reference,
+            "checkpoint_sha256": self.identity.checkpoint_sha256,
+            "response_sha256": raw.response_sha256,
+            "provider_inference_latency_ms": raw.inference_latency_ms,
+            "adapter_latency_ms": adapted.adapter_latency_ms,
+            "total_latency_ms": total_latency_ms,
+            "adapter": adapted.metrics(),
+        }
+        timing = {
+            "provider_inference_latency_ms": float(raw.inference_latency_ms),
+            "adapter_latency_ms": float(adapted.adapter_latency_ms),
+            "total_latency_ms": float(total_latency_ms),
+        }
+        return ActionChunk(
+            actions=adapted.chunk.actions,
+            source=f"{self.policy_source}|response_sha256:{raw.response_sha256}",
+            observation_sequence_id=observation.sequence_id,
+            inference_latency_ms=total_latency_ms,
+            received_at_s=finished_at_s,
+            server_timing=timing,
+        )
+
+    def metrics(self) -> dict[str, object]:
+        """Return the most recent response provenance without mutable arrays."""
+
+        return dict(self._last_metrics)
+
+    def close(self) -> None:
+        self.provider.close()

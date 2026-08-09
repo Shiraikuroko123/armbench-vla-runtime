@@ -826,14 +826,31 @@ class AdaptedActionChunkPolicy:
             raise ProviderContractError(
                 "provider response sequence does not match observation"
             )
-        return self.adapter.adapt(
+        adapted = self.adapter.adapt(
             raw.actions,
             observation.joint_position,
             source=raw.source,
             observation_sequence_id=raw.observation_sequence_id,
             inference_latency_ms=raw.inference_latency_ms,
             received_at_s=raw.received_at_s,
-        ).chunk
+        )
+        # Keep the full response digest at the runtime boundary.  The raw
+        # provider owns the identity and digest; the adapter owns the measured
+        # conversion cost.  ``ActionChunk.server_timing`` is numeric by
+        # contract, so identity/digest remain in the source/provenance string.
+        chunk = adapted.chunk
+        return replace(
+            chunk,
+            source=(
+                f"{chunk.source}|provider_id:{self.identity.provider_id}"
+                f"|response_sha256:{raw.response_sha256}"
+            ),
+            server_timing={
+                **dict(chunk.server_timing),
+                "provider_inference_ms": float(raw.inference_latency_ms),
+                "adapter_latency_ms": float(adapted.adapter_latency_ms),
+            },
+        )
 
 
 def _fixture_identity() -> ProviderIdentity:

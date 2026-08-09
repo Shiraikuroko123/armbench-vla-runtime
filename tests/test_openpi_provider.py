@@ -7,9 +7,12 @@ import pytest
 
 from armbench.vla.openpi_provider import (
     OpenPILiberoRawProvider,
+    OpenPILiberoPandaPolicy,
     provider_identity_from_openpi_metadata,
 )
 from armbench.vla.provider_contract import ProviderContractError
+from armbench.mujoco_sim.model import MuJoCoPanda
+from armbench.mujoco_sim.scenarios import mujoco_scenarios
 from armbench.vla.types import VLAObservation
 
 
@@ -120,3 +123,35 @@ def test_non_live_identity_cannot_claim_current_run_execution() -> None:
     identity = provider_identity_from_openpi_metadata(_metadata())
     with pytest.raises(ProviderContractError, match="non-live"):
         replace(identity, response_origin="attested_archive")
+
+
+def test_live_libero_provider_adapts_to_panda_hx8_with_provenance() -> None:
+    actions = np.zeros((10, 7), dtype=float)
+    actions[:, 0] = 0.2
+    provider = OpenPILiberoRawProvider(_Backend(actions))
+    robot = MuJoCoPanda.create(obstacles=())
+    policy = OpenPILiberoPandaPolicy(provider, robot)
+
+    observation = _observation(sequence_id=3)
+    observation = VLAObservation(
+        exterior_image=observation.exterior_image,
+        wrist_image=observation.wrist_image,
+        joint_position=mujoco_scenarios()["free_space"].start,
+        gripper_position=observation.gripper_position,
+        prompt=observation.prompt,
+        sequence_id=observation.sequence_id,
+        captured_at_s=observation.captured_at_s,
+    )
+    chunk = policy.infer(observation)
+
+    assert chunk.actions.shape == (10, 8)
+    assert chunk.observation_sequence_id == 3
+    assert chunk.source.startswith("live:openpi_pi05_libero_live")
+    assert chunk.server_timing["total_latency_ms"] == pytest.approx(
+        chunk.inference_latency_ms
+    )
+    metrics = policy.metrics()
+    assert metrics["response_sha256"]
+    assert chunk.source.endswith(str(metrics["response_sha256"]))
+    assert metrics["adapter"]["action_space_id"] == "libero.ee_delta_pose_gripper.v1"
+    policy.close()

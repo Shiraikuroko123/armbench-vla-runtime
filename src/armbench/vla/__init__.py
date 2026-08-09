@@ -73,6 +73,7 @@ from armbench.vla.online import (
 )
 from armbench.vla.openpi_provider import (
     OpenPILiberoRawProvider,
+    OpenPILiberoPandaPolicy,
     provider_identity_from_openpi_metadata,
 )
 from armbench.vla.official_lerobot import (
@@ -215,6 +216,7 @@ __all__ = [
     "LeRobotFrameAdapter",
     "OpenPIPolicyClient",
     "OpenPILiberoRawProvider",
+    "OpenPILiberoPandaPolicy",
     "OFFICIAL_LEROBOT_DATASET_CODEBASE_VERSION",
     "OFFICIAL_LEROBOT_ROBOT_TYPE",
     "OFFICIAL_LEROBOT_VERSION",
