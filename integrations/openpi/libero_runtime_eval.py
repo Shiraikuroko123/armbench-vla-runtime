@@ -2021,6 +2021,35 @@ def _write_video(path: pathlib.Path, frames: Sequence[np.ndarray], fps: int = 10
     imageio.mimwrite(path, [np.asarray(frame) for frame in frames], fps=fps)
 
 
+def _load_trusted_torch_file(path: pathlib.Path, load_fn: Any) -> Any:
+    """Load a pinned LIBERO payload across the PyTorch 2.6 default change."""
+
+    try:
+        return load_fn(path, weights_only=False)
+    except TypeError as error:
+        if "weights_only" not in str(error):
+            raise
+        return load_fn(path)
+
+
+def load_libero_initial_states(task_suite: Any, task_id: int) -> Any:
+    """Load official initial states only from the pinned LIBERO init root."""
+
+    import torch
+    from libero.libero import get_libero_path
+
+    task = task_suite.get_task(task_id)
+    init_root = pathlib.Path(get_libero_path("init_states")).resolve()
+    init_path = (init_root / task.problem_folder / task.init_states_file).resolve()
+    try:
+        init_path.relative_to(init_root)
+    except ValueError as error:
+        raise ValueError("LIBERO initial-state path escapes the pinned root") from error
+    if not init_path.is_file():
+        raise FileNotFoundError("LIBERO initial-state file is missing: %s" % init_path)
+    return _load_trusted_torch_file(init_path, torch.load)
+
+
 def _make_libero_environment(task: Any, seed: int) -> Any:
     from libero.libero import get_libero_path
     from libero.libero.envs import OffScreenRenderEnv
@@ -2225,7 +2254,7 @@ def _execute_connected_benchmark(
             try:
                 task = task_suite.get_task(task_id)
                 task_description = str(task.language)
-                initial_states = task_suite.get_task_init_states(task_id)
+                initial_states = load_libero_initial_states(task_suite, task_id)
                 environment = _make_libero_environment(task, args.seed)
                 for cell in task_cells:
                     if cell.episode_index >= len(initial_states):

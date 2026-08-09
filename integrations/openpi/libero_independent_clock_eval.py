@@ -43,6 +43,7 @@ from integrations.openpi.libero_runtime_eval import (
     _validate_server_attestation,
     _validate_server_launch_args,
     _write_video,
+    load_libero_initial_states,
 )
 from integrations.openpi.measured_age_libero_eval import (
     validate_policy_sampling_server_contract,
@@ -566,7 +567,7 @@ def execute(args: argparse.Namespace, cells: Sequence[ExperimentCell]) -> int:
         for task_id, task_cells in cells_by_task.items():
             task = suite.get_task(task_id)
             task_description = str(task.language)
-            initial_states = suite.get_task_init_states(task_id)
+            initial_states = load_libero_initial_states(suite, task_id)
             environment = _make_libero_environment(task, args.seed)
             try:
                 for cell in task_cells:

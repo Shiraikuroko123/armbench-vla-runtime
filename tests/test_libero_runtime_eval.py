@@ -26,6 +26,7 @@ from integrations.openpi.libero_runtime_eval import (
     LIBERO_ENV_RESOLUTION,
     _validate_server_launch_args,
     _validate_server_attestation,
+    _load_trusted_torch_file,
     aggregate_episodes,
     artifact_integrity_errors,
     build_matrix,
@@ -39,6 +40,37 @@ from integrations.openpi.libero_runtime_eval import (
     snapshot_runtime_sources,
     write_run_artifacts,
 )
+
+
+def test_trusted_torch_loader_explicitly_disables_weights_only() -> None:
+    calls = []
+
+    def load(path, **kwargs):
+        calls.append((path, kwargs))
+        return "states"
+
+    assert _load_trusted_torch_file(runtime_eval.pathlib.Path("states.pt"), load) == "states"
+    assert calls == [(runtime_eval.pathlib.Path("states.pt"), {"weights_only": False})]
+
+
+def test_trusted_torch_loader_supports_legacy_torch_without_hiding_errors() -> None:
+    calls = []
+
+    def legacy_load(path, **kwargs):
+        calls.append((path, kwargs))
+        if kwargs:
+            raise TypeError("unexpected keyword argument 'weights_only'")
+        return "legacy-states"
+
+    path = runtime_eval.pathlib.Path("states.pt")
+    assert _load_trusted_torch_file(path, legacy_load) == "legacy-states"
+    assert calls == [(path, {"weights_only": False}), (path, {})]
+
+    def broken_load(_path, **_kwargs):
+        raise TypeError("corrupt payload")
+
+    with pytest.raises(TypeError, match="corrupt payload"):
+        _load_trusted_torch_file(path, broken_load)
 
 
 def _result(success: bool, mode: str) -> EpisodeResult:
