@@ -5,7 +5,7 @@ services:
     image: "${ARMBENCH_LIBERO_RUNTIME_IMAGE:-armbench-libero-runtime:py311}"
     # The runtime image is built once from Dockerfile.libero-runtime-py311;
     # null removes the official Python 3.8 build inherited from compose.yml.
-    build: null
+    build: !reset null
     environment:
       PYTHONPATH: /armbench:/armbench/src:/app:/app/packages/openpi-client/src:/app/third_party/libero
       ARMBENCH_RUN_ID: "${ARMBENCH_RUN_ID:-pi05_libero_independent_clock}"

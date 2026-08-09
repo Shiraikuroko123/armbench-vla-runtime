@@ -36,6 +36,7 @@ RUN uv pip install --python /.venv/bin/python --no-cache \
         "gym==0.25.2" \
         "hydra-core==1.2.0" \
         "matplotlib==3.8.4" \
+        "osqp==1.1.3" \
         "robosuite==1.4.1"
 
 ENV LIBERO_CONFIG_PATH=/tmp/libero \
