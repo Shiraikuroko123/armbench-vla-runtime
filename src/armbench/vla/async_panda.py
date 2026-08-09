@@ -11,6 +11,7 @@ physical-robot safety certification.
 from __future__ import annotations
 
 from collections import deque
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 import math
 from pathlib import Path
@@ -32,6 +33,7 @@ from armbench.vla.async_worker import LatestPolicyWorker, PolicyOutcome
 from armbench.vla.guard import ActionChunkGuard, GuardConfig
 from armbench.vla.observation import MuJoCoDroidObservationBuilder
 from armbench.vla.online import _OnlineVideoRecorder
+from armbench.vla.policy import ActionChunkPolicy
 from armbench.vla.trajectory_repair import (
     BrakingRepairConfig,
     BrakingTrajectoryGuard,
@@ -552,6 +554,12 @@ class AsyncPandaEpisodeResult:
     observation_worker_metrics: dict[str, object]
     dispatcher_metrics: dict[str, object]
     video_path: str | None
+    # These fields are optional so historical scripted callers and serialized
+    # result consumers retain their existing shape.  Injected live providers
+    # can expose their attested identity without being mislabeled as scripted.
+    policy_checkpoint_executed: bool = False
+    scripted_policy: bool = True
+    policy_provenance: Mapping[str, object] | None = None
 
     def metrics(self) -> dict[str, object]:
         lateness_ms = (
@@ -562,8 +570,13 @@ class AsyncPandaEpisodeResult:
             "scenario": self.scenario,
             "mode": self.mode,
             "policy_source": self.policy_source,
-            "policy_checkpoint_executed": False,
-            "scripted_policy": True,
+            "policy_checkpoint_executed": self.policy_checkpoint_executed,
+            "scripted_policy": self.scripted_policy,
+            "policy_provenance": (
+                None
+                if self.policy_provenance is None
+                else dict(self.policy_provenance)
+            ),
             "physics_executed": True,
             "hard_realtime_claim": False,
             "physical_safety_claim": False,
@@ -910,6 +923,8 @@ def run_async_panda_episode(
     mode: str,
     reference_positions: ArrayLike,
     *,
+    policy: ActionChunkPolicy | None = None,
+    policy_factory: Callable[[], ActionChunkPolicy] | None = None,
     policy_faults: ScriptedPolicyFaults = ScriptedPolicyFaults(),
     config: AsyncPandaConfig = AsyncPandaConfig(),
     payload_mass: float = 0.0,
@@ -918,10 +933,28 @@ def run_async_panda_episode(
     video_fps: int = 30,
     render_size: tuple[int, int] = (640, 480),
 ) -> AsyncPandaEpisodeResult:
-    """Run one asynchronous policy/repair/physics episode in wall-clock time."""
+    """Run one asynchronous policy/repair/physics episode in wall-clock time.
+
+    ``policy`` (or a zero-argument ``policy_factory``) can inject an external
+    ``ActionChunkPolicy`` such as an attested OpenPI LIBERO provider adapted to
+    Panda actions.  When neither is supplied, the historical scripted policy
+    remains the default.  The injected policy is owned by the caller and is
+    therefore not closed by this function.
+    """
 
     if mode not in ASYNC_PANDA_MODES:
         raise ValueError(f"unknown asynchronous Panda mode: {mode}")
+    if policy is not None and policy_factory is not None:
+        raise ValueError("pass either policy or policy_factory, not both")
+    if policy is not None and not callable(getattr(policy, "infer", None)):
+        raise TypeError("policy must provide a callable infer(observation) method")
+    if policy_factory is not None and not callable(policy_factory):
+        raise TypeError("policy_factory must be callable")
+    if policy is not None or policy_factory is not None:
+        if policy_faults != ScriptedPolicyFaults():
+            raise ValueError(
+                "policy_faults are only supported by the default scripted policy"
+            )
     if not np.isfinite(payload_mass) or payload_mass < 0.0:
         raise ValueError("payload_mass must be finite and nonnegative")
     reference = np.asarray(reference_positions, dtype=float)
@@ -968,7 +1001,42 @@ def run_async_panda_episode(
     kd = np.asarray(config.kd, dtype=float)
     physics_dt = float(robot.model.opt.timestep)
 
-    policy = SleepingReferenceActionChunkPolicy(reference, config, policy_faults)
+    scripted_policy = policy is None and policy_factory is None
+    if policy_factory is not None:
+        try:
+            policy = policy_factory()
+        except Exception as error:
+            raise RuntimeError(
+                "policy_factory failed while constructing the injected policy"
+            ) from error
+        if not callable(getattr(policy, "infer", None)):
+            raise TypeError(
+                "policy_factory must return an object with callable infer(observation)"
+            )
+    if policy is None:
+        policy = SleepingReferenceActionChunkPolicy(reference, config, policy_faults)
+    policy_identity = getattr(policy, "identity", None)
+    provider_id = getattr(policy_identity, "provider_id", None)
+    policy_source = (
+        "scripted_non_learned_async_reference"
+        if scripted_policy
+        else (
+            f"injected:{provider_id}"
+            if isinstance(provider_id, str) and provider_id.strip()
+            else f"injected:{type(policy).__name__}"
+        )
+    )
+    policy_checkpoint_executed = bool(
+        getattr(policy_identity, "checkpoint_executed_this_run", False)
+    )
+    policy_provenance_value = getattr(policy, "provenance", None)
+    if callable(policy_provenance_value):
+        policy_provenance_value = policy_provenance_value()
+    policy_provenance = (
+        dict(policy_provenance_value)
+        if isinstance(policy_provenance_value, Mapping)
+        else None
+    )
     worker = LatestPolicyWorker(policy, max_outcomes=128)
     observation_worker = LatestObservationWorker(
         observation_robot, max_outcomes=128
@@ -1298,6 +1366,11 @@ def run_async_panda_episode(
 
             for outcome in worker.drain():
                 outcome_by_request[outcome.request_id] = outcome
+                if not scripted_policy and outcome.chunk is not None:
+                    # The adapted chunk source carries the provider identity and
+                    # full response digest, making the live path auditable in
+                    # the same event stream as the scripted path.
+                    policy_source = outcome.chunk.source
                 update = dispatcher.publish(outcome, now_s=tick_started)
                 policy_latencies.append(outcome.worker_latency_ms)
                 policy_failures += int(not outcome.succeeded)
@@ -1602,7 +1675,11 @@ def run_async_panda_episode(
     finally:
         observation_worker_closed = observation_worker.close(timeout_s=2.0)
         worker_closed = worker.close(
-            timeout_s=max(2.0, max(policy_faults.latency_schedule_ms) / 1000.0 + 1.0)
+            timeout_s=max(
+                2.0,
+                max(policy_faults.latency_schedule_ms) / 1000.0 + 1.0,
+                config.response_deadline_s + 1.0,
+            )
         )
 
     if not observation_worker_closed:
@@ -1631,7 +1708,7 @@ def run_async_panda_episode(
     return AsyncPandaEpisodeResult(
         scenario=scenario_name,
         mode=mode,
-        policy_source="scripted_non_learned_async_reference",
+        policy_source=policy_source,
         target_is_scenario_goal=target_is_goal,
         target_reached=final_error <= config.goal_tolerance_rad,
         physical_safe=(
@@ -1703,4 +1780,7 @@ def run_async_panda_episode(
         observation_worker_metrics=observation_worker_metrics,
         dispatcher_metrics=dispatcher_metrics,
         video_path=str(video_path.resolve()) if video_path is not None else None,
+        policy_checkpoint_executed=policy_checkpoint_executed,
+        scripted_policy=scripted_policy,
+        policy_provenance=policy_provenance,
     )

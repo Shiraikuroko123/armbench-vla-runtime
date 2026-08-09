@@ -23,7 +23,7 @@ from armbench.vla.async_panda_benchmark import (
     validate_async_panda_artifact,
 )
 from armbench.vla.pi05_archive_replay import _write_root_manifest
-from armbench.vla.types import VLAObservation
+from armbench.vla.types import ActionChunk, VLAObservation
 
 
 def _short_reference(steps: int = 8) -> np.ndarray:
@@ -43,6 +43,61 @@ def _config(*, steps: int = 8) -> AsyncPandaConfig:
         action_horizon=6,
         clearance_m=0.0,
     )
+
+
+class _InjectedActionPolicy:
+    policy_source = "injected_test_policy"
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def infer(self, observation: VLAObservation) -> ActionChunk:
+        self.calls += 1
+        actions = np.zeros((6, 8), dtype=float)
+        actions[:, 7] = float(observation.gripper_position[0])
+        return ActionChunk(
+            actions=actions,
+            source=self.policy_source,
+            observation_sequence_id=observation.sequence_id,
+            inference_latency_ms=0.0,
+        )
+
+
+def test_async_panda_accepts_injected_policy_factory_and_preserves_metadata() -> None:
+    holder: list[_InjectedActionPolicy] = []
+
+    def factory() -> _InjectedActionPolicy:
+        policy = _InjectedActionPolicy()
+        holder.append(policy)
+        return policy
+
+    result = run_async_panda_episode(
+        "free_space",
+        "unguarded",
+        _short_reference(),
+        policy_factory=factory,
+        config=_config(),
+    )
+
+    assert holder and holder[0].calls > 0
+    assert result.scripted_policy is False
+    assert result.policy_checkpoint_executed is False
+    assert result.policy_source == _InjectedActionPolicy.policy_source
+    metrics = result.metrics()
+    assert metrics["scripted_policy"] is False
+    assert metrics["policy_checkpoint_executed"] is False
+
+
+def test_async_panda_rejects_conflicting_policy_injection_arguments() -> None:
+    with pytest.raises(ValueError, match="either policy or policy_factory"):
+        run_async_panda_episode(
+            "free_space",
+            "unguarded",
+            _short_reference(steps=1),
+            policy=_InjectedActionPolicy(),
+            policy_factory=_InjectedActionPolicy,
+            config=_config(steps=1),
+        )
 
 
 def test_async_panda_configuration_rejects_invalid_faults() -> None:
