@@ -1,0 +1,201 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+import time
+
+import numpy as np
+
+from armbench.vla.independent_clock import (
+    IndependentClockConfig,
+    IndependentClockWorker,
+    run_independent_clock,
+    run_independent_clock_smoke,
+)
+
+
+class _FakeEnvironment:
+    def __init__(self, max_steps: int) -> None:
+        self.max_steps = max_steps
+        self.steps = 0
+        self.actions: list[np.ndarray] = []
+
+    def reset(self) -> None:
+        self.steps = 0
+        self.actions.clear()
+
+    def observe(self) -> dict[str, int]:
+        return {"step": self.steps}
+
+    def step(self, action: np.ndarray):
+        self.actions.append(np.asarray(action, dtype=float).copy())
+        self.steps += 1
+        return self.observe(), 0.0, self.steps >= self.max_steps, {}
+
+
+@dataclass(frozen=True)
+class _DelayedFactory:
+    latency_s: float = 0.03
+
+    def __call__(self) -> "_DelayedProvider":
+        return _DelayedProvider(self.latency_s)
+
+
+class _DelayedProvider:
+    def __init__(self, latency_s: float) -> None:
+        self.latency_s = latency_s
+
+    def infer(self, observation: dict[str, int]) -> dict[str, object]:
+        time.sleep(self.latency_s)
+        sequence = float(observation["sequence_id"])
+        actions = np.zeros((8, 1), dtype=float)
+        actions[:, 0] = sequence
+        return {"actions": actions, "source": "test_delayed_provider"}
+
+
+@dataclass(frozen=True)
+class _FailingFactory:
+    def __call__(self) -> "_FailingProvider":
+        return _FailingProvider()
+
+
+class _FailingProvider:
+    def infer(self, observation: dict[str, int]) -> dict[str, object]:
+        del observation
+        raise RuntimeError("scripted provider failure")
+
+
+def _builder(raw: dict[str, int], sequence: int, captured_at_s: float):
+    del captured_at_s
+    return {"step": raw["step"], "sequence_id": sequence}
+
+
+def test_spawned_worker_records_latest_only_supersession() -> None:
+    worker = IndependentClockWorker(_DelayedFactory(0.03), action_dim=1)
+    try:
+        first = worker.submit(
+            {"sequence_id": 0},
+            observation_sequence_id=0,
+            captured_at_s=time.monotonic(),
+        )
+        submissions = [first]
+        for sequence_id in range(1, 10):
+            submissions.append(
+                worker.submit(
+                    {"sequence_id": sequence_id},
+                    observation_sequence_id=sequence_id,
+                    captured_at_s=time.monotonic(),
+                )
+            )
+        deadline = time.monotonic() + 2.0
+        messages = []
+        while time.monotonic() < deadline:
+            messages.extend(worker.drain())
+            if any(message.kind == "completed" for message in messages):
+                break
+            time.sleep(0.005)
+        metrics = worker.metrics()
+    finally:
+        assert worker.close()
+
+    completed = [message for message in messages if message.kind == "completed"]
+    assert completed
+    assert first.replaced_request_id is None
+    assert any(item.replaced_request_id is not None for item in submissions)
+    assert metrics["superseded"] >= 1
+    assert completed[0].worker_process_id != worker.parent_process_id
+
+
+def test_independent_clock_parent_keeps_stepping_and_records_suffix() -> None:
+    environment = _FakeEnvironment(max_steps=14)
+    result = run_independent_clock(
+        environment,
+        _DelayedFactory(0.03),
+        config=IndependentClockConfig(
+            control_period_s=0.005,
+            action_period_s=0.01,
+            deadline_s=0.15,
+            max_ticks=14,
+            action_dim=1,
+        ),
+        observation_builder=_builder,
+    )
+
+    assert result.passed
+    assert result.parent_process_id != result.worker_process_id
+    assert result.environment_steps == 14
+    assert result.superseded >= 1
+    assert result.started >= 1
+    assert result.completed >= 1
+    assert result.holds >= 1
+    assert result.executes >= 1
+    executed = [tick for tick in result.ticks if tick.status == "execute"]
+    assert executed
+    assert all(tick.stale_suffix_steps > 0 for tick in executed)
+    assert all(tick.response_age_ms is not None for tick in executed)
+    assert all(tick.deadline_ms == 150.0 for tick in result.ticks)
+    assert len(environment.actions) == result.environment_steps
+
+
+def test_independent_clock_deadline_fails_closed() -> None:
+    environment = _FakeEnvironment(max_steps=8)
+    result = run_independent_clock(
+        environment,
+        _DelayedFactory(0.04),
+        config=IndependentClockConfig(
+            control_period_s=0.005,
+            action_period_s=0.01,
+            deadline_s=0.005,
+            max_ticks=8,
+            action_dim=1,
+        ),
+        observation_builder=_builder,
+    )
+
+    assert result.passed
+    assert result.holds == len(result.ticks)
+    assert any(tick.reason == "deadline_exceeded" for tick in result.ticks)
+    assert all(np.allclose(action, 0.0) for action in environment.actions)
+
+
+def test_independent_clock_provider_failure_is_auditable() -> None:
+    environment = _FakeEnvironment(max_steps=3)
+    result = run_independent_clock(
+        environment,
+        _FailingFactory(),
+        config=IndependentClockConfig(
+            control_period_s=0.005,
+            action_period_s=0.01,
+            deadline_s=0.1,
+            max_ticks=3,
+            action_dim=1,
+        ),
+        observation_builder=_builder,
+    )
+
+    assert result.passed
+    assert result.completed >= 1
+    failed = [record for record in result.requests if record.failure_type]
+    assert failed
+    assert failed[0].response_status == "failed"
+    assert failed[0].failure_message == "scripted provider failure"
+    assert all(tick.status == "hold" for tick in result.ticks)
+
+
+def test_cpu_independent_clock_smoke_schema_and_scope() -> None:
+    report = run_independent_clock_smoke(
+        policy_latency_ms=25.0,
+        control_period_ms=5.0,
+        action_period_ms=10.0,
+        deadline_ms=100.0,
+        max_ticks=10,
+    )
+
+    assert report["passed"]
+    assert report["scope"] == "cpu_fake_environment_and_spawned_provider"
+    assert report["schema_version"] == "armbench.independent_clock.v1"
+    metrics = report["metrics"]
+    assert metrics["submitted"] >= metrics["started"] >= 1
+    assert metrics["superseded"] >= 1
+    assert metrics["holds"] >= 1
+    assert metrics["executes"] >= 1
+    assert report["worker"]["process_start_method"] == "spawn"
