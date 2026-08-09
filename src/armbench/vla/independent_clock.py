@@ -454,7 +454,26 @@ class IndependentClockWorker:
             try:
                 self._request_queue.put(request, timeout=0.5)
             except Full as error:
-                raise RuntimeError("provider request mailbox remained full") from error
+                # A multiprocessing Queue can briefly report Empty while its
+                # feeder thread is still publishing the previous item.  Take
+                # the pending item with a bounded wait and retry the replace;
+                # this keeps the one-slot latest-only contract deterministic.
+                try:
+                    pending = self._request_queue.get(timeout=0.5)
+                except Empty:
+                    raise RuntimeError(
+                        "provider request mailbox remained full"
+                    ) from error
+                if isinstance(pending, _ProcessRequest):
+                    if replaced != pending.request_id:
+                        replaced = pending.request_id
+                        self._superseded += 1
+                try:
+                    self._request_queue.put(request, timeout=0.5)
+                except Full as retry_error:
+                    raise RuntimeError(
+                        "provider request mailbox remained full after replacement"
+                    ) from retry_error
             self._submitted += 1
         return IndependentClockSubmission(
             request_id=request_id,
