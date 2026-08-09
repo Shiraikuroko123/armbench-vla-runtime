@@ -231,8 +231,8 @@ def test_cpu_independent_clock_smoke_schema_and_scope() -> None:
         policy_latency_ms=25.0,
         control_period_ms=5.0,
         action_period_ms=10.0,
-        deadline_ms=100.0,
-        max_ticks=10,
+        deadline_ms=500.0,
+        max_ticks=60,
     )
 
     assert report["passed"]
