@@ -1017,15 +1017,15 @@ def run_async_panda_episode(
         policy = SleepingReferenceActionChunkPolicy(reference, config, policy_faults)
     policy_identity = getattr(policy, "identity", None)
     provider_id = getattr(policy_identity, "provider_id", None)
-    policy_source = (
-        "scripted_non_learned_async_reference"
-        if scripted_policy
-        else (
-            f"injected:{provider_id}"
-            if isinstance(provider_id, str) and provider_id.strip()
-            else f"injected:{type(policy).__name__}"
-        )
-    )
+    declared_policy_source = getattr(policy, "policy_source", None)
+    if scripted_policy:
+        policy_source = "scripted_non_learned_async_reference"
+    elif isinstance(declared_policy_source, str) and declared_policy_source.strip():
+        policy_source = declared_policy_source
+    elif isinstance(provider_id, str) and provider_id.strip():
+        policy_source = f"injected:{provider_id}"
+    else:
+        policy_source = f"injected:{type(policy).__name__}"
     policy_checkpoint_executed = bool(
         getattr(policy_identity, "checkpoint_executed_this_run", False)
     )
