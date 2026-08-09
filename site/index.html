@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#111310">
-    <meta name="description" content="ArmBench：将内容校验过的 pi0.5-LIBERO checkpoint 接入 MuJoCo Panda 异步闭环，记录动作语义适配、推理时延、连续碰撞、制动回退与可复核证据。">
+    <meta name="description" content="ArmBench：将内容校验过的 pi0.5-LIBERO checkpoint 接入独立时钟 LIBERO 与 MuJoCo Panda runtime，展示 40-rollout pilot、动作语义适配、推理时延与可复核失败证据。">
     <meta property="og:type" content="website">
     <meta property="og:title" content="ArmBench | Attested pi0.5-to-Panda runtime">
-    <meta property="og:description" content="An attested pi0.5-LIBERO checkpoint connected to an asynchronous MuJoCo Panda runtime, with measured latency, semantic adaptation, braking repair, and saved validation evidence.">
+    <meta property="og:description" content="An attested pi0.5-LIBERO checkpoint evaluated with independent simulation and inference clocks, plus an asynchronous MuJoCo Panda runtime, measured latency, failures, and saved validation evidence.">
     <meta property="og:url" content="https://shiraikuroko123.github.io/armbench-vla-runtime/">
     <meta property="og:image" content="https://shiraikuroko123.github.io/armbench-vla-runtime/assets/og-armbench.png">
     <meta property="og:image:alt" content="Three frames from the ArmBench pi0.5-to-Panda MuJoCo integration probe, labeled as simulation with target not reached.">
@@ -15,15 +15,15 @@
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="ArmBench | Attested pi0.5-to-Panda runtime">
-    <meta name="twitter:description" content="Live pi0.5 checkpoint responses cross an explicit Hx7-to-Hx8 adapter into an asynchronous MuJoCo Panda runtime.">
+    <meta name="twitter:description" content="A 40-rollout pi0.5-LIBERO independent-clock pilot preserves success, failure, timing, and provenance evidence alongside the Panda runtime.">
     <meta name="twitter:image" content="https://shiraikuroko123.github.io/armbench-vla-runtime/assets/og-armbench.png">
     <meta name="twitter:image:alt" content="Three frames from the ArmBench pi0.5-to-Panda MuJoCo integration probe, labeled as simulation with target not reached.">
-    <meta name="last-modified" content="2026-08-09">
-    <title>ArmBench | pi0.5 到 Panda 运行时保障</title>
+    <meta name="last-modified" content="2026-08-10">
+    <title>ArmBench | pi0.5 runtime evidence</title>
     <link rel="canonical" href="https://shiraikuroko123.github.io/armbench-vla-runtime/">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="styles.css?v=20260809-4">
-    <script src="app.js?v=20260809-4" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260810-1">
+    <script src="app.js?v=20260810-1" defer></script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -35,7 +35,7 @@
         "programmingLanguage": ["Python", "JavaScript"],
         "runtimePlatform": "Windows or Ubuntu CPU; MuJoCo Panda simulation",
         "license": "https://opensource.org/licenses/MIT",
-        "dateModified": "2026-08-09"
+        "dateModified": "2026-08-10"
       }
     </script>
   </head>
@@ -56,6 +56,7 @@
           <a href="#assurance"><span data-lang-content="zh">保障链</span><span data-lang-content="en">Assurance</span></a>
           <a href="#faults"><span data-lang-content="zh">故障矩阵</span><span data-lang-content="en">Faults</span></a>
           <a href="#tasks"><span data-lang-content="zh">任务执行</span><span data-lang-content="en">Tasks</span></a>
+          <a href="#g02"><span data-lang-content="zh">G02 pilot</span><span data-lang-content="en">G02 pilot</span></a>
           <a href="#reproduce"><span data-lang-content="zh">本地验收</span><span data-lang-content="en">Reproduce</span></a>
           <a href="#scope"><span data-lang-content="zh">边界</span><span data-lang-content="en">Boundaries</span></a>
         </nav>
@@ -111,7 +112,7 @@
       <section class="artifact-bar" aria-label="Project artifacts">
         <div class="shell artifact-grid">
           <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime" target="_blank" rel="noreferrer"><span>CODE</span><strong><span data-lang-content="zh">源代码与测试</span><span data-lang-content="en">Source and tests</span></strong></a>
-          <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/g01_live_panda_smoke_final_001" target="_blank" rel="noreferrer"><span>LIVE G01</span><strong><span data-lang-content="zh">checkpoint 到 Panda 证据</span><span data-lang-content="en">Checkpoint-to-Panda evidence</span></strong></a>
+          <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/pi05_libero_independent_clock_core_40_001" target="_blank" rel="noreferrer"><span>G02 PILOT</span><strong><span data-lang-content="zh">40 次独立时钟证据</span><span data-lang-content="en">40-rollout clock evidence</span></strong></a>
           <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/EVIDENCE_CATALOG.md" target="_blank" rel="noreferrer"><span>EVIDENCE</span><strong><span data-lang-content="zh">完整证据目录</span><span data-lang-content="en">Complete evidence catalog</span></strong></a>
           <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/README.md" target="_blank" rel="noreferrer"><span>DOCS</span><strong><span data-lang-content="zh">协议与实现说明</span><span data-lang-content="en">Protocols and implementation</span></strong></a>
         </div>
@@ -320,10 +321,61 @@
         </div>
       </section>
 
+      <section class="section g02-section" id="g02" aria-labelledby="g02-title">
+        <div class="shell">
+          <div class="section-heading reveal">
+            <p class="section-index">06 / INDEPENDENT-CLOCK PILOT</p>
+            <h2 id="g02-title"><span data-lang-content="zh">G02：仿真时钟不再等待推理，失败也完整保留</span><span data-lang-content="en">G02: simulation keeps ticking while inference is in flight.</span></h2>
+            <p><span data-lang-content="zh">官方 attested pi0.5-LIBERO checkpoint 在独立的推理进程中运行，LIBERO 父进程继续以 20 Hz 推进。40 次 pilot 全部完成，38 次成功；两条 task 4 的 max_ticks 失败和每个请求生命周期都留在 artifact 中。</span><span data-lang-content="en">The attested pi0.5-LIBERO checkpoint runs in a separate inference process while the LIBERO parent keeps a 20 Hz control clock. All 40 pilot rollouts completed, 38 succeeded, and both task-4 max_ticks failures remain in the artifact with every request lifecycle.</span></p>
+          </div>
+
+          <dl class="metric-strip g02-metrics reveal">
+            <div><dt>38 / 40</dt><dd><span data-lang-content="zh">LIBERO Spatial 任务成功</span><span data-lang-content="en">LIBERO Spatial task success</span></dd><small>95.0% · pilot only</small></div>
+            <div><dt>4,521</dt><dd><span data-lang-content="zh">推理期间的控制 tick</span><span data-lang-content="en">control ticks during inference</span></dd><small>4,623 total ticks</small></div>
+            <div><dt>4,031 / 592</dt><dd><span data-lang-content="zh">execute / hold</span><span data-lang-content="en">execute / hold ticks</span></dd><small>latest-only mailbox</small></div>
+            <div><dt>0 / 0</dt><dd><span data-lang-content="zh">deadline 超时 / provider 失败</span><span data-lang-content="en">deadline / provider failures</span></dd><small>200 ms deadline</small></div>
+          </dl>
+
+          <div class="g02-grid reveal">
+            <figure class="g02-card success-item">
+              <div class="g02-media">
+                <video muted playsinline controls preload="none" poster="assets/media/pi05-independent-clock-success-poster.webp" width="256" height="256" aria-describedby="g02-success-caption" data-lazy-video>
+                  <source data-src="assets/media/pi05-independent-clock-success.mp4" type="video/mp4">
+                </video>
+                <p class="media-fallback" data-video-fallback hidden><span data-lang-content="zh">视频不可用，请打开 artifact。</span><span data-lang-content="en">Video unavailable; open the artifact.</span></p>
+              </div>
+              <figcaption id="g02-success-caption"><strong>SUCCESS / VISUAL RUN</strong><span>Task 0 · Episode 0 · 1/1 · curated media, excluded from core statistics</span></figcaption>
+            </figure>
+            <figure class="g02-card failure-item">
+              <div class="g02-media">
+                <video muted playsinline controls preload="none" poster="assets/media/pi05-independent-clock-failure-task004-ep00-poster.webp" width="256" height="256" aria-describedby="g02-failure-a-caption" data-lazy-video>
+                  <source data-src="assets/media/pi05-independent-clock-failure-task004-ep00.mp4" type="video/mp4">
+                </video>
+                <p class="media-fallback" data-video-fallback hidden><span data-lang-content="zh">视频不可用，请打开 artifact。</span><span data-lang-content="en">Video unavailable; open the artifact.</span></p>
+              </div>
+              <figcaption id="g02-failure-a-caption"><strong>FAILURE / RETAINED</strong><span>Task 4 · Episode 0 · max_ticks · counted in 38/40</span></figcaption>
+            </figure>
+            <figure class="g02-card failure-item">
+              <div class="g02-media">
+                <video muted playsinline controls preload="none" poster="assets/media/pi05-independent-clock-failure-task004-ep02-poster.webp" width="256" height="256" aria-describedby="g02-failure-b-caption" data-lazy-video>
+                  <source data-src="assets/media/pi05-independent-clock-failure-task004-ep02.mp4" type="video/mp4">
+                </video>
+                <p class="media-fallback" data-video-fallback hidden><span data-lang-content="zh">视频不可用，请打开 artifact。</span><span data-lang-content="en">Video unavailable; open the artifact.</span></p>
+              </div>
+              <figcaption id="g02-failure-b-caption"><strong>FAILURE / RETAINED</strong><span>Task 4 · Episode 2 · max_ticks · counted in 38/40</span></figcaption>
+            </figure>
+          </div>
+          <div class="g02-footer reveal">
+            <p><span data-lang-content="zh">这是 simulation pilot，不是官方 LIBERO leaderboard、硬实时保证、硬件安全证明或真机部署。G02 与 G01 的 Panda 集成探针、旧的 measured-age 配对研究分开统计。</span><span data-lang-content="en">This is a simulation pilot, not an official LIBERO leaderboard score, hard-real-time guarantee, hardware-safety result, or robot deployment. G02 remains separate from the G01 Panda integration probe and the earlier measured-age paired study.</span></p>
+            <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/G02_INDEPENDENT_CLOCK_PILOT.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开 G02 协议、artifact 与 validator</span><span data-lang-content="en">Open the G02 protocol, artifacts, and validator</span><span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+      </section>
+
       <section class="section reproduce-section" id="reproduce" aria-labelledby="reproduce-title">
         <div class="shell">
           <div class="section-heading reveal">
-            <p class="section-index">06 / ONE-CLICK LOCAL ACCEPTANCE</p>
+            <p class="section-index">07 / ONE-CLICK LOCAL ACCEPTANCE</p>
             <h2 id="reproduce-title"><span data-lang-content="zh">无需 GPU 即可验证保存证据；重新推理才需要 GPU。</span><span data-lang-content="en">Validate saved evidence without a GPU; only fresh inference needs one.</span></h2>
             <p><span data-lang-content="zh">live bundle validator 会独立检查 checkpoint 身份、响应来源、事件、时钟、轨迹和视频；总验收入口则重跑全部本地 CPU artifact。二者都不会伪装成重新执行 checkpoint。</span><span data-lang-content="en">The live bundle validator independently checks checkpoint identity, response origin, events, clocks, traces, and video. The full acceptance entry reruns every local CPU artifact. Neither pretends to re-execute the checkpoint.</span></p>
           </div>
@@ -331,6 +383,7 @@
           <div class="command-console reveal">
             <div class="console-head"><span>POWERSHELL · LOCAL CPU</span><span>scripts/accept_cpu.ps1</span></div>
             <div class="command-row"><div><span>LIVE CHECKPOINT BUNDLE</span><code>&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_live_panda_smoke '.\evidence\g01_live_panda_smoke_final_001' --json</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_live_panda_smoke '.\evidence\g01_live_panda_smoke_final_001' --json"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
+            <div class="command-row"><div><span>G02 INDEPENDENT CLOCK</span><code>&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\pi05_libero_independent_clock_core_40_001\evaluation' --json</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\pi05_libero_independent_clock_core_40_001\evaluation' --json"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-row"><div><span>FULL LOCAL EVIDENCE</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_cpu.ps1'</code></div><button type="button" class="copy-button" data-copy="powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_cpu.ps1'"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-row"><div><span>RECOMPUTE</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_integrated_panda.ps1'</code></div><button type="button" class="copy-button" data-copy="powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_integrated_panda.ps1'"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-row"><div><span>ASYNC BOUNDARY</span><code>&amp; '.\.venv\Scripts\python.exe' -m armbench vla-cpu-runtime-validate '.\reports\cpu_runtime_completion_001'</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m armbench vla-cpu-runtime-validate '.\reports\cpu_runtime_completion_001'"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
@@ -353,7 +406,7 @@
           <!-- This artifact validates the asynchronous software boundary, not a hard-real-time loop. -->
           <div class="runtime-artifact reveal" data-artifact-status="verified">
             <div><span class="verified-dot" aria-hidden="true"></span><strong><span data-lang-content="zh">异步 CPU 边界 artifact</span><span data-lang-content="en">Asynchronous CPU boundary artifact</span></strong><small>VERIFIED · 17/17</small></div>
-            <p><span data-lang-content="zh">17 个注册案例全部重现，发布 6 个完整计划、10 个 hold、1 个不可恢复停止，局部策略前缀泄漏为 0。保障 worker P95 为 438 ms；这是单机 best-effort Python 调度记录，不是 deadline 保证。</span><span data-lang-content="en">All 17 registered cases reproduce: 6 complete plans, 10 holds, 1 unrecoverable stop, and 0 partial policy prefixes exposed. Assurance-worker P95 is 438 ms; this is a single-machine best-effort Python scheduling record, not a deadline guarantee.</span></p>
+            <p><span data-lang-content="zh">17 个注册案例全部重现，发布 6 个完整计划、10 个 hold、1 个不可恢复停止，局部策略前缀泄漏为 0。保障 worker P95 为 281.2 ms；这是单机 best-effort Python 调度记录，不是 deadline 保证。</span><span data-lang-content="en">All 17 registered cases reproduce: 6 complete plans, 10 holds, 1 unrecoverable stop, and 0 partial policy prefixes exposed. Assurance-worker P95 is 281.2 ms; this is a single-machine best-effort Python scheduling record, not a deadline guarantee.</span></p>
             <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/cpu_runtime_completion_001/summary.md" target="_blank" rel="noreferrer">summary.md <span aria-hidden="true">↗</span></a>
           </div>
         </div>
@@ -362,7 +415,7 @@
       <section class="section scope-section" id="scope" aria-labelledby="scope-title">
         <div class="shell">
           <div class="section-heading reveal">
-            <p class="section-index">07 / CLAIM BOUNDARY</p>
+            <p class="section-index">08 / CLAIM BOUNDARY</p>
             <h2 id="scope-title"><span data-lang-content="zh">现在能证明什么，也明确不能证明什么。</span><span data-lang-content="en">What the project proves, and what it explicitly does not.</span></h2>
           </div>
           <div class="scope-grid reveal">
@@ -374,6 +427,7 @@
                 <li><span data-lang-content="zh">拒绝时不泄漏已通过的局部策略前缀</span><span data-lang-content="en">no accepted partial policy prefix leaks on rejection</span></li>
                 <li><span data-lang-content="zh">注册故障矩阵与两条 MuJoCo 力矩执行任务可本地重算</span><span data-lang-content="en">locally recomputable fault matrix and two MuJoCo torque-executed tasks</span></li>
                 <li><span data-lang-content="zh">内容校验过的 pi0.5-LIBERO checkpoint 通过 H×7→H×8 适配器进入 Panda 异步闭环</span><span data-lang-content="en">a content-attested pi0.5-LIBERO checkpoint enters the asynchronous Panda loop through an Hx7→Hx8 adapter</span></li>
+                <li><span data-lang-content="zh">G02 的 40/40 rollout 均记录独立推理/仿真时钟重叠，38/40 在冻结 pilot 中成功</span><span data-lang-content="en">all 40 G02 rollouts record independent inference/simulation overlap; 38/40 succeeded in the frozen pilot</span></li>
                 <li><span data-lang-content="zh">独立的官方 π<sub>0.5</sub>-LIBERO 观测年龄实验</span><span data-lang-content="en">a separate official π<sub>0.5</sub>-LIBERO observation-age experiment</span></li>
               </ul>
             </div>
@@ -383,6 +437,7 @@
                 <li><span data-lang-content="zh">2/2 到达的 Panda 任务仍来自 scripted RRT-Connect；不能借用 G01 把它们改称 pi0.5 任务结果</span><span data-lang-content="en">the 2/2 reached Panda tasks still come from scripted RRT-Connect; G01 does not turn them into pi0.5 task results</span></li>
                 <li><span data-lang-content="zh">任务是关节路点到达，不是抓取或物体操作</span><span data-lang-content="en">tasks are joint-waypoint reaching, not grasping or object manipulation</span></li>
                 <li><span data-lang-content="zh">没有真机、硬实时、ROS2 或安全认证结论</span><span data-lang-content="en">no physical robot, hard-real-time, ROS2, or safety-certification claim</span></li>
+                <li><span data-lang-content="zh">G02 的 38/40 不是官方排行榜成绩、方法优越性或跨模型结论</span><span data-lang-content="en">G02's 38/40 is not an official leaderboard score, method-superiority result, or cross-model claim</span></li>
                 <li><span data-lang-content="zh">G01 的自由空间目标未到达，不是官方 LIBERO 协议，也不是 Panda 任务成功率</span><span data-lang-content="en">the G01 free-space target was not reached; it is neither an official LIBERO protocol nor a Panda task-success rate</span></li>
               </ul>
             </div>
@@ -397,7 +452,7 @@
 
     <footer class="site-footer">
       <div class="shell footer-inner">
-        <div><a class="brand footer-brand" href="#top"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>ArmBench</span></a><p><span data-lang-content="zh">仿真研究工程 · 更新于 2026-08-09</span><span data-lang-content="en">Simulation research engineering · updated 2026-08-09</span></p></div>
+        <div><a class="brand footer-brand" href="#top"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>ArmBench</span></a><p><span data-lang-content="zh">仿真研究工程 · 更新于 2026-08-10</span><span data-lang-content="en">Simulation research engineering · updated 2026-08-10</span></p></div>
         <p><span data-lang-content="zh">媒体与数字来自仓库保存 artifact。代码 MIT；第三方模型、数据与媒体遵循各自许可。</span><span data-lang-content="en">Media and numbers come from preserved repository artifacts. Code is MIT; third-party models, data, and media retain their own licenses.</span></p>
         <nav aria-label="Footer links"><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/LICENSE" target="_blank" rel="noreferrer">License</a><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noreferrer">Attribution</a><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/actions" target="_blank" rel="noreferrer">CI</a></nav>
       </div>

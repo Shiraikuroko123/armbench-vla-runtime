@@ -2,9 +2,10 @@
 
 ## Primary job
 
-Show a reviewer or robotics hiring engineer exactly how an attested pi0.5
-checkpoint response crosses the policy-to-Panda boundary, how to validate the
-saved result without a GPU, and what the simulation evidence does not cover.
+Show a reviewer or robotics hiring engineer both how an attested pi0.5
+checkpoint response crosses the policy-to-Panda boundary and how the same
+checkpoint runs in a true independent-clock LIBERO pilot, with failures and
+GPU-free validation preserved.
 
 ## One-sentence claim
 
@@ -25,10 +26,12 @@ dispatch, braking-invariant repair, and reviewable execution evidence.
 7. Live bridge scope followed by the separately scoped π0.5-LIBERO outcome
    study with synchronized authentic comparison clips, plus an official
    LeRobotDataset v3.0 Panda H×8 roundtrip.
-8. One-command full local CPU acceptance, focused Panda replay commands, a
+8. G02 independent-clock pilot with a 40-rollout metric strip, one separately
+   labeled visual-success run, and both retained core-pilot failure videos.
+9. One-command full local CPU acceptance, focused Panda replay commands, a
    checked-in VS Code workspace, and a four-step acceptance path.
-9. Verified 17-case asynchronous CPU boundary disclosure.
-10. Proven / not-claimed scope block and architecture link.
+10. Verified 17-case asynchronous CPU boundary disclosure.
+11. Proven / not-claimed scope block and architecture link.
 
 ## Audience
 
@@ -41,7 +44,9 @@ dispatch, braking-invariant repair, and reviewable execution evidence.
 | Artifact | Exact result | Boundary |
 | --- | --- | --- |
 | `g01_live_panda_smoke_final_001` | 35 accepted live responses; mean/P95 82.75/89.56 ms; 290/311 control ticks during inference; 0 registered simulation violations; 94 video frames | official checkpoint integration probe; target not reached; no official task, hardware, hard-real-time, or safety claim |
-| `cpu_runtime_completion_001` | 17/17 expected outcomes; 6 complete plans, 10 holds, 1 unrecoverable stop; zero partial prefixes; assurance-worker P95 438 ms | scripted/frozen/contract fixtures; best-effort Python threads; no learned checkpoint |
+| `pi05_libero_independent_clock_core_40_001` | 40/40 completed; 38/40 task success; 4,521/4,623 ticks during inference; 4,031 execute and 592 hold ticks; 0 deadline/provider failures | official-checkpoint LIBERO Spatial pilot; not a leaderboard score, method comparison, hard-real-time guarantee, or hardware result |
+| `pi05_libero_independent_clock_visual_success_001` | 1/1 curated success clip with 105/106 ticks during inference | media-only run; never pooled with the 40-rollout result |
+| `cpu_runtime_completion_001` | 17/17 expected outcomes; 6 complete plans, 10 holds, 1 unrecoverable stop; zero partial prefixes; assurance-worker P95 281.2 ms | scripted/frozen/contract fixtures; best-effort Python threads; no learned checkpoint |
 | `integrated_panda_fault_matrix_001` | 27/27 expected outcomes; 12 accepted, 6 verified brakes, 7 holds, 2 unrecoverable stops; 124 edges | scripted inputs; synchronous offline CPU |
 | `integrated_panda_task_001` | 2/2 target reaches; 351/351 motion edges and braking boundaries; zero registered contacts, self contacts, limit violations, or torque saturation | MuJoCo torque execution; joint-waypoint task |
 | π0.5 measured-age run | 88/120 baseline versus 116/120 aligned; +23.33 pp; exact McNemar p = 1.94e-6 | independent LIBERO experiment; no Panda adapter |
@@ -60,6 +65,9 @@ hard-real-time or physical safety guarantee.
   scheduling claim.
 - G01 connects the runtime tracks but remains separate from official LIBERO
   task-outcome evidence and reports `target_reached=false`.
+- G02 is a 40-rollout simulation pilot. Its 38/40 result is not an official
+  leaderboard entry or evidence of method superiority, hardware safety, or
+  hard-real-time scheduling.
 - The asynchronous CPU artifact validates a provider-to-supervisor software
   boundary; it is not a closed-loop task-success or deadline-guarantee result.
 

@@ -564,7 +564,8 @@ html[data-lang="en"] [data-lang-content="zh"] {
 
 .assurance-section,
 .task-section,
-.reproduce-section {
+.reproduce-section,
+.g02-section {
   background: var(--surface);
 }
 
@@ -1127,6 +1128,79 @@ html[data-lang="en"] [data-lang-content="zh"] {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
   margin-top: 36px;
+}
+
+.g02-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 36px;
+}
+
+.g02-card {
+  min-width: 0;
+  margin: 0;
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.g02-media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #090b09;
+}
+
+.g02-media video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.g02-card figcaption {
+  min-height: 78px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 16px;
+  border-top: 2px solid var(--line);
+}
+
+.g02-card.success-item figcaption { border-color: var(--accepted); }
+.g02-card.failure-item figcaption { border-color: var(--stop); }
+.g02-card.success-item figcaption strong { color: var(--accepted); }
+.g02-card.failure-item figcaption strong { color: var(--stop); }
+.g02-card figcaption strong,
+.g02-card figcaption span {
+  font-family: var(--font-mono);
+}
+
+.g02-card figcaption strong { font-size: 11px; }
+.g02-card figcaption span {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.g02-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line-strong);
+}
+
+.g02-footer p {
+  max-width: var(--reading);
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.7;
 }
 
 .comparison-item {
@@ -1717,7 +1791,12 @@ html[data-lang="en"] [data-lang-content="zh"] {
 
   .evidence-ledger,
   .boundary-grid,
-  .scope-grid {
+  .scope-grid,
+  .g02-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .g02-footer {
     grid-template-columns: 1fr;
   }
 
@@ -1889,6 +1968,10 @@ html[data-lang="en"] [data-lang-content="zh"] {
 
   .comparison {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .g02-grid {
     gap: 16px;
   }
 

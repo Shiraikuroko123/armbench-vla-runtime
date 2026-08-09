@@ -9,8 +9,8 @@
   var saveData = Boolean(connection && connection.saveData);
   var activeLanguage = "zh";
   var pageTitles = Object.freeze({
-    zh: "ArmBench | pi0.5 到 Panda 运行时保障",
-    en: "ArmBench | pi0.5-to-Panda Runtime Assurance"
+    zh: "ArmBench | pi0.5 运行时证据",
+    en: "ArmBench | pi0.5 Runtime Evidence"
   });
 
   // The visible figures are duplicated here as a small content contract. If a
@@ -20,7 +20,9 @@
     policyLatency: "82.75 / 89.56",
     inferenceTicks: "290 / 311",
     liveViolations: "0",
-    violations: "0"
+    violations: "0",
+    g02Success: "38 / 40",
+    g02OverlapTicks: "4,521"
   });
 
   Object.keys(evidence).forEach(function (key) {

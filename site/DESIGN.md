@@ -6,9 +6,10 @@ Primary archetype: research / engineering project. Secondary archetype:
 platform-style reproducibility surface. The page answers, in order:
 
 1. Did a real checkpoint response reach the Panda runtime?
-2. What does the Panda runtime boundary check?
-3. How can a visitor run the acceptance script locally?
-4. Where does the evidence stop?
+2. Did LIBERO continue to advance while model inference was blocked elsewhere?
+3. What does the Panda runtime boundary check?
+4. How can a visitor run the acceptance script locally?
+5. Where does the evidence stop?
 
 The first viewport uses repository-authentic footage from the final G01
 checkpoint-to-Panda integration probe. The page does not use generated robot
@@ -24,7 +25,8 @@ imagery, a generic VLA hero, or a marketing claim.
 - **Evidence:** `pi05-panda-live-smoke.mp4`, the final G01 bundle, the 17-case asynchronous provider
   boundary, the 27-case fault matrix, two saved MuJoCo task traces, and the
   separate π0.5-LIBERO comparison pair, plus the official LeRobotDataset v3.0
-  Panda H×8 roundtrip.
+  Panda H×8 roundtrip. G02 adds one authentic independent-clock success clip,
+  both retained task-4 failure clips, and the complete 40-rollout artifact.
 - **Current facts:** 35 accepted live responses, mean/P95 latency 82.75/89.56
   ms, 290/311 control ticks concurrent with inference, 94 video frames, and
   zero registered G01 simulation violations; 17/17 asynchronous boundary outcomes, 6 complete plans,
@@ -33,6 +35,10 @@ imagery, a generic VLA hero, or a marketing claim.
   brakes, 7 holds, 2 unrecoverable stops; 2/2 task targets; 351/351 edges and
   braking boundaries; zero registered contacts, limit violations, or torque
   saturation; offline supervision of 5.27 s and 10.20 s.
+- **G02 facts:** 40/40 completed, 38/40 task success, all 40 episodes prove
+  inference/simulation overlap, 4,521/4,623 control ticks occurred during
+  inference, 4,031 execute and 592 hold ticks, with no deadline/provider
+  failures.
 - **Boundary:** the 2/2 reached Panda task source is scripted RRT-Connect. G01
   is a single free-space integration probe with `target_reached=false`, not an
   official LIBERO/Panda task score. All evidence is MuJoCo simulation with
@@ -61,6 +67,9 @@ column and long case identifiers remain inspectable on mobile.
   synchronizes play, pause, restart, scrub, and speed for both clips. The
   shorter success clip holds its last decodable frame while the 22-second
   baseline completes, and the disclosure states this explicitly.
+- G02 media is also below the fold and lazy-attached. Native controls keep the
+  success and two failure clips independently inspectable; the success clip is
+  explicitly labeled as a separate curated run.
 - Acceptance commands expose copy buttons with a clipboard fallback.
 - All media and dynamic controls have adjacent text labels and stable aspect
   ratios; no information depends on hover.
@@ -83,6 +92,10 @@ column and long case identifiers remain inspectable on mobile.
   copied to `site/assets/media/pi05-panda-live-smoke.mp4` with a derived poster.
 - π0.5 media: `evidence/pi05_libero_measured_age_confirmatory_001`, copied to
   the two comparison clips and posters.
+- G02 media: the success clip comes from
+  `pi05_libero_independent_clock_visual_success_001`; both failure clips come
+  from `pi05_libero_independent_clock_core_40_001`. Posters are derived from
+  those exact MP4 files.
 - Numerical evidence: `docs/INTEGRATED_PANDA_ASSURANCE_ZH.md`,
   `docs/RESULTS.md`, and manifests under
   `reports/cpu_runtime_completion_001/`,
@@ -94,5 +107,5 @@ column and long case identifiers remain inspectable on mobile.
 - Code license and third-party asset terms are linked in the footer.
 
 The asynchronous CPU artifact is presented as a provider-to-supervisor boundary
-result. Its recorded 438 ms assurance-worker P95 is explicitly not a deadline
+result. Its recorded 281.2 ms assurance-worker P95 is explicitly not a deadline
 guarantee, learned-policy result, closed-loop task score, or real-robot claim.
