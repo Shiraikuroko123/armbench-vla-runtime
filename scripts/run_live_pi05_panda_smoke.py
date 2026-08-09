@@ -10,15 +10,19 @@ trace needed to audit the bridge.
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import hashlib
+import importlib.metadata
 import json
 from pathlib import Path
 import platform
+import subprocess
+import sys
 import time
 
 import numpy as np
 
-from armbench.mujoco_sim.model import MuJoCoPanda
+from armbench.mujoco_sim.model import MENAGERIE_COMMIT, MuJoCoPanda
 from armbench.mujoco_sim.scenarios import mujoco_scenarios
 from armbench.vla.async_panda import AsyncPandaConfig, run_async_panda_episode
 from armbench.vla.openpi_provider import (
@@ -26,6 +30,17 @@ from armbench.vla.openpi_provider import (
     OpenPILiberoRawProvider,
 )
 from armbench.vla.policy import BoundedOpenPIBackend
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+IMPLEMENTATION_PATHS = (
+    "scripts/run_live_pi05_panda_smoke.py",
+    "src/armbench/vla/async_panda.py",
+    "src/armbench/vla/async_worker.py",
+    "src/armbench/vla/cartesian_adapter.py",
+    "src/armbench/vla/openpi_provider.py",
+    "src/armbench/vla/policy.py",
+)
 
 
 def _jsonable(value: object) -> object:
@@ -55,6 +70,60 @@ def _sha256(path: Path) -> str:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def _git_output(*args: str) -> str:
+    result = subprocess.run(
+        ("git", *args),
+        cwd=PROJECT_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
+def _package_version(distribution: str) -> str | None:
+    try:
+        return importlib.metadata.version(distribution)
+    except importlib.metadata.PackageNotFoundError:
+        return None
+
+
+def _implementation_provenance() -> dict[str, object]:
+    files = []
+    for relative in IMPLEMENTATION_PATHS:
+        path = PROJECT_ROOT / relative
+        files.append(
+            {
+                "path": relative,
+                "size_bytes": path.stat().st_size,
+                "sha256": _sha256(path),
+            }
+        )
+    return {
+        "armbench_commit": _git_output("rev-parse", "HEAD"),
+        "armbench_tracked_clean": not bool(
+            _git_output("status", "--porcelain", "--untracked-files=no")
+        ),
+        "implementation_files": files,
+        "menagerie_commit": MENAGERIE_COMMIT,
+        "platform": platform.platform(),
+        "machine": platform.machine(),
+        "python": sys.version,
+        "packages": {
+            name: _package_version(name)
+            for name in (
+                "armbench",
+                "imageio",
+                "imageio-ffmpeg",
+                "mujoco",
+                "numpy",
+                "openpi-client",
+                "websockets",
+            )
+        },
+    }
 
 
 def _write_manifest(root: Path) -> None:
@@ -115,8 +184,10 @@ def main(argv: list[str] | None = None) -> int:
     scenario = mujoco_scenarios()[args.scenario]
     reference = np.linspace(scenario.start, scenario.goal, args.steps + 1)
     adapter_robot = MuJoCoPanda.create(obstacles=())
+    implementation = _implementation_provenance()
     backend = None
     provider = None
+    started_at_utc = dt.datetime.now(dt.timezone.utc).isoformat()
     started = time.perf_counter()
     try:
         backend = BoundedOpenPIBackend(
@@ -147,17 +218,47 @@ def main(argv: list[str] | None = None) -> int:
             video_path=video_path,
             worker_shutdown_timeout_s=args.inference_timeout_s + 2.0,
         )
+        identity = policy.identity
+        last_response = policy.metrics()
+        episode = result.metrics()
         _write_json(
             args.output_directory / "summary.json",
             {
                 "schema_version": "armbench.live_pi05_panda_smoke.v1",
                 "scope": "attested_live_pi05_libero_to_panda_mujoco_smoke",
+                "started_at_utc": started_at_utc,
+                "finished_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
                 "elapsed_wall_s": time.perf_counter() - started,
                 "server": {"host": args.host, "port": args.port},
                 "server_metadata": server_metadata,
                 "policy_provenance": policy.provenance,
-                "last_policy_response": policy.metrics(),
-                "episode": result.metrics(),
+                "provider_id": identity.provider_id,
+                "response_origin": identity.response_origin,
+                "response_sha256": last_response.get("response_sha256"),
+                "scripted_policy": episode["scripted_policy"],
+                "policy_checkpoint_executed": episode[
+                    "policy_checkpoint_executed"
+                ],
+                "last_policy_response": last_response,
+                "episode": episode,
+                "protocol": {
+                    "scenario": args.scenario,
+                    "mode": args.mode,
+                    "reference_steps": args.steps,
+                    "extra_action_steps": args.extra_steps,
+                    "action_horizon": config.action_horizon,
+                    "max_action_steps": config.max_action_steps,
+                    "action_period_s": config.action_period_s,
+                    "control_period_s": config.control_period_s,
+                    "deadline_ms": args.deadline_ms,
+                    "connect_timeout_s": args.connect_timeout_s,
+                    "inference_timeout_s": args.inference_timeout_s,
+                    "worker_shutdown_timeout_s": (
+                        args.inference_timeout_s + 2.0
+                    ),
+                    "video_enabled": args.video,
+                },
+                "implementation": implementation,
                 "limitations": [
                     "One integration smoke; not an official LIBERO task-success benchmark.",
                     "Panda is simulated in MuJoCo; no physical robot claim.",
