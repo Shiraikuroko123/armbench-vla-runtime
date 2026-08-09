@@ -1,0 +1,61 @@
+# Runtime-only LIBERO image for ArmBench evaluations.
+#
+# The official OpenPI LIBERO image pins Python 3.8 and the CUDA 11.3 PyTorch
+# stack used by the historical benchmark environment. ArmBench runs policy
+# inference in a separate, attested server container, so this image extends
+# that server's Python 3.11 environment and installs only the simulator-side
+# dependencies. This avoids a second model stack while preserving the
+# official LIBERO source checkout mounted at /app.
+FROM openpi_server:latest
+
+USER root
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ffmpeg \
+        libegl1 \
+        libgl1-mesa-glx \
+        libglew-dev \
+        libglfw3-dev \
+        libgles2-mesa-dev \
+        libglib2.0-0 \
+        libosmesa6-dev \
+        libsm6 \
+        libxext6 \
+        libxrender1 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Keep the policy server's tested numerical and client stack. These packages
+# are the minimal environment-side dependencies imported by LIBERO rollout
+# code; training-only pins from third_party/libero/requirements.txt are not
+# installed in this runtime image.
+RUN uv pip install --python /.venv/bin/python --no-cache \
+        "bddl==1.0.1" \
+        "easydict==1.9" \
+        "future==0.18.2" \
+        "gym==0.25.2" \
+        "hydra-core==1.2.0" \
+        "matplotlib==3.8.4" \
+        "robosuite==1.4.1"
+
+ENV LIBERO_CONFIG_PATH=/tmp/libero \
+    MUJOCO_GL=egl \
+    PYOPENGL_PLATFORM=egl \
+    PYTHONPATH=/armbench:/armbench/src:/app:/app/packages/openpi-client/src:/app/third_party/libero
+
+RUN mkdir -p /tmp/libero /usr/share/glvnd/egl_vendor.d && \
+    printf '%s\n' \
+        'benchmark_root: /app/third_party/libero/libero/libero' \
+        'bddl_files: /app/third_party/libero/libero/libero/bddl_files' \
+        'init_states: /app/third_party/libero/libero/libero/init_files' \
+        'datasets: /app/third_party/libero/libero/datasets' \
+        'assets: /app/third_party/libero/libero/libero/assets' \
+        > /tmp/libero/config.yaml && \
+    printf '%s\n' \
+        '{"file_format_version":"1.0.0","ICD":{"library_path":"libEGL_nvidia.so.0"}}' \
+        > /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+
+WORKDIR /app
+
+ENTRYPOINT ["/opt/nvidia/nvidia_entrypoint.sh"]
+CMD ["/bin/bash"]
