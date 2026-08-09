@@ -26,8 +26,8 @@ accepted trajectory to MuJoCo torque execution.
    and offline latency disclosure.
 7. Separate π0.5-LIBERO evidence with synchronized authentic comparison clips,
    plus an official LeRobotDataset v3.0 Panda H×8 roundtrip.
-8. One-command full local CPU acceptance, focused Panda replay commands, and a
-   four-step acceptance path.
+8. One-command full local CPU acceptance, focused Panda replay commands, a
+   checked-in VS Code workspace, and a four-step acceptance path.
 9. Verified 17-case asynchronous CPU boundary disclosure.
 10. Proven / not-claimed scope block and architecture link.
 

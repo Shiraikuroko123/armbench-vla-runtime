@@ -19,6 +19,11 @@ The repository contains two separately validated paths:
 They share runtime contracts, telemetry, validation, and artifact tooling. They
 are not yet a verified end-to-end `pi0.5`-to-Panda deployment.
 
+The naming change reflects an engineering progression, not a replacement of
+the original project. The seven-DoF planning and tracking benchmark became the
+Panda execution substrate; ArmBench adds the action-chunk timing, validation,
+atomic publication, and fallback boundary in front of that substrate.
+
 ## The problem
 
 An action-chunk policy generates several future actions from one observation.

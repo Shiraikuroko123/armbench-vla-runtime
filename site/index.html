@@ -123,7 +123,7 @@
           <div class="section-heading reveal">
             <p class="section-index">01 / CURRENT EVIDENCE</p>
             <h2 id="results-title"><span data-lang-content="zh">当前集成里程碑，可以重算，而不只是一段视频。</span><span data-lang-content="en">The current integration milestone is recomputable, not just a video.</span></h2>
-            <p><span data-lang-content="zh">三个保存的 artifact 分别重跑异步 provider 边界、同步 supervisor 故障决策和 MuJoCo 物理。结果文件包含输入、逐案例记录、聚合指标、实现哈希与清单哈希。</span><span data-lang-content="en">Three saved artifacts rerun the asynchronous provider boundary, synchronous supervisor fault decisions, and MuJoCo physics. They preserve inputs, per-case records, aggregate metrics, implementation hashes, and manifest hashes.</span></p>
+            <p><span data-lang-content="zh">项目从七自由度采样规划与轨迹跟踪基座扩展而来：原有 RRT-Connect 和 Panda 物理执行成为底层，新增动作块时序、原子发布、连续碰撞与可行回退。三个保存的 artifact 分别重跑异步 provider 边界、同步 supervisor 故障决策和 MuJoCo 物理。</span><span data-lang-content="en">The project extends a seven-DoF planning and tracking base: RRT-Connect and Panda physics remain the substrate, while action-chunk timing, atomic publication, continuous collision, and feasible fallback form the new boundary. Three saved artifacts rerun the asynchronous provider boundary, supervisor decisions, and MuJoCo physics.</span></p>
           </div>
 
           <dl class="metric-strip reveal">
@@ -328,6 +328,12 @@
             <div class="command-row"><div><span>RECOMPUTE</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_integrated_panda.ps1'</code></div><button type="button" class="copy-button" data-copy="powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_integrated_panda.ps1'"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-row"><div><span>ASYNC BOUNDARY</span><code>&amp; '.\.venv\Scripts\python.exe' -m armbench vla-cpu-runtime-validate '.\reports\cpu_runtime_completion_001'</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m armbench vla-cpu-runtime-validate '.\reports\cpu_runtime_completion_001'"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-row"><div><span>RECOMPUTE + VIEW</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_integrated_panda.ps1' -Visualize -Case narrow_gate_payload_delay_goal</code></div><button type="button" class="copy-button" data-copy="powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_integrated_panda.ps1' -Visualize -Case narrow_gate_payload_delay_goal"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
+          </div>
+
+          <div class="inline-evidence workspace-evidence reveal">
+            <span>IDE</span>
+            <p><strong><span data-lang-content="zh">从 <code>ArmBench.code-workspace</code> 打开 VS Code</span><span data-lang-content="en">Open VS Code from <code>ArmBench.code-workspace</code></span></strong><small><span data-lang-content="zh">固定 CPython 3.10 解释器与源码分析范围；构建副本、报告和缓存不再产生重复 Pylance 诊断。</span><span data-lang-content="en">Pins CPython 3.10 and the maintained source scope; build copies, reports, and caches no longer create duplicate Pylance diagnostics.</span></small></p>
+            <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/ArmBench.code-workspace" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开工作区文件</span><span data-lang-content="en">Open workspace file</span><span aria-hidden="true">↗</span></a>
           </div>
 
           <ol class="acceptance-path reveal">
