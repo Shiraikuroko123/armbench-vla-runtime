@@ -1,6 +1,7 @@
 # LIBERO 到 Panda 的笛卡尔动作适配器
 
-状态：当前组件级实现
+状态：当前组件实现；已由 scripted CPU 验收、冻结响应离线回放和一次真实 checkpoint
+集成门分别验证
 
 ## 作用
 
@@ -8,8 +9,10 @@
 `libero.ee_delta_pose_gripper.v1` 的有限 `H x 7` 末端动作块，转换为本地
 Panda guard 使用的 `H x 8` 契约，即 7 个关节速度和 1 个归一化夹爪命令。
 
-这不等于官方 `pi0.5` checkpoint 已经控制本地 Panda。当前验收命令使用
-脚本生成的笛卡尔动作，不运行模型推理。
+下面的默认 CPU 验收命令使用脚本生成的笛卡尔动作，不运行模型推理；该命令本身
+不能证明学习策略已经部署。G01 则在另一条证据路径中，把官方 OpenPI
+`pi05_libero` checkpoint 的实时响应接入了异步 Panda runtime，并实际经过本适配器。
+这证明 checkpoint-to-runtime 接线成立，不证明官方任务能力或真机部署。
 
 ## 转换流程
 
@@ -56,11 +59,18 @@ backtracking 和 hold 回退。
 - 本地运动学控制点是 Menagerie 的 `hand` body 原点，不是 robosuite 的
   `grip_site`；运行报告会显式给出该差异。
 - 当前碰撞检查是关节空间插值采样，不是连续碰撞认证。
-- smoke 不使用 OpenPI、`pi0.5`、LIBERO 任务执行、真机、ROS2 或安全 PLC。
+- CPU smoke 不使用 OpenPI、`pi0.5`、LIBERO 任务执行、真机、ROS2 或安全 PLC。
 
-## 已完成的下一层边界
+## 集成状态
 
-保存的官方 LIBERO policy 响应现在已经接入该 adapter，并完成严格校验的离线回放，详见
-[冻结 pi0.5 响应的 Panda 离线回放](PI05_PANDA_ARCHIVE_REPLAY_ZH.md)。剩余端到端里程碑是把
-实时响应接入带反馈观测的独立调度 Panda evaluator，并冻结配对协议。在完成前，本地结果仍是
-跨控制器诊断，不能表述为复现了 LIBERO 任务分数。
+保存的官方 LIBERO policy 响应已经接入该 adapter，并完成严格校验的离线回放，详见
+[冻结 pi0.5 响应的 Panda 离线回放](PI05_PANDA_ARCHIVE_REPLAY_ZH.md)。
+
+G01 随后把 Panda 双相机实时观测送入官方 checkpoint，将 35 个被接收的响应经本组件
+转换，再交给 measured-age dispatcher、制动修复和 MuJoCo 力矩闭环执行。保留的
+[真实 checkpoint 集成 artifact](../evidence/g01_live_panda_smoke_final_001/summary.md)
+记录了 `target_reached=false`，因此它是 integration gate，不是复现 LIBERO 分数或
+Panda 任务成功率。
+
+剩余任务级里程碑是具有明确成功判据、统计报告和多 seed 的任务对齐冻结协议。真机部署
+还需要具体驱动、标定时序、watchdog、急停集成和实体故障注入证据。

@@ -1,0 +1,156 @@
+{
+  "all_crc32c_matched": true,
+  "checkpoint_local_path": "/workspace/openpi-cache/openpi-assets/checkpoints/pi05_libero.partial",
+  "checkpoint_uri": "gs://openpi-assets/checkpoints/pi05_libero",
+  "errors": [],
+  "file_count": 16,
+  "records": [
+    {
+      "crc32c": "l595yA==",
+      "expected_crc32c": "l595yA==",
+      "expected_size_bytes": 1914,
+      "gcs_generation": "1757354341826612",
+      "matched": true,
+      "path": "assets/physical-intelligence/libero/norm_stats.json",
+      "size_bytes": 1914
+    },
+    {
+      "crc32c": "Pv6Rvg==",
+      "expected_crc32c": "Pv6Rvg==",
+      "expected_size_bytes": 23493,
+      "gcs_generation": "1757354341847223",
+      "matched": true,
+      "path": "params/_METADATA",
+      "size_bytes": 23493
+    },
+    {
+      "crc32c": "LEfJOw==",
+      "expected_crc32c": "LEfJOw==",
+      "expected_size_bytes": 17952,
+      "gcs_generation": "1757354341829429",
+      "matched": true,
+      "path": "params/_sharding",
+      "size_bytes": 17952
+    },
+    {
+      "crc32c": "PlgOXQ==",
+      "expected_crc32c": "PlgOXQ==",
+      "expected_size_bytes": 9062,
+      "gcs_generation": "1757354341837422",
+      "matched": true,
+      "path": "params/array_metadatas/process_0",
+      "size_bytes": 9062
+    },
+    {
+      "crc32c": "SGdLxw==",
+      "expected_crc32c": "SGdLxw==",
+      "expected_size_bytes": 42307,
+      "gcs_generation": "1757354341898666",
+      "matched": true,
+      "path": "params/d/98a77a52a8eb845ae4830eb7fe983979",
+      "size_bytes": 42307
+    },
+    {
+      "crc32c": "SGdLxw==",
+      "expected_crc32c": "SGdLxw==",
+      "expected_size_bytes": 120,
+      "gcs_generation": "1757354341840925",
+      "matched": true,
+      "path": "params/manifest.ocdbt",
+      "size_bytes": 120
+    },
+    {
+      "crc32c": "RnXVZg==",
+      "expected_crc32c": "RnXVZg==",
+      "expected_size_bytes": 2449323387,
+      "gcs_generation": "1757354342041664",
+      "matched": true,
+      "path": "params/ocdbt.process_0/d/0eaaecefaa9720d30a32cc56e65fd345",
+      "size_bytes": 2449323387
+    },
+    {
+      "crc32c": "Zdn1CA==",
+      "expected_crc32c": "Zdn1CA==",
+      "expected_size_bytes": 2307885530,
+      "gcs_generation": "1757354341926731",
+      "matched": true,
+      "path": "params/ocdbt.process_0/d/155391c1cbf93a1be16266de052e5b48",
+      "size_bytes": 2307885530
+    },
+    {
+      "crc32c": "SGdLxw==",
+      "expected_crc32c": "SGdLxw==",
+      "expected_size_bytes": 1077,
+      "gcs_generation": "1757354341840735",
+      "matched": true,
+      "path": "params/ocdbt.process_0/d/2b6985f48e9da86f68627a7608c5bc25",
+      "size_bytes": 1077
+    },
+    {
+      "crc32c": "yuEuTQ==",
+      "expected_crc32c": "yuEuTQ==",
+      "expected_size_bytes": 2150232827,
+      "gcs_generation": "1757354341938583",
+      "matched": true,
+      "path": "params/ocdbt.process_0/d/475fab3ee8821662585a8cde3eb32e22",
+      "size_bytes": 2150232827
+    },
+    {
+      "crc32c": "gpmyhg==",
+      "expected_crc32c": "gpmyhg==",
+      "expected_size_bytes": 1608436908,
+      "gcs_generation": "1757354341906218",
+      "matched": true,
+      "path": "params/ocdbt.process_0/d/6c54da5a6f62c20a09c0f3f8c3329e00",
+      "size_bytes": 1608436908
+    },
+    {
+      "crc32c": "4+0XtA==",
+      "expected_crc32c": "4+0XtA==",
+      "expected_size_bytes": 2240080987,
+      "gcs_generation": "1757354341915025",
+      "matched": true,
+      "path": "params/ocdbt.process_0/d/896bf93c5cf2e8ddd274a6ea0a2feec0",
+      "size_bytes": 2240080987
+    },
+    {
+      "crc32c": "SGdLxw==",
+      "expected_crc32c": "SGdLxw==",
+      "expected_size_bytes": 217,
+      "gcs_generation": "1757354341886074",
+      "matched": true,
+      "path": "params/ocdbt.process_0/d/bc613ff288a162563e622d01bb60622a",
+      "size_bytes": 217
+    },
+    {
+      "crc32c": "Ibt0iQ==",
+      "expected_crc32c": "Ibt0iQ==",
+      "expected_size_bytes": 2926522,
+      "gcs_generation": "1757354341848154",
+      "matched": true,
+      "path": "params/ocdbt.process_0/d/bda87d9791f23df771cd2d15293780cc",
+      "size_bytes": 2926522
+    },
+    {
+      "crc32c": "nhZ3lQ==",
+      "expected_crc32c": "nhZ3lQ==",
+      "expected_size_bytes": 1680102856,
+      "gcs_generation": "1757354341921326",
+      "matched": true,
+      "path": "params/ocdbt.process_0/d/efbb46173882cb35ed41ffe0c2db8a5e",
+      "size_bytes": 1680102856
+    },
+    {
+      "crc32c": "SGdLxw==",
+      "expected_crc32c": "SGdLxw==",
+      "expected_size_bytes": 322,
+      "gcs_generation": "1757354341843968",
+      "matched": true,
+      "path": "params/ocdbt.process_0/manifest.ocdbt",
+      "size_bytes": 322
+    }
+  ],
+  "schema_version": "armbench.gcs_checkpoint_crc32c.v1",
+  "total_bytes": 12439085481,
+  "verified_at_utc": "2026-08-09T11:58:45.057243+00:00"
+}

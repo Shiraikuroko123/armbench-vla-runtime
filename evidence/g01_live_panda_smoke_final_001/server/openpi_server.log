@@ -1,0 +1,35 @@
+Uninstalled 1 package in 0.47ms
+Installed 40 packages in 117ms
+INFO:datasets:PyTorch version 2.7.1 available.
+INFO:datasets:Polars version 1.30.0 available.
+INFO:datasets:JAX version 0.5.3 available.
+INFO:root:Resolving checkpoint gs://openpi-assets/checkpoints/pi05_libero
+INFO:root:Hashing checkpoint content at /openpi_assets/openpi-assets/checkpoints/pi05_libero
+INFO:root:Loading policy config=pi05_libero
+INFO:root:Loading model...
+INFO:2026-08-09 12:00:16,504:jax._src.xla_bridge:925: Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
+INFO:jax._src.xla_bridge:Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
+INFO:2026-08-09 12:00:16,505:jax._src.xla_bridge:925: Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+INFO:jax._src.xla_bridge:Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+INFO:absl:orbax-checkpoint version: 0.11.13
+INFO:absl:Created BasePyTreeCheckpointHandler: use_ocdbt=True, use_zarr3=False, pytree_metadata_options=PyTreeMetadataOptions(support_rich_types=False), array_metadata_store=<orbax.checkpoint._src.metadata.array_metadata_store.Store object at 0x7ff068eaf650>
+INFO:absl:Restoring checkpoint from /openpi_assets/openpi-assets/checkpoints/pi05_libero/params.
+INFO:absl:[thread=MainThread] Failed to get flag value for EXPERIMENTAL_ORBAX_USE_DISTRIBUTED_PROCESS_ID.
+INFO:absl:[process=0] /jax/checkpoint/read/bytes_per_sec: 1022.2 MiB/s (total bytes: 6.2 GiB) (time elapsed: 6 seconds) (per-host)
+INFO:absl:Finished restoring checkpoint in 6.26 seconds from /openpi_assets/openpi-assets/checkpoints/pi05_libero/params.
+INFO:openpi.shared.download:Downloading gs://big_vision/paligemma_tokenizer.model to /openpi_assets/big_vision/paligemma_tokenizer.model
+INFO:tqdm_loggable.tqdm_logging:Progress on: -/4264023 rate:- remaining:? elapsed:00:00 postfix:-
+INFO:tqdm_loggable.tqdm_logging:Progress on: 4.07MiB/4.07MiB rate:1,122,006.2iB/s remaining:00:00 elapsed:00:04 postfix:-
+INFO:root:Norm stats not found in /app/assets/pi05_libero/physical-intelligence/libero, skipping.
+INFO:root:Loaded norm stats from /openpi_assets/openpi-assets/checkpoints/pi05_libero/assets/physical-intelligence/libero
+INFO:root:Serving attested policy checkpoint_sha256=9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5
+INFO:websockets.server:server listening on 0.0.0.0:8000
+INFO:websockets.server:connection open
+INFO:openpi.serving.websocket_policy_server:Connection from ('127.0.0.1', 40688) opened
+INFO:openpi.serving.websocket_policy_server:Connection from ('127.0.0.1', 40688) closed
+INFO:websockets.server:connection open
+INFO:openpi.serving.websocket_policy_server:Connection from ('127.0.0.1', 59188) opened
+INFO:openpi.serving.websocket_policy_server:Connection from ('127.0.0.1', 59188) closed
+INFO:websockets.server:connection open
+INFO:openpi.serving.websocket_policy_server:Connection from ('127.0.0.1', 41304) opened
+INFO:openpi.serving.websocket_policy_server:Connection from ('127.0.0.1', 41304) closed

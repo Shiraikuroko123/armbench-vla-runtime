@@ -15,7 +15,7 @@ ArmBench 是一个面向动作块式视觉-语言-动作策略的运行时与评
 - **七自由度 Panda 执行基座**：在本地 MuJoCo 中实现规划、受限轨迹跟踪、协议验证、故障注入和动作级检查。
 - **`pi0.5 VLA` 时序评测路径**：通过 OpenPI 调用官方 checkpoint，在 LIBERO 闭环仿真中研究 action chunk 的推理时序问题。
 
-二者共享运行时契约、观测/状态封装、响应校验、日志、视频和证据工具；当前尚未形成经过验证的“`pi0.5` 直接控制 Panda”的端到端部署。
+二者共享运行时契约、观测/状态封装、响应校验、日志、视频和证据工具。当前已经新增一条内容可校验的 integration gate：真实 `pi0.5`-LIBERO 响应通过显式 Cartesian 动作适配器进入 Panda 异步闭环；但这仍不是任务对齐的 Panda 正式评测、真机部署或安全认证。
 
 项目名称的变化对应工程层次的推进，而不是放弃原来的七自由度项目：原有采样规划、碰撞检查与轨迹跟踪成为 Panda 执行基座；ArmBench 在它前面增加动作块时序、响应校验、原子发布与可行回退，因此研究对象从“如何生成并跟踪轨迹”扩展为“VLA 动作如何可信地进入控制器”。
 
@@ -50,6 +50,7 @@ Panda 与 LIBERO 的动作契约不同，实验结果不会混合统计。完整
 
 | 研究 | 证据 | 可以得出的结论 |
 | --- | --- | --- |
+| 真实 `pi0.5` 到 Panda 集成门 | 官方 OpenPI `pi05_libero` checkpoint，35 个响应被接收，策略时延平均/P95 为 82.75/89.56 ms，推理期间控制 tick 为 290/311，注册仿真违规为 0 | 内容校验过的 H×7 响应穿过 Panda H×8 适配器与异步 runtime；探针目标未到达，因此只证明接线与运行时机制，不证明任务能力 |
 | 观测年龄时序对齐 | 官方 `pi0.5`-LIBERO Spatial，120 组匹配试验：88/120 到 116/120，+23.33 个百分点，exact McNemar `p=1.94e-6` | 在该冻结仿真矩阵中，免训练的观测年龄后缀选择有效 |
 | 跨任务集验证 | Object、Goal、LIBERO-10：300 rollouts / 150 pairs，83/150 到 141/150 | 将同一模型族和仿真套件内的确定性延迟证据扩展至三个任务集 |
 | RTC-style continuation | 300 rollouts / 100 matched triplets：baseline 96/100，hard projection 97/100，RTC guidance 97/100 | 没有任务成功率优势；motion seam 仅为探索性过程指标 |
@@ -66,13 +67,23 @@ Panda 与 LIBERO 的动作契约不同，实验结果不会混合统计。完整
 
 完整协议、验证器、统计和研究限制见[结果说明](docs/RESULTS.md)。
 
+已经保存的 live bundle 可在无 GPU 环境中独立验收。该命令核对 checkpoint
+身份、响应来源、事件、时钟、状态轨迹和完整 MP4，但不会重新运行模型推理：
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m `
+  integrations.openpi.validate_live_panda_smoke `
+  '.\evidence\g01_live_panda_smoke_final_001' --json
+```
+
 ## 不应声称的内容
 
 - 没有训练或微调 `pi0.5`。
-- 官方 checkpoint 结果仅覆盖 LIBERO 仿真。
+- 官方 checkpoint 结果仅覆盖仿真。LIBERO 研究遵循官方任务协议；Panda G01
+  是单独的集成探针，并如实记录 `target_reached=false`。
 - 时序实验使用 blocking inference 加 simulator catch-up，不是操作系统级硬实时控制。
-- Panda 集成保障是同步 CPU 参考路径；任务动作来自 scripted RRT-Connect，完整
-  horizon 检查耗时为秒级，不能替代实体碰撞安全认证，也不能证明 `pi0.5` 已控制 Panda。
+- Panda 集成保障中的 2/2 到达任务仍来自 scripted RRT-Connect，不能借用 G01
+  将其改写为 `pi0.5` 的任务结果；完整 horizon 检查也不能替代实体碰撞安全认证。
 - 没有集成 Isaac Lab、ROS2、真实 Franka Panda 或安全 PLC。
 - LeRobot-style bridge 仍是 CPU-only 的内存接口契约；单独的官方
   `LeRobotDataset` round-trip 只验证数据集读写，不等于策略、驱动或真机集成。
@@ -164,7 +175,7 @@ Windows 上可以先执行一个有边界的本地验收：
 & '.\.venv\Scripts\python.exe' -m armbench vla-panda-adapter-smoke
 ```
 
-它补上的是组件级动作语义边界，不运行 `pi0.5`，也不构成端到端部署证据。
+这个 CPU 命令补上的是组件级动作语义边界，不运行 `pi0.5`，也不构成端到端部署证据。
 实现与限制见 [LIBERO 到 Panda 的笛卡尔动作适配器](docs/PANDA_CARTESIAN_ADAPTER_ZH.md)。
 
 下一步 CPU-only 验收在同一批冻结响应上，成对比较旧的逐步 guard 与轨迹级终端制动

@@ -19,6 +19,7 @@ to match later results.
 
 | Document | Status | Purpose |
 | --- | --- | --- |
+| [Live pi0.5-to-Panda integration gate](../evidence/g01_live_panda_smoke_final_001/summary.md) | Current | Attested checkpoint identity, live Hx7-to-Hx8 Panda bridge, asynchronous timing evidence, video, validator, and strict claim boundary |
 | [Architecture and claim boundaries](PROJECT_ARCHITECTURE.md) | Current | Two execution paths, shared runtime layer, terminology, and integration boundary |
 | [架构与主张边界](PROJECT_ARCHITECTURE_ZH.md) | Current | 中文架构、术语和可公开主张范围 |
 | [中文代码导读](CODE_WALKTHROUGH_ZH.md) | Operational | 从 CLI、provider/worker、调度器到 Panda 保障链和 artifact validator 的断点地图 |

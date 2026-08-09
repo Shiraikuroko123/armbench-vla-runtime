@@ -31,6 +31,12 @@ MuJoCo Panda 状态快照
 阻塞指定墙钟时间，并可注入 jitter、响应丢失和错误关节速度。它不是
 `pi0.5`，也不会下载或执行任何模型 checkpoint。
 
+该边界只描述默认 CPU 矩阵，不代表 runtime 不能注入其他策略。单独的 G01
+integration gate 已经用经过 attestation 的真实 `pi05_libero` checkpoint 调用同一
+运行时；checkpoint 身份、时延、事件、trace、视频与限制保存在
+[`g01_live_panda_smoke_final_001`](../evidence/g01_live_panda_smoke_final_001/summary.md)。
+G01 目标没有到达，因此不能写成任务成功率结果。
+
 ## 相比离线修复增加了什么
 
 冻结响应实验只检查 action chunk，没有执行 Panda 反馈闭环。当前运行时还会：

@@ -16,8 +16,11 @@ The repository contains two separately validated paths:
 - An official-checkpoint evaluation path for Physical Intelligence's
   `pi0.5` (pi-zero-point-five) VLA model through OpenPI and LIBERO.
 
-They share runtime contracts, telemetry, validation, and artifact tooling. They
-are not yet a verified end-to-end `pi0.5`-to-Panda deployment.
+They share runtime contracts, telemetry, validation, and artifact tooling. A
+content-attested integration gate now connects a live `pi0.5`-LIBERO response
+to the asynchronous Panda runtime through an explicit Cartesian action
+adapter. This is not yet an official task-aligned Panda evaluation, hardware
+deployment, or safety certification.
 
 The naming change reflects an engineering progression, not a replacement of
 the original project. The seven-DoF planning and tracking benchmark became the
@@ -65,6 +68,7 @@ for the full design and the current integration gap.
 
 | Study | Evidence | Interpretation |
 | --- | --- | --- |
+| Live `pi0.5`-to-Panda integration gate | Official OpenPI `pi05_libero` checkpoint, 35 accepted responses, mean/P95 policy latency 82.75/89.56 ms, 290/311 control ticks concurrent with inference, 0 registered simulation violations | A content-attested Hx7 response crossed the Panda Hx8 adapter and asynchronous runtime; the probe target was not reached, so this is integration evidence rather than task competence |
 | Measured-age temporal alignment | Official `pi0.5`-LIBERO Spatial, 120 matched pairs: 88/120 to 116/120, +23.33 points, exact McNemar `p=1.94e-6` | Training-free, observation-age-based suffix selection improves this frozen simulation matrix |
 | Cross-suite validation | Object, Goal, and LIBERO-10: 300 rollouts / 150 pairs, 83/150 to 141/150 | Extends deterministic-delay evidence within the same model family and simulator suite |
 | RTC-style continuation | 300 rollouts / 100 matched triplets: 96/100 baseline, 97/100 hard projection, 97/100 RTC guidance | No task-success superiority; motion-seam measurements remain exploratory |
@@ -83,16 +87,27 @@ for the full design and the current integration gap.
 Full protocols, validators, statistics, and limitations are in
 [Results](docs/RESULTS.md).
 
+The checked-in live bundle can be independently validated without a GPU. This
+checks preserved checkpoint identity, response provenance, events, clocks,
+state traces, and the complete MP4; it does not rerun model inference:
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m `
+  integrations.openpi.validate_live_panda_smoke `
+  '.\evidence\g01_live_panda_smoke_final_001' --json
+```
+
 ## Scope
 
 - ArmBench does not train or fine-tune `pi0.5`.
-- Official-checkpoint results are simulation-only LIBERO evidence.
+- Official-checkpoint results are simulation-only. The LIBERO studies report
+  official task protocols; the Panda G01 artifact is a separate integration
+  probe and reports `target_reached=false`.
 - The temporal studies use blocking inference plus simulator catch-up, not an
   operating-system-level hard-real-time control loop.
 - Integrated Panda assurance has synchronous task evidence and an asynchronous
-  worker/publication boundary. Its task action source is scripted RRT-Connect,
-  full-horizon checks take seconds, and it does not certify physical collision
-  safety or show that `pi0.5` controls a Panda robot.
+  worker/publication boundary. Its 2/2 reached task actions remain scripted
+  RRT-Connect; those results must not be relabeled as `pi0.5` task outcomes.
 - No Isaac Lab, ROS2, real Franka Panda, or safety PLC integration is claimed.
 - The LeRobot bridge is an in-memory, CPU-only compatibility contract. A
   separate isolated environment validates one three-frame export through the
@@ -184,8 +199,8 @@ joint-space guard:
 & '.\.venv\Scripts\python.exe' -m armbench vla-panda-adapter-smoke
 ```
 
-This closes a component-level action-semantics boundary. It does not run
-`pi0.5` or establish an end-to-end deployment. See
+This CPU command closes a component-level action-semantics boundary. It does
+not run `pi0.5` or establish an end-to-end deployment. See
 [LIBERO-to-Panda Cartesian adapter](docs/PANDA_CARTESIAN_ADAPTER.md).
 
 The next CPU-only acceptance path replays hash-verified action chunks that were

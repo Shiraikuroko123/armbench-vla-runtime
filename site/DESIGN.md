@@ -5,36 +5,38 @@
 Primary archetype: research / engineering project. Secondary archetype:
 platform-style reproducibility surface. The page answers, in order:
 
-1. What does the Panda runtime boundary check?
-2. Which saved artifacts prove that the checks rerun?
+1. Did a real checkpoint response reach the Panda runtime?
+2. What does the Panda runtime boundary check?
 3. How can a visitor run the acceptance script locally?
 4. Where does the evidence stop?
 
-The first viewport uses the repository-authentic Panda MuJoCo video. The page
-does not use generated robot imagery, a generic VLA hero, or a marketing claim.
+The first viewport uses repository-authentic footage from the final G01
+checkpoint-to-Panda integration probe. The page does not use generated robot
+imagery, a generic VLA hero, or a marketing claim.
 
 ## Content contract
 
-- **Identity:** ArmBench, a CPU-recomputable action-chunk supervisor for a
-  seven-DoF Panda reference path.
-- **Claim:** a complete chunk is accepted only after temporal alignment, OSQP
-  projection, continuous collision checks, and a dynamics-feasible stopping
-  certificate; rejection is atomic.
-- **Evidence:** `panda-narrow-gate.mp4`, the 17-case asynchronous provider
+- **Identity:** ArmBench, an attested pi0.5-to-Panda runtime and evaluation
+  platform.
+- **Claim:** a real H×7 pi0.5-LIBERO response crosses an explicit H×8 Panda
+  adapter and asynchronous measured-age runtime; task competence remains a
+  separate question.
+- **Evidence:** `pi05-panda-live-smoke.mp4`, the final G01 bundle, the 17-case asynchronous provider
   boundary, the 27-case fault matrix, two saved MuJoCo task traces, and the
   separate π0.5-LIBERO comparison pair, plus the official LeRobotDataset v3.0
   Panda H×8 roundtrip.
-- **Current facts:** 17/17 asynchronous boundary outcomes, 6 complete plans,
+- **Current facts:** 35 accepted live responses, mean/P95 latency 82.75/89.56
+  ms, 290/311 control ticks concurrent with inference, 94 video frames, and
+  zero registered G01 simulation violations; 17/17 asynchronous boundary outcomes, 6 complete plans,
   10 holds, 1 unrecoverable stop, and zero partial prefixes; 27/27 expected
   fault outcomes, 12 accepted, 6 verified
   brakes, 7 holds, 2 unrecoverable stops; 2/2 task targets; 351/351 edges and
   braking boundaries; zero registered contacts, limit violations, or torque
   saturation; offline supervision of 5.27 s and 10.20 s.
-- **Boundary:** the Panda task action source is scripted RRT-Connect. The
-  asynchronous matrix uses scripted, frozen, and provider-compatible contract
-  fixtures without executing a learned checkpoint. The task is joint-waypoint
-  reaching in MuJoCo, not grasping or a real robot; the evidence uses
-  best-effort CPU scheduling, not hard real time or safety certification.
+- **Boundary:** the 2/2 reached Panda task source is scripted RRT-Connect. G01
+  is a single free-space integration probe with `target_reached=false`, not an
+  official LIBERO/Panda task score. All evidence is MuJoCo simulation with
+  best-effort Python scheduling, not hard real time or safety certification.
 
 ## Visual direction
 
@@ -77,8 +79,8 @@ column and long case identifiers remain inspectable on mobile.
 
 ## Provenance
 
-- Panda media: `evidence/mujoco_formal_20260803`, copied to
-  `site/assets/media/panda-narrow-gate.mp4` and its poster.
+- Hero media: `evidence/g01_live_panda_smoke_final_001/run/panda_trace.mp4`,
+  copied to `site/assets/media/pi05-panda-live-smoke.mp4` with a derived poster.
 - π0.5 media: `evidence/pi05_libero_measured_age_confirmatory_001`, copied to
   the two comparison clips and posters.
 - Numerical evidence: `docs/INTEGRATED_PANDA_ASSURANCE_ZH.md`,

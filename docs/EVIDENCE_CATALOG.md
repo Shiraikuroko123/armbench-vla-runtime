@@ -7,10 +7,10 @@ scripted runtime checks, and rejected runs.
 
 ## Repository inventory
 
-- Artifact directories: 27
-- Files: 1384
-- Stored size: 199.6 MiB
-- Catalog tree SHA-256: `ae1d20b4d8bb98373385a4e7fab4e367538ea1a3e2d450bcceafa56ffb2b53aa`
+- Artifact directories: 28
+- Files: 1395
+- Stored size: 200.7 MiB
+- Catalog tree SHA-256: `5beed51006878011d4b6ee487b7acc5056075b85f8f2cae23685c41152b56b2c`
 - Fingerprint basis: Git blob IDs + canonical paths + blob sizes
 - Machine-readable form: [evidence_catalog.json](evidence_catalog.json)
 
@@ -26,7 +26,7 @@ commands below define the stronger scientific validation available per artifact.
 | Primary or confirmatory | 3 | Frozen or prospectively defined studies used for the repository's bounded result claims. |
 | Primary source artifact | 2 | Raw input to a primary combined analysis; interpret it with the linked companion artifact and protocol. |
 | Exploratory pilot | 5 | Pilot or smoke evidence used to test feasibility or choose a later protocol, not a confirmatory result. |
-| Mechanism or integration gate | 3 | Component-level evidence that an implementation contract holds; it is not task-success evidence. |
+| Mechanism or integration gate | 4 | Component-level evidence that an implementation contract holds; it is not task-success evidence. |
 | Diagnostic | 1 | A bounded debugging artifact retained for traceability rather than a headline efficacy claim. |
 | Rejected from effect analysis | 2 | Byte-preserved evidence excluded after a documented protocol or pairing failure. |
 | Scripted runtime evidence | 10 | MuJoCo or wire-contract evidence produced with a scripted non-learned policy, not pi0/pi0.5 inference. |
@@ -178,6 +178,18 @@ Pilot or smoke evidence used to test feasibility or choose a later protocol, not
 ## Mechanism or integration gate
 
 Component-level evidence that an implementation contract holds; it is not task-success evidence.
+
+### Attested pi0.5-LIBERO to Panda runtime integration gate
+
+- Artifact: `g01_live_panda_smoke_final_001`
+- Policy provenance: `official_openpi_pi05_libero`
+- Result: [summary.md](../evidence/g01_live_panda_smoke_final_001/summary.md)
+- Protocol: [summary.json](../evidence/g01_live_panda_smoke_final_001/run/summary.json)
+- Manifest: [manifest.json](../evidence/g01_live_panda_smoke_final_001/run/manifest.json)
+- Raw review files: [events.json](../evidence/g01_live_panda_smoke_final_001/run/events.json), [trace.npz](../evidence/g01_live_panda_smoke_final_001/run/trace.npz), [checkpoint_attestation.json](../evidence/g01_live_panda_smoke_final_001/server/checkpoint_attestation.json), [checkpoint_crc32c_verification.json](../evidence/g01_live_panda_smoke_final_001/checkpoint_crc32c_verification.json), [contact_sheet.png](../evidence/g01_live_panda_smoke_final_001/visual_audit/contact_sheet.png)
+- Validator: `python -m integrations.openpi.validate_live_panda_smoke evidence/g01_live_panda_smoke_final_001 --json`. Checks run hashes, live checkpoint identity, GCS CRC inventory, events, NPZ clocks/state, and full MP4 decoding without rerunning inference.
+- Claim boundary: One checkpoint-to-runtime integration probe with target_reached=false; not an official task-success, hardware, hard-real-time, or safety result.
+- Inventory: 11 files, 1.1 MiB, tree SHA-256 `0ec0ad540da54098496236a8a8d13a7ac97b51e167f0a07cd2c1aac43e0129dc`
 
 ### pi0.5 projected-conditioning integration gate
 

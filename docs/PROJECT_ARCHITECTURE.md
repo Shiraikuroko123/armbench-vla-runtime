@@ -9,10 +9,11 @@ policies behave between policy response and robot execution. It is not a new
 foundation model, a `pi0.5` training project, a real-robot deployment, or a
 collision-safety certification system.
 
-The platform has two independently validated execution paths and one shared
-runtime and evidence layer. This separation is intentional: it prevents a
-local Panda guard result from being presented as a `pi0.5`-LIBERO result, or a
-LIBERO task-success result from being presented as a Panda safety result.
+The platform has two independently validated execution paths, one shared
+runtime/evidence layer, and a bounded live integration gate between them. This
+separation is intentional: it prevents a local Panda guard result from being
+presented as a `pi0.5`-LIBERO result, or a LIBERO task-success result from being
+presented as a Panda safety result.
 
 ## Terminology
 
@@ -46,8 +47,8 @@ seven-DoF arm model. The continuous checker is conservative for the compiled
 MuJoCo geometry and declared joint-linear interpolation. Preserved audits cover
 both static obstacles and a registered self-collision matrix. Task-level
 integration is now validated offline in two torque-controlled MuJoCo waypoint
-cases; online learned-policy integration and physical-model accuracy remain
-open questions.
+cases. A separate live-checkpoint integration smoke now reaches this runtime;
+task-aligned learned-policy evaluation and physical-model accuracy remain open.
 
 ### 2. `pi0.5` VLA temporal-evaluation path
 
@@ -82,15 +83,15 @@ Shared tooling does not mean shared experimental semantics. The LIBERO and
 Panda action spaces, policies, execution environments, and result claims are
 kept separate.
 
-The maintained runtime now also contains a component-level non-blocking
-harness: a blocking policy runs on a dedicated worker, a latest-only pending
-mailbox bounds backlog, and the control side rejects superseded, failed,
-deadline-missed, or horizon-exhausted responses. This harness uses a scripted
-policy for CPU validation. The same scheduling contract is now connected to a
-local torque-controlled MuJoCo Panda loop with live dual-camera capture,
-measured-state terminal braking, and trace-derived validation. It has not
-replaced the blocking-inference plus simulator-catch-up evaluator used by the
-completed `pi0.5` studies.
+The maintained runtime contains a non-blocking harness: a blocking policy runs
+on a dedicated worker, a latest-only pending mailbox bounds backlog, and the
+control side rejects superseded, failed, deadline-missed, or horizon-exhausted
+responses. Scripted policies provide the complete CPU fault matrix. The same
+threaded scheduling contract is now exercised by one content-attested live
+`pi05_libero` checkpoint smoke in the local torque-controlled MuJoCo Panda loop
+with dual-camera capture, measured-state terminal braking, and trace-derived
+validation. It has not replaced the blocking-inference plus simulator-catch-up
+evaluator used by the completed LIBERO outcome studies.
 
 A CPU completion path now places the full integrated Panda supervisor on a
 second worker after provider inference. A generation-aware atomic gate rechecks
@@ -103,6 +104,7 @@ checkpoint execution.
 
 | Component | Validated result | Claim boundary |
 | --- | --- | --- |
+| Live `pi0.5`-to-Panda integration gate | 35 accepted responses; mean/P95 policy latency 82.75/89.56 ms; 290/311 control ticks concurrent with inference; zero registered simulation violations | One free-space integration probe with `target_reached=false`; not an official LIBERO/Panda task result, hardware claim, or safety certificate |
 | Measured-age dispatcher | `pi0.5`-LIBERO Spatial, 120 matched pairs: 88/120 to 116/120, +23.33 points, exact McNemar `p=1.94e-6` | One frozen official checkpoint and simulation matrix |
 | Cross-suite validation | Object, Goal, and LIBERO-10, 300 rollouts / 150 pairs: 83/150 to 141/150 | Same model family and simulator suite; deterministic-delay evidence |
 | RTC-style sampler extension | 300 matched triplets: 96/100 baseline, 97/100 hard projection, 97/100 RTC | No task-success superiority; seam metrics are exploratory |
@@ -133,6 +135,14 @@ joint-velocity/gripper contract. It uses the MuJoCo Panda hand Jacobian, damped
 least-squares differential inverse kinematics, joint-limit-aware scaling, and
 the existing guard. Its deterministic CPU smoke is documented in
 [LIBERO-to-Panda Cartesian adapter](PANDA_CARTESIAN_ADAPTER.md).
+
+The adapter is now also exercised online by an attested `pi05_libero`
+checkpoint. The G01 bundle records the OpenPI and ArmBench commits, 16-object
+checkpoint CRC32C audit, canonical checkpoint inventory hash, per-response
+digests, policy/adapter latency, request lifecycle, NPZ clocks and state, and a
+94-frame MuJoCo video. The independent validator checks all of those preserved
+records without rerunning inference. See the
+[live integration gate](../evidence/g01_live_panda_smoke_final_001/summary.md).
 
 The adapter is now also exercised by a strictly validated offline replay of
 frozen official-checkpoint responses. The replay checks every preserved
@@ -210,23 +220,24 @@ checks took 5.27 s and 10.20 s in the preserved task cases, so the result closes
 the local planning-assurance-execution wiring but does not establish online
 deadline feasibility.
 
-This is still not a verified live control chain from official `pi0.5`
-inference to Panda execution. Scale, coordinate-frame, clipping, and gripper
-conventions are now attested against LIBERO commit `f78abd68` and robosuite
-`1.4.1`, but the differential-IK adapter is not dynamically equivalent to
-robosuite's torque-level OSC. The official-checkpoint worker is also not
-connected to this Panda loop or an independently ticking LIBERO actuator loop.
-End-to-end claims require learned-policy integration, time synchronization,
-and a new frozen experiment.
+The G01 artifact is a verified live control-chain integration smoke from
+official `pi0.5` inference to Panda simulation execution. It is not a verified
+task deployment. Scale, coordinate-frame, clipping, and gripper conventions
+are attested against LIBERO commit `f78abd68` and robosuite `1.4.1`, but the
+differential-IK adapter is not dynamically equivalent to robosuite's
+torque-level OSC. The free-space probe is outside the official LIBERO task
+protocol and did not reach its target. Task claims require a task-aligned,
+multi-seed frozen experiment; deployment claims additionally require hardware.
 
 Do not write or say that `pi0.5` has been deployed on a Panda robot, that the
 Panda guard certifies VLA safety, or that the simulation results establish
 hard-real-time behavior.
 
-Independent inference/control scheduling is implemented and tested in the
-local scripted Panda actuator loop, but it is not yet wired to an official
-checkpoint or the LIBERO evaluator. Python threads also provide no operating
-system scheduling or worst-case latency guarantee.
+Threaded inference/control scheduling is now wired to the official checkpoint
+for G01, but Python threads provide no operating-system scheduling or
+worst-case latency guarantee. The separate process-based independent-clock
+harness remains CPU contract evidence and was not used to claim G01 hard-real-
+time behavior.
 
 ## Next integration milestone
 
@@ -240,14 +251,15 @@ to connect the implemented component adapter to a complete evaluator and test:
 3. connect the integrated supervisor to asynchronous execution with a declared
    deadline, reduce or parallelize certificate latency, and quantify
    conservative rejection cost; and
-4. replace the scripted task source with attested learned-policy outputs, then
-   add calibrated hardware timing, emergency-stop integration, and repeated
+4. replace the free-space G01 probe with a task-aligned evaluator driven by
+   attested learned-policy outputs, freeze a multi-seed protocol, then add
+   calibrated hardware timing, emergency-stop integration, and repeated
    physical fault-injection evidence.
 
 Until then, the accurate public description is: a seven-DoF constrained
 execution base plus a `pi0.5` VLA runtime-evaluation path, with provider-neutral
 action semantics, an official LeRobot dataset round-trip, dynamics-aware
 MuJoCo braking audits, an independently rerunnable integrated Panda assurance
-chain, and shared auditable runtime infrastructure. Learned-policy task
-integration, online deadline evidence, and physical-robot evidence remain
-future work.
+chain, and shared auditable runtime infrastructure. Task-aligned learned-policy
+evaluation, statistically supported online deadline evidence, and physical-
+robot evidence remain future work.

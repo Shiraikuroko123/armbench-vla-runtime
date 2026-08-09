@@ -13,8 +13,8 @@ def test_generated_catalog_matches_all_tracked_evidence() -> None:
     generated = catalog.build_catalog()
 
     assert generated == _saved_catalog()
-    assert generated["artifact_count"] == 27
-    assert generated["inventory"]["file_count"] == 1384
+    assert generated["artifact_count"] == 28
+    assert generated["inventory"]["file_count"] == 1395
     assert len(generated["inventory"]["tree_sha256"]) == 64
     assert {item["id"] for item in generated["artifacts"]} == {
         path.name for path in (catalog.PROJECT_ROOT / "evidence").iterdir() if path.is_dir()

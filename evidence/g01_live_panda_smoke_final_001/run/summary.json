@@ -1,0 +1,361 @@
+{
+  "elapsed_wall_s": 4.021014780999394,
+  "episode": {
+    "abrupt_stop_violations": 0,
+    "accepted_responses": 35,
+    "action_boundaries": 42,
+    "braking_boundaries": 22,
+    "control_thread_id": 140151776354752,
+    "control_ticks": 311,
+    "control_ticks_during_inference": 290,
+    "deadline_rejections": 0,
+    "final_target_error_rad": 1.6406210981851879,
+    "hard_realtime_claim": false,
+    "hold_boundaries": 2,
+    "hold_rate": 0.047619047619047616,
+    "joint_limit_violation_steps": 0,
+    "max_control_tick_gap_ms": 32.02849800072727,
+    "max_control_tick_lateness_ms": 22.089649002737133,
+    "max_observation_age_ms": 232.0122299970535,
+    "max_observation_latency_ms": 5.7967089996964205,
+    "max_policy_latency_ms": 112.42243599917856,
+    "max_repair_latency_ms": 4.859878001298057,
+    "max_tracking_error_rad": 0.022055446147489027,
+    "mean_observation_latency_ms": 4.253993643162955,
+    "mean_policy_latency_ms": 82.74776831416862,
+    "mean_repair_latency_ms": 1.3869301777352423,
+    "mode": "braking_invariant",
+    "observation_frames_completed": 42,
+    "observation_frames_superseded": 0,
+    "observation_worker_thread_id": 140150123386432,
+    "obstacle_contact_steps": 0,
+    "p95_control_tick_gap_ms": 10.006639000857831,
+    "p95_control_tick_lateness_ms": 0.07462450230377726,
+    "p95_observation_latency_ms": 5.411432749315281,
+    "p95_policy_latency_ms": 89.55643599983884,
+    "p95_repair_latency_ms": 2.43079420106369,
+    "physical_safe": true,
+    "physical_safety_claim": false,
+    "physics_executed": true,
+    "planned_intervention_steps": 15,
+    "policy_checkpoint_executed": true,
+    "policy_failures": 0,
+    "policy_provenance": {
+      "adapter": "PandaCartesianActionAdapter",
+      "adapter_contract": "libero.ee_delta_pose_gripper.v1->panda.droid_hx8.v1",
+      "checkpoint_executed_this_run": true,
+      "identity": {
+        "checkpoint_executed_during_capture": false,
+        "checkpoint_executed_this_run": true,
+        "checkpoint_identity_status": "content_attested",
+        "checkpoint_reference": "gs://openpi-assets/checkpoints/pi05_libero",
+        "checkpoint_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+        "implementation_repository": "https://github.com/Physical-Intelligence/openpi",
+        "implementation_revision": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+        "model_family": "Physical Intelligence pi0.5",
+        "provider_id": "openpi_pi05_libero_live",
+        "response_origin": "live_checkpoint_inference"
+      },
+      "source_semantics": {
+        "action_dim": 7,
+        "action_order": [
+          "dx",
+          "dy",
+          "dz",
+          "dax",
+          "day",
+          "daz",
+          "gripper"
+        ],
+        "action_space_id": "libero.ee_delta_pose_gripper.v1",
+        "control_period_s": 0.05,
+        "controller_semantics_id": "libero-f78abd68.robosuite-1.4.1.osc-pose.v1",
+        "coordinate_frame": "base",
+        "gripper_convention": "minus_one_open_plus_one_closed",
+        "normalized_max": 1.0,
+        "normalized_min": -1.0,
+        "rotation_delta_scale_rad": 0.5,
+        "rotation_representation": "axis_angle_delta",
+        "translation_delta_scale_m": 0.05
+      },
+      "source_semantics_sha256": "de840e2d38dba6c5fb86e886f49d3c3203dbdaf88f8b20981fd6d87605a1b169"
+    },
+    "policy_source": "live:openpi_pi05_libero_live|libero_hx7_to_panda_hx8_cartesian_adapter|response_sha256:2904ddacfb2c0643d3b334378772cdb90a4a37eba0d41935811ae7b564deb8ab",
+    "policy_worker_thread_id": 140150114993728,
+    "rejected_responses": 0,
+    "repair_selection_deadline_exceedances": 0,
+    "safe_target_reached": false,
+    "scaled_plan_count": 6,
+    "scenario": "free_space",
+    "scripted_policy": false,
+    "self_contact_steps": 0,
+    "separate_policy_thread": true,
+    "superseded_pending_requests": 7,
+    "target_is_scenario_goal": true,
+    "target_reached": false,
+    "torque_saturation_count": 0,
+    "tracking_rmse_rad": 0.002076975568702253,
+    "unsafe_prepared_plans": 0,
+    "video_path": "/workspace/armbench-results/g01_live_panda_smoke_002/run_003/panda_trace.mp4"
+  },
+  "finished_at_utc": "2026-08-09T12:21:57.260332+00:00",
+  "implementation": {
+    "armbench_commit": "2f92db28e0bf3b30ad5482bb519377bd4d43b927",
+    "armbench_tracked_clean": true,
+    "implementation_files": [
+      {
+        "path": "scripts/run_live_pi05_panda_smoke.py",
+        "sha256": "b763001be27699612ab08dcf593cf8c9c347d17b663cbaa28d6b9b2fb6807d16",
+        "size_bytes": 11113
+      },
+      {
+        "path": "src/armbench/vla/async_panda.py",
+        "sha256": "e9a1d601dc150c177e2e6e6b81ad94fac0405e6907d50995118fde5e68b4a1ad",
+        "size_bytes": 72798
+      },
+      {
+        "path": "src/armbench/vla/async_worker.py",
+        "sha256": "be7f9345aa2d62403386bb489c4147f430f94c82c211bcd5f388db18cebefa29",
+        "size_bytes": 10008
+      },
+      {
+        "path": "src/armbench/vla/cartesian_adapter.py",
+        "sha256": "f067cfa1d84eed27acb7e3be190ed7fd43aafb7a5e187d9d3b951f63c06205af",
+        "size_bytes": 14616
+      },
+      {
+        "path": "src/armbench/vla/openpi_provider.py",
+        "sha256": "eb6805b78f7ee667a906060c326d514de9665c7ee5d73629143939fb59e07f38",
+        "size_bytes": 11297
+      },
+      {
+        "path": "src/armbench/vla/policy.py",
+        "sha256": "264a88334bd951568231cd911a5335466988fcd78a54efe51a6b8d7ae7991b72",
+        "size_bytes": 8589
+      }
+    ],
+    "machine": "x86_64",
+    "menagerie_commit": "71f066ad0be9cd271f7ed58c030243ef157af9f4",
+    "packages": {
+      "armbench": "0.1.0",
+      "imageio": "2.37.4",
+      "imageio-ffmpeg": "0.6.0",
+      "mujoco": "3.11.0",
+      "numpy": "1.26.4",
+      "openpi-client": "0.1.0",
+      "websockets": "16.1.1"
+    },
+    "platform": "Linux-5.15.0-113-generic-x86_64-with-glibc2.35",
+    "python": "3.10.12 (main, Jun 22 2026, 18:55:27) [GCC 11.4.0]"
+  },
+  "last_policy_response": {
+    "adapter": {
+      "action_space_id": "libero.ee_delta_pose_gripper.v1",
+      "adapter_latency_ms": 2.344412001548335,
+      "clipped_input_steps": 7,
+      "controller_semantics_id": "libero-f78abd68.robosuite-1.4.1.osc-pose.v1",
+      "horizon": 10,
+      "kinematic_control_point_id": "mujoco-menagerie.hand-body-origin.v1",
+      "max_residual_norm": 0.010259160366985124,
+      "minimum_singular_value": 0.22104804916101728,
+      "scope": "component_cartesian_adapter_only",
+      "source": "live:openpi_pi05_libero_live:2904ddacfb2c|panda_cartesian_adapter",
+      "velocity_limited_steps": 0
+    },
+    "adapter_latency_ms": 2.344412001548335,
+    "checkpoint_reference": "gs://openpi-assets/checkpoints/pi05_libero",
+    "checkpoint_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+    "implementation_revision": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+    "provider_id": "openpi_pi05_libero_live",
+    "provider_inference_latency_ms": 76.48674300071434,
+    "response_sha256": "2904ddacfb2c0643d3b334378772cdb90a4a37eba0d41935811ae7b564deb8ab",
+    "total_latency_ms": 79.45766799821286
+  },
+  "limitations": [
+    "One integration smoke; not an official LIBERO task-success benchmark.",
+    "Panda is simulated in MuJoCo; no physical robot claim.",
+    "Python wall-clock scheduling is not an OS hard-real-time guarantee.",
+    "LIBERO Cartesian actions are adapted by local differential IK, not robosuite OSC torque equivalence."
+  ],
+  "policy_checkpoint_executed": true,
+  "policy_provenance": {
+    "adapter": "PandaCartesianActionAdapter",
+    "adapter_contract": "libero.ee_delta_pose_gripper.v1->panda.droid_hx8.v1",
+    "checkpoint_executed_this_run": true,
+    "identity": {
+      "checkpoint_executed_during_capture": false,
+      "checkpoint_executed_this_run": true,
+      "checkpoint_identity_status": "content_attested",
+      "checkpoint_reference": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "implementation_repository": "https://github.com/Physical-Intelligence/openpi",
+      "implementation_revision": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "model_family": "Physical Intelligence pi0.5",
+      "provider_id": "openpi_pi05_libero_live",
+      "response_origin": "live_checkpoint_inference"
+    },
+    "source_semantics": {
+      "action_dim": 7,
+      "action_order": [
+        "dx",
+        "dy",
+        "dz",
+        "dax",
+        "day",
+        "daz",
+        "gripper"
+      ],
+      "action_space_id": "libero.ee_delta_pose_gripper.v1",
+      "control_period_s": 0.05,
+      "controller_semantics_id": "libero-f78abd68.robosuite-1.4.1.osc-pose.v1",
+      "coordinate_frame": "base",
+      "gripper_convention": "minus_one_open_plus_one_closed",
+      "normalized_max": 1.0,
+      "normalized_min": -1.0,
+      "rotation_delta_scale_rad": 0.5,
+      "rotation_representation": "axis_angle_delta",
+      "translation_delta_scale_m": 0.05
+    },
+    "source_semantics_sha256": "de840e2d38dba6c5fb86e886f49d3c3203dbdaf88f8b20981fd6d87605a1b169"
+  },
+  "protocol": {
+    "action_horizon": 10,
+    "action_period_s": 0.06666666666666667,
+    "connect_timeout_s": 5.0,
+    "control_period_s": 0.01,
+    "deadline_ms": 200.0,
+    "extra_action_steps": 30,
+    "inference_timeout_s": 10.0,
+    "max_action_steps": 42,
+    "mode": "braking_invariant",
+    "reference_steps": 12,
+    "scenario": "free_space",
+    "video_enabled": true,
+    "worker_shutdown_timeout_s": 12.0
+  },
+  "provider_id": "openpi_pi05_libero_live",
+  "response_origin": "live_checkpoint_inference",
+  "response_sha256": "2904ddacfb2c0643d3b334378772cdb90a4a37eba0d41935811ae7b564deb8ab",
+  "schema_version": "armbench.live_pi05_panda_smoke.v1",
+  "scope": "attested_live_pi05_libero_to_panda_mujoco_smoke",
+  "scripted_policy": false,
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8000
+  },
+  "server_metadata": {
+    "armbench_policy_conditioning_contract": {
+      "actions_dtype": "little-endian float32",
+      "mask_dtype": "bool",
+      "mask_semantics": "contiguous committed prefix",
+      "mask_shape": [
+        10
+      ],
+      "method": "projected_flow_inpainting",
+      "model_action_shape": [
+        10,
+        32
+      ],
+      "raw_action_shape": [
+        10,
+        7
+      ],
+      "request_field": "armbench_policy_conditioning",
+      "response_field": "armbench_policy_conditioning",
+      "schema_version": "armbench.policy_conditioning.v1",
+      "trace_schema_version": "armbench.policy_conditioning_trace.v1"
+    },
+    "armbench_policy_guidance_contract": {
+      "actions_dtype": "little-endian float32",
+      "maximum_guidance_weight": 5.0,
+      "method": "rtc_pseudoinverse_guidance",
+      "model_action_shape": [
+        10,
+        32
+      ],
+      "raw_action_shape": [
+        10,
+        7
+      ],
+      "request_field": "armbench_policy_guidance",
+      "response_field": "armbench_policy_guidance",
+      "schedules": [
+        "linear",
+        "exp",
+        "ones",
+        "zeros"
+      ],
+      "schema_version": "armbench.policy_guidance.v1",
+      "trace_schema_version": "armbench.policy_guidance_trace.v1",
+      "weight_source": "server_recomputed_from_inference_delay_execute_horizon_schedule",
+      "weights_dtype": "little-endian float32",
+      "weights_shape": [
+        10
+      ]
+    },
+    "armbench_policy_sampling_contract": {
+      "generator": "numpy_randomstate_mt19937_standard_normal_float32_v1",
+      "json_encoding": "utf-8 canonical sorted compact ASCII",
+      "mode_in_key": false,
+      "namespaces": {
+        "scored": {
+          "pairing_key_fields": [
+            "task_suite",
+            "task_id",
+            "episode_index",
+            "replan_steps"
+          ]
+        },
+        "warmup": {
+          "pairing_key_fields": [
+            "task_suite",
+            "task_id",
+            "episode_index"
+          ]
+        }
+      },
+      "noise_dtype": "little-endian float32",
+      "noise_shape": [
+        10,
+        32
+      ],
+      "payload_fields": [
+        "schema_version",
+        "namespace",
+        "seed",
+        "pairing_key",
+        "query_index"
+      ],
+      "request_field": "armbench_policy_sampling",
+      "response_field": "armbench_policy_sampling",
+      "schema_version": "armbench.policy_sampling.v1",
+      "trace_schema_version": "armbench.policy_sampling_trace.v1"
+    },
+    "armbench_server_attestation": {
+      "action_horizon": 10,
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "checkpoint_file_count": 16,
+      "checkpoint_total_bytes": 12439085481,
+      "checkpoint_uri": "gs://openpi-assets/checkpoints/pi05_libero",
+      "created_at_utc": "2026-08-09T12:00:28.729288+00:00",
+      "model_action_dim": 32,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "openpi_extension_files": {
+        "src/openpi/models/pi0.py": "24b32d7c6ed5e409459afa8ca5af96a4dae09c2dcdf48e828907e411f4f12342",
+        "src/openpi/policies/policy.py": "a2ac5236e23b11d0f5a840d4a8fef148d89dba921d5452ec5dfcd5a6ffa46f20"
+      },
+      "openpi_submodule_status": " d1dc83afd89ded4379851257fe5d85632d31d5ec third_party/aloha (d1dc83a)\n f78abd68ee283de9f9be3c8f7e2a9ad60246e95c third_party/libero (f78abd6)",
+      "openpi_submodules_clean": true,
+      "openpi_tracked_clean": true,
+      "openpi_tracked_status": "",
+      "openpi_upstream_base_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "platform": "Linux-5.15.0-113-generic-x86_64-with-glibc2.35",
+      "policy_config": "pi05_libero",
+      "policy_loaded": true,
+      "python": "3.11.9 (main, Aug 14 2024, 05:07:28) [Clang 18.1.8 ]",
+      "schema_version": "armbench.openpi_server_attestation.v1",
+      "server_source_sha256": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8"
+    }
+  },
+  "started_at_utc": "2026-08-09T12:21:53.239318+00:00"
+}

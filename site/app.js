@@ -8,14 +8,18 @@
   var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
   var saveData = Boolean(connection && connection.saveData);
   var activeLanguage = "zh";
+  var pageTitles = Object.freeze({
+    zh: "ArmBench | pi0.5 到 Panda 运行时保障",
+    en: "ArmBench | pi0.5-to-Panda Runtime Assurance"
+  });
 
   // The visible figures are duplicated here as a small content contract. If a
   // future artifact changes, one verified source can update the metric strip.
   var evidence = Object.freeze({
-    runtimeMatrix: "17/17",
-    faultMatrix: "27/27",
-    taskSuccess: "2/2",
-    certificates: "351/351",
+    liveResponses: "35",
+    policyLatency: "82.75 / 89.56",
+    inferenceTicks: "290 / 311",
+    liveViolations: "0",
     violations: "0"
   });
 
@@ -54,6 +58,8 @@
   function setLanguage(language, persist) {
     activeLanguage = language === "en" ? "en" : "zh";
     root.dataset.lang = activeLanguage;
+    root.lang = activeLanguage === "zh" ? "zh-CN" : "en";
+    document.title = pageTitles[activeLanguage];
     document.querySelectorAll("[data-set-lang]").forEach(function (button) {
       button.setAttribute("aria-pressed", button.dataset.setLang === activeLanguage ? "true" : "false");
     });

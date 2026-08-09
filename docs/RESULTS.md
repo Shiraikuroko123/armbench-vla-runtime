@@ -14,6 +14,57 @@ Fields named `safe` or `physical_safe` refer to registered simulation
 predicates defined by the corresponding protocol. They are not physical-safety
 certification.
 
+## Live pi0.5-LIBERO to Panda integration gate
+
+### Provenance and protocol
+
+- Evidence ID: `g01_live_panda_smoke_final_001`
+- ArmBench commit:
+  `2f92db28e0bf3b30ad5482bb519377bd4d43b927`
+- OpenPI commit:
+  `15a9616a00943ada6c20a0f158e3adb39df2ccac`
+- Policy/checkpoint: official `pi05_libero`, 16 objects / 12,439,085,481
+  bytes, all public GCS CRC32C values matched
+- Checkpoint inventory SHA-256:
+  `9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5`
+- Runtime: MuJoCo Panda dual-camera observation, Hx7 Cartesian/axis-angle to
+  Hx8 differential-IK adapter, latest-only policy worker, 200 ms response
+  deadline, braking-invariant repair, and torque physics
+- Probe: `free_space`, 12 reference steps plus 30 extra action steps; one
+  integration run, not an official task matrix
+
+### Outcomes
+
+| Measure | Result |
+|---|---:|
+| Live responses accepted / rejected / failed | 35 / 0 / 0 |
+| Policy latency mean / P95 / max | 82.75 / 89.56 / 112.42 ms |
+| Control ticks / ticks during inference | 311 / 290 |
+| Control lateness P95 / max | 0.075 / 22.09 ms |
+| Hold-boundary rate | 4.76% |
+| Planned repair interventions | 15 steps |
+| Obstacle / self-contact / joint-limit steps | 0 / 0 / 0 |
+| Abrupt-stop / unsafe-plan / repair-budget violations | 0 / 0 / 0 |
+| Video | 94 decodable nonblank 640x480 frames |
+| Target reached | no |
+
+This result closes a previously missing engineering boundary: a real,
+content-attested checkpoint response crosses an explicit action-semantics
+adapter and is scheduled/executed in the asynchronous Panda simulation loop.
+It does not establish pi0.5 task competence on Panda. The probe is outside the
+official LIBERO protocol and did not reach its free-space target. It also does
+not establish a physical-safety certificate, hard-real-time guarantee,
+cross-model generality, or hardware deployment.
+
+The preserved [bundle](../evidence/g01_live_panda_smoke_final_001/summary.md)
+contains events, clocks, state traces, video, server attestation, and the GCS
+integrity audit. Validate it without rerunning the checkpoint:
+
+```bash
+python -m integrations.openpi.validate_live_panda_smoke \
+  evidence/g01_live_panda_smoke_final_001 --json
+```
+
 ## pi0.5 RTC guidance G0
 
 ### Provenance and protocol

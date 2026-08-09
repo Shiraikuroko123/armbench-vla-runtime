@@ -1,0 +1,108 @@
+{
+  "action_horizon": 10,
+  "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+  "checkpoint_file_count": 16,
+  "checkpoint_files": [
+    {
+      "bytes": 1914,
+      "path": "assets/physical-intelligence/libero/norm_stats.json",
+      "sha256": "b3a44bb2810436fb62917decaea58bd4d9110255df527dea21e8fd40c960bd84"
+    },
+    {
+      "bytes": 23493,
+      "path": "params/_METADATA",
+      "sha256": "303a4e354814928e1d29b75e310f2c1ac7e7e29b62f48395b631045ca1cffc73"
+    },
+    {
+      "bytes": 17952,
+      "path": "params/_sharding",
+      "sha256": "63f4c57ba6ff10f4132a639b9942eabcc26942eb34081be1d93bf7ddab816501"
+    },
+    {
+      "bytes": 9062,
+      "path": "params/array_metadatas/process_0",
+      "sha256": "2b29474f08aa50922da11074deb4d7f35e30f0071a088a30f40df88edc1ebdb0"
+    },
+    {
+      "bytes": 42307,
+      "path": "params/d/98a77a52a8eb845ae4830eb7fe983979",
+      "sha256": "93b39327a1552b06b1b6ce5190d58131297bcca66c3f2a099bbb2882df7759af"
+    },
+    {
+      "bytes": 120,
+      "path": "params/manifest.ocdbt",
+      "sha256": "65246951e69bd2b5118e609646bc9e8c439229bccbc1325643833aeb74f77104"
+    },
+    {
+      "bytes": 2449323387,
+      "path": "params/ocdbt.process_0/d/0eaaecefaa9720d30a32cc56e65fd345",
+      "sha256": "0d4412552d4a69fba953f824a60d005ee7559822a9c1c16684906c7f0801b848"
+    },
+    {
+      "bytes": 2307885530,
+      "path": "params/ocdbt.process_0/d/155391c1cbf93a1be16266de052e5b48",
+      "sha256": "ad09cf4b2cacc0628c713afbb1ee9decfd36e295fdacae111c1e0c5eeeb6cc00"
+    },
+    {
+      "bytes": 1077,
+      "path": "params/ocdbt.process_0/d/2b6985f48e9da86f68627a7608c5bc25",
+      "sha256": "3b81b2e8afe1456a4584d19dcf600f2bb6f27beff9f061b336f06657a11d5cb5"
+    },
+    {
+      "bytes": 2150232827,
+      "path": "params/ocdbt.process_0/d/475fab3ee8821662585a8cde3eb32e22",
+      "sha256": "624a529b0b5f07bf535e07eba4f823e47fdde66a3d0b38295a35ac9d60cfcf0f"
+    },
+    {
+      "bytes": 1608436908,
+      "path": "params/ocdbt.process_0/d/6c54da5a6f62c20a09c0f3f8c3329e00",
+      "sha256": "1a5f80ef1aeaa82e70cca883c4d95da65bd410c8da19729d4814317533ba11f5"
+    },
+    {
+      "bytes": 2240080987,
+      "path": "params/ocdbt.process_0/d/896bf93c5cf2e8ddd274a6ea0a2feec0",
+      "sha256": "c92342da7593219debce6133f148f3c24ece184ff53f9f4bac800c09fcc6dc1a"
+    },
+    {
+      "bytes": 217,
+      "path": "params/ocdbt.process_0/d/bc613ff288a162563e622d01bb60622a",
+      "sha256": "1e99d5876e6b8db2e12c43c8079f6b98cffac2c26bbd84e59cc505e983d146d2"
+    },
+    {
+      "bytes": 2926522,
+      "path": "params/ocdbt.process_0/d/bda87d9791f23df771cd2d15293780cc",
+      "sha256": "9c717ff13084524b74f330803421b8a261bc3009a477c933e1e1a1477a796fc3"
+    },
+    {
+      "bytes": 1680102856,
+      "path": "params/ocdbt.process_0/d/efbb46173882cb35ed41ffe0c2db8a5e",
+      "sha256": "6e62d35e0689dc12779d0b2e65304823d6787fdd4ccd754c9ebd059fdc4b6765"
+    },
+    {
+      "bytes": 322,
+      "path": "params/ocdbt.process_0/manifest.ocdbt",
+      "sha256": "3bf70fbb0fac151675595b33aeb8203139e8809de17d606574ab606a758b3591"
+    }
+  ],
+  "checkpoint_local_path": "/openpi_assets/openpi-assets/checkpoints/pi05_libero",
+  "checkpoint_total_bytes": 12439085481,
+  "checkpoint_uri": "gs://openpi-assets/checkpoints/pi05_libero",
+  "created_at_utc": "2026-08-09T12:00:28.729288+00:00",
+  "model_action_dim": 32,
+  "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+  "openpi_extension_files": {
+    "src/openpi/models/pi0.py": "24b32d7c6ed5e409459afa8ca5af96a4dae09c2dcdf48e828907e411f4f12342",
+    "src/openpi/policies/policy.py": "a2ac5236e23b11d0f5a840d4a8fef148d89dba921d5452ec5dfcd5a6ffa46f20"
+  },
+  "openpi_submodule_status": " d1dc83afd89ded4379851257fe5d85632d31d5ec third_party/aloha (d1dc83a)\n f78abd68ee283de9f9be3c8f7e2a9ad60246e95c third_party/libero (f78abd6)",
+  "openpi_submodules_clean": true,
+  "openpi_tracked_clean": true,
+  "openpi_tracked_status": "",
+  "openpi_upstream_base_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+  "platform": "Linux-5.15.0-113-generic-x86_64-with-glibc2.35",
+  "policy_config": "pi05_libero",
+  "policy_loaded": true,
+  "python": "3.11.9 (main, Aug 14 2024, 05:07:28) [Clang 18.1.8 ]",
+  "schema_version": "armbench.openpi_server_attestation.v1",
+  "server_source_sha256": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8"
+}

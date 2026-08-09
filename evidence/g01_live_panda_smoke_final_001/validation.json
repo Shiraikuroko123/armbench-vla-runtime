@@ -1,0 +1,28 @@
+{
+  "artifact": "evidence/g01_live_panda_smoke_final_001",
+  "checks": [
+    "run manifest hashes and exact file inventory",
+    "live provider identity, response digest, protocol, and claim flags",
+    "external checkpoint attestation and public server metadata",
+    "16-object GCS CRC32C inventory matches checkpoint attestation",
+    "trace shapes, monotonic clocks, finite state, and execution status",
+    "event lifecycle and accepted-response aggregate",
+    "MP4 decodes, is nonblank, and contains visible motion"
+  ],
+  "errors": [],
+  "metrics": {
+    "accepted_responses": 35,
+    "armbench_commit": "2f92db28e0bf3b30ad5482bb519377bd4d43b927",
+    "checkpoint_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+    "control_ticks": 311,
+    "control_ticks_during_inference": 290,
+    "event_count": 422,
+    "mean_policy_latency_ms": 82.74776831416862,
+    "p95_policy_latency_ms": 89.55643599983884,
+    "response_sha256": "2904ddacfb2c0643d3b334378772cdb90a4a37eba0d41935811ae7b564deb8ab",
+    "video_first_last_mean_abs_difference": 6.118118489583333,
+    "video_frames": 94
+  },
+  "schema_version": "armbench.live_pi05_panda_smoke_validation.v1",
+  "valid": true
+}

@@ -63,6 +63,28 @@
       "claim_boundary": "Supports the local seven-DoF planning, collision-checking, and torque-limited tracking baseline only."
     },
     {
+      "id": "g01_live_panda_smoke_final_001",
+      "title": "Attested pi0.5-LIBERO to Panda runtime integration gate",
+      "class": "mechanism_gate",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/g01_live_panda_smoke_final_001/summary.md",
+      "protocol": "evidence/g01_live_panda_smoke_final_001/run/summary.json",
+      "manifest": "evidence/g01_live_panda_smoke_final_001/run/manifest.json",
+      "raw": [
+        "evidence/g01_live_panda_smoke_final_001/run/events.json",
+        "evidence/g01_live_panda_smoke_final_001/run/trace.npz",
+        "evidence/g01_live_panda_smoke_final_001/server/checkpoint_attestation.json",
+        "evidence/g01_live_panda_smoke_final_001/checkpoint_crc32c_verification.json",
+        "evidence/g01_live_panda_smoke_final_001/visual_audit/contact_sheet.png"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": ["python", "-m", "integrations.openpi.validate_live_panda_smoke", "evidence/g01_live_panda_smoke_final_001", "--json"],
+        "scope": "Checks run hashes, live checkpoint identity, GCS CRC inventory, events, NPZ clocks/state, and full MP4 decoding without rerunning inference."
+      },
+      "claim_boundary": "One checkpoint-to-runtime integration probe with target_reached=false; not an official task-success, hardware, hard-real-time, or safety result."
+    },
+    {
       "id": "pi05_libero_alignment_core_001",
       "title": "pi0.5 LIBERO temporal-alignment confirmatory study",
       "class": "primary",

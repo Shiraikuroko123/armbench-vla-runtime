@@ -33,6 +33,13 @@ blocks for a configured wall-clock delay and can inject jitter, dropped
 responses, or corrupted joint velocities. It is deliberately not `pi0.5`, and
 no model checkpoint is downloaded or executed.
 
+That boundary applies to the default CPU matrix, not to every caller of the
+runtime. The injected-policy path has now been exercised separately by the
+attested live `pi05_libero` G01 integration gate. Its checkpoint identity,
+latency, events, trace, video, and limitations are preserved in
+[`g01_live_panda_smoke_final_001`](../evidence/g01_live_panda_smoke_final_001/summary.md).
+The G01 target was not reached, so it is not a task-success result.
+
 ## What changed from the offline repair
 
 The frozen-response braking study checked action chunks without executing a

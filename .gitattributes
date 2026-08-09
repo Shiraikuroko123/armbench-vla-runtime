@@ -1,4 +1,5 @@
 # Cloud evidence manifests attest exact file bytes. Never rewrite line endings.
+evidence/g01_live_panda_*/** -text whitespace=-blank-at-eol
 evidence/pi05_libero_*/** -text whitespace=-blank-at-eol
 evidence/pi05_projected_overlap_*/** -text whitespace=-blank-at-eol
 evidence/pi05_rtc_*/** -text whitespace=-blank-at-eol

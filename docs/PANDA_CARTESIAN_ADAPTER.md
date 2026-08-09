@@ -1,6 +1,7 @@
 # LIBERO-to-Panda Cartesian Adapter
 
-Status: Current component-level implementation
+Status: Current component implementation, exercised by scripted CPU acceptance,
+offline response replay, and one live checkpoint integration gate
 
 ## Purpose
 
@@ -9,9 +10,12 @@ maps a finite `H x 7` action chunk identified as
 `libero.ee_delta_pose_gripper.v1` to the local Panda guard's `H x 8` contract:
 seven joint velocities in radians per second plus a normalized gripper command.
 
-It does not establish that the official `pi0.5` checkpoint controls the local
-Panda. The current acceptance command uses a scripted Cartesian chunk and no
-model inference.
+The default CPU acceptance command below uses a scripted Cartesian chunk and
+no model inference; that command alone does not establish a learned-policy
+deployment. Separately, G01 exercised this adapter with live responses from the
+official OpenPI `pi05_libero` checkpoint inside the asynchronous Panda runtime.
+That result establishes checkpoint-to-runtime connectivity, not official task
+competence or hardware deployment.
 
 ## Mapping
 
@@ -65,15 +69,24 @@ explicitly labeled `scripted_cartesian_adapter_component_only`.
   robosuite's `grip_site`; the report exposes this distinction explicitly.
 - Collision checking interpolates joint-space edges at a configured resolution;
   it is not continuous-collision certification.
-- The smoke command does not use OpenPI, `pi0.5`, LIBERO task execution, a real
-  robot, ROS2, or a safety PLC.
+- The CPU smoke command does not use OpenPI, `pi0.5`, LIBERO task execution, a
+  real robot, ROS2, or a safety PLC.
 
-## Completed next boundary
+## Integration status
 
 Frozen official LIBERO policy responses now pass through this adapter in a
 strictly validated offline replay. See
-[frozen pi0.5 response replay](PI05_PANDA_ARCHIVE_REPLAY.md). The remaining
-end-to-end milestone is to wrap live responses in an independently scheduled
-Panda evaluator with feedback observations and a frozen paired protocol. Until
-then, the local result remains a cross-controller diagnostic and must not be
-reported as a reproduced LIBERO task score.
+[frozen pi0.5 response replay](PI05_PANDA_ARCHIVE_REPLAY.md).
+
+G01 then connected live dual-camera Panda observations to the official
+checkpoint, adapted 35 accepted responses through this component, and executed
+them under the measured-age dispatcher, braking repair, and torque-controlled
+MuJoCo loop. The preserved
+[live checkpoint integration artifact](../evidence/g01_live_panda_smoke_final_001/summary.md)
+records `target_reached=false`. It is therefore an integration gate, not a
+reproduced LIBERO score or Panda task-success result.
+
+The remaining task-level milestone is a task-aligned, multi-seed frozen
+protocol with explicit success predicates and statistical reporting. Hardware
+deployment additionally requires a concrete driver, calibrated timing,
+watchdog and emergency-stop integration, and physical fault-injection evidence.

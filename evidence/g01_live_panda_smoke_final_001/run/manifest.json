@@ -1,0 +1,26 @@
+{
+  "files": [
+    {
+      "path": "events.json",
+      "sha256": "cf33f23c4622b7c077ea381feaf4504f2c2782cca3b7be9e0125565decf1dee8",
+      "size_bytes": 148893
+    },
+    {
+      "path": "panda_trace.mp4",
+      "sha256": "c3efc87f8a0f5323fb1cef6403528d38c0a01a9d24a346f26f7e13eea66220b4",
+      "size_bytes": 464974
+    },
+    {
+      "path": "summary.json",
+      "sha256": "71626af322617be712e8f55a66ac8250c1aa8f67fbbfad569b9c50be4ccd37cb",
+      "size_bytes": 13966
+    },
+    {
+      "path": "trace.npz",
+      "sha256": "04d5bc5c8ae3268fe341f241fa6d2a1b7d5e52f459380dfa46f847378575d7cf",
+      "size_bytes": 42593
+    }
+  ],
+  "inventory_sha256": "204f7eeed71eb3c65d12fab757c3c7dfcfd6af31840ba76fc4a03155435619ca",
+  "schema_version": "armbench.live_pi05_panda_smoke.v1"
+}

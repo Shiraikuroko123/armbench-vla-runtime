@@ -608,7 +608,7 @@ def validate_bundle(bundle: Path) -> dict[str, object]:
     if collector.errors:
         return {
             "schema_version": VALIDATION_SCHEMA,
-            "artifact": str(bundle),
+            "artifact": bundle.as_posix(),
             "valid": False,
             "errors": collector.errors,
             "checks": collector.checks,
@@ -625,7 +625,7 @@ def validate_bundle(bundle: Path) -> dict[str, object]:
     _validate_video(run, collector)
     return {
         "schema_version": VALIDATION_SCHEMA,
-        "artifact": str(bundle),
+        "artifact": bundle.as_posix(),
         "valid": not collector.errors,
         "errors": collector.errors,
         "checks": collector.checks,

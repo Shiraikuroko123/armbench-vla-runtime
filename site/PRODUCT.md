@@ -2,30 +2,29 @@
 
 ## Primary job
 
-Show a reviewer or robotics hiring engineer exactly what the project currently
-does at the policy-to-controller boundary, how to reproduce it on CPU, and what
-the simulation evidence does not cover.
+Show a reviewer or robotics hiring engineer exactly how an attested pi0.5
+checkpoint response crosses the policy-to-Panda boundary, how to validate the
+saved result without a GPU, and what the simulation evidence does not cover.
 
 ## One-sentence claim
 
-ArmBench is a CPU-recomputable reference supervisor that accepts a complete
-seven-DoF Panda action chunk only after timing, OSQP kinematic projection,
-continuous collision, and dynamics-feasible braking checks, then sends the
-accepted trajectory to MuJoCo torque execution.
+ArmBench connects content-attested pi0.5-LIBERO responses to an asynchronous
+seven-DoF MuJoCo Panda runtime through explicit action semantics, measured-age
+dispatch, braking-invariant repair, and reviewable execution evidence.
 
 ## Information architecture
 
-1. Full-bleed Panda simulation hero with explicit `SIMULATION` and
-   `SCRIPTED RRT-CONNECT` boundary labels.
-2. Artifact bar linking source, asynchronous CPU report, fault report, and task
-   report.
-3. Current evidence strip and three artifact ledgers.
+1. Full-bleed live-checkpoint Panda simulation hero with explicit `SIMULATION`,
+   `LIVE PI0.5 CHECKPOINT`, and target-not-reached disclosure.
+2. Artifact bar linking source, G01 live evidence, the full catalog, and docs.
+3. Current live-evidence strip and four artifact ledgers.
 4. Assurance flow and atomic decision table.
 5. Registered 27-case fault matrix with outcome distribution.
 6. Two assured MuJoCo tasks, physical predicates, gripper collision boundary,
    and offline latency disclosure.
-7. Separate π0.5-LIBERO evidence with synchronized authentic comparison clips,
-   plus an official LeRobotDataset v3.0 Panda H×8 roundtrip.
+7. Live bridge scope followed by the separately scoped π0.5-LIBERO outcome
+   study with synchronized authentic comparison clips, plus an official
+   LeRobotDataset v3.0 Panda H×8 roundtrip.
 8. One-command full local CPU acceptance, focused Panda replay commands, a
    checked-in VS Code workspace, and a four-step acceptance path.
 9. Verified 17-case asynchronous CPU boundary disclosure.
@@ -41,6 +40,7 @@ accepted trajectory to MuJoCo torque execution.
 
 | Artifact | Exact result | Boundary |
 | --- | --- | --- |
+| `g01_live_panda_smoke_final_001` | 35 accepted live responses; mean/P95 82.75/89.56 ms; 290/311 control ticks during inference; 0 registered simulation violations; 94 video frames | official checkpoint integration probe; target not reached; no official task, hardware, hard-real-time, or safety claim |
 | `cpu_runtime_completion_001` | 17/17 expected outcomes; 6 complete plans, 10 holds, 1 unrecoverable stop; zero partial prefixes; assurance-worker P95 438 ms | scripted/frozen/contract fixtures; best-effort Python threads; no learned checkpoint |
 | `integrated_panda_fault_matrix_001` | 27/27 expected outcomes; 12 accepted, 6 verified brakes, 7 holds, 2 unrecoverable stops; 124 edges | scripted inputs; synchronous offline CPU |
 | `integrated_panda_task_001` | 2/2 target reaches; 351/351 motion edges and braking boundaries; zero registered contacts, self contacts, limit violations, or torque saturation | MuJoCo torque execution; joint-waypoint task |
@@ -54,12 +54,12 @@ hard-real-time or physical safety guarantee.
 
 ## Limitations shown on-page
 
-- Panda task actions are scripted RRT-Connect references. The asynchronous CPU
-  matrix uses scripted, frozen, and provider-compatible fixtures, not learned
-  VLA outputs.
+- Panda task actions with 2/2 target reaches are scripted RRT-Connect
+  references. G01 must not be used to relabel those task outcomes as pi0.5.
 - There is no real robot, grasping success, ROS2 deployment, or hard-real-time
   scheduling claim.
-- π0.5-LIBERO and Panda-MuJoCo evidence remain separate tracks.
+- G01 connects the runtime tracks but remains separate from official LIBERO
+  task-outcome evidence and reports `target_reached=false`.
 - The asynchronous CPU artifact validates a provider-to-supervisor software
   boundary; it is not a closed-loop task-success or deadline-guarantee result.
 

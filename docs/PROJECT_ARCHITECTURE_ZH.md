@@ -1,12 +1,12 @@
 # ArmBench 架构与主张边界
 
-状态：Current。更新日期：2026-08-08。
+状态：Current。更新日期：2026-08-09。
 
 ## 项目目的
 
 ArmBench 是一个研究动作块式 VLA 在“模型响应返回”和“机器人执行”之间如何运行的工程平台。它不是新的基础模型，不是 `pi0.5` 训练项目，不是真机部署，也不是碰撞安全认证系统。
 
-平台由两条独立验证的执行路径和一层共用运行时/证据层组成。这个分离是刻意保留的：本地 Panda guard 的结果不能被表述成 `pi0.5`-LIBERO 结果，LIBERO 的任务成功率也不能被表述成 Panda 安全结果。
+平台由两条独立验证的执行路径、一层共用运行时/证据层，以及二者之间一条范围受限的 live integration gate 组成。这个分离是刻意保留的：本地 Panda guard 的结果不能被表述成 `pi0.5`-LIBERO 结果，LIBERO 的任务成功率也不能被表述成 Panda 安全结果。
 
 ## 术语
 
@@ -33,7 +33,8 @@ ArmBench 是一个研究动作块式 VLA 在“模型响应返回”和“机器
 这条路径用于验证七自由度机械臂上的运行时契约和受控失败行为。连续 checker 对
 编译后的 MuJoCo 几何和声明的关节线性插值给出保守判定；当前保留的审计矩阵已经
 覆盖静态障碍和注册的自碰边集，两个力矩控制 MuJoCo 关节路点任务也已完成离线
-任务级接线验证；在线学习策略接入和实体模型精度仍需后续验证。
+任务级接线验证。另一条真实 checkpoint integration smoke 已经进入该 runtime；
+任务对齐的学习策略评测和实体模型精度仍需后续验证。
 
 ### 2. `pi0.5 VLA` 时序评测路径
 
@@ -60,12 +61,12 @@ ArmBench 是一个研究动作块式 VLA 在“模型响应返回”和“机器
 
 共用工具不代表实验语义相同。LIBERO 和 Panda 的动作空间、策略、执行环境和结果主张保持分离。
 
-当前维护的运行时还增加了一个组件级非阻塞验收：阻塞策略在独立 worker 中
-运行，latest-only 待处理邮箱限制积压；控制侧拒绝乱序、失败、超过 deadline
-或耗尽 action horizon 的响应。该验收使用 scripted policy 在 CPU 上验证；同一
-调度契约现在已经接入本地力矩控制 MuJoCo Panda 闭环，包括实时双相机采集、基于
-实测状态的终端制动和 trace 重算验证。它尚未替换既有 `pi0.5` 实验采用的
-blocking inference 加 simulator catch-up evaluator。
+当前维护的运行时还增加了非阻塞验收：阻塞策略在独立 worker 中运行，latest-only
+待处理邮箱限制积压；控制侧拒绝乱序、失败、超过 deadline 或耗尽 action horizon
+的响应。scripted policy 提供完整 CPU 故障矩阵；同一线程调度契约现在还由一次
+内容可认证的真实 `pi05_libero` checkpoint smoke 驱动本地力矩控制 MuJoCo Panda
+闭环，包括双相机采集、基于实测状态的终端制动和 trace 重算验证。它没有替换既有
+LIBERO 结果实验采用的 blocking inference 加 simulator catch-up evaluator。
 
 CPU 收口路径进一步增加了独立的集成保障 worker：provider 返回完整 `ActionChunk`
 后，OSQP、连续碰撞和动力学制动在非控制线程完成，`AtomicPandaPlanGate` 在激活时
@@ -77,6 +78,7 @@ CPU 收口路径进一步增加了独立的集成保障 worker：provider 返回
 
 | 组件 | 已验证结果 | 主张边界 |
 | --- | --- | --- |
+| 真实 `pi0.5` 到 Panda 集成门 | 35 个响应被接收；策略时延平均/P95 为 82.75/89.56 ms；推理期间 control tick 为 290/311；注册仿真违规为 0 | 单次 free-space 集成探针，`target_reached=false`；不是官方 LIBERO/Panda 任务结果、真机或安全认证 |
 | Measured-age 调度器 | `pi0.5`-LIBERO Spatial，120 组匹配试验：88/120 到 116/120，+23.33 个百分点，exact McNemar `p=1.94e-6` | 一个冻结的官方 checkpoint 与仿真矩阵 |
 | 跨任务集验证 | Object、Goal、LIBERO-10，300 rollouts / 150 pairs：83/150 到 141/150 | 同一模型族和仿真套件内的确定性延迟证据 |
 | RTC-style sampler extension | 300 组匹配 triplet：baseline 96/100，hard projection 97/100，RTC 97/100 | 没有任务成功率优势；seam 是探索性指标 |
@@ -105,6 +107,12 @@ CPU 收口路径进一步增加了独立的集成保障 worker：provider 返回
 MuJoCo Panda hand Jacobian、阻尼最小二乘微分逆运动学、关节限位缩放和现有
 guard。确定性 CPU smoke 见
 [LIBERO 到 Panda 的笛卡尔动作适配器](PANDA_CARTESIAN_ADAPTER_ZH.md)。
+
+该适配器现在还由经过 attestation 的 `pi05_libero` checkpoint 在线调用。G01 bundle
+记录 OpenPI/ArmBench commit、16 对象 checkpoint CRC32C、canonical checkpoint
+inventory hash、每次响应摘要、策略/适配器时延、请求生命周期、NPZ 时钟与状态以及
+94 帧 MuJoCo 视频；独立 validator 可在不重跑推理的情况下核对这些记录。见
+[真实 checkpoint 集成门](../evidence/g01_live_panda_smoke_final_001/summary.md)。
 
 适配器现在还接受经过严格校验的官方 checkpoint 冻结响应离线回放。该流程核验全部响应哈希，
 按 LIBERO 任务和运行时方法等额抽样，每个 Panda 案例独立重置，并生成可自校验的 CSV/JSON
@@ -161,17 +169,17 @@ pair（在编译模型中对应 36 个 geom pair），其余注册自碰撞对�
 分别耗时 5.27 s 和 10.20 s。因此它补齐的是本地“规划-保障-执行”接线，不能证明
 在线 deadline 可行。
 
-但它仍不是经过验证的“官方 `pi0.5` 在线推理直接控制 Panda”链路。尺度、坐标系、
-裁剪和夹爪语义已经与 LIBERO commit `f78abd68`、robosuite `1.4.1` 源码核对，
-但微分逆解在动力学上不等价于 robosuite 的 torque-level OSC。官方 checkpoint
-worker 仍未接入该 Panda loop 或独立推进的 LIBERO actuator loop。只有完成学习式
-策略集成、时间同步和新的冻结实验，才能提出端到端主张。
+G01 已经验证“官方 `pi0.5` 在线推理进入 Panda 仿真执行”的 live integration
+smoke，但它不是任务部署证据。尺度、坐标系、裁剪和夹爪语义已与 LIBERO commit
+`f78abd68`、robosuite `1.4.1` 源码核对，但微分逆解在动力学上不等价于
+robosuite torque-level OSC；free-space 探针也不属于官方 LIBERO 协议且目标未到达。
+任务主张仍需任务对齐、多 seed 的冻结实验；部署主张还需要实体硬件。
 
 因此，不应表述为：`pi0.5` 已部署到 Panda、Panda guard 已证明 VLA 安全，或仿真结果已经达到硬实时。
 
-独立推理/控制调度目前已经接入并测试于本地 scripted Panda actuator loop，但尚未
-连接官方 checkpoint 或 LIBERO evaluator。Python 线程也不提供操作系统调度和
-最坏时延保证。
+线程式推理/控制调度已经在 G01 中连接官方 checkpoint，但 Python 线程不提供
+操作系统调度或最坏时延保证。单独的进程级 independent-clock harness 仍属于 CPU
+契约证据，没有被用于声称 G01 具备硬实时能力。
 
 ## 下一阶段的合理整合
 
@@ -182,10 +190,11 @@ evaluator，并评测：
 2. 将官方 LeRobot 数据集边界和 Panda watchdog 接到具体驱动前，先冻结动作语义和 reset 行为；
 3. 把集成 supervisor 接入带明确 deadline 的异步执行，降低或并行化证书耗时，
    并量化保守拒绝代价；
-4. 用经过认证的学习策略输出替换 scripted 任务源，再增加标定后的硬件时序、
-   急停集成和重复实体故障注入证据。
+4. 用任务对齐 evaluator 替换 G01 的 free-space 探针，由经过认证的学习策略输出驱动，
+   冻结多 seed 协议，再增加标定后的硬件时序、急停集成和重复实体故障注入证据。
 
 在此之前，准确的公开表述是：**七自由度受限执行基座 + `pi0.5 VLA`
 运行时评测路径 + provider-neutral 动作语义 + 官方 LeRobot 数据集 round-trip +
 MuJoCo 动力学制动审计 + 可独立重算的 Panda 集成动作保障链，共用可审计运行时
-基础设施。学习策略任务接入、在线 deadline 证据和实体机器人证据仍是后续工作。**
+基础设施。任务对齐的学习策略评测、具有统计支撑的在线 deadline 证据和实体机器人
+证据仍是后续工作。**
