@@ -75,6 +75,9 @@ services:
     environment:
       ARMBENCH_POLICY_PORT: "${ARMBENCH_POLICY_PORT:-8000}"
       ARMBENCH_RUN_ID: "${ARMBENCH_RUN_ID:-pi05_libero_async}"
+      # The generic runner uses the immutable upstream checkout by default.
+      # Extension runs must set this explicitly and bind the matching commit.
+      ARMBENCH_EXPECTED_OPENPI_COMMIT: "${ARMBENCH_EXPECTED_OPENPI_COMMIT:-15a9616a00943ada6c20a0f158e3adb39df2ccac}"
       GIT_CONFIG_COUNT: "1"
       GIT_CONFIG_KEY_0: "safe.directory"
       GIT_CONFIG_VALUE_0: "/app"
@@ -94,6 +97,7 @@ services:
           --policy-config pi05_libero \
           --checkpoint gs://openpi-assets/checkpoints/pi05_libero \
           --openpi-root /app \
+          --expected-openpi-commit "$${ARMBENCH_EXPECTED_OPENPI_COMMIT}" \
           --attestation-output "$${run_directory}/checkpoint_attestation.json" \
           --host 0.0.0.0 \
           --port "$${ARMBENCH_POLICY_PORT}" \

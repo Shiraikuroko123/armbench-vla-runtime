@@ -182,6 +182,8 @@ def test_compose_overlay_mounts_artifacts_and_runs_the_standalone_evaluator():
     assert "python -m integrations.openpi.libero_runtime_eval run" in compose
     assert 'run_directory="/armbench_results/$${ARMBENCH_RUN_ID}"' in compose
     assert "serve_policy_attested.py" in compose
+    assert '--expected-openpi-commit "$${ARMBENCH_EXPECTED_OPENPI_COMMIT}"' in compose
+    assert "ARMBENCH_EXPECTED_OPENPI_COMMIT:" in compose
     assert "uv run --frozen python" in compose
     assert "checkpoint_attestation.json" in compose
     assert "openpi_server.log" in compose
