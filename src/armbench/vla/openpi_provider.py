@@ -187,10 +187,13 @@ class OpenPILiberoPandaPolicy:
             raise ProviderContractError(
                 "OpenPILiberoPandaPolicy requires a live checkpoint provider"
             )
+        semantics = provider.semantics
+        if not isinstance(semantics, ActionSemantics):
+            raise TypeError("provider.semantics must be an ActionSemantics")
         self.provider = provider
         self.adapter = PandaCartesianActionAdapter(robot, adapter_config)
         self.expected_semantics = libero_cartesian_semantics(adapter_config)
-        require_semantic_compatibility(provider.semantics, self.expected_semantics)
+        require_semantic_compatibility(semantics, self.expected_semantics)
         self._clock = clock
         self._last_metrics: dict[str, object] = {}
 
