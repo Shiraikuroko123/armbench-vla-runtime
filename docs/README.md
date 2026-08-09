@@ -54,6 +54,7 @@ to match later results.
 | --- | --- | --- |
 | [Measured-age temporal alignment](MEASURED_LATENCY_RUNTIME.md) | Current | Timestamp-based suffix selection and held-out confirmation |
 | [Non-blocking runtime harness](ASYNC_RUNTIME.md) | Current | Threaded inference mailbox, latest-only queue, deadline dispatch, and limitations |
+| [Independent-clock runtime smoke](INDEPENDENT_CLOCK_RUNTIME.md) | Current | Spawned provider process, parent-owned wall-clock ticks, latest-only supersession, and auditable deadline decisions |
 | [非阻塞运行时验收](ASYNC_RUNTIME_ZH.md) | Current | 独立推理线程、latest-only 队列、deadline 调度与证据边界 |
 | [Panda 异步动作保障 CPU 收口](CPU_RUNTIME_COMPLETION_ZH.md) | Current | provider-neutral 输入、异步集成监督、原子发布与可重算故障矩阵 |
 | [Asynchronous Panda closed loop](ASYNC_PANDA_CLOSED_LOOP.md) | Current | Live dual-camera capture, blocking policy worker, measured-age dispatch, braking fallback, and torque-level MuJoCo execution |

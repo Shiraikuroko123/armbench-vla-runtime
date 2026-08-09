@@ -40,6 +40,7 @@ from armbench.mujoco_sim.self_collision_audit import (
 from armbench.scenario import benchmark_scenarios
 from armbench.vla.async_runtime import run_async_runtime_smoke
 from armbench.vla.async_smoke import run_process_runtime_smoke
+from armbench.vla.independent_clock import run_independent_clock_smoke
 from armbench.vla.async_panda import ASYNC_PANDA_MODES
 from armbench.vla.async_panda_benchmark import (
     AsyncPandaCondition,
@@ -196,6 +197,16 @@ def build_parser() -> argparse.ArgumentParser:
         "--action-period-ms", type=float, default=1000.0 / 15.0
     )
     process_smoke.add_argument("--deadline-ms", type=float, default=200.0)
+
+    independent_clock = subparsers.add_parser(
+        "vla-independent-clock-smoke",
+        help="run the CPU-only independent-clock latest-only runtime smoke",
+    )
+    independent_clock.add_argument("--policy-latency-ms", type=float, default=40.0)
+    independent_clock.add_argument("--control-period-ms", type=float, default=5.0)
+    independent_clock.add_argument("--action-period-ms", type=float, default=20.0)
+    independent_clock.add_argument("--deadline-ms", type=float, default=120.0)
+    independent_clock.add_argument("--max-ticks", type=int, default=20)
 
     subparsers.add_parser(
         "vla-qp-smoke",
@@ -981,6 +992,16 @@ def main(arguments: list[str] | None = None) -> int:
             control_period_ms=args.control_period_ms,
             action_period_ms=args.action_period_ms,
             deadline_ms=args.deadline_ms,
+        )
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        return 0 if bool(report["passed"]) else 1
+    if args.command == "vla-independent-clock-smoke":
+        report = run_independent_clock_smoke(
+            policy_latency_ms=args.policy_latency_ms,
+            control_period_ms=args.control_period_ms,
+            action_period_ms=args.action_period_ms,
+            deadline_ms=args.deadline_ms,
+            max_ticks=args.max_ticks,
         )
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0 if bool(report["passed"]) else 1
