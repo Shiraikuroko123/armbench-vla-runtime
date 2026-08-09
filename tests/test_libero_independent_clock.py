@@ -12,10 +12,19 @@ from integrations.openpi.libero_independent_clock import (
     libero_dynamic_hold,
     run_libero_independent_clock_episode,
 )
+from integrations.openpi.libero_independent_clock_eval import ExperimentCell
 from integrations.openpi.libero_runtime import LIBERO_DUMMY_ACTION
 from integrations.openpi.serve_policy_attested import (
+    POLICY_SAMPLING_GENERATOR,
     POLICY_SAMPLING_REQUEST_FIELD,
     build_policy_sampling_control,
+    policy_sampling_contract,
+    policy_sampling_noise,
+    policy_sampling_noise_sha256,
+)
+from integrations.openpi.validate_libero_independent_clock import (
+    _Collector,
+    _validate_runtime,
 )
 
 
@@ -74,12 +83,19 @@ class _DelayedLiberoProvider:
         actions = np.zeros((10, 7), dtype=np.float64)
         actions[:, 0] = 0.10
         actions[:, -1] = -1.0
+        key_sha256 = sampling["key_sha256"]
         return {
             "actions": actions,
             "source": "cpu_test_pi05_fixture",
             "response_metadata": {
                 "policy_sampling": {
-                    "key_sha256": sampling["key_sha256"],
+                    "schema_version": policy_sampling_contract()["schema_version"],
+                    "namespace": "scored",
+                    "key_sha256": key_sha256,
+                    "noise_sha256": policy_sampling_noise_sha256(
+                        policy_sampling_noise(key_sha256)
+                    ),
+                    "generator": POLICY_SAMPLING_GENERATOR,
                 },
                 "action_chunk_sha256": canonical_action_chunk_sha256(actions),
             },
@@ -163,6 +179,18 @@ def test_true_independent_clock_libero_episode_ticks_during_inference() -> None:
     metadata = completed[0].response_metadata
     assert metadata is not None
     assert len(metadata["policy_sampling"]["key_sha256"]) == 64
+
+    collector = _Collector()
+    _validate_runtime(
+        result.to_dict(),
+        ExperimentCell("libero_spatial", 0, 2),
+        seed=7,
+        period_ms=5.0,
+        deadline_ms=200.0,
+        submit_every_ticks=1,
+        collector=collector,
+    )
+    assert collector.errors == []
 
 
 def test_action_chunk_hash_is_shape_bound_and_deterministic() -> None:
