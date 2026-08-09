@@ -1,0 +1,81 @@
+{
+  "files": {
+    "aggregate.json": {
+      "bytes": 418,
+      "sha256": "7b6e0aacd9e6454f8fcbdcbbe7a646b9f2fd565dfae9262d943eb8a5db4ee133"
+    },
+    "environment.json": {
+      "bytes": 7159,
+      "sha256": "671756eaefa440588093fb3f8677f97eb10350d83ab9b41ee52c5f9a1430b391"
+    },
+    "episodes/libero_spatial__task_000__episode_00/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "2db16a59a2cee33333ebbc16619a35fc2f28a892e467da4465b661329fdd4f54"
+    },
+    "episodes/libero_spatial__task_000__episode_00/runtime.json": {
+      "bytes": 363536,
+      "sha256": "9d876c544359ad0cdfbdfdc661b6c570a1a6c56cd34ebf61f123817bc82b984a"
+    },
+    "integrity.json": {
+      "bytes": 157,
+      "sha256": "154bd8821aa35fee7cc81670ced1c468384a2cb9b9ac1c246b21d287f7095df7"
+    },
+    "per_episode.csv": {
+      "bytes": 943,
+      "sha256": "8de3f0228cde67d3ba75be2b645590fcde026f7fe17ba89034ea3abd1b5ee555"
+    },
+    "per_episode.json": {
+      "bytes": 1214,
+      "sha256": "9de8287a04cf259a094f897fdb7c20be2988d87180fb6338e18b5705d950869a"
+    },
+    "progress.json": {
+      "bytes": 196,
+      "sha256": "cb0edde547ccc1a62d9c37e801c0cc7a8f1cf7f98f3e3121afb21f69a9867ba1"
+    },
+    "provenance/armbench_source/integrations/openpi/compose.libero-independent-clock.yml": {
+      "bytes": 1710,
+      "sha256": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701"
+    },
+    "provenance/armbench_source/integrations/openpi/libero_independent_clock.py": {
+      "bytes": 15264,
+      "sha256": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1"
+    },
+    "provenance/armbench_source/integrations/openpi/libero_independent_clock_eval.py": {
+      "bytes": 29155,
+      "sha256": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1"
+    },
+    "provenance/armbench_source/integrations/openpi/libero_runtime.py": {
+      "bytes": 46257,
+      "sha256": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683"
+    },
+    "provenance/armbench_source/integrations/openpi/libero_runtime_eval.py": {
+      "bytes": 103183,
+      "sha256": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f"
+    },
+    "provenance/armbench_source/integrations/openpi/serve_policy_attested.py": {
+      "bytes": 42187,
+      "sha256": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8"
+    },
+    "provenance/armbench_source/integrations/openpi/validate_libero_independent_clock.py": {
+      "bytes": 24602,
+      "sha256": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599"
+    },
+    "provenance/armbench_source/src/armbench/vla/independent_clock.py": {
+      "bytes": 47066,
+      "sha256": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+    },
+    "resolved_protocol.json": {
+      "bytes": 3690,
+      "sha256": "3f561cc6c774c1a175f64d32ec5ddbfca23d2ad6f264e9a434ade79853471532"
+    },
+    "summary.md": {
+      "bytes": 450,
+      "sha256": "3cb56489bd5d335870ac6be2f12c102a8fb60fd1a6ba553a7e28f28fdbf106ab"
+    },
+    "videos/libero_spatial__task_000__episode_00.mp4": {
+      "bytes": 38918,
+      "sha256": "fbee04cd6c8134d2f6de4a401eb476aed5bc989c88477e8307dc0b0ed307f2f9"
+    }
+  },
+  "schema_version": "armbench.pi05_libero_independent_clock.v1"
+}

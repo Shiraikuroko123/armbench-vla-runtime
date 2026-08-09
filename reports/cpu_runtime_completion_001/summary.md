@@ -8,7 +8,7 @@ Provider-neutral asynchronous assurance boundary; scripted/frozen/contract fixtu
 - Holds: 10
 - Unrecoverable stops: 1
 - Partial policy prefixes exposed: 0
-- Assurance worker P95: 438.000 ms
+- Assurance worker P95: 281.200 ms
 
 | Case | Provider | Fault | Status | Reason | Match |
 | --- | --- | --- | --- | --- | ---: |

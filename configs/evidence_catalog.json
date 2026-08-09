@@ -566,6 +566,60 @@
         "scope": "Reconstructs and hashes stored requests and validates schema-v5 cross-file consistency."
       },
       "claim_boundary": "Proves request serialization and replayability against a scripted loopback server; checkpoint identity is false."
+    },
+    {
+      "id": "pi05_libero_independent_clock_core_40_001",
+      "title": "pi0.5-LIBERO independent-clock core pilot",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_libero_independent_clock_core_40_001/README.md",
+      "protocol": "evidence/pi05_libero_independent_clock_core_40_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_libero_independent_clock_core_40_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_libero_independent_clock_core_40_001/evaluation/aggregate.json",
+        "evidence/pi05_libero_independent_clock_core_40_001/evaluation/per_episode.csv",
+        "evidence/pi05_libero_independent_clock_core_40_001/evaluation/per_episode.json",
+        "evidence/pi05_libero_independent_clock_core_40_001/evaluation/videos/libero_spatial__task_004__episode_00.mp4",
+        "evidence/pi05_libero_independent_clock_core_40_001/evaluation/videos/libero_spatial__task_004__episode_02.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_libero_independent_clock_core_40_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes manifest hashes, provenance, request lifecycles, independent-clock overlap, episode rows, and aggregate results without rerunning inference."
+      },
+      "claim_boundary": "A 40-rollout simulation pilot for independent simulation and inference clocks; it is not an official LIBERO leaderboard score, a hard-real-time guarantee, hardware safety evidence, or method-superiority study."
+    },
+    {
+      "id": "pi05_libero_independent_clock_visual_success_001",
+      "title": "pi0.5-LIBERO independent-clock visual success",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_libero_independent_clock_visual_success_001/README.md",
+      "protocol": "evidence/pi05_libero_independent_clock_visual_success_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_libero_independent_clock_visual_success_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_libero_independent_clock_visual_success_001/evaluation/aggregate.json",
+        "evidence/pi05_libero_independent_clock_visual_success_001/evaluation/per_episode.csv",
+        "evidence/pi05_libero_independent_clock_visual_success_001/evaluation/videos/libero_spatial__task_000__episode_00.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_libero_independent_clock_visual_success_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the single visual run and verifies its full trace, provenance, overlap, and video manifest."
+      },
+      "claim_boundary": "A curated single-rollout simulation video for inspection only; it must not be pooled with the 40-rollout pilot or presented as a general success estimate."
     }
   ]
 }

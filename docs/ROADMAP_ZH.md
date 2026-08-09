@@ -1,6 +1,6 @@
 # ArmBench 技术加强路线与资源预算
 
-状态：后续技术迭代的唯一执行表。最后核对日期：2026-08-08。
+状态：后续技术迭代的唯一执行表。最后核对日期：2026-08-10。
 
 本文只保留技术工作。网页、措辞、简历包装、宣传材料和一般性仓库美化暂不进入路线。预算均为人民币估算，不含个人时间；云 GPU、硬件套件、运费和汇率会变化，实际购买前需要重新询价。
 
@@ -50,8 +50,8 @@
 
 | ID | 技术加强与解决的问题 | 当前状态 | 前置条件 | 所需软件/数据 | 所需云资源 | 现金预算 | 开发/运行时间 | 验收标准 | 优先级 |
 | --- | --- | --- | --- | --- | --- | ---: | --- | --- | --- |
-| G01 | 官方在线 `pi0.5 -> Panda` smoke，补上当前最关键的端到端断点 | 只有官方冻结响应离线回放；在线 Panda 使用 scripted policy | C01-C02；Panda 双相机 observation adapter；checkpoint attestation | 固定 OpenPI commit、官方 `pi05_libero` checkpoint、Panda MuJoCo | RTX 4090 24 GB；16 vCPU；64 GB RAM；200 GB SSD；6-12 GPU 小时 | ¥50-300 | 2-4 天开发，0.5 天运行 | 至少 10 条真实 checkpoint episode；请求、响应、适配、repair、watchdog、执行和反馈时间戳闭合；无 fixture | P0 |
-| G02 | 真正独立时钟的 `pi0.5`-LIBERO pilot，替代 blocking inference + simulator catch-up | 未完成 | C02、G01；仿真与推理分进程；配对 jitter/noise | OpenPI、LIBERO、40-rollout 冻结 pilot 协议 | 4090 24 GB；16 vCPU；64 GB；200 GB；12-30 GPU 小时 | ¥100-600 | 4-8 天 | 仿真在推理期间持续推进；40 rollouts 完整；所有 age、offset、hold 和 failure 可独立重算 | P0 |
+| G01 | 官方在线 `pi0.5 -> Panda` smoke，补上当前最关键的端到端断点 | **已完成**：35 个真实响应进入 Panda 异步 runtime；目标未到达，严格按 integration gate 报告 | C01-C02；Panda 双相机 observation adapter；checkpoint attestation | 固定 OpenPI commit、官方 `pi05_libero` checkpoint、Panda MuJoCo | 已使用 RTX 4090 云实例 | 已发生云主机费用 | 2026-08-09 完成 | checkpoint 身份、请求/响应、适配、repair、watchdog、时钟、轨迹和视频均由独立 validator 核对 | P0 完成 |
+| G02 | 真正独立时钟的 `pi0.5`-LIBERO pilot，替代 blocking inference + simulator catch-up | **已完成**：LIBERO Spatial 40/40 rollout 完成，38/40 成功；40/40 均证明推理/仿真重叠，4,521/4,623 tick 在推理期间推进 | C02、G01；仿真与推理分进程；固定随机源 | OpenPI、LIBERO、40-rollout 冻结 pilot 协议 | 已使用 RTX 4090 云实例；本地保留 17.3 MB 可验证 artifact | 已发生云主机费用 | 2026-08-10 完成 | 所有请求、action chunk、初始状态、age、hold、失败、视频和源码快照可独立重算；两条失败未剔除 | P0 完成 |
 | G03 | 独立时钟正式矩阵，确认时序方法是否仍有效 | 未开始 | G02 无基础设施故障且存在可评估干预 | 预注册不少于 100 matched pairs；固定随机源 | 4090 24 GB；30-80 GPU 小时 | ¥300-1,500 | 2-5 天运行与分析 | 全部 assigned rollouts 入统计；成功、deadline、query、干预、时延、CI 和失败分类完整；validator 通过 | P1 |
 | G04 | 在线任务级 QP/braking repair，验证满足约束的同时是否保留任务进度 | 只有 270 个离线案例与 scripted Panda loop | C03-C05、G02；候选与基线干预预算可比较 | 真实 `pi0.5` response、统一 fault matrix | 与 G03 共用或追加 20-50 GPU 小时 | ¥200-1,000 | 3-7 天 | 同一 policy 下报告任务成功、约束违规、hold、干预、进度和修复 P95/max；不筛除失败案例 | P1 |
 | G05 | 真实 OpenVLA-OFT 原生 smoke，增加第二 checkpoint 家族 | 当前只有 OpenVLA-OFT 命名合成 fixture | 固定官方 commit/checkpoint；先跑原生 LIBERO evaluator | OpenVLA-OFT 官方仓库、模型与 LIBERO 数据 | 最低约 16 GB VRAM，建议 4090 24 GB；200 GB SSD；6-12 GPU 小时 | ¥50-400 | 2-4 天 | checkpoint 内容 hash、真实模型输出、至少一条成功/失败 episode 和原生 evaluator 记录完整 | P1 |

@@ -1,0 +1,39 @@
+# Overlay for the official OpenPI LIBERO compose file plus
+# compose.libero-runtime.yml. It changes only the evaluator command.
+services:
+  runtime:
+    image: "${ARMBENCH_LIBERO_RUNTIME_IMAGE:-armbench-libero-runtime:py311}"
+    # The runtime image is built once from Dockerfile.libero-runtime-py311;
+    # null removes the official Python 3.8 build inherited from compose.yml.
+    build: !reset null
+    environment:
+      PYTHONPATH: /armbench:/armbench/src:/app:/app/packages/openpi-client/src:/app/third_party/libero
+      ARMBENCH_RUN_ID: "${ARMBENCH_RUN_ID:-pi05_libero_independent_clock}"
+      ARMBENCH_INDEPENDENT_CLOCK_ARGS: "${ARMBENCH_INDEPENDENT_CLOCK_ARGS:-}"
+    command:
+      - /bin/bash
+      - -lc
+      - |
+        set -euo pipefail
+        source /.venv/bin/activate
+        if [[ ! "$${ARMBENCH_RUN_ID}" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$ ]]; then
+          echo "Invalid ARMBENCH_RUN_ID" >&2
+          exit 64
+        fi
+        for attempt in $$(seq 1 "$${ARMBENCH_SERVER_WAIT_ATTEMPTS}"); do
+          if (: >"/dev/tcp/127.0.0.1/$${ARMBENCH_POLICY_PORT}") 2>/dev/null; then
+            break
+          fi
+          if [ "$${attempt}" -eq "$${ARMBENCH_SERVER_WAIT_ATTEMPTS}" ]; then
+            echo "OpenPI server did not become ready before the bounded wait expired" >&2
+            exit 70
+          fi
+          sleep 5
+        done
+        exec python -m integrations.openpi.libero_independent_clock_eval run \
+          --output-dir "/armbench_results/$${ARMBENCH_RUN_ID}/evaluation" \
+          --host 127.0.0.1 \
+          --port "$${ARMBENCH_POLICY_PORT}" \
+          --openpi-root /app \
+          --armbench-root /armbench \
+          $${ARMBENCH_INDEPENDENT_CLOCK_ARGS}

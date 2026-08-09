@@ -26,7 +26,7 @@
     "armbench/vla/integrated_panda_async.py": "f1098b2e5bf71006511754092e815a61c5882ef21f4154606394c66d7d3a1610",
     "armbench/vla/integrated_panda_guard.py": "821d5e82b4db620aec4401bea6646bbc87111100e124fb3bd3ef31284b6d81fb",
     "armbench/vla/integrated_panda_task.py": "2d9f8a11d53387f1be081306bce1c5ccb2666a63d32a2563b1c3b84825f31141",
-    "armbench/vla/provider_contract.py": "c6e72c075706722f1c86316304af902652f157daaf04260e9b076bd13c14ea2e",
+    "armbench/vla/provider_contract.py": "17edbc4569842339bd62aa600f7c5ab4e8abd301424908644ec2990e0a37083f",
     "armbench/vla/qp_projection.py": "c68f37c9ee55fd2069522d4a05c5f7de930166b4cc3b4f8ca07c6de33fd990ae"
   },
   "provider_modes": {

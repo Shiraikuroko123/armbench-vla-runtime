@@ -7,10 +7,10 @@ scripted runtime checks, and rejected runs.
 
 ## Repository inventory
 
-- Artifact directories: 28
-- Files: 1395
-- Stored size: 200.7 MiB
-- Catalog tree SHA-256: `5beed51006878011d4b6ee487b7acc5056075b85f8f2cae23685c41152b56b2c`
+- Artifact directories: 30
+- Files: 1519
+- Stored size: 217.2 MiB
+- Catalog tree SHA-256: `031f161f26d623360e41a1cc8c2a2b2ad76e351bb14ef41ea867f3a78b325f68`
 - Fingerprint basis: Git blob IDs + canonical paths + blob sizes
 - Machine-readable form: [evidence_catalog.json](evidence_catalog.json)
 
@@ -25,7 +25,7 @@ commands below define the stronger scientific validation available per artifact.
 | --- | ---: | --- |
 | Primary or confirmatory | 3 | Frozen or prospectively defined studies used for the repository's bounded result claims. |
 | Primary source artifact | 2 | Raw input to a primary combined analysis; interpret it with the linked companion artifact and protocol. |
-| Exploratory pilot | 5 | Pilot or smoke evidence used to test feasibility or choose a later protocol, not a confirmatory result. |
+| Exploratory pilot | 7 | Pilot or smoke evidence used to test feasibility or choose a later protocol, not a confirmatory result. |
 | Mechanism or integration gate | 4 | Component-level evidence that an implementation contract holds; it is not task-success evidence. |
 | Diagnostic | 1 | A bounded debugging artifact retained for traceability rather than a headline efficacy claim. |
 | Rejected from effect analysis | 2 | Byte-preserved evidence excluded after a documented protocol or pairing failure. |
@@ -126,6 +126,30 @@ Pilot or smoke evidence used to test feasibility or choose a later protocol, not
 - Validator: `python -m integrations.openpi.validate_libero_artifact evidence/pi05_libero_alignment_pilot_001/run/evaluation --json`. Checks the finalized exploratory artifact and recomputes its registered aggregates.
 - Claim boundary: Exploratory evidence that motivated a separately frozen confirmatory study.
 - Inventory: 74 files, 3.4 MiB, tree SHA-256 `29cbf3f8865dd9745ef17f9ae9303cf9e19e2c0adba5b41b2ad333003232469e`
+
+### pi0.5-LIBERO independent-clock core pilot
+
+- Artifact: `pi05_libero_independent_clock_core_40_001`
+- Policy provenance: `official_openpi_pi05_libero`
+- Result: [README.md](../evidence/pi05_libero_independent_clock_core_40_001/README.md)
+- Protocol: [resolved_protocol.json](../evidence/pi05_libero_independent_clock_core_40_001/evaluation/resolved_protocol.json)
+- Manifest: [manifest.json](../evidence/pi05_libero_independent_clock_core_40_001/evaluation/manifest.json)
+- Raw review files: [aggregate.json](../evidence/pi05_libero_independent_clock_core_40_001/evaluation/aggregate.json), [per_episode.csv](../evidence/pi05_libero_independent_clock_core_40_001/evaluation/per_episode.csv), [per_episode.json](../evidence/pi05_libero_independent_clock_core_40_001/evaluation/per_episode.json), [libero_spatial__task_004__episode_00.mp4](../evidence/pi05_libero_independent_clock_core_40_001/evaluation/videos/libero_spatial__task_004__episode_00.mp4), [libero_spatial__task_004__episode_02.mp4](../evidence/pi05_libero_independent_clock_core_40_001/evaluation/videos/libero_spatial__task_004__episode_02.mp4)
+- Validator: `python -m integrations.openpi.validate_libero_independent_clock evidence/pi05_libero_independent_clock_core_40_001/evaluation --json`. Recomputes manifest hashes, provenance, request lifecycles, independent-clock overlap, episode rows, and aggregate results without rerunning inference.
+- Claim boundary: A 40-rollout simulation pilot for independent simulation and inference clocks; it is not an official LIBERO leaderboard score, a hard-real-time guarantee, hardware safety evidence, or method-superiority study.
+- Inventory: 102 files, 15.8 MiB, tree SHA-256 `b860f4e5d808365955cdaca1fef1ea8d3487a9f1baf8f909bf465d6d1fa0ea42`
+
+### pi0.5-LIBERO independent-clock visual success
+
+- Artifact: `pi05_libero_independent_clock_visual_success_001`
+- Policy provenance: `official_openpi_pi05_libero`
+- Result: [README.md](../evidence/pi05_libero_independent_clock_visual_success_001/README.md)
+- Protocol: [resolved_protocol.json](../evidence/pi05_libero_independent_clock_visual_success_001/evaluation/resolved_protocol.json)
+- Manifest: [manifest.json](../evidence/pi05_libero_independent_clock_visual_success_001/evaluation/manifest.json)
+- Raw review files: [aggregate.json](../evidence/pi05_libero_independent_clock_visual_success_001/evaluation/aggregate.json), [per_episode.csv](../evidence/pi05_libero_independent_clock_visual_success_001/evaluation/per_episode.csv), [libero_spatial__task_000__episode_00.mp4](../evidence/pi05_libero_independent_clock_visual_success_001/evaluation/videos/libero_spatial__task_000__episode_00.mp4)
+- Validator: `python -m integrations.openpi.validate_libero_independent_clock evidence/pi05_libero_independent_clock_visual_success_001/evaluation --json`. Recomputes the single visual run and verifies its full trace, provenance, overlap, and video manifest.
+- Claim boundary: A curated single-rollout simulation video for inspection only; it must not be pooled with the 40-rollout pilot or presented as a general success estimate.
+- Inventory: 22 files, 0.7 MiB, tree SHA-256 `aa60e7d2dd0211db10b95e785d343c8a509e1ae2145af46044e9c241918e44aa`
 
 ### pi0.5 LIBERO measured-age pilot
 

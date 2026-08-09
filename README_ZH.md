@@ -4,6 +4,29 @@
 
 # ArmBench
 
+## G02：官方 pi0.5-LIBERO 独立时钟 pilot
+
+在已有七自由度 Panda / MuJoCo 执行基础上，ArmBench 新增了一条真正的
+`pi0.5` 闭环仿真评测路径：父进程以 20 Hz 推进 LIBERO，独立子进程调用
+官方 `pi05_libero` checkpoint，latest-only mailbox 负责过期动作后缀、
+200 ms deadline 和 hold 回退。
+
+冻结的 LIBERO Spatial 矩阵覆盖 10 个任务、每个任务 4 个 episode，共 40
+次 rollout。结果为 40/40 完成、38/40 任务成功（95.0%），4,521 个控制
+tick 发生在推理进行期间，0 次 deadline 超时、0 次 provider 失败。task 4
+的两条 `max_ticks` 失败视频被保留，不能把单独的 1/1 可视化成功样本混入
+核心统计。
+
+这是一个仿真 pilot，证明的是“真实 checkpoint 可以在独立仿真/推理时钟下
+被审计地运行”，不是官方 LIBERO 排行榜分数、硬实时保证、硬件安全证明或
+真机结果。完整说明见 [G02 中文报告](docs/G02_INDEPENDENT_CLOCK_PILOT_ZH.md)，
+核心 artifact 可由 CPU validator 重算：
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock `
+  'evidence\pi05_libero_independent_clock_core_40_001\evaluation' --json
+```
+
 ArmBench 是一个面向动作块式视觉-语言-动作策略的运行时与评测平台。它研究的不是重新训练一个 VLA，而是 VLA 已经输出一段未来动作后，如何在推理延迟、状态变化和异常响应下可信地进入控制回路。
 
 本文首次使用的规范名称为：**Physical Intelligence 的 `pi0.5`（pi-zero-point-five）视觉-语言-动作模型，简称 `pi0.5 VLA`**。`OpenPI` 是项目使用的模型与推理实现栈，不是另一个模型名称。

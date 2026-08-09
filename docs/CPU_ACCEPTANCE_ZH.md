@@ -31,7 +31,9 @@ Ubuntu：
 默认检查包括环境、MuJoCo 场景、QP 投影、连续静态/自碰撞、动力学制动、
 provider 语义契约、LeRobot 风格 watchdog、冻结 `pi0.5` 响应回放、制动修复、
 27 案例同步 supervisor、2 条 Panda 任务、27 案例异步闭环、17 案例异步边界和
-证据目录。它们均不需要 GPU、服务器或实体机械臂。
+G02 的 40-rollout 独立时钟核心 artifact、单条可视化 artifact 与证据目录。
+这些步骤均不需要 GPU、服务器或实体机械臂；G02 validator 重算已保存的请求、
+action chunk、tick、初始状态和 provenance，不会重新执行 checkpoint。
 
 ## 官方 LeRobot 环境
 
@@ -56,5 +58,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File `
   '.\scripts\accept_cpu.ps1' -FullTests
 ```
 
-验收通过只说明保存的输入、实现哈希、清单和 validator 结果一致；它不等于
-`pi0.5` 已经端到端控制 Panda，不等于真机、硬实时或安全认证结果。
+验收通过只说明保存的输入、实现哈希、清单和 validator 结果一致。G02 提供独立
+时钟的真实 checkpoint 仿真 pilot，但仍不等于 `pi0.5` 端到端控制 Panda、官方
+排行榜成绩、真机、硬实时或安全认证结果。

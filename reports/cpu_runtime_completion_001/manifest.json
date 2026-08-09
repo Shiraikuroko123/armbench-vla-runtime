@@ -7,25 +7,25 @@
     },
     {
       "path": "per_case.csv",
-      "sha256": "b2406df9e233e95aa7a13f9b5c5d2a86e142e2d23bd53e20f1d9eb563fa09e12",
-      "size_bytes": 5145
+      "sha256": "29e29ae432e57cc24f2d6dcfe4efa5aeb1e5ba6a4e768946b93fea6ed3287ecd",
+      "size_bytes": 5013
     },
     {
       "path": "provenance.json",
-      "sha256": "03f80e462ff733c0dbbebb8531d41784ea5978dad042bb85486512794bce4b72",
+      "sha256": "18e695a334679b9b28ebe064cb25fec1f98da64008dc8a2365264c4e4493401c",
       "size_bytes": 2414
     },
     {
       "path": "summary.json",
-      "sha256": "8c6af09de6603226a373e13487eac34b70e9b750403eaf8fc37dceb6946c941f",
-      "size_bytes": 18918
+      "sha256": "8400e0c077653da00b3bde2af9bca50f0b6d08321be79c9c21985fd62c5e95c8",
+      "size_bytes": 18785
     },
     {
       "path": "summary.md",
-      "sha256": "713a312f567bc7670948355db49b87f8083e8dc4747f227b54e9509f852dc574",
+      "sha256": "ef4a069a9a9d8aad58f882c3927f9d8ea76345b5eddd665d659dbc00cf3f21d7",
       "size_bytes": 2398
     }
   ],
-  "inventory_sha256": "8eeeff20c2f8643d2fb937dbd336df8bd0496a8765a32f98f20e59b05d1ecd68",
+  "inventory_sha256": "e28d2dbf0aca9fbce4009f41548f447e33d5f354db631fd26fe38753644f0557",
   "schema_version": "armbench.cpu_runtime_completion_manifest.v1"
 }

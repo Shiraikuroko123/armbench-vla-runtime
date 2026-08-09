@@ -1,0 +1,7 @@
+{
+  "complete": true,
+  "completed_rollouts": 1,
+  "planned_rollouts": 1,
+  "schema_version": "armbench.pi05_libero_independent_clock.v1",
+  "updated_at_utc": "2026-08-09T17:56:55.486737+00:00"
+}

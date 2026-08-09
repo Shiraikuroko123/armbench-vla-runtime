@@ -20,6 +20,8 @@ to match later results.
 | Document | Status | Purpose |
 | --- | --- | --- |
 | [Live pi0.5-to-Panda integration gate](../evidence/g01_live_panda_smoke_final_001/summary.md) | Current | Attested checkpoint identity, live Hx7-to-Hx8 Panda bridge, asynchronous timing evidence, video, validator, and strict claim boundary |
+| [G02 independent-clock pi0.5-LIBERO pilot](G02_INDEPENDENT_CLOCK_PILOT.md) | Current | 40-rollout official-checkpoint simulation pilot with independent simulation/inference clocks, complete failures, and GPU-free validator |
+| [G02 独立时钟 pilot](G02_INDEPENDENT_CLOCK_PILOT_ZH.md) | Current | 40 次 LIBERO Spatial 运行、请求生命周期、时钟重叠证明、失败视频与验收命令 |
 | [Architecture and claim boundaries](PROJECT_ARCHITECTURE.md) | Current | Two execution paths, shared runtime layer, terminology, and integration boundary |
 | [架构与主张边界](PROJECT_ARCHITECTURE_ZH.md) | Current | 中文架构、术语和可公开主张范围 |
 | [中文代码导读](CODE_WALKTHROUGH_ZH.md) | Operational | 从 CLI、provider/worker、调度器到 Panda 保障链和 artifact validator 的断点地图 |
@@ -56,6 +58,7 @@ to match later results.
 | [Measured-age temporal alignment](MEASURED_LATENCY_RUNTIME.md) | Current | Timestamp-based suffix selection and held-out confirmation |
 | [Non-blocking runtime harness](ASYNC_RUNTIME.md) | Current | Threaded inference mailbox, latest-only queue, deadline dispatch, and limitations |
 | [Independent-clock runtime smoke](INDEPENDENT_CLOCK_RUNTIME.md) | Current | Spawned provider process, parent-owned wall-clock ticks, latest-only supersession, and auditable deadline decisions |
+| [G02 official-checkpoint pilot](G02_INDEPENDENT_CLOCK_PILOT.md) | Current | Attested `pi05_libero` matrix, 38/40 result, failure retention, and validation boundary |
 | [非阻塞运行时验收](ASYNC_RUNTIME_ZH.md) | Current | 独立推理线程、latest-only 队列、deadline 调度与证据边界 |
 | [Panda 异步动作保障 CPU 收口](CPU_RUNTIME_COMPLETION_ZH.md) | Current | provider-neutral 输入、异步集成监督、原子发布与可重算故障矩阵 |
 | [Asynchronous Panda closed loop](ASYNC_PANDA_CLOSED_LOOP.md) | Current | Live dual-camera capture, blocking policy worker, measured-age dispatch, braking fallback, and torque-level MuJoCo execution |

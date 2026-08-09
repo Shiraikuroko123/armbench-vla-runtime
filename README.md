@@ -22,6 +22,12 @@ to the asynchronous Panda runtime through an explicit Cartesian action
 adapter. This is not yet an official task-aligned Panda evaluation, hardware
 deployment, or safety certification.
 
+The G02 pilot additionally evaluates the attested checkpoint in LIBERO with
+simulation and blocking inference on distinct processes and clocks. All 40
+rollouts completed, 38 succeeded, and every raw request, action chunk, hold,
+initial state, failure, and provenance record is retained for CPU-only
+validation. The result is exploratory and is not an official leaderboard score.
+
 The naming change reflects an engineering progression, not a replacement of
 the original project. The seven-DoF planning and tracking benchmark became the
 Panda execution substrate; ArmBench adds the action-chunk timing, validation,
@@ -69,6 +75,7 @@ for the full design and the current integration gap.
 | Study | Evidence | Interpretation |
 | --- | --- | --- |
 | Live `pi0.5`-to-Panda integration gate | Official OpenPI `pi05_libero` checkpoint, 35 accepted responses, mean/P95 policy latency 82.75/89.56 ms, 290/311 control ticks concurrent with inference, 0 registered simulation violations | A content-attested Hx7 response crossed the Panda Hx8 adapter and asynchronous runtime; the probe target was not reached, so this is integration evidence rather than task competence |
+| Independent-clock `pi0.5`-LIBERO pilot | LIBERO Spatial tasks 0-9, episodes 0-3: 40/40 completed, 38/40 task successes (95.0%), 4,521 control ticks during inference, 0 deadline-exceeded or failed responses | The official attested checkpoint was evaluated while simulation and blocking inference advanced in separate processes/clocks; this is a simulation pilot, not a leaderboard score or hard-real-time guarantee |
 | Measured-age temporal alignment | Official `pi0.5`-LIBERO Spatial, 120 matched pairs: 88/120 to 116/120, +23.33 points, exact McNemar `p=1.94e-6` | Training-free, observation-age-based suffix selection improves this frozen simulation matrix |
 | Cross-suite validation | Object, Goal, and LIBERO-10: 300 rollouts / 150 pairs, 83/150 to 141/150 | Extends deterministic-delay evidence within the same model family and simulator suite |
 | RTC-style continuation | 300 rollouts / 100 matched triplets: 96/100 baseline, 97/100 hard projection, 97/100 RTC guidance | No task-success superiority; motion-seam measurements remain exploratory |
@@ -97,12 +104,35 @@ state traces, and the complete MP4; it does not rerun model inference:
   '.\evidence\g01_live_panda_smoke_final_001' --json
 ```
 
+The G02 independent-clock pilot is also fully preserved and can be validated
+without a GPU. The core result and the separate visual-success run have their
+own manifests and must not be pooled:
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m `
+  integrations.openpi.validate_libero_independent_clock `
+  '.\evidence\pi05_libero_independent_clock_core_40_001\evaluation' --json
+
+& '.\.venv\Scripts\python.exe' -m `
+  integrations.openpi.validate_libero_independent_clock `
+  '.\evidence\pi05_libero_independent_clock_visual_success_001\evaluation' --json
+```
+
+The core artifact records raw requests, action chunks, hold/execute decisions,
+process IDs, initial states, failures, videos, and source hashes. See the
+[G02 pilot report](docs/G02_INDEPENDENT_CLOCK_PILOT.md) and the
+[evidence catalog](docs/EVIDENCE_CATALOG.md) for the exact protocol and claim
+boundary.
+
 ## Scope
 
 - ArmBench does not train or fine-tune `pi0.5`.
 - Official-checkpoint results are simulation-only. The LIBERO studies report
   official task protocols; the Panda G01 artifact is a separate integration
   probe and reports `target_reached=false`.
+- The G02 independent-clock result is a 40-rollout LIBERO Spatial pilot. Its
+  38/40 success rate is not an official leaderboard score, a method comparison,
+  a hard-real-time guarantee, or hardware-safety evidence.
 - The temporal studies use blocking inference plus simulator catch-up, not an
   operating-system-level hard-real-time control loop.
 - Integrated Panda assurance has synchronous task evidence and an asynchronous
@@ -162,8 +192,9 @@ The provider-to-assurance threading and atomic activation path is documented in
 
 To rerun every saved local CPU artifact with one cross-platform command, use
 `scripts/accept_cpu.py`. It validates collision, dynamics, provider, LeRobot,
-frozen-response, Panda task, asynchronous, and evidence-catalog artifacts and
-writes an ignored summary under `output/cpu_acceptance/`:
+frozen-response, Panda task, asynchronous, both preserved G02 independent-clock
+artifacts, and the evidence catalog. It writes an ignored summary under
+`output/cpu_acceptance/`:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File `

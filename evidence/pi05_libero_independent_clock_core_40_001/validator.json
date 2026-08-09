@@ -1,0 +1,12 @@
+{
+  "artifact": "/armbench_results/g02_independent_clock/core_40_001/evaluation",
+  "checks": [
+    "manifest coverage, sizes, hashes, and path safety",
+    "checkpoint, sampling, commit, and runtime source provenance",
+    "initial states, request lifecycles, action chunks, ticks, and outcomes",
+    "derived rows, aggregate, summary, progress, and overlap proof"
+  ],
+  "errors": [],
+  "schema_version": "armbench.pi05_libero_independent_clock_validation.v1",
+  "valid": true
+}

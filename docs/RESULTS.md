@@ -65,6 +65,59 @@ python -m integrations.openpi.validate_live_panda_smoke \
   evidence/g01_live_panda_smoke_final_001 --json
 ```
 
+## G02 pi0.5-LIBERO independent-clock pilot
+
+### Provenance and protocol
+
+- Evidence ID: `pi05_libero_independent_clock_core_40_001`
+- ArmBench commit: `8686490355c54d1dff9523be0c881d14ab45cda8`
+- OpenPI commit: `15a9616a00943ada6c20a0f158e3adb39df2ccac`
+- Policy/checkpoint: official `pi05_libero`, content SHA-256
+  `9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5`
+- Matrix: LIBERO Spatial tasks 0-9 x episodes 0-3, seed 7, 40 rollouts
+- Runtime: 20 Hz parent simulation clock, spawned blocking inference worker,
+  one-slot latest-only mailbox, 200 ms deadline, hold on expired responses,
+  action horizon 10
+- Official observation protocol: 256x256 environment frames, 224x224 policy
+  images, 8-D proprioception, 7-D action chunks
+
+### Outcomes
+
+| Measure | Result |
+|---|---:|
+| Completed rollouts | 40 / 40 |
+| LIBERO task success | 38 / 40 (95.0%) |
+| Episodes with measured inference overlap | 40 / 40 |
+| Total control ticks | 4,623 |
+| Control ticks during inference | 4,521 |
+| Execute / hold ticks | 4,031 / 592 |
+| Deadline-exceeded / failed responses | 0 / 0 |
+| Failures retained | Task 4, episodes 0 and 2 (`max_ticks`) |
+
+The two failed episodes remain in the core artifact rather than being removed
+from the numerator. The separate
+[visual-success artifact](../evidence/pi05_libero_independent_clock_visual_success_001/README.md)
+is a curated 1/1 media run and is not included in the 40-rollout statistics.
+
+This closes the engineering question of whether a real, attested pi0.5-LIBERO
+policy can be exercised with genuinely independent simulation and inference
+clocks while preserving auditable request lifecycles, stale-suffix selection,
+deadline fallback, action chunks, initial states, and failure videos. It is an
+exploratory simulation pilot: it is not an official leaderboard score, a
+statistical method comparison, an operating-system hard-real-time guarantee,
+hardware safety evidence, or a real-robot result.
+
+Validate the saved core artifact without a GPU:
+
+```bash
+python -m integrations.openpi.validate_libero_independent_clock \
+  evidence/pi05_libero_independent_clock_core_40_001/evaluation --json
+```
+
+The validator recomputes the manifest, provenance, per-episode rows, aggregate,
+overlap proof, and all request/tick invariants. The complete public artifact is
+listed in the [evidence catalog](EVIDENCE_CATALOG.md).
+
 ## pi0.5 RTC guidance G0
 
 ### Provenance and protocol

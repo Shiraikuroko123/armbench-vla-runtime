@@ -178,6 +178,24 @@ def _specs() -> list[dict[str, Any]]:
             ],
         },
         {
+            "id": "pi05_libero_independent_clock_core",
+            "argv": [
+                "-m",
+                "integrations.openpi.validate_libero_independent_clock",
+                "evidence/pi05_libero_independent_clock_core_40_001/evaluation",
+                "--json",
+            ],
+        },
+        {
+            "id": "pi05_libero_independent_clock_visual",
+            "argv": [
+                "-m",
+                "integrations.openpi.validate_libero_independent_clock",
+                "evidence/pi05_libero_independent_clock_visual_success_001/evaluation",
+                "--json",
+            ],
+        },
+        {
             "id": "evidence_catalog",
             "argv": ["scripts/build_evidence_catalog.py", "--check"],
         },

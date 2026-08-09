@@ -38,3 +38,25 @@ fake provider does not establish pi0.5 task success, physical-robot safety, or
 operating-system hard-real-time guarantees. The live OpenPI/Panda bridge uses
 the same latest-only and deadline concepts, but requires the separately
 attested server run described in `LIVE_PI05_PANDA_BRIDGE.md`.
+
+## G02 official-checkpoint pilot
+
+The production-shaped experiment is preserved as
+`evidence/pi05_libero_independent_clock_core_40_001`. It reuses the same
+latest-only mailbox and deadline policy with an attested `pi05_libero`
+checkpoint, but runs LIBERO and the blocking OpenPI client in separate
+processes. The frozen matrix covers LIBERO Spatial tasks 0-9, episodes 0-3,
+seed 7, at 20 Hz with a 200 ms deadline.
+
+The validated pilot completed 40/40 rollouts and recorded 38/40 task successes.
+All 40 episodes contain control ticks while inference was in flight (4,521 of
+4,623 total ticks), with 4,031 execute ticks, 592 hold ticks, and no
+deadline-exceeded or failed provider responses. Two task-4 `max_ticks` failures
+are retained in the artifact and are part of the denominator.
+
+This result demonstrates a measurable independent-clock execution boundary, not
+a new policy or a safety theorem. It remains simulation-only, is not an
+official LIBERO leaderboard score, does not establish hard-real-time scheduling,
+and does not claim hardware or cross-model generalization. The single-rollout
+`visual_success_001` artifact is linked separately for media review and is not
+pooled with the core result.
