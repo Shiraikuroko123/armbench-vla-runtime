@@ -22,6 +22,7 @@ from armbench.vla.provider_contract import (
     RawActionChunk,
     canonical_action_sha256,
     libero_cartesian_semantics,
+    require_semantic_compatibility,
 )
 from armbench.vla.types import ActionChunk, VLAObservation
 
@@ -188,6 +189,8 @@ class OpenPILiberoPandaPolicy:
             )
         self.provider = provider
         self.adapter = PandaCartesianActionAdapter(robot, adapter_config)
+        self.expected_semantics = libero_cartesian_semantics(adapter_config)
+        require_semantic_compatibility(provider.semantics, self.expected_semantics)
         self._clock = clock
         self._last_metrics: dict[str, object] = {}
 
@@ -222,6 +225,7 @@ class OpenPILiberoPandaPolicy:
         if not np.isfinite(started_at_s):
             raise ProviderContractError("policy clock returned a non-finite value")
         raw = self.provider.infer_raw(observation)
+        require_semantic_compatibility(raw.semantics, self.expected_semantics)
         if raw.observation_sequence_id != observation.sequence_id:
             raise ProviderContractError(
                 "provider response sequence does not match observation"
