@@ -7,6 +7,15 @@ blocking policy call. A one-slot mailbox keeps only the newest pending
 observation; every replacement, response age, deadline decision, and process
 ID is retained in the returned artifact.
 
+The slot is not implemented as `multiprocessing.Queue(maxsize=1)`. Python's
+queue feeder can report an item as absent while its capacity semaphore still
+reports full, with different timing on Windows and Linux. ArmBench instead uses
+a manager-backed shared slot guarded by a process lock and wake event. The
+parent atomically overwrites the one pending object, and the child atomically
+removes it before invoking the provider. This keeps observation memory bounded
+and preserves latest-only behavior without making control-side submission wait
+for policy latency.
+
 Run it on a CPU-only checkout:
 
 ```bash

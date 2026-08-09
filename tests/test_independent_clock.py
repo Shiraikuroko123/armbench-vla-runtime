@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import multiprocessing as mp
 import time
+from typing import Any
 
 import numpy as np
 
@@ -53,6 +55,31 @@ class _DelayedProvider:
 
 
 @dataclass(frozen=True)
+class _BlockingFactory:
+    entered: Any
+    release: Any
+
+    def __call__(self) -> "_BlockingProvider":
+        return _BlockingProvider(self.entered, self.release)
+
+
+class _BlockingProvider:
+    def __init__(self, entered: Any, release: Any) -> None:
+        self.entered = entered
+        self.release = release
+
+    def infer(self, observation: dict[str, int]) -> dict[str, object]:
+        self.entered.set()
+        if not self.release.wait(timeout=2.0):
+            raise TimeoutError("test provider release was not signalled")
+        sequence = float(observation["sequence_id"])
+        return {
+            "actions": np.full((8, 1), sequence, dtype=float),
+            "source": "test_blocking_provider",
+        }
+
+
+@dataclass(frozen=True)
 class _FailingFactory:
     def __call__(self) -> "_FailingProvider":
         return _FailingProvider()
@@ -70,22 +97,31 @@ def _builder(raw: dict[str, int], sequence: int, captured_at_s: float):
 
 
 def test_spawned_worker_records_latest_only_supersession() -> None:
-    worker = IndependentClockWorker(_DelayedFactory(0.03), action_dim=1)
+    context = mp.get_context("spawn")
+    manager = context.Manager()
+    entered = manager.Event()
+    release = manager.Event()
+    worker = IndependentClockWorker(
+        _BlockingFactory(entered, release), action_dim=1
+    )
     try:
         first = worker.submit(
             {"sequence_id": 0},
             observation_sequence_id=0,
             captured_at_s=time.monotonic(),
         )
-        submissions = [first]
-        for sequence_id in range(1, 10):
-            submissions.append(
-                worker.submit(
-                    {"sequence_id": sequence_id},
-                    observation_sequence_id=sequence_id,
-                    captured_at_s=time.monotonic(),
-                )
-            )
+        assert entered.wait(timeout=2.0)
+        second = worker.submit(
+            {"sequence_id": 1},
+            observation_sequence_id=1,
+            captured_at_s=time.monotonic(),
+        )
+        third = worker.submit(
+            {"sequence_id": 2},
+            observation_sequence_id=2,
+            captured_at_s=time.monotonic(),
+        )
+        release.set()
         deadline = time.monotonic() + 2.0
         messages = []
         while time.monotonic() < deadline:
@@ -95,12 +131,15 @@ def test_spawned_worker_records_latest_only_supersession() -> None:
             time.sleep(0.005)
         metrics = worker.metrics()
     finally:
+        release.set()
         assert worker.close()
+        manager.shutdown()
 
     completed = [message for message in messages if message.kind == "completed"]
     assert completed
     assert first.replaced_request_id is None
-    assert any(item.replaced_request_id is not None for item in submissions)
+    assert second.replaced_request_id is None
+    assert third.replaced_request_id == second.request_id
     assert metrics["superseded"] >= 1
     assert completed[0].worker_process_id != worker.parent_process_id
 
@@ -137,22 +176,28 @@ def test_independent_clock_parent_keeps_stepping_and_records_suffix() -> None:
 
 
 def test_independent_clock_deadline_fails_closed() -> None:
-    environment = _FakeEnvironment(max_steps=8)
+    environment = _FakeEnvironment(max_steps=60)
     result = run_independent_clock(
         environment,
-        _DelayedFactory(0.04),
+        _DelayedFactory(0.02),
         config=IndependentClockConfig(
             control_period_s=0.005,
             action_period_s=0.01,
             deadline_s=0.005,
-            max_ticks=8,
+            max_ticks=60,
             action_dim=1,
+            submit_every_ticks=60,
         ),
         observation_builder=_builder,
     )
 
     assert result.passed
     assert result.holds == len(result.ticks)
+    assert result.completed >= 1
+    assert any(
+        request.response_status == "deadline_exceeded"
+        for request in result.requests
+    )
     assert any(tick.reason == "deadline_exceeded" for tick in result.ticks)
     assert all(np.allclose(action, 0.0) for action in environment.actions)
 

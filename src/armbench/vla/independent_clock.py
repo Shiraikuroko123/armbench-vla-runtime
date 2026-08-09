@@ -243,7 +243,9 @@ def _normalise_provider_result(
 
 def _worker_main(
     provider_factory: IndependentClockProviderFactory,
-    request_queue: object,
+    request_slot: object,
+    request_lock: object,
+    request_event: object,
     message_queue: object,
     startup_queue: object,
     stop_event: object,
@@ -266,12 +268,14 @@ def _worker_main(
     startup_queue.put(_StartupMessage(True, worker_pid))
     try:
         while not stop_event.is_set():
-            try:
-                request = request_queue.get(timeout=0.05)
-            except Empty:
+            if not request_event.wait(timeout=0.05):
                 continue
-            if request is None:
+            if stop_event.is_set():
                 return
+            with request_lock:
+                request = request_slot.request
+                request_slot.request = None
+                request_event.clear()
             if not isinstance(request, _ProcessRequest):
                 continue
             started_at = _finite_monotonic()
@@ -357,7 +361,16 @@ class IndependentClockWorker:
         context = mp.get_context(context_name)
         self._context_name = context_name
         self._parent_process_id = os.getpid()
-        self._request_queue = context.Queue(maxsize=1)
+        # ``multiprocessing.Queue(maxsize=1)`` is not a portable latest-only
+        # mailbox: its feeder thread can report Empty to ``get_nowait`` while
+        # the capacity semaphore still reports Full.  A manager-backed slot,
+        # guarded by a process lock and wake event, stores exactly one pending
+        # request without making submission wait for an in-flight inference.
+        self._manager = context.Manager()
+        self._request_slot = self._manager.Namespace()
+        self._request_slot.request = None
+        self._request_lock = context.Lock()
+        self._request_event = context.Event()
         self._message_queue = context.Queue(maxsize=max_messages)
         self._startup_queue = context.Queue(maxsize=1)
         self._stop_event = context.Event()
@@ -372,7 +385,9 @@ class IndependentClockWorker:
             target=_worker_main,
             args=(
                 provider_factory,
-                self._request_queue,
+                self._request_slot,
+                self._request_lock,
+                self._request_event,
                 self._message_queue,
                 self._startup_queue,
                 self._stop_event,
@@ -382,18 +397,24 @@ class IndependentClockWorker:
             name="armbench-independent-clock-provider",
             daemon=True,
         )
-        self._process.start()
+        try:
+            self._process.start()
+        except Exception:
+            self._manager.shutdown()
+            raise
         try:
             startup = self._startup_queue.get(timeout=startup_timeout_s)
         except Empty as error:
             self._stop_event.set()
             self._process.terminate()
             self._process.join(1.0)
+            self._manager.shutdown()
             raise TimeoutError("provider process did not report startup") from error
         if not isinstance(startup, _StartupMessage) or not startup.succeeded:
             self._process.join(1.0)
             failure_type = getattr(startup, "failure_type", "StartupError")
             failure_message = getattr(startup, "failure_message", "unknown error")
+            self._manager.shutdown()
             raise RuntimeError(
                 "provider process startup failed: %s: %s"
                 % (failure_type, failure_message)
@@ -435,15 +456,6 @@ class IndependentClockWorker:
                 raise RuntimeError("provider worker is closed")
             request_id = self._next_request_id
             self._next_request_id += 1
-            replaced: int | None = None
-            try:
-                pending = self._request_queue.get_nowait()
-            except Empty:
-                pass
-            else:
-                if isinstance(pending, _ProcessRequest):
-                    replaced = pending.request_id
-                    self._superseded += 1
             request = _ProcessRequest(
                 request_id=request_id,
                 observation=observation,
@@ -451,29 +463,26 @@ class IndependentClockWorker:
                 captured_at_s=float(captured_at_s),
                 submitted_at_s=submitted,
             )
-            try:
-                self._request_queue.put(request, timeout=0.5)
-            except Full as error:
-                # A multiprocessing Queue can briefly report Empty while its
-                # feeder thread is still publishing the previous item.  Take
-                # the pending item with a bounded wait and retry the replace;
-                # this keeps the one-slot latest-only contract deterministic.
+            with self._request_lock:
+                previous_pending = self._request_slot.request
                 try:
-                    pending = self._request_queue.get(timeout=0.5)
-                except Empty:
+                    self._request_slot.request = request
+                    self._request_event.set()
+                except Exception as error:
+                    try:
+                        self._request_slot.request = previous_pending
+                    except Exception:
+                        pass
                     raise RuntimeError(
-                        "provider request mailbox remained full"
+                        "provider request mailbox rejected a submission"
                     ) from error
-                if isinstance(pending, _ProcessRequest):
-                    if replaced != pending.request_id:
-                        replaced = pending.request_id
-                        self._superseded += 1
-                try:
-                    self._request_queue.put(request, timeout=0.5)
-                except Full as retry_error:
-                    raise RuntimeError(
-                        "provider request mailbox remained full after replacement"
-                    ) from retry_error
+            replaced = (
+                previous_pending.request_id
+                if isinstance(previous_pending, _ProcessRequest)
+                else None
+            )
+            if replaced is not None:
+                self._superseded += 1
             self._submitted += 1
         return IndependentClockSubmission(
             request_id=request_id,
@@ -517,19 +526,15 @@ class IndependentClockWorker:
                 return not self._process.is_alive()
             self._closed = True
             self._stop_event.set()
-            try:
-                self._request_queue.put_nowait(None)
-            except Full:
-                # The child sees stop_event after finishing its in-flight call.
-                pass
+            self._request_event.set()
         self._process.join(timeout_s)
         stopped_cleanly = not self._process.is_alive()
         if not stopped_cleanly:
             self._process.terminate()
             self._process.join(min(1.0, max(0.1, timeout_s)))
-        self._request_queue.close()
         self._message_queue.close()
         self._startup_queue.close()
+        self._manager.shutdown()
         return stopped_cleanly
 
     def __enter__(self) -> "IndependentClockWorker":
