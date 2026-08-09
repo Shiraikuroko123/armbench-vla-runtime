@@ -106,6 +106,21 @@ def test_async_panda_rejects_conflicting_policy_injection_arguments() -> None:
         )
 
 
+@pytest.mark.parametrize("timeout", [-1.0, float("nan"), float("inf")])
+def test_async_panda_rejects_invalid_worker_shutdown_timeout(
+    timeout: float,
+) -> None:
+    with pytest.raises(ValueError, match="worker_shutdown_timeout_s"):
+        run_async_panda_episode(
+            "free_space",
+            "unguarded",
+            _short_reference(steps=1),
+            policy=_InjectedActionPolicy(),
+            config=_config(steps=1),
+            worker_shutdown_timeout_s=timeout,
+        )
+
+
 def test_async_panda_configuration_rejects_invalid_faults() -> None:
     with pytest.raises(ValueError, match="deadline"):
         AsyncPandaConfig(response_deadline_s=0.01)

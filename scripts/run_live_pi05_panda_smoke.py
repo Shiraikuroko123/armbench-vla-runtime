@@ -145,6 +145,7 @@ def main(argv: list[str] | None = None) -> int:
             config=config,
             prompt=f"move the gripper to the {args.scenario} goal",
             video_path=video_path,
+            worker_shutdown_timeout_s=args.inference_timeout_s + 2.0,
         )
         _write_json(
             args.output_directory / "summary.json",

@@ -932,6 +932,7 @@ def run_async_panda_episode(
     video_path: Path | None = None,
     video_fps: int = 30,
     render_size: tuple[int, int] = (640, 480),
+    worker_shutdown_timeout_s: float | None = None,
 ) -> AsyncPandaEpisodeResult:
     """Run one asynchronous policy/repair/physics episode in wall-clock time.
 
@@ -957,6 +958,13 @@ def run_async_panda_episode(
             )
     if not np.isfinite(payload_mass) or payload_mass < 0.0:
         raise ValueError("payload_mass must be finite and nonnegative")
+    if worker_shutdown_timeout_s is not None and (
+        not np.isfinite(worker_shutdown_timeout_s)
+        or worker_shutdown_timeout_s < 0.0
+    ):
+        raise ValueError(
+            "worker_shutdown_timeout_s must be finite and nonnegative"
+        )
     reference = np.asarray(reference_positions, dtype=float)
     if (
         reference.ndim != 2
@@ -1680,10 +1688,14 @@ def run_async_panda_episode(
     finally:
         observation_worker_closed = observation_worker.close(timeout_s=2.0)
         worker_closed = worker.close(
-            timeout_s=max(
-                2.0,
-                max(policy_faults.latency_schedule_ms) / 1000.0 + 1.0,
-                config.response_deadline_s + 1.0,
+            timeout_s=(
+                float(worker_shutdown_timeout_s)
+                if worker_shutdown_timeout_s is not None
+                else max(
+                    2.0,
+                    max(policy_faults.latency_schedule_ms) / 1000.0 + 1.0,
+                    config.response_deadline_s + 1.0,
+                )
             )
         )
 
