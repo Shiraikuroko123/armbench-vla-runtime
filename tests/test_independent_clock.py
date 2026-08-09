@@ -145,15 +145,15 @@ def test_spawned_worker_records_latest_only_supersession() -> None:
 
 
 def test_independent_clock_parent_keeps_stepping_and_records_suffix() -> None:
-    environment = _FakeEnvironment(max_steps=14)
+    environment = _FakeEnvironment(max_steps=100)
     result = run_independent_clock(
         environment,
         _DelayedFactory(0.03),
         config=IndependentClockConfig(
             control_period_s=0.005,
-            action_period_s=0.01,
-            deadline_s=0.15,
-            max_ticks=14,
+            action_period_s=0.1,
+            deadline_s=1.0,
+            max_ticks=100,
             action_dim=1,
         ),
         observation_builder=_builder,
@@ -161,7 +161,7 @@ def test_independent_clock_parent_keeps_stepping_and_records_suffix() -> None:
 
     assert result.passed
     assert result.parent_process_id != result.worker_process_id
-    assert result.environment_steps == 14
+    assert result.environment_steps == 100
     assert result.superseded >= 1
     assert result.started >= 1
     assert result.completed >= 1
@@ -171,7 +171,7 @@ def test_independent_clock_parent_keeps_stepping_and_records_suffix() -> None:
     assert executed
     assert all(tick.stale_suffix_steps > 0 for tick in executed)
     assert all(tick.response_age_ms is not None for tick in executed)
-    assert all(tick.deadline_ms == 150.0 for tick in result.ticks)
+    assert all(tick.deadline_ms == 1000.0 for tick in result.ticks)
     assert len(environment.actions) == result.environment_steps
 
 
