@@ -196,6 +196,42 @@ def _specs() -> list[dict[str, Any]]:
             ],
         },
         {
+            "id": "pi05_libero_independent_clock_object",
+            "argv": [
+                "-m",
+                "integrations.openpi.validate_libero_independent_clock",
+                "evidence/g03_independent_clock_object_40_20260810_001/evaluation",
+                "--json",
+            ],
+        },
+        {
+            "id": "pi05_libero_independent_clock_deadline50",
+            "argv": [
+                "-m",
+                "integrations.openpi.validate_libero_independent_clock",
+                "evidence/g04_spatial_deadline50_40_20260810_001/evaluation",
+                "--json",
+            ],
+        },
+        {
+            "id": "pi05_libero_independent_clock_deadline150",
+            "argv": [
+                "-m",
+                "integrations.openpi.validate_libero_independent_clock",
+                "evidence/g05_spatial_deadline150_40_20260810_001/evaluation",
+                "--json",
+            ],
+        },
+        {
+            "id": "pi05_libero_independent_clock_deadline175",
+            "argv": [
+                "-m",
+                "integrations.openpi.validate_libero_independent_clock",
+                "evidence/g06_spatial_deadline175_40_20260810_001/evaluation",
+                "--json",
+            ],
+        },
+        {
             "id": "evidence_catalog",
             "argv": ["scripts/build_evidence_catalog.py", "--check"],
         },

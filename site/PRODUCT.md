@@ -28,10 +28,12 @@ dispatch, braking-invariant repair, and reviewable execution evidence.
    LeRobotDataset v3.0 Panda H×8 roundtrip.
 8. G02 independent-clock pilot with a 40-rollout metric strip, one separately
    labeled visual-success run, and both retained core-pilot failure videos.
-9. One-command full local CPU acceptance, focused Panda replay commands, a
+9. G03 cross-suite Object extension plus G04 50 ms and G05 150 ms deadline
+   stress artifacts, presented as a bounded runtime-budget curve.
+10. One-command full local CPU acceptance, focused Panda replay commands, a
    checked-in VS Code workspace, and a four-step acceptance path.
-10. Verified 17-case asynchronous CPU boundary disclosure.
-11. Proven / not-claimed scope block and architecture link.
+11. Verified 17-case asynchronous CPU boundary disclosure.
+12. Proven / not-claimed scope block and architecture link.
 
 ## Audience
 
@@ -45,6 +47,10 @@ dispatch, braking-invariant repair, and reviewable execution evidence.
 | --- | --- | --- |
 | `g01_live_panda_smoke_final_001` | 35 accepted live responses; mean/P95 82.75/89.56 ms; 290/311 control ticks during inference; 0 registered simulation violations; 94 video frames | official checkpoint integration probe; target not reached; no official task, hardware, hard-real-time, or safety claim |
 | `pi05_libero_independent_clock_core_40_001` | 40/40 completed; 38/40 task success; 4,521/4,623 ticks during inference; 4,031 execute and 592 hold ticks; 0 deadline/provider failures | official-checkpoint LIBERO Spatial pilot; not a leaderboard score, method comparison, hard-real-time guarantee, or hardware result |
+| `g03_independent_clock_object_40_20260810_001` | 40/40 completed; 39/40 task success; 6,161/6,263 ticks during inference; 5,530 execute and 733 hold ticks | exploratory cross-suite Object transfer; not pooled with G02 |
+| `g04_spatial_deadline50_40_20260810_001` | 40/40 completed; 0/40 task success; 0 execute and 8,800 hold ticks; 5,474 deadline exceedances | fail-closed tight-deadline stress; not a model-quality failure or universal threshold |
+| `g05_spatial_deadline150_40_20260810_001` | 40/40 completed; 0/40 task success; 2,309 execute and 6,491 hold ticks; 16 deadline exceedances | exploratory intermediate deadline point; action execution resumes but remains insufficient for this task budget |
+| `g06_spatial_deadline175_40_20260810_001` | 40/40 completed; 38/40 task success; 3,942 execute and 613 hold ticks; 0 deadline/provider failures | exploratory transition point; not a universal threshold or hard-real-time result |
 | `pi05_libero_independent_clock_visual_success_001` | 1/1 curated success clip with 105/106 ticks during inference | media-only run; never pooled with the 40-rollout result |
 | `cpu_runtime_completion_001` | 17/17 expected outcomes; 6 complete plans, 10 holds, 1 unrecoverable stop; zero partial prefixes; assurance-worker P95 281.2 ms | scripted/frozen/contract fixtures; best-effort Python threads; no learned checkpoint |
 | `integrated_panda_fault_matrix_001` | 27/27 expected outcomes; 12 accepted, 6 verified brakes, 7 holds, 2 unrecoverable stops; 124 edges | scripted inputs; synchronous offline CPU |
@@ -68,6 +74,10 @@ hard-real-time or physical safety guarantee.
 - G02 is a 40-rollout simulation pilot. Its 38/40 result is not an official
   leaderboard entry or evidence of method superiority, hardware safety, or
   hard-real-time scheduling.
+- G03 is a separate exploratory suite-transfer artifact. G04 and G05 are
+  deadline stress points under one fixed Spatial matrix; none establishes a
+  universal threshold or OS hard-real-time behavior.
+- G06 adds a 175 ms transition point to the same curve and remains exploratory.
 - The asynchronous CPU artifact validates a provider-to-supervisor software
   boundary; it is not a closed-loop task-success or deadline-guarantee result.
 

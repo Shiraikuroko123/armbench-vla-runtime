@@ -39,6 +39,11 @@ imagery, a generic VLA hero, or a marketing claim.
   inference/simulation overlap, 4,521/4,623 control ticks occurred during
   inference, 4,031 execute and 592 hold ticks, with no deadline/provider
   failures.
+- **Stress facts:** G04 at 50 ms produced 0 execute and 8,800 hold ticks;
+  G05 at 150 ms produced 2,309 execute and 6,491 hold ticks with 0/40 task
+  successes; G06 at 175 ms produced 3,942 execute and 613 hold ticks with
+  38/40 successes. These are separate exploratory stress artifacts, not
+  threshold certification.
 - **Boundary:** the 2/2 reached Panda task source is scripted RRT-Connect. G01
   is a single free-space integration probe with `target_reached=false`, not an
   official LIBERO/Panda task score. All evidence is MuJoCo simulation with
@@ -70,6 +75,9 @@ column and long case identifiers remain inspectable on mobile.
 - G02 media is also below the fold and lazy-attached. Native controls keep the
   success and two failure clips independently inspectable; the success clip is
   explicitly labeled as a separate curated run.
+- The deadline curve is text-and-metric evidence rather than a generated chart:
+  G02 (200 ms), G06 (175 ms), G05 (150 ms), and G04 (50 ms) link directly to
+  their checked-in manifests and validator commands.
 - Acceptance commands expose copy buttons with a clipboard fallback.
 - All media and dynamic controls have adjacent text labels and stable aspect
   ratios; no information depends on hover.

@@ -1,17 +1,17 @@
 {
   "schema_version": "armbench.evidence_catalog.v1",
   "source": "configs/evidence_catalog.json",
-  "artifact_count": 30,
+  "artifact_count": 34,
   "inventory": {
     "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
-    "file_count": 1519,
-    "total_bytes": 227778142,
-    "tree_sha256": "031f161f26d623360e41a1cc8c2a2b2ad76e351bb14ef41ea867f3a78b325f68"
+    "file_count": 2002,
+    "total_bytes": 329400243,
+    "tree_sha256": "078ae3f36c7bfe8990e81e896784d491ea4e15e5626538bf078ab3c98572297d"
   },
   "class_counts": {
     "primary": 3,
     "primary_source": 2,
-    "exploratory": 7,
+    "exploratory": 11,
     "mechanism_gate": 4,
     "diagnostic": 1,
     "rejected": 2,
@@ -93,6 +93,138 @@
         "file_count": 11,
         "total_bytes": 1181140,
         "tree_sha256": "0ec0ad540da54098496236a8a8d13a7ac97b51e167f0a07cd2c1aac43e0129dc"
+      }
+    },
+    {
+      "id": "g03_independent_clock_object_40_20260810_001",
+      "title": "pi0.5-LIBERO Object independent-clock extension",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/g03_independent_clock_object_40_20260810_001/README.md",
+      "protocol": "evidence/g03_independent_clock_object_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/g03_independent_clock_object_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/g03_independent_clock_object_40_20260810_001/evaluation/aggregate.json",
+        "evidence/g03_independent_clock_object_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/g03_independent_clock_object_40_20260810_001/evaluation/per_episode.json",
+        "evidence/g03_independent_clock_object_40_20260810_001/evaluation/videos/libero_object__task_009__episode_03.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/g03_independent_clock_object_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes manifest hashes, checkpoint/source provenance, request lifecycles, overlap, per-episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "A 40-rollout exploratory cross-suite simulation pilot; it is not a complete-suite leaderboard score, method comparison, hard-real-time guarantee, hardware safety result, or robot deployment.",
+      "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
+        "file_count": 101,
+        "total_bytes": 22261993,
+        "tree_sha256": "5537422258f3336f2b69a94f16f5460ca1df42009b547b3b504cdbafdf23ead7"
+      }
+    },
+    {
+      "id": "g04_spatial_deadline50_40_20260810_001",
+      "title": "pi0.5-LIBERO 50 ms deadline stress control",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/g04_spatial_deadline50_40_20260810_001/README.md",
+      "protocol": "evidence/g04_spatial_deadline50_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/g04_spatial_deadline50_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/g04_spatial_deadline50_40_20260810_001/evaluation/aggregate.json",
+        "evidence/g04_spatial_deadline50_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/g04_spatial_deadline50_40_20260810_001/evaluation/per_episode.json",
+        "evidence/g04_spatial_deadline50_40_20260810_001/evaluation/videos/libero_spatial__task_000__episode_00.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/g04_spatial_deadline50_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the registered 50 ms deadline protocol, timing, hold/execute decisions, overlap, per-episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "A fail-closed deadline stress condition paired with G02; it demonstrates hold dominance under a tight budget, not a universal threshold, hard-real-time guarantee, hardware safety, or model-quality ranking.",
+      "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
+        "file_count": 140,
+        "total_bytes": 30680229,
+        "tree_sha256": "330956cd47e756b2ce6aed2f7d31e1b8cdba7b932efebca0ba360d3cd9a36441"
+      }
+    },
+    {
+      "id": "g05_spatial_deadline150_40_20260810_001",
+      "title": "pi0.5-LIBERO 150 ms deadline stress",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/g05_spatial_deadline150_40_20260810_001/README.md",
+      "protocol": "evidence/g05_spatial_deadline150_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/g05_spatial_deadline150_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/g05_spatial_deadline150_40_20260810_001/evaluation/aggregate.json",
+        "evidence/g05_spatial_deadline150_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/g05_spatial_deadline150_40_20260810_001/evaluation/per_episode.json",
+        "evidence/g05_spatial_deadline150_40_20260810_001/evaluation/videos/libero_spatial__task_000__episode_00.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/g05_spatial_deadline150_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the 150 ms stress protocol, timing, hold/execute decisions, overlap, per-episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "An exploratory intermediate deadline stress point: action execution resumes relative to G04, but this single checkpoint/simulator matrix has no task successes; it is not a universal threshold, hard-real-time guarantee, hardware result, or model-quality ranking.",
+      "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
+        "file_count": 140,
+        "total_bytes": 32397090,
+        "tree_sha256": "60e6b1cf197c07378566f272f8947b50340e084fd94b30c292a7c24ec88ccca0"
+      }
+    },
+    {
+      "id": "g06_spatial_deadline175_40_20260810_001",
+      "title": "pi0.5-LIBERO 175 ms deadline stress",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/g06_spatial_deadline175_40_20260810_001/README.md",
+      "protocol": "evidence/g06_spatial_deadline175_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/g06_spatial_deadline175_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/g06_spatial_deadline175_40_20260810_001/evaluation/aggregate.json",
+        "evidence/g06_spatial_deadline175_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/g06_spatial_deadline175_40_20260810_001/evaluation/per_episode.json",
+        "evidence/g06_spatial_deadline175_40_20260810_001/evaluation/videos/libero_spatial__task_004__episode_00.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/g06_spatial_deadline175_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the 175 ms stress protocol, timing, hold/execute decisions, overlap, per-episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "An exploratory transition point in one checkpoint/service/seed matrix; it is not an official leaderboard result, universal deadline threshold, hard-real-time guarantee, hardware safety result, or model-quality ranking.",
+      "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
+        "file_count": 102,
+        "total_bytes": 16282789,
+        "tree_sha256": "53d15061cc2f17b533c698e029fb53880d4cba677d37aee1ccb6365993854515"
       }
     },
     {

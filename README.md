@@ -28,6 +28,16 @@ rollouts completed, 38 succeeded, and every raw request, action chunk, hold,
 initial state, failure, and provenance record is retained for CPU-only
 validation. The result is exploratory and is not an official leaderboard score.
 
+The follow-up G03-G06 runs keep the same checkpoint and runtime contract while
+testing a second LIBERO suite and a deadline stress curve. G03 completed 40
+LIBERO Object rollouts with 39 successes; G04 at 50 ms held all 8,800 control
+ticks; G05 at 150 ms executed 2,309 ticks but reached 0/40 tasks; and G06 at
+175 ms reached 38/40 with 3,942 execute ticks. These are separate exploratory
+transfer/stress artifacts, not pooled leaderboard statistics.
+
+The descriptive deadline curve is summarized in
+[`reports/pi05_deadline_curve_20260810_001/summary.md`](reports/pi05_deadline_curve_20260810_001/summary.md).
+
 The naming change reflects an engineering progression, not a replacement of
 the original project. The seven-DoF planning and tracking benchmark became the
 Panda execution substrate; ArmBench adds the action-chunk timing, validation,
@@ -76,6 +86,10 @@ for the full design and the current integration gap.
 | --- | --- | --- |
 | Live `pi0.5`-to-Panda integration gate | Official OpenPI `pi05_libero` checkpoint, 35 accepted responses, mean/P95 policy latency 82.75/89.56 ms, 290/311 control ticks concurrent with inference, 0 registered simulation violations | A content-attested Hx7 response crossed the Panda Hx8 adapter and asynchronous runtime; the probe target was not reached, so this is integration evidence rather than task competence |
 | Independent-clock `pi0.5`-LIBERO pilot | LIBERO Spatial tasks 0-9, episodes 0-3: 40/40 completed, 38/40 task successes (95.0%), 4,521 control ticks during inference, 0 deadline-exceeded or failed responses | The official attested checkpoint was evaluated while simulation and blocking inference advanced in separate processes/clocks; this is a simulation pilot, not a leaderboard score or hard-real-time guarantee |
+| G03 cross-suite independent-clock extension | LIBERO Object tasks 0-9, episodes 0-3: 40/40 completed, 39/40 task successes (97.5%), 6,161/6,263 ticks during inference, 5,530 execute and 733 hold ticks | Same attested checkpoint and protocol on a second suite; exploratory transfer evidence, not a complete-suite score |
+| G04 50 ms deadline stress | LIBERO Spatial tasks 0-9, episodes 0-3: 40/40 completed, 0/40 successes, 0 execute and 8,800 hold ticks, 5,474 deadline exceedances | Fail-closed behavior under an intentionally infeasible deadline; not a model-quality ranking |
+| G05 150 ms deadline stress | Same 40-rollout Spatial matrix: 0/40 successes, 2,309 execute and 6,491 hold ticks, 16 deadline exceedances | Intermediate exploratory stress point: actions execute, but the available duty cycle is insufficient for task completion |
+| G06 175 ms deadline stress | Same 40-rollout Spatial matrix: 38/40 successes, 3,942 execute and 613 hold ticks, 0 deadline/provider failures | Exploratory transition point; not a universal deadline threshold or hard-real-time claim |
 | Measured-age temporal alignment | Official `pi0.5`-LIBERO Spatial, 120 matched pairs: 88/120 to 116/120, +23.33 points, exact McNemar `p=1.94e-6` | Training-free, observation-age-based suffix selection improves this frozen simulation matrix |
 | Cross-suite validation | Object, Goal, and LIBERO-10: 300 rollouts / 150 pairs, 83/150 to 141/150 | Extends deterministic-delay evidence within the same model family and simulator suite |
 | RTC-style continuation | 300 rollouts / 100 matched triplets: 96/100 baseline, 97/100 hard projection, 97/100 RTC guidance | No task-success superiority; motion-seam measurements remain exploratory |
@@ -133,6 +147,12 @@ boundary.
 - The G02 independent-clock result is a 40-rollout LIBERO Spatial pilot. Its
   38/40 success rate is not an official leaderboard score, a method comparison,
   a hard-real-time guarantee, or hardware-safety evidence.
+- G03 and G04 are separately registered transfer and deadline-stress artifacts;
+  they are not pooled with G02 as one confirmatory estimate.
+- G05 is an exploratory 150 ms stress point between the 50 ms and 200 ms
+  conditions; it is reported separately and is not a universal deadline claim.
+- G06 is a second exploratory transition point at 175 ms; its 38/40 result is
+  not pooled with G02 or presented as a threshold certification.
 - The temporal studies use blocking inference plus simulator catch-up, not an
   operating-system-level hard-real-time control loop.
 - Integrated Panda assurance has synchronous task evidence and an asynchronous

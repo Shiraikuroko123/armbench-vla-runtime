@@ -7,10 +7,10 @@ scripted runtime checks, and rejected runs.
 
 ## Repository inventory
 
-- Artifact directories: 30
-- Files: 1519
-- Stored size: 217.2 MiB
-- Catalog tree SHA-256: `031f161f26d623360e41a1cc8c2a2b2ad76e351bb14ef41ea867f3a78b325f68`
+- Artifact directories: 34
+- Files: 2002
+- Stored size: 314.1 MiB
+- Catalog tree SHA-256: `078ae3f36c7bfe8990e81e896784d491ea4e15e5626538bf078ab3c98572297d`
 - Fingerprint basis: Git blob IDs + canonical paths + blob sizes
 - Machine-readable form: [evidence_catalog.json](evidence_catalog.json)
 
@@ -25,7 +25,7 @@ commands below define the stronger scientific validation available per artifact.
 | --- | ---: | --- |
 | Primary or confirmatory | 3 | Frozen or prospectively defined studies used for the repository's bounded result claims. |
 | Primary source artifact | 2 | Raw input to a primary combined analysis; interpret it with the linked companion artifact and protocol. |
-| Exploratory pilot | 7 | Pilot or smoke evidence used to test feasibility or choose a later protocol, not a confirmatory result. |
+| Exploratory pilot | 11 | Pilot or smoke evidence used to test feasibility or choose a later protocol, not a confirmatory result. |
 | Mechanism or integration gate | 4 | Component-level evidence that an implementation contract holds; it is not task-success evidence. |
 | Diagnostic | 1 | A bounded debugging artifact retained for traceability rather than a headline efficacy claim. |
 | Rejected from effect analysis | 2 | Byte-preserved evidence excluded after a documented protocol or pairing failure. |
@@ -114,6 +114,54 @@ Raw input to a primary combined analysis; interpret it with the linked companion
 ## Exploratory pilot
 
 Pilot or smoke evidence used to test feasibility or choose a later protocol, not a confirmatory result.
+
+### pi0.5-LIBERO Object independent-clock extension
+
+- Artifact: `g03_independent_clock_object_40_20260810_001`
+- Policy provenance: `official_openpi_pi05_libero`
+- Result: [README.md](../evidence/g03_independent_clock_object_40_20260810_001/README.md)
+- Protocol: [resolved_protocol.json](../evidence/g03_independent_clock_object_40_20260810_001/evaluation/resolved_protocol.json)
+- Manifest: [manifest.json](../evidence/g03_independent_clock_object_40_20260810_001/evaluation/manifest.json)
+- Raw review files: [aggregate.json](../evidence/g03_independent_clock_object_40_20260810_001/evaluation/aggregate.json), [per_episode.csv](../evidence/g03_independent_clock_object_40_20260810_001/evaluation/per_episode.csv), [per_episode.json](../evidence/g03_independent_clock_object_40_20260810_001/evaluation/per_episode.json), [libero_object__task_009__episode_03.mp4](../evidence/g03_independent_clock_object_40_20260810_001/evaluation/videos/libero_object__task_009__episode_03.mp4)
+- Validator: `python -m integrations.openpi.validate_libero_independent_clock evidence/g03_independent_clock_object_40_20260810_001/evaluation --json`. Recomputes manifest hashes, checkpoint/source provenance, request lifecycles, overlap, per-episode rows, and aggregate values without rerunning inference.
+- Claim boundary: A 40-rollout exploratory cross-suite simulation pilot; it is not a complete-suite leaderboard score, method comparison, hard-real-time guarantee, hardware safety result, or robot deployment.
+- Inventory: 101 files, 21.2 MiB, tree SHA-256 `5537422258f3336f2b69a94f16f5460ca1df42009b547b3b504cdbafdf23ead7`
+
+### pi0.5-LIBERO 50 ms deadline stress control
+
+- Artifact: `g04_spatial_deadline50_40_20260810_001`
+- Policy provenance: `official_openpi_pi05_libero`
+- Result: [README.md](../evidence/g04_spatial_deadline50_40_20260810_001/README.md)
+- Protocol: [resolved_protocol.json](../evidence/g04_spatial_deadline50_40_20260810_001/evaluation/resolved_protocol.json)
+- Manifest: [manifest.json](../evidence/g04_spatial_deadline50_40_20260810_001/evaluation/manifest.json)
+- Raw review files: [aggregate.json](../evidence/g04_spatial_deadline50_40_20260810_001/evaluation/aggregate.json), [per_episode.csv](../evidence/g04_spatial_deadline50_40_20260810_001/evaluation/per_episode.csv), [per_episode.json](../evidence/g04_spatial_deadline50_40_20260810_001/evaluation/per_episode.json), [libero_spatial__task_000__episode_00.mp4](../evidence/g04_spatial_deadline50_40_20260810_001/evaluation/videos/libero_spatial__task_000__episode_00.mp4)
+- Validator: `python -m integrations.openpi.validate_libero_independent_clock evidence/g04_spatial_deadline50_40_20260810_001/evaluation --json`. Recomputes the registered 50 ms deadline protocol, timing, hold/execute decisions, overlap, per-episode rows, and aggregate values without rerunning inference.
+- Claim boundary: A fail-closed deadline stress condition paired with G02; it demonstrates hold dominance under a tight budget, not a universal threshold, hard-real-time guarantee, hardware safety, or model-quality ranking.
+- Inventory: 140 files, 29.3 MiB, tree SHA-256 `330956cd47e756b2ce6aed2f7d31e1b8cdba7b932efebca0ba360d3cd9a36441`
+
+### pi0.5-LIBERO 150 ms deadline stress
+
+- Artifact: `g05_spatial_deadline150_40_20260810_001`
+- Policy provenance: `official_openpi_pi05_libero`
+- Result: [README.md](../evidence/g05_spatial_deadline150_40_20260810_001/README.md)
+- Protocol: [resolved_protocol.json](../evidence/g05_spatial_deadline150_40_20260810_001/evaluation/resolved_protocol.json)
+- Manifest: [manifest.json](../evidence/g05_spatial_deadline150_40_20260810_001/evaluation/manifest.json)
+- Raw review files: [aggregate.json](../evidence/g05_spatial_deadline150_40_20260810_001/evaluation/aggregate.json), [per_episode.csv](../evidence/g05_spatial_deadline150_40_20260810_001/evaluation/per_episode.csv), [per_episode.json](../evidence/g05_spatial_deadline150_40_20260810_001/evaluation/per_episode.json), [libero_spatial__task_000__episode_00.mp4](../evidence/g05_spatial_deadline150_40_20260810_001/evaluation/videos/libero_spatial__task_000__episode_00.mp4)
+- Validator: `python -m integrations.openpi.validate_libero_independent_clock evidence/g05_spatial_deadline150_40_20260810_001/evaluation --json`. Recomputes the 150 ms stress protocol, timing, hold/execute decisions, overlap, per-episode rows, and aggregate values without rerunning inference.
+- Claim boundary: An exploratory intermediate deadline stress point: action execution resumes relative to G04, but this single checkpoint/simulator matrix has no task successes; it is not a universal threshold, hard-real-time guarantee, hardware result, or model-quality ranking.
+- Inventory: 140 files, 30.9 MiB, tree SHA-256 `60e6b1cf197c07378566f272f8947b50340e084fd94b30c292a7c24ec88ccca0`
+
+### pi0.5-LIBERO 175 ms deadline stress
+
+- Artifact: `g06_spatial_deadline175_40_20260810_001`
+- Policy provenance: `official_openpi_pi05_libero`
+- Result: [README.md](../evidence/g06_spatial_deadline175_40_20260810_001/README.md)
+- Protocol: [resolved_protocol.json](../evidence/g06_spatial_deadline175_40_20260810_001/evaluation/resolved_protocol.json)
+- Manifest: [manifest.json](../evidence/g06_spatial_deadline175_40_20260810_001/evaluation/manifest.json)
+- Raw review files: [aggregate.json](../evidence/g06_spatial_deadline175_40_20260810_001/evaluation/aggregate.json), [per_episode.csv](../evidence/g06_spatial_deadline175_40_20260810_001/evaluation/per_episode.csv), [per_episode.json](../evidence/g06_spatial_deadline175_40_20260810_001/evaluation/per_episode.json), [libero_spatial__task_004__episode_00.mp4](../evidence/g06_spatial_deadline175_40_20260810_001/evaluation/videos/libero_spatial__task_004__episode_00.mp4)
+- Validator: `python -m integrations.openpi.validate_libero_independent_clock evidence/g06_spatial_deadline175_40_20260810_001/evaluation --json`. Recomputes the 175 ms stress protocol, timing, hold/execute decisions, overlap, per-episode rows, and aggregate values without rerunning inference.
+- Claim boundary: An exploratory transition point in one checkpoint/service/seed matrix; it is not an official leaderboard result, universal deadline threshold, hard-real-time guarantee, hardware safety result, or model-quality ranking.
+- Inventory: 102 files, 15.5 MiB, tree SHA-256 `53d15061cc2f17b533c698e029fb53880d4cba677d37aee1ccb6365993854515`
 
 ### pi0.5 LIBERO temporal-alignment pilot
 

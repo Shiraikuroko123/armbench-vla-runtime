@@ -57,6 +57,7 @@
           <a href="#faults"><span data-lang-content="zh">故障矩阵</span><span data-lang-content="en">Faults</span></a>
           <a href="#tasks"><span data-lang-content="zh">任务执行</span><span data-lang-content="en">Tasks</span></a>
           <a href="#g02"><span data-lang-content="zh">G02 pilot</span><span data-lang-content="en">G02 pilot</span></a>
+          <a href="#deadline-curve"><span data-lang-content="zh">Deadline curve</span><span data-lang-content="en">Deadline curve</span></a>
           <a href="#reproduce"><span data-lang-content="zh">本地验收</span><span data-lang-content="en">Reproduce</span></a>
           <a href="#scope"><span data-lang-content="zh">边界</span><span data-lang-content="en">Boundaries</span></a>
         </nav>
@@ -111,8 +112,10 @@
 
       <section class="artifact-bar" aria-label="Project artifacts">
         <div class="shell artifact-grid">
+          <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/g06_spatial_deadline175_40_20260810_001" target="_blank" rel="noreferrer"><span>G06 / 175 MS</span><strong>Transition point</strong></a>
           <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime" target="_blank" rel="noreferrer"><span>CODE</span><strong><span data-lang-content="zh">源代码与测试</span><span data-lang-content="en">Source and tests</span></strong></a>
           <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/pi05_libero_independent_clock_core_40_001" target="_blank" rel="noreferrer"><span>G02 PILOT</span><strong><span data-lang-content="zh">40 次独立时钟证据</span><span data-lang-content="en">40-rollout clock evidence</span></strong></a>
+          <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/g05_spatial_deadline150_40_20260810_001" target="_blank" rel="noreferrer"><span>G05 / 150 MS</span><strong><span data-lang-content="zh">中间 deadline 压力点</span><span data-lang-content="en">Intermediate deadline stress</span></strong></a>
           <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/EVIDENCE_CATALOG.md" target="_blank" rel="noreferrer"><span>EVIDENCE</span><strong><span data-lang-content="zh">完整证据目录</span><span data-lang-content="en">Complete evidence catalog</span></strong></a>
           <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/README.md" target="_blank" rel="noreferrer"><span>DOCS</span><strong><span data-lang-content="zh">协议与实现说明</span><span data-lang-content="en">Protocols and implementation</span></strong></a>
         </div>
@@ -372,6 +375,42 @@
         </div>
       </section>
 
+      <section class="section g02-section" id="deadline-curve" aria-labelledby="deadline-curve-title">
+        <div class="shell">
+          <div class="section-heading reveal">
+            <p class="section-index">06A / DEADLINE STRESS CURVE</p>
+            <h2 id="deadline-curve-title">A runtime budget changes what can be safely published.</h2>
+            <p>The same attested pi0.5-LIBERO checkpoint, Spatial matrix, seed, and 20 Hz simulator were held fixed while only the response deadline changed. The supervisor fails closed: an expired action is held rather than published.</p>
+          </div>
+          <div class="g02-grid reveal">
+            <article class="g02-card">
+              <div class="ledger-head"><span>G06 / 175 MS</span><strong>3,942 execute / 613 hold ticks</strong></div>
+              <p>40/40 rollouts completed with 38/40 task successes and no deadline or provider failures. This is an exploratory transition point, not a certified threshold.</p>
+              <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/g06_spatial_deadline175_40_20260810_001" target="_blank" rel="noreferrer">Open G06 artifact <span aria-hidden="true">&#8599;</span></a>
+            </article>
+            <article class="g02-card">
+              <div class="ledger-head"><span>G04 / 50 MS</span><strong>0 execute / 8,800 hold ticks</strong></div>
+              <p>40/40 rollouts completed with 5,474 deadline exceedances and 0/40 task successes. This is a deliberately infeasible stress condition.</p>
+              <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/g04_spatial_deadline50_40_20260810_001" target="_blank" rel="noreferrer">Open G04 artifact <span aria-hidden="true">↗</span></a>
+            </article>
+            <article class="g02-card">
+              <div class="ledger-head"><span>G05 / 150 MS</span><strong>2,309 execute / 6,491 hold ticks</strong></div>
+              <p>40/40 rollouts completed with 16 deadline exceedances and 0/40 task successes. Fresh action chunks execute on 26.2% of ticks, but the duty cycle remains insufficient for this task budget.</p>
+              <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/g05_spatial_deadline150_40_20260810_001" target="_blank" rel="noreferrer">Open G05 artifact <span aria-hidden="true">↗</span></a>
+            </article>
+            <article class="g02-card">
+              <div class="ledger-head"><span>G02 / 200 MS</span><strong>4,031 execute / 592 hold ticks</strong></div>
+              <p>38/40 successes in the frozen Spatial pilot, with no deadline or provider failures. It remains a simulation pilot, not a leaderboard result.</p>
+              <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/pi05_libero_independent_clock_core_40_001" target="_blank" rel="noreferrer">Open G02 artifact <span aria-hidden="true">↗</span></a>
+            </article>
+          </div>
+          <div class="g02-footer reveal">
+            <p>These four cells are not pooled into a universal threshold or hard-real-time claim. They are reproducible MuJoCo evidence for the engineering trade-off between action freshness, fail-closed holding, and task progress.</p>
+            <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/RESULTS.md" target="_blank" rel="noreferrer">Read the full results and boundaries <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+      </section>
+
       <section class="section reproduce-section" id="reproduce" aria-labelledby="reproduce-title">
         <div class="shell">
           <div class="section-heading reveal">
@@ -381,9 +420,11 @@
           </div>
 
           <div class="command-console reveal">
+            <div class="command-row"><div><span>G06 175 MS STRESS</span><code>&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\g06_spatial_deadline175_40_20260810_001\evaluation' --json</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\g06_spatial_deadline175_40_20260810_001\evaluation' --json"><span data-lang-content="en">Copy</span></button></div>
             <div class="console-head"><span>POWERSHELL · LOCAL CPU</span><span>scripts/accept_cpu.ps1</span></div>
             <div class="command-row"><div><span>LIVE CHECKPOINT BUNDLE</span><code>&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_live_panda_smoke '.\evidence\g01_live_panda_smoke_final_001' --json</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_live_panda_smoke '.\evidence\g01_live_panda_smoke_final_001' --json"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-row"><div><span>G02 INDEPENDENT CLOCK</span><code>&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\pi05_libero_independent_clock_core_40_001\evaluation' --json</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\pi05_libero_independent_clock_core_40_001\evaluation' --json"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
+            <div class="command-row"><div><span>G05 150 MS STRESS</span><code>&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\g05_spatial_deadline150_40_20260810_001\evaluation' --json</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\.\evidence\g05_spatial_deadline150_40_20260810_001\evaluation' --json"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-row"><div><span>FULL LOCAL EVIDENCE</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_cpu.ps1'</code></div><button type="button" class="copy-button" data-copy="powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_cpu.ps1'"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-row"><div><span>RECOMPUTE</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_integrated_panda.ps1'</code></div><button type="button" class="copy-button" data-copy="powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_integrated_panda.ps1'"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-row"><div><span>ASYNC BOUNDARY</span><code>&amp; '.\.venv\Scripts\python.exe' -m armbench vla-cpu-runtime-validate '.\reports\cpu_runtime_completion_001'</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m armbench vla-cpu-runtime-validate '.\reports\cpu_runtime_completion_001'"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>

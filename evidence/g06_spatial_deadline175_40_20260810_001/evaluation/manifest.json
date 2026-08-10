@@ -1,0 +1,397 @@
+{
+  "files": {
+    "aggregate.json": {
+      "bytes": 428,
+      "sha256": "ff17b4848ae2b6c9e983a418cc9330d1101b4a5b89fff560412cc09071369564"
+    },
+    "environment.json": {
+      "bytes": 7168,
+      "sha256": "f29caabbfc03d508380193a06bccb46b6ee073a3752ca7713179e7595a49aad3"
+    },
+    "episodes/libero_spatial__task_000__episode_00/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "2db16a59a2cee33333ebbc16619a35fc2f28a892e467da4465b661329fdd4f54"
+    },
+    "episodes/libero_spatial__task_000__episode_00/runtime.json": {
+      "bytes": 358734,
+      "sha256": "570d4b06af97c016cd40a2abf0da68b32f5c4b8330e293c161df75af07afe047"
+    },
+    "episodes/libero_spatial__task_000__episode_01/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "dc07820a5a4f658d4a5bf944be479ca58a901d881ecd3b6c84cf0a69da4adffb"
+    },
+    "episodes/libero_spatial__task_000__episode_01/runtime.json": {
+      "bytes": 379517,
+      "sha256": "61bfb137cc4a4109f840009d89a8a9faff8cecdd2ce7c600785fff3bd2be1cff"
+    },
+    "episodes/libero_spatial__task_000__episode_02/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "5a22bed5962664504c91a9c6d1ecec83151f64dcf8a0e86da28be1e2b2e29409"
+    },
+    "episodes/libero_spatial__task_000__episode_02/runtime.json": {
+      "bytes": 274853,
+      "sha256": "eeb651b17fc12883d67aa1ccea1c2c1e29704e27d307d363cfd67aab2cff9ea6"
+    },
+    "episodes/libero_spatial__task_000__episode_03/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "5187dd15c07c8e048aa84e3893802111de17692873b5162bcb3168162440c45e"
+    },
+    "episodes/libero_spatial__task_000__episode_03/runtime.json": {
+      "bytes": 242499,
+      "sha256": "1198c5f2eb16cf48899605643d7c0812e273b51e1946e8adbd3ad390ea500eb2"
+    },
+    "episodes/libero_spatial__task_001__episode_00/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "7a91765454d046d7baede7ccf62ba48c783f7a0af8560ce2bb5c8e4457e0e972"
+    },
+    "episodes/libero_spatial__task_001__episode_00/runtime.json": {
+      "bytes": 392645,
+      "sha256": "cccbb592645dd8869d38c7d071067b9e916f45f30d9987e4c67d9a1e6d514995"
+    },
+    "episodes/libero_spatial__task_001__episode_01/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "19dd0775f6001ff2bbb6bea904ab516546c6f1d22040a1ea0c17d284a4567328"
+    },
+    "episodes/libero_spatial__task_001__episode_01/runtime.json": {
+      "bytes": 369240,
+      "sha256": "1440621ef225ee831a4cf035aba29aaee5266990fe21f052bc556b4a019fa037"
+    },
+    "episodes/libero_spatial__task_001__episode_02/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "d4313773c961ce5a397466b34c6a7e7a5c92f2de64aa7e185d66ecf2ee66a970"
+    },
+    "episodes/libero_spatial__task_001__episode_02/runtime.json": {
+      "bytes": 364760,
+      "sha256": "f318a9bf4951e39784dc7a6f616b2c0adcb1ffb4d4190bec5aaebd6ec258c32b"
+    },
+    "episodes/libero_spatial__task_001__episode_03/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "d6bad5ca4b635d49b0a3a9bc53713af8c553c7023c8f33676691f0e465ac581a"
+    },
+    "episodes/libero_spatial__task_001__episode_03/runtime.json": {
+      "bytes": 387063,
+      "sha256": "143357ceac6b116d3bb924e314de09d5f12aea8f79f3851b39b2b5d81d8b8b9e"
+    },
+    "episodes/libero_spatial__task_002__episode_00/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "d1ea6bc10842a92ce19fbc89eb0e48b24fa24869d2449d14be404011d6c92383"
+    },
+    "episodes/libero_spatial__task_002__episode_00/runtime.json": {
+      "bytes": 437883,
+      "sha256": "c8c09777a0baa489125d41d8d43076d7f73b03002d90ac359cb4dc11bb63bbb6"
+    },
+    "episodes/libero_spatial__task_002__episode_01/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "12c52488fae820054ecb6b5495cf5023ab25abd79b7af00755e320a374d739d6"
+    },
+    "episodes/libero_spatial__task_002__episode_01/runtime.json": {
+      "bytes": 369432,
+      "sha256": "a6ecd780c677b991335b8c9aaf1d8cc74ebd0974caf09b8fa1f08d5aea717d39"
+    },
+    "episodes/libero_spatial__task_002__episode_02/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "465642ad5832c65d2b71bfefcec9df963127dcfe7c8490d7d778315970cafc7b"
+    },
+    "episodes/libero_spatial__task_002__episode_02/runtime.json": {
+      "bytes": 342741,
+      "sha256": "31ba0e1f78efdf2299bfbe76b297207f7878ce2c4a4b3726fcffd5a15dd22073"
+    },
+    "episodes/libero_spatial__task_002__episode_03/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "c0cf3dd23264f409538b0129bd876f468f3eb4f5c0b7c507cdc244a374ccd691"
+    },
+    "episodes/libero_spatial__task_002__episode_03/runtime.json": {
+      "bytes": 358794,
+      "sha256": "00ed04b039991feb8c3c3952a4b6a6d96f37f2b34060033cfc96cd4ce12cbaff"
+    },
+    "episodes/libero_spatial__task_003__episode_00/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "bf422915dd7628312dde809298ac43f811579aa433a7090ab51d52ebec6e5100"
+    },
+    "episodes/libero_spatial__task_003__episode_00/runtime.json": {
+      "bytes": 346972,
+      "sha256": "bf3d52afc511b68d6092eb376906043268bcd627a8923ac9b1c81376952c8088"
+    },
+    "episodes/libero_spatial__task_003__episode_01/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "f99ac25d83a31254a560e0416b61e9b7bd460045278063cf2845228ccebb2a6c"
+    },
+    "episodes/libero_spatial__task_003__episode_01/runtime.json": {
+      "bytes": 285459,
+      "sha256": "0619f4342851fe7d7ad42f53b4b302f157443c5c0abadc8fe6854d78c350a9fb"
+    },
+    "episodes/libero_spatial__task_003__episode_02/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "7fbc1f77bc6c3342ca156c70875f6c28fb4488977b8e24451fcb62afdb6cdc09"
+    },
+    "episodes/libero_spatial__task_003__episode_02/runtime.json": {
+      "bytes": 296755,
+      "sha256": "aefc225ddb0750e1dfbcd3dac60a7ca1dd445dfdf2555e983396cac5d4f658cd"
+    },
+    "episodes/libero_spatial__task_003__episode_03/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "bf186e0bf9ea610a84fc3a1ebbf60266b77b4171e78e91fd52c7ebad5954ece0"
+    },
+    "episodes/libero_spatial__task_003__episode_03/runtime.json": {
+      "bytes": 298062,
+      "sha256": "cd257d1f22dd061d30fd623b4bb504b054ba3644f618e5607b53e8c31552ab96"
+    },
+    "episodes/libero_spatial__task_004__episode_00/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "01d4c9d00c03745e0d745d2a7907dd838f4ca45e1bee5a1584abdd0b22b297a1"
+    },
+    "episodes/libero_spatial__task_004__episode_00/runtime.json": {
+      "bytes": 761545,
+      "sha256": "f909275e9740ac1bd7c7b5b508e716956f0a3d6d58d92145bdb568cbee882257"
+    },
+    "episodes/libero_spatial__task_004__episode_01/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "c9b52fdcb21d7953783baaace2a32eb0bbd05abe5eaecb9ca6e86de9c87c9d6b"
+    },
+    "episodes/libero_spatial__task_004__episode_01/runtime.json": {
+      "bytes": 485331,
+      "sha256": "62327628571d41f0d6b805efc7b0e3560008ad8bb15acea5347e64cb0488d97d"
+    },
+    "episodes/libero_spatial__task_004__episode_02/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "df39ee63294443e2a3123b9c9492c1374fe2bf583c3ef628ca955962ef453878"
+    },
+    "episodes/libero_spatial__task_004__episode_02/runtime.json": {
+      "bytes": 764057,
+      "sha256": "9e08bb7a6bb141a9ec1be1b0f06304a3fed36e61541c22d7bedeb8d5a032ddec"
+    },
+    "episodes/libero_spatial__task_004__episode_03/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "8290fea8abee0cb7ada7536cfeb0e50c998b751bb121bdfb38359a5ceb482046"
+    },
+    "episodes/libero_spatial__task_004__episode_03/runtime.json": {
+      "bytes": 485486,
+      "sha256": "0285e959ea394f88e45a3751f51f4939f05cb2d2c50ffb4dcef947466cbd449d"
+    },
+    "episodes/libero_spatial__task_005__episode_00/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "b306c403d700f533bac0c47155f90ad43641651a5798cd3d030fa0143679e6b3"
+    },
+    "episodes/libero_spatial__task_005__episode_00/runtime.json": {
+      "bytes": 358203,
+      "sha256": "f341cf9c02cb8f9708415be02821e95624c004fd9612cfa0c3bfe593b45b4f72"
+    },
+    "episodes/libero_spatial__task_005__episode_01/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "c1774b483b794de11026bb59e941ebed2a39856d51838a4c9ef6c16995ae79c9"
+    },
+    "episodes/libero_spatial__task_005__episode_01/runtime.json": {
+      "bytes": 317769,
+      "sha256": "9561d588a9c971d2adfb53641d979287620ea4caf8bf562cd4dcd14012f57fe7"
+    },
+    "episodes/libero_spatial__task_005__episode_02/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "27993de3c282b62775ffa72c197ee8cfd7b46d821f176863d2a40775afbdf11c"
+    },
+    "episodes/libero_spatial__task_005__episode_02/runtime.json": {
+      "bytes": 341368,
+      "sha256": "ae1fb8a56b173c2613c33c0b20f7b8a18bf27df6c72ba8ea2848d42090579fe8"
+    },
+    "episodes/libero_spatial__task_005__episode_03/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "9821bf02d6374c08d25f73be006bedd4d289bfb4577c948610c0cf114037e295"
+    },
+    "episodes/libero_spatial__task_005__episode_03/runtime.json": {
+      "bytes": 324636,
+      "sha256": "b3d526d933dec71c72890fd3b0cd17629351a952480eb1bf370f33bc34d1a681"
+    },
+    "episodes/libero_spatial__task_006__episode_00/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "e8c741257ca19cdab0c828bfb70fb44bbe410d85a5cf21f50fd3ea58107e3bae"
+    },
+    "episodes/libero_spatial__task_006__episode_00/runtime.json": {
+      "bytes": 393239,
+      "sha256": "1f4a0bc4cb0f8d8001c348d2cf0b5a9043dd957eb61f5327eaf9ea99d898c505"
+    },
+    "episodes/libero_spatial__task_006__episode_01/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "55647bc6f6f17e655959b3391893bef8d3c220c3125e0d6cb875eebd7e84529b"
+    },
+    "episodes/libero_spatial__task_006__episode_01/runtime.json": {
+      "bytes": 387237,
+      "sha256": "b487b4594dfec139b0d597053f9119736c2231ee86aee84bf71730b4769e281c"
+    },
+    "episodes/libero_spatial__task_006__episode_02/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "e041a9216e60bc5d83d20c1517e1f30fd55698b0fcaa9f944c068a4fd48c5b84"
+    },
+    "episodes/libero_spatial__task_006__episode_02/runtime.json": {
+      "bytes": 354768,
+      "sha256": "cbcbac9c44fb88408213a457cdd33343bfe7cb9115e91ac34f13cbe139fea6db"
+    },
+    "episodes/libero_spatial__task_006__episode_03/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "83fb14fe71cdad703047ea3fea58e13176a4a82b9a5acb6b1ccd9c01db6d4826"
+    },
+    "episodes/libero_spatial__task_006__episode_03/runtime.json": {
+      "bytes": 431233,
+      "sha256": "88b9d4f904289a46e940b3511295e98204f4b563427c53dd31580f732abaa8bb"
+    },
+    "episodes/libero_spatial__task_007__episode_00/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "a4f3e49e572a675e5204eac82d700dd33e59f0017c3900968daaef34c750e214"
+    },
+    "episodes/libero_spatial__task_007__episode_00/runtime.json": {
+      "bytes": 409371,
+      "sha256": "8410d99f546bdb0ca3b9e958982d1655fab63c301a68b21f33b434fbabd468c0"
+    },
+    "episodes/libero_spatial__task_007__episode_01/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "e3dfced49bb518347b1d73bd82efe574fba996d0e748b7971b92b9bac1870558"
+    },
+    "episodes/libero_spatial__task_007__episode_01/runtime.json": {
+      "bytes": 409409,
+      "sha256": "c73d852d2a47bc7d441103610ad8aa92173860ddc46b774cf23dc06df9e12522"
+    },
+    "episodes/libero_spatial__task_007__episode_02/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "36382b0c58c79b818816799c280fabd5e70abc8b48725ee396248f7cd587f906"
+    },
+    "episodes/libero_spatial__task_007__episode_02/runtime.json": {
+      "bytes": 425309,
+      "sha256": "378b3dc1488662eb08d8bafe0d2ea89b0abf829e1a9ed2c845662e2083b9d804"
+    },
+    "episodes/libero_spatial__task_007__episode_03/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "df40de5a2f4e0c58c2b78d4a90d49470b73ad8d933567d2abc804c2a87a1339b"
+    },
+    "episodes/libero_spatial__task_007__episode_03/runtime.json": {
+      "bytes": 426276,
+      "sha256": "ce5825004f2ce5bea0cdd221a29b0f9ff83ff1f0cd29efcb80cada39ae0a1a89"
+    },
+    "episodes/libero_spatial__task_008__episode_00/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "e10b6081c9e83ad399a790b10ef30f32630f478d7bb19ea8335627810d9b14e6"
+    },
+    "episodes/libero_spatial__task_008__episode_00/runtime.json": {
+      "bytes": 342579,
+      "sha256": "0035fda75bf02cea3530ca3ce91df63b3b6e6429c7363aaa3704b570984ce6f5"
+    },
+    "episodes/libero_spatial__task_008__episode_01/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "3f7c0184b5f3339e1e2151a99737e8fac6fd3b4398df8374ded8e7f7bb0dde4c"
+    },
+    "episodes/libero_spatial__task_008__episode_01/runtime.json": {
+      "bytes": 352059,
+      "sha256": "b7d762a81ea2da7257a580c70d6c3b57c4065f36182bbc4fd4af73d65a32d55c"
+    },
+    "episodes/libero_spatial__task_008__episode_02/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "f0d4efa4de9de9ae0b11b9f35ec6e5b9b6560ba7102fcd833806d088e6e6313a"
+    },
+    "episodes/libero_spatial__task_008__episode_02/runtime.json": {
+      "bytes": 334982,
+      "sha256": "3f9d144470db289b3bc43689d9ea2284924cbddd4f48094a7d57e625b3eb2d9b"
+    },
+    "episodes/libero_spatial__task_008__episode_03/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "9d28600c6f3c79cbd52ba05b2639325168ea8d5ca106e6ed0ede30fba9fd9bc1"
+    },
+    "episodes/libero_spatial__task_008__episode_03/runtime.json": {
+      "bytes": 313240,
+      "sha256": "41b16eca412df5205edf871e27762c706473e7fe5d07eacb59bc734e5030e94e"
+    },
+    "episodes/libero_spatial__task_009__episode_00/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "24e6a0a00554ec0957517b2a2b058e4b180709651a317f22357c841f98497fba"
+    },
+    "episodes/libero_spatial__task_009__episode_00/runtime.json": {
+      "bytes": 513130,
+      "sha256": "0299ae80c8123edbcf33dedaebb5fd61676078beed95c0791cc0c6c2f2f859b4"
+    },
+    "episodes/libero_spatial__task_009__episode_01/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "c53443c07439ad5a3dba93a0687d62b5bee60baafb2b40ed35bccaa28d5709d8"
+    },
+    "episodes/libero_spatial__task_009__episode_01/runtime.json": {
+      "bytes": 441244,
+      "sha256": "112ba439bd2e16edef10e2f21a0de8e394e3b4f1945b5edfaa51bbd0b9b14671"
+    },
+    "episodes/libero_spatial__task_009__episode_02/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "0e46166a4896f48f03f233673455c5f28ff6672f1d537a2eb972511f838c7989"
+    },
+    "episodes/libero_spatial__task_009__episode_02/runtime.json": {
+      "bytes": 409500,
+      "sha256": "7d27487acdf56a80484604aa7bdc3eb1fb0cb788547e02aba3c5d11ea2a1f091"
+    },
+    "episodes/libero_spatial__task_009__episode_03/initial_state.npy": {
+      "bytes": 864,
+      "sha256": "991346dc647b4adb17d58a67830e633aa7607a015ae8e16f416dc328064c3c1b"
+    },
+    "episodes/libero_spatial__task_009__episode_03/runtime.json": {
+      "bytes": 419803,
+      "sha256": "acd5dec4cc6a07026264f8750c7a3142a668b35c6609f541282e3eb683ce45a9"
+    },
+    "integrity.json": {
+      "bytes": 157,
+      "sha256": "9ca182af68817f7a465fdcd7ae88666b588a7a6a9ce9a23f60ba65b6a9f4f52e"
+    },
+    "per_episode.csv": {
+      "bytes": 15892,
+      "sha256": "3b027359afc257e610bd52b7e2d36d302b5e94074ce252b5aa5f9bb4d609104d"
+    },
+    "per_episode.json": {
+      "bytes": 46230,
+      "sha256": "164d31dd4042f2a140637aca8e6c5cc3d23aac0777e6501be978953f47157a21"
+    },
+    "progress.json": {
+      "bytes": 198,
+      "sha256": "4427d8a792f5d3e66f267a35d268340322e23d5bb7496fed04697f3c70608ccd"
+    },
+    "provenance/armbench_source/integrations/openpi/compose.libero-independent-clock.yml": {
+      "bytes": 1710,
+      "sha256": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701"
+    },
+    "provenance/armbench_source/integrations/openpi/libero_independent_clock.py": {
+      "bytes": 15264,
+      "sha256": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1"
+    },
+    "provenance/armbench_source/integrations/openpi/libero_independent_clock_eval.py": {
+      "bytes": 29155,
+      "sha256": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1"
+    },
+    "provenance/armbench_source/integrations/openpi/libero_runtime.py": {
+      "bytes": 46257,
+      "sha256": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683"
+    },
+    "provenance/armbench_source/integrations/openpi/libero_runtime_eval.py": {
+      "bytes": 103183,
+      "sha256": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f"
+    },
+    "provenance/armbench_source/integrations/openpi/serve_policy_attested.py": {
+      "bytes": 42187,
+      "sha256": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8"
+    },
+    "provenance/armbench_source/integrations/openpi/validate_libero_independent_clock.py": {
+      "bytes": 24602,
+      "sha256": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599"
+    },
+    "provenance/armbench_source/src/armbench/vla/independent_clock.py": {
+      "bytes": 47066,
+      "sha256": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+    },
+    "resolved_protocol.json": {
+      "bytes": 10248,
+      "sha256": "8956e897ab0bbe6f1be571258ecb607f3c4721efaf82d11ecfce58f8936eaf8b"
+    },
+    "summary.md": {
+      "bytes": 459,
+      "sha256": "c663f227f1bf7643f7ec0d72aa54f31ff772683e4206966b3f87915f5a2cf87b"
+    },
+    "videos/libero_spatial__task_004__episode_00.mp4": {
+      "bytes": 73828,
+      "sha256": "f037bbe7d2f07f735c00eef5548cea4eadf3800648016958201e3e51a2a6ad9f"
+    },
+    "videos/libero_spatial__task_004__episode_02.mp4": {
+      "bytes": 54690,
+      "sha256": "c501c45b437f74c1c5bf81bc9c9325d85f9a02b21e6401cb5d540b18d75e539d"
+    }
+  },
+  "schema_version": "armbench.pi05_libero_independent_clock.v1"
+}

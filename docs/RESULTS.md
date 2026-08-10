@@ -118,6 +118,112 @@ The validator recomputes the manifest, provenance, per-episode rows, aggregate,
 overlap proof, and all request/tick invariants. The complete public artifact is
 listed in the [evidence catalog](EVIDENCE_CATALOG.md).
 
+## G03 pi0.5-LIBERO Object cross-suite extension
+
+### Provenance and protocol
+
+- Evidence ID: g03_independent_clock_object_40_20260810_001
+- ArmBench commit: 8686490355c54d1dff9523be0c881d14ab45cda8
+- OpenPI commit: 15a9616a00943ada6c20a0f158e3adb39df2ccac
+- Matrix: LIBERO Object tasks 0-9 x episodes 0-3, seed 7, 40 rollouts
+- Runtime: the same 20 Hz parent clock, blocking inference worker,
+  latest-only mailbox, 200 ms deadline, and hold fallback as G02
+
+### Outcomes
+
+| Measure | Result |
+|---|---:|
+| Completed rollouts | 40 / 40 |
+| LIBERO task success | 39 / 40 (97.5%) |
+| Episodes with measured inference overlap | 40 / 40 |
+| Total control ticks | 6,263 |
+| Control ticks during inference | 6,161 |
+| Execute / hold ticks | 5,530 / 733 |
+| Deadline-exceeded / failed responses | 0 / 0 |
+
+The unsuccessful rollout remains in the per-episode table and runtime trace.
+This extension supports a bounded cross-suite transfer claim: the runtime
+protocol remained auditable on Object tasks. It is exploratory and is not a
+complete-suite leaderboard score, method comparison, hardware result, or
+hard-real-time guarantee.
+
+Validate it without a GPU:
+
+    python -m integrations.openpi.validate_libero_independent_clock evidence/g03_independent_clock_object_40_20260810_001/evaluation --json
+
+## G04 pi0.5-LIBERO 50 ms deadline stress
+
+G04 keeps the G02 Spatial matrix and seed fixed while reducing the registered
+deadline from 200 ms to 50 ms. It is a stress condition, not a new model.
+
+| Measure | Result |
+|---|---:|
+| Completed rollouts | 40 / 40 |
+| LIBERO task success | 0 / 40 (0.0%) |
+| Episodes with measured inference overlap | 40 / 40 |
+| Total control ticks | 8,800 |
+| Control ticks during inference | 8,688 |
+| Execute / hold ticks | 0 / 8,800 |
+| Deadline-exceeded / failed responses | 5,474 / 0 |
+
+Every tick held rather than exposing an expired action. This is the expected
+fail-closed behavior when the deadline is tighter than the observed inference
+budget; it demonstrates an operational trade-off, not a universal threshold or
+a model-quality ranking. All failures remain in the artifact.
+
+Validate it without a GPU:
+
+    python -m integrations.openpi.validate_libero_independent_clock evidence/g04_spatial_deadline50_40_20260810_001/evaluation --json
+
+## G05 pi0.5-LIBERO 150 ms deadline stress
+
+G05 keeps the G02 Spatial matrix fixed while setting the fail-closed response
+deadline to 150 ms. It is an exploratory intermediate stress point, not a
+confirmatory study.
+
+| Measure | Result |
+|---|---:|
+| Completed rollouts | 40 / 40 |
+| LIBERO task success | 0 / 40 (0.0%) |
+| Episodes with measured inference overlap | 40 / 40 |
+| Total control ticks | 8,800 |
+| Control ticks during inference | 8,686 |
+| Execute / hold ticks | 2,309 / 6,491 |
+| Deadline-exceeded / failed responses | 16 / 0 |
+
+G05 differs from G04 operationally: the supervisor published fresh action
+suffixes on 2,309 ticks rather than holding every tick, but no rollout reached
+the LIBERO success predicate. This is evidence about one runtime budget and
+checkpoint/simulator configuration, not a universal threshold, model ranking,
+hard-real-time guarantee, or hardware result.
+
+Validate it without a GPU:
+
+    python -m integrations.openpi.validate_libero_independent_clock evidence/g05_spatial_deadline150_40_20260810_001/evaluation --json
+
+## G06 pi0.5-LIBERO 175 ms deadline stress
+
+G06 is a second exploratory intermediate point in the same Spatial matrix.
+
+| Measure | Result |
+|---|---:|
+| Completed rollouts | 40 / 40 |
+| LIBERO task success | 38 / 40 (95.0%) |
+| Episodes with measured inference overlap | 40 / 40 |
+| Total control ticks | 4,555 |
+| Control ticks during inference | 4,472 |
+| Execute / hold ticks | 3,942 / 613 |
+| Deadline-exceeded / failed responses | 0 / 0 |
+
+At 175 ms, the execute duty cycle is 86.5% and the fixed matrix records 38/40
+successes. This follows the 150 ms point's 0/40 result, but it is still one
+checkpoint/service/seed configuration and does not certify a universal
+deadline, hard-real-time scheduling, hardware safety, or model superiority.
+
+Validate it without a GPU:
+
+    python -m integrations.openpi.validate_libero_independent_clock evidence/g06_spatial_deadline175_40_20260810_001/evaluation --json
+
 ## pi0.5 RTC guidance G0
 
 ### Provenance and protocol

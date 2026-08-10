@@ -1,0 +1,5 @@
+deadline_ms,rollouts,task_successes,task_success_rate,total_control_ticks,ticks_during_inference,execute_ticks,hold_ticks,deadline_exceeded_responses,execute_duty_cycle
+50,40,0,0.0,8800,8688,0,8800,5474,0.0
+150,40,0,0.0,8800,8686,2309,6491,16,0.26238636363636364
+175,40,38,0.95,4555,4472,3942,613,0,0.8654226125137212
+200,40,38,0.95,4623,4521,4031,592,0,0.8719491660177379
