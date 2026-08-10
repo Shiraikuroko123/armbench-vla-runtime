@@ -3,39 +3,39 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#111310">
-    <meta name="description" content="ArmBench：面向 pi0.5 动作块的独立时钟运行时与评测平台，公开 720-rollout deadline 研究、240-rollout held-out 动作选择对照、Panda 执行基座与 CPU 可复核证据。">
+    <meta name="theme-color" content="#0a0c0b">
+    <meta name="description" content="ArmBench 是面向 action-chunk VLA 推理延迟的可审计异步运行时与评测系统：Physical Intelligence π0.5 VLA、LIBERO、720 次 deadline 实验、240 次冻结动作选择对照与七自由度 Panda 运行时基座。">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="ArmBench | Attested pi0.5-to-Panda runtime">
-    <meta property="og:description" content="An attested pi0.5-LIBERO checkpoint evaluated across a 720-rollout deadline study and a frozen 240-rollout action-selection comparison, with an asynchronous MuJoCo Panda runtime and CPU-verifiable evidence.">
+    <meta property="og:title" content="ArmBench | 异步 VLA 动作选择与运行时验证">
+    <meta property="og:description" content="Independent inference and control clocks, deadline-aware action selection, 720 deadline rollouts, and a frozen 120-pair Physical Intelligence π0.5 VLA comparison in LIBERO.">
     <meta property="og:url" content="https://shiraikuroko123.github.io/armbench-vla-runtime/">
     <meta property="og:image" content="https://shiraikuroko123.github.io/armbench-vla-runtime/assets/og-armbench.png">
-    <meta property="og:image:alt" content="Three frames from the ArmBench pi0.5-to-Panda MuJoCo integration probe, labeled as simulation with target not reached.">
+    <meta property="og:image:alt" content="ArmBench project title with Physical Intelligence π0.5 VLA in LIBERO and MuJoCo Panda simulation evidence.">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="ArmBench | Attested pi0.5-to-Panda runtime">
-    <meta name="twitter:description" content="Independent-clock pi0.5-LIBERO evidence: 720 deadline rollouts, a frozen 120-pair action-selection comparison, and a MuJoCo Panda runtime.">
+    <meta name="twitter:title" content="ArmBench | Asynchronous VLA runtime evidence">
+    <meta name="twitter:description" content="A simulation research system for action-chunk VLA latency, age-aligned selection, deadline holds, and auditable evidence.">
     <meta name="twitter:image" content="https://shiraikuroko123.github.io/armbench-vla-runtime/assets/og-armbench.png">
-    <meta name="twitter:image:alt" content="Three frames from the ArmBench pi0.5-to-Panda MuJoCo integration probe, labeled as simulation with target not reached.">
     <meta name="last-modified" content="2026-08-10">
-    <title>ArmBench | pi0.5 runtime evidence</title>
+    <title>ArmBench | 异步 VLA 动作选择与运行时验证</title>
     <link rel="canonical" href="https://shiraikuroko123.github.io/armbench-vla-runtime/">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="styles.css?v=20260810-2">
-    <script src="app.js?v=20260810-2" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260810-4">
+    <script src="app.js?v=20260810-4" defer></script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "SoftwareSourceCode",
         "name": "ArmBench",
-        "description": "A runtime and evaluation platform connecting content-attested pi0.5-LIBERO checkpoint responses to an asynchronous MuJoCo Panda controller through explicit action semantics, temporal gates, continuous collision checks, and braking fallbacks.",
+        "description": "An auditable asynchronous runtime and evaluation system for action-chunk VLA policies under inference latency.",
         "url": "https://shiraikuroko123.github.io/armbench-vla-runtime/",
         "codeRepository": "https://github.com/Shiraikuroko123/armbench-vla-runtime",
         "programmingLanguage": ["Python", "JavaScript"],
-        "runtimePlatform": "Windows or Ubuntu CPU; MuJoCo Panda simulation",
+        "runtimePlatform": "Physical Intelligence π0.5 VLA via OpenPI in LIBERO, plus MuJoCo Panda simulation",
         "license": "https://opensource.org/licenses/MIT",
-        "dateModified": "2026-08-10"
+        "dateModified": "2026-08-10",
+        "author": {"@type": "Person", "name": "谌章伟"}
       }
     </script>
   </head>
@@ -52,22 +52,19 @@
           <span>ArmBench</span>
         </a>
         <nav class="nav-links" id="site-nav" aria-label="Primary navigation">
-          <a href="#results"><span data-lang-content="zh">证据</span><span data-lang-content="en">Evidence</span></a>
-          <a href="#assurance"><span data-lang-content="zh">保障链</span><span data-lang-content="en">Assurance</span></a>
-          <a href="#faults"><span data-lang-content="zh">故障矩阵</span><span data-lang-content="en">Faults</span></a>
-          <a href="#tasks"><span data-lang-content="zh">任务执行</span><span data-lang-content="en">Tasks</span></a>
-          <a href="#g02"><span data-lang-content="zh">G02 pilot</span><span data-lang-content="en">G02 pilot</span></a>
-          <a href="#deadline-curve"><span data-lang-content="zh">Deadline curve</span><span data-lang-content="en">Deadline curve</span></a>
-          <a href="#selection-study"><span data-lang-content="zh">动作选择</span><span data-lang-content="en">Selection</span></a>
-          <a href="#reproduce"><span data-lang-content="zh">本地验收</span><span data-lang-content="en">Reproduce</span></a>
-          <a href="#scope"><span data-lang-content="zh">边界</span><span data-lang-content="en">Boundaries</span></a>
+          <a href="#overview"><span data-lang-content="zh">概览</span><span data-lang-content="en">Overview</span></a>
+          <a href="#method"><span data-lang-content="zh">方法</span><span data-lang-content="en">Method</span></a>
+          <a href="#results"><span data-lang-content="zh">结果</span><span data-lang-content="en">Results</span></a>
+          <a href="#rollouts"><span data-lang-content="zh">视频</span><span data-lang-content="en">Rollouts</span></a>
+          <a href="#reproduce"><span data-lang-content="zh">复现</span><span data-lang-content="en">Reproduce</span></a>
+          <a href="#scope"><span data-lang-content="zh">边界与下一步</span><span data-lang-content="en">Scope &amp; next</span></a>
         </nav>
         <div class="header-actions">
           <div class="lang-switch" role="group" aria-label="Language">
             <button type="button" data-set-lang="zh" aria-pressed="true">中</button>
             <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
           </div>
-          <a class="header-repo" href="https://github.com/Shiraikuroko123/armbench-vla-runtime" target="_blank" rel="noreferrer">GitHub</a>
+          <a class="repo-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime" target="_blank" rel="noreferrer">GitHub</a>
           <button class="menu-button" type="button" aria-controls="site-nav" aria-expanded="false" data-menu-button data-aria-open-zh="打开导航" data-aria-open-en="Open navigation" data-aria-close-zh="关闭导航" data-aria-close-en="Close navigation">
             <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
             <span class="sr-only"><span data-lang-content="zh">导航</span><span data-lang-content="en">Menu</span></span>
@@ -77,476 +74,340 @@
     </header>
 
     <main id="main">
-      <!-- Authentic simulation footage from the attested live checkpoint integration gate. -->
       <section class="hero" id="top" aria-labelledby="hero-title">
-        <video id="hero-rollout" class="hero-video" muted loop playsinline preload="none" poster="assets/media/pi05-panda-live-poster.webp" width="640" height="480" aria-describedby="hero-caption" data-hero-video>
-          <source data-src="assets/media/pi05-panda-live-smoke.mp4" type="video/mp4">
-        </video>
-        <div class="hero-shade" aria-hidden="true"></div>
-        <div class="hero-content shell">
-          <p class="eyebrow">PI0.5 CHECKPOINT · PANDA RUNTIME · MUJOCO</p>
-          <h1 id="hero-title">ArmBench</h1>
-          <p class="hero-claim">
-            <span data-lang-content="zh">内容校验过的 pi0.5-LIBERO 响应通过显式 H×7 到 H×8 适配器进入七自由度 Panda 异步闭环。</span>
-            <span data-lang-content="en">Content-attested pi0.5-LIBERO responses cross an explicit Hx7-to-Hx8 adapter into an asynchronous seven-DoF Panda loop.</span>
+        <div class="hero-copy shell">
+          <p class="kicker">PHYSICAL INTELLIGENCE π0.5 · OPENPI · LIBERO · MUJOCO PANDA</p>
+          <h1 id="hero-title"><span>Arm</span><strong>Bench</strong></h1>
+          <p class="hero-subtitle">
+            <span data-lang-content="zh">面向异步 VLA 操作的时限感知动作选择与运行时验证</span>
+            <span data-lang-content="en">Deadline-aware action selection and runtime verification for asynchronous VLA manipulation</span>
           </p>
-          <div class="hero-actions">
-            <a class="button button-primary" href="#results"><span data-lang-content="zh">检查 live 证据</span><span data-lang-content="en">Inspect live evidence</span><span aria-hidden="true">↓</span></a>
-            <a class="button button-secondary" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/evidence/g01_live_panda_smoke_final_001/summary.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开验收报告</span><span data-lang-content="en">Open validation report</span><span aria-hidden="true">↗</span></a>
-          </div>
-          <ul class="hero-badges">
-            <li>MUJOCO SIMULATION</li>
-            <li>LIVE PI0.5 CHECKPOINT</li>
-            <li>35 ACCEPTED RESPONSES</li>
-          </ul>
+          <p class="byline">
+            <span data-lang-content="zh">谌章伟 · 独立研究工程项目 · 2026</span>
+            <span data-lang-content="en">Zhangwei Chen · Independent research engineering project · 2026</span>
+          </p>
+          <nav class="artifact-actions" aria-label="Project artifacts">
+            <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime" target="_blank" rel="noreferrer"><span>Code</span><small>GitHub</small></a>
+            <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/RESULTS.md" target="_blank" rel="noreferrer"><span>Results</span><small>960 formal rollouts</small></a>
+            <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/PROJECT_ARCHITECTURE_ZH.md" target="_blank" rel="noreferrer"><span>Architecture</span><small>System contract</small></a>
+            <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/EVIDENCE_CATALOG.md" target="_blank" rel="noreferrer"><span>Evidence</span><small>56 artifacts</small></a>
+          </nav>
         </div>
-        <div class="hero-caption" id="hero-caption">
-          <span class="media-status">SIMULATION</span>
-          <span data-lang-content="zh">pi0.5-LIBERO → Panda 集成探针 · MuJoCo 仿真 · 1× · 目标未到达</span>
-          <span data-lang-content="en">pi0.5-LIBERO → Panda integration probe · MuJoCo simulation · 1× · target not reached</span>
-          <button class="icon-button" type="button" data-video-toggle="hero-rollout" aria-pressed="false" aria-label="播放演示" title="播放演示" data-aria-play-zh="播放演示" data-aria-play-en="Play rollout" data-aria-pause-zh="暂停演示" data-aria-pause-en="Pause rollout">
-            <span data-media-icon="play" aria-hidden="true">▶</span>
-            <span data-media-icon="pause" aria-hidden="true">Ⅱ</span>
-          </button>
+
+        <figure class="teaser shell reveal" aria-labelledby="teaser-caption">
+          <div class="teaser-media">
+            <video id="hero-video" muted loop playsinline preload="metadata" poster="assets/media/armbench-teaser-poster.webp" width="1280" height="720" data-hero-video>
+              <source src="assets/media/armbench-teaser.mp4" type="video/mp4">
+            </video>
+            <div class="teaser-label teaser-label-left">
+              <strong>π0.5 VLA / LIBERO</strong>
+              <span data-lang-content="zh">独立时钟视觉运行</span><span data-lang-content="en">Independent-clock visual run</span>
+            </div>
+            <div class="teaser-label teaser-label-right">
+              <strong>π0.5 VLA → PANDA</strong>
+              <span data-lang-content="zh">运行时接线探针</span><span data-lang-content="en">Runtime integration probe</span>
+            </div>
+            <button class="media-toggle" type="button" data-video-toggle="hero-video" aria-pressed="false" aria-label="播放 teaser" data-aria-play-zh="播放 teaser" data-aria-play-en="Play teaser" data-aria-pause-zh="暂停 teaser" data-aria-pause-en="Pause teaser">
+              <span data-icon-play aria-hidden="true">▶</span><span data-icon-pause aria-hidden="true">Ⅱ</span>
+            </button>
+          </div>
+          <figcaption id="teaser-caption">
+            <span class="status-tag">SIMULATION · TWO EVIDENCE TRACKS</span>
+            <span data-lang-content="zh">左：Physical Intelligence π0.5 VLA 官方 LIBERO checkpoint 的独立时钟视觉运行；右：同一 checkpoint 家族接入七自由度 Panda runtime 的探针，目标未到达。两者不合并为 Panda 任务成功率。</span>
+            <span data-lang-content="en">Left: an independent-clock visual run from the official Physical Intelligence π0.5 VLA checkpoint for LIBERO. Right: a probe connecting that checkpoint family to the seven-DoF Panda runtime; the target was not reached. These are not pooled into a Panda task-success claim.</span>
+          </figcaption>
+        </figure>
+
+        <dl class="headline-metrics shell reveal">
+          <div><dt>114 / 120</dt><dd><span data-lang-content="zh">观测年龄对齐后缀</span><span data-lang-content="en">age-aligned suffix</span></dd></div>
+          <div><dt>100 / 120</dt><dd><span data-lang-content="zh">响应相对动作块</span><span data-lang-content="en">response-relative chunk</span></dd></div>
+          <div><dt>+11.67 pp</dt><dd><span data-lang-content="zh">冻结配对差值</span><span data-lang-content="en">frozen paired difference</span></dd></div>
+          <div><dt>p = 0.00936</dt><dd><span data-lang-content="zh">双侧 exact McNemar</span><span data-lang-content="en">two-sided exact McNemar</span></dd></div>
+        </dl>
+      </section>
+
+      <section class="section overview" id="overview" aria-labelledby="overview-title">
+        <div class="reading-column reveal">
+          <p class="section-label">01 · ABSTRACT</p>
+          <h2 id="overview-title"><span data-lang-content="zh">ArmBench 究竟是什么？</span><span data-lang-content="en">What exactly is ArmBench?</span></h2>
+          <p class="lead">
+            <span data-lang-content="zh">ArmBench 是一个针对 <strong>action-chunk VLA 推理延迟</strong>的可审计运行时与评测系统。它让策略推理与 20 Hz 控制时钟独立运行，记录观测年龄、响应生命周期与实际执行索引，再决定执行仍然有效的动作后缀或进入 fail-closed hold。</span>
+            <span data-lang-content="en">ArmBench is an auditable runtime and evaluation system for <strong>action-chunk VLA inference latency</strong>. Policy inference and the 20 Hz control clock advance independently; observation age, response lifecycle, and executed indices are recorded before a still-valid suffix is selected or the system enters a fail-closed hold.</span>
+          </p>
+          <p>
+            <span data-lang-content="zh">它不是新的 VLA 模型，也没有训练 π0.5。项目通过 OpenPI 调用 Physical Intelligence <strong>π0.5 VLA</strong> 的官方 LIBERO checkpoint，研究异步闭环时序；同时保留从七自由度采样规划项目发展出的 MuJoCo Panda 运动学、连续碰撞、OSQP 投影和可行制动基座。</span>
+            <span data-lang-content="en">It is not a new VLA model and does not train π0.5. Through OpenPI, the project evaluates the official LIBERO checkpoint for Physical Intelligence's <strong>π0.5 VLA</strong> under asynchronous closed-loop timing, while retaining a MuJoCo Panda substrate for kinematics, continuous collision checking, OSQP projection, and feasible braking developed from the original seven-DoF planning project.</span>
+          </p>
+        </div>
+        <div class="definition-strip shell reveal">
+          <div><strong><span data-lang-content="zh">系统类型</span><span data-lang-content="en">System type</span></strong><span><span data-lang-content="zh">运行时 + 评测 + 证据验证</span><span data-lang-content="en">runtime + evaluation + evidence validation</span></span></div>
+          <div><strong><span data-lang-content="zh">真实模型</span><span data-lang-content="en">Live model</span></strong><span>Physical Intelligence π0.5 VLA via OpenPI</span></div>
+          <div><strong><span data-lang-content="zh">执行环境</span><span data-lang-content="en">Execution</span></strong><span>LIBERO / MuJoCo Panda</span></div>
+          <div><strong><span data-lang-content="zh">证据边界</span><span data-lang-content="en">Evidence boundary</span></strong><span><span data-lang-content="zh">仿真、单 checkpoint 家族</span><span data-lang-content="en">simulation, one checkpoint family</span></span></div>
         </div>
       </section>
 
-      <section class="artifact-bar" aria-label="Project artifacts">
-        <div class="shell artifact-grid">
-          <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/pi05_selection_heldout_report_240_20260810_001/summary.md" target="_blank" rel="noreferrer"><span>FROZEN-240</span><strong>114/120 vs 100/120</strong></a>
-          <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime" target="_blank" rel="noreferrer"><span>CODE</span><strong><span data-lang-content="zh">源代码与测试</span><span data-lang-content="en">Source and tests</span></strong></a>
-          <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/pi05_libero_independent_clock_core_40_001" target="_blank" rel="noreferrer"><span>G02 PILOT</span><strong><span data-lang-content="zh">40 次独立时钟证据</span><span data-lang-content="en">40-rollout clock evidence</span></strong></a>
-          <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/g05_spatial_deadline150_40_20260810_001" target="_blank" rel="noreferrer"><span>G05 / 150 MS</span><strong><span data-lang-content="zh">中间 deadline 压力点</span><span data-lang-content="en">Intermediate deadline stress</span></strong></a>
-          <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/EVIDENCE_CATALOG.md" target="_blank" rel="noreferrer"><span>EVIDENCE</span><strong><span data-lang-content="zh">完整证据目录</span><span data-lang-content="en">Complete evidence catalog</span></strong></a>
-          <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/README.md" target="_blank" rel="noreferrer"><span>DOCS</span><strong><span data-lang-content="zh">协议与实现说明</span><span data-lang-content="en">Protocols and implementation</span></strong></a>
+      <section class="section motivation" id="motivation" aria-labelledby="motivation-title">
+        <div class="section-heading shell reveal">
+          <p class="section-label">02 · MOTIVATION</p>
+          <h2 id="motivation-title"><span data-lang-content="zh">VLA 输出一段未来动作，但响应到达时，这段“未来”已经过去了一部分。</span><span data-lang-content="en">A VLA predicts a future action chunk, but part of that future has elapsed by the time the response arrives.</span></h2>
+          <p><span data-lang-content="zh">在 20 Hz 控制下，每 50 ms 就推进一个物理 tick。若推理耗时约 150 ms，直接从动作索引 0 开始执行，语义上等价于把基于旧观测的前三步再次施加到已经变化的系统。</span><span data-lang-content="en">At 20 Hz, physics advances every 50 ms. With roughly 150 ms of inference, restarting at action index 0 replays the first three steps of an old observation onto a system that has already changed.</span></p>
+        </div>
+
+        <div class="timing-figure shell reveal" role="img" aria-label="Observation, inference, controller ticks, and age-aligned action suffix timeline">
+          <div class="timing-row timing-clock"><strong>CONTROL</strong><span>t0</span><span>+50</span><span>+100</span><span>+150 ms</span><span>+200</span></div>
+          <div class="timing-row timing-inference"><strong>POLICY</strong><span class="observation">OBS</span><span class="inflight">π0.5 VLA INFERENCE</span><span class="response">RESPONSE</span></div>
+          <div class="timing-row timing-baseline"><strong>RESPONSE-RELATIVE</strong><span class="muted-cell">old world</span><span class="action-cell stale">a0</span><span class="action-cell stale">a1</span><span class="action-cell">a2</span></div>
+          <div class="timing-row timing-aligned"><strong>AGE-ALIGNED</strong><span class="muted-cell">skip elapsed prefix</span><span class="action-cell selected">a3</span><span class="action-cell selected">a4</span><span class="action-cell selected">a5</span></div>
+          <p><span data-lang-content="zh">示意：具体索引由测得观测年龄与注册控制周期计算；超过 deadline 时不发布旧响应。</span><span data-lang-content="en">Illustration: the exact index is computed from measured observation age and the registered control period; responses beyond the deadline are not published.</span></p>
+        </div>
+
+        <div class="problem-grid shell reveal">
+          <article><span>01</span><h3><span data-lang-content="zh">阻塞式评测隐藏问题</span><span data-lang-content="en">Blocking evaluation hides the problem</span></h3><p><span data-lang-content="zh">如果仿真等待推理完成，策略看不到真实的时钟错位。</span><span data-lang-content="en">If simulation waits for inference, the policy never experiences real clock skew.</span></p></article>
+          <article><span>02</span><h3><span data-lang-content="zh">平均延迟不等于可执行性</span><span data-lang-content="en">Mean latency is not executability</span></h3><p><span data-lang-content="zh">deadline 跨过离散控制 tick 时，execute duty 可能发生突变。</span><span data-lang-content="en">Crossing a discrete controller tick can abruptly change execute duty.</span></p></article>
+          <article><span>03</span><h3><span data-lang-content="zh">“跑完”不等于证据有效</span><span data-lang-content="en">Completion is not valid evidence</span></h3><p><span data-lang-content="zh">validator 要重新核对 overlap、配对哈希、时钟和源代码身份。</span><span data-lang-content="en">The validator recomputes overlap, pairing hashes, clocks, and source identity.</span></p></article>
         </div>
       </section>
 
-      <!-- Result snapshot: every number below is backed by a checked-in artifact. -->
-      <section class="section result-section" id="results" aria-labelledby="results-title">
-        <div class="shell">
-          <div class="section-heading reveal">
-            <p class="section-index">01 / CURRENT EVIDENCE</p>
-            <h2 id="results-title"><span data-lang-content="zh">真实 checkpoint 已进入 Panda 异步闭环，证据不止是一段视频。</span><span data-lang-content="en">A real checkpoint now enters the asynchronous Panda loop, with more than a video as proof.</span></h2>
-            <p><span data-lang-content="zh">官方 pi0.5-LIBERO checkpoint 在 RTX 4090 上完成内容校验与推理；MuJoCo 双相机观测、动作语义适配、latest-only worker、观测年龄调度、制动修复和力矩物理共同产生可复核的事件、时钟、轨迹与视频。该结果是 integration gate，不是官方 LIBERO 成功率。</span><span data-lang-content="en">The official pi0.5-LIBERO checkpoint was content-attested and executed on an RTX 4090. MuJoCo dual-camera observations, semantic adaptation, a latest-only worker, observation-age dispatch, braking repair, and torque physics produced reviewable events, clocks, traces, and video. This is an integration gate, not an official LIBERO success rate.</span></p>
-          </div>
-
-          <dl class="metric-strip reveal">
-            <div><dt data-evidence="liveResponses">35</dt><dd><span data-lang-content="zh">真实 pi0.5 响应进入 runtime</span><span data-lang-content="en">live pi0.5 responses entered the runtime</span></dd><small>0 policy failures</small></div>
-            <div><dt data-evidence="policyLatency">82.75 / 89.56</dt><dd><span data-lang-content="zh">平均 / P95 策略时延</span><span data-lang-content="en">mean / P95 policy latency</span></dd><small>milliseconds · max 112.42</small></div>
-            <div><dt data-evidence="inferenceTicks">290 / 311</dt><dd><span data-lang-content="zh">推理期间控制 tick</span><span data-lang-content="en">control ticks while inference was active</span></dd><small>separate policy thread</small></div>
-            <div><dt data-evidence="liveViolations">0</dt><dd><span data-lang-content="zh">注册的碰撞 / 限位 / 突停违规</span><span data-lang-content="en">registered collision / limit / abrupt-stop violations</span></dd><small>simulation predicates only</small></div>
-          </dl>
-
-          <div class="evidence-ledger reveal">
-            <article class="ledger-wide">
-              <div class="ledger-head"><span>ARTIFACT G01</span><strong>g01_live_panda_smoke_final_001</strong></div>
-              <p><span data-lang-content="zh">16 个 checkpoint 对象（12.44 GB）通过 GCS CRC32C 核对；OpenPI commit、checkpoint inventory SHA-256、ArmBench commit、每次响应 SHA-256、事件、NPZ 时钟与 94 帧 MP4 均已保存。目标没有到达，因此这里只主张真实 checkpoint-to-runtime 接线成立。</span><span data-lang-content="en">Sixteen checkpoint objects (12.44 GB) passed GCS CRC32C checks. The OpenPI commit, checkpoint inventory SHA-256, ArmBench commit, per-response digests, events, NPZ clocks, and 94-frame MP4 are preserved. The target was not reached, so the claim is limited to a real checkpoint-to-runtime integration.</span></p>
-              <dl><div><dt>accepted responses</dt><dd>35</dd></div><div><dt>P95 inference</dt><dd>89.56 ms</dd></div><div><dt>control ticks</dt><dd>311</dd></div><div><dt>registered violations</dt><dd>0</dd></div></dl>
-              <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/evidence/g01_live_panda_smoke_final_001/summary.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开 live 证据、限制与验证命令</span><span data-lang-content="en">Open live evidence, limitations, and validation command</span><span aria-hidden="true">↗</span></a>
-            </article>
-            <article class="ledger-wide">
-              <div class="ledger-head"><span>ARTIFACT A</span><strong>cpu_runtime_completion_001</strong></div>
-              <p><span data-lang-content="zh">用独立 policy/assurance worker 重跑 mock H×8、冻结 H×7 适配器与 OpenPI-compatible 接口 fixture；拒绝时发布零个策略动作。这里没有执行 learned checkpoint。</span><span data-lang-content="en">Reruns mock H×8, frozen H×7-adapter, and OpenPI-compatible interface fixtures through separate policy and assurance workers; rejection publishes zero policy actions. No learned checkpoint is executed here.</span></p>
-              <dl><div><dt>execute</dt><dd>6</dd></div><div><dt>hold</dt><dd>10</dd></div><div><dt>unrecoverable</dt><dd>1</dd></div><div><dt>partial prefix</dt><dd>0</dd></div></dl>
-              <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/cpu_runtime_completion_001/summary.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开异步 CPU 矩阵与逐案例记录</span><span data-lang-content="en">Open the asynchronous CPU matrix and per-case records</span><span aria-hidden="true">↗</span></a>
-            </article>
-            <article>
-              <div class="ledger-head"><span>ARTIFACT B</span><strong>integrated_panda_fault_matrix_001</strong></div>
-              <p><span data-lang-content="zh">重建 27 个确定性输入并重跑完整 supervisor；拒绝案例不暴露任何已通过的动作前缀。</span><span data-lang-content="en">Rebuilds 27 deterministic inputs and reruns the complete supervisor; rejected cases expose no successful action prefix.</span></p>
-              <dl><div><dt>accepted</dt><dd>12</dd></div><div><dt>verified brake</dt><dd>6</dd></div><div><dt>hold</dt><dd>7</dd></div><div><dt>unrecoverable</dt><dd>2</dd></div></dl>
-              <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/integrated_panda_fault_matrix_001/summary.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开摘要与逐案例文件</span><span data-lang-content="en">Open summary and per-case files</span><span aria-hidden="true">↗</span></a>
-            </article>
-            <article>
-              <div class="ledger-head"><span>ARTIFACT C</span><strong>integrated_panda_task_001</strong></div>
-              <p><span data-lang-content="zh">重新规划 RRT-Connect 参考，保障完整动作块，再通过力矩控制 MuJoCo 物理执行两条轨迹。</span><span data-lang-content="en">Replans RRT-Connect references, assures complete chunks, then executes two trajectories in torque-controlled MuJoCo physics.</span></p>
-              <dl><div><dt>target reached</dt><dd>2</dd></div><div><dt>physical predicates</dt><dd>2</dd></div><div><dt>QP interventions</dt><dd>58</dd></div><div><dt>saved traces</dt><dd>2</dd></div></dl>
-              <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/integrated_panda_task_001/summary.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开任务摘要与轨迹清单</span><span data-lang-content="en">Open task summary and trace manifest</span><span aria-hidden="true">↗</span></a>
-            </article>
-          </div>
+      <section class="section method" id="method" aria-labelledby="method-title">
+        <div class="section-heading shell reveal">
+          <p class="section-label">03 · METHOD</p>
+          <h2 id="method-title"><span data-lang-content="zh">一个运行时核心，两条明确分开的证据轨道。</span><span data-lang-content="en">One runtime core, two explicitly separated evidence tracks.</span></h2>
+          <p><span data-lang-content="zh">共享部分处理 provider、时钟、mailbox、动作语义、deadline 与审计；LIBERO 轨道测任务结果，Panda 轨道验证从七自由度规划项目继承的执行保障。</span><span data-lang-content="en">The shared core handles providers, clocks, mailbox semantics, action meaning, deadlines, and attestation. The LIBERO track measures task outcomes; the Panda track validates the execution assurance inherited from the seven-DoF planning project.</span></p>
         </div>
-      </section>
 
-      <section class="section assurance-section" id="assurance" aria-labelledby="assurance-title">
-        <div class="shell">
-          <div class="section-heading reveal">
-            <p class="section-index">02 / POLICY-TO-CONTROLLER BOUNDARY</p>
-            <h2 id="assurance-title"><span data-lang-content="zh">一个动作块，五道检查，一次原子决策。</span><span data-lang-content="en">One action chunk, five checks, one atomic decision.</span></h2>
-            <p><span data-lang-content="zh">碰撞检查没有被伪装成凸 QP 约束：OSQP 处理运动学可行域，投影后的每条线性关节边再由独立 checker fail-closed 验证。</span><span data-lang-content="en">Collision is not disguised as a convex QP constraint: OSQP handles the kinematic feasible set, then an independent fail-closed checker certifies every projected linear joint edge.</span></p>
-          </div>
-
-          <ol class="assurance-flow reveal">
-            <li><span>01</span><strong><span data-lang-content="zh">输入与时序门禁</span><span data-lang-content="en">Input and temporal gate</span></strong><small>q / qdot · observed q · response age · H×8</small></li>
-            <li><span>02</span><strong><span data-lang-content="zh">OSQP 动作投影</span><span data-lang-content="en">OSQP action projection</span></strong><small>position · velocity · acceleration · linear constraints</small></li>
-            <li><span>03</span><strong><span data-lang-content="zh">连续碰撞证书</span><span data-lang-content="en">Continuous collision certificate</span></strong><small>static obstacles · registered self pairs · every edge</small></li>
-            <li><span>04</span><strong><span data-lang-content="zh">动力学可行停止</span><span data-lang-content="en">Dynamics-feasible stop</span></strong><small>MuJoCo inverse dynamics · actuator margins · every boundary</small></li>
-            <li class="flow-result"><span>05</span><strong><span data-lang-content="zh">原子发布或回退</span><span data-lang-content="en">Atomic publish or fallback</span></strong><small>no partial policy prefix on rejection</small></li>
-          </ol>
-
-          <div class="decision-table-wrap reveal" tabindex="0" aria-label="Atomic supervisor decisions">
-            <table class="decision-table">
-              <thead><tr><th scope="col"><span data-lang-content="zh">结果</span><span data-lang-content="en">Outcome</span></th><th scope="col"><span data-lang-content="zh">策略动作</span><span data-lang-content="en">Policy action</span></th><th scope="col"><span data-lang-content="zh">可执行回退</span><span data-lang-content="en">Executable fallback</span></th><th scope="col"><span data-lang-content="zh">含义</span><span data-lang-content="en">Meaning</span></th></tr></thead>
-              <tbody>
-                <tr><th scope="row"><span class="state state-accepted">accepted</span></th><td><span data-lang-content="zh">完整动作块</span><span data-lang-content="en">complete chunk</span></td><td>n/a</td><td><span data-lang-content="zh">全部边和停止边界均已验证</span><span data-lang-content="en">all edges and stopping boundaries certified</span></td></tr>
-                <tr><th scope="row"><span class="state state-brake">verified_brake</span></th><td><span data-lang-content="zh">拒绝</span><span data-lang-content="en">rejected</span></td><td><span data-lang-content="zh">已验证制动轨迹</span><span data-lang-content="en">verified braking trajectory</span></td><td><span data-lang-content="zh">移动状态仍可在模型内停下</span><span data-lang-content="en">moving state can still stop in-model</span></td></tr>
-                <tr><th scope="row"><span class="state state-hold">hold</span></th><td><span data-lang-content="zh">拒绝</span><span data-lang-content="en">rejected</span></td><td><span data-lang-content="zh">已验证零运动保持</span><span data-lang-content="en">verified zero-motion hold</span></td><td><span data-lang-content="zh">静止状态 fail-closed</span><span data-lang-content="en">stationary state fails closed</span></td></tr>
-                <tr><th scope="row"><span class="state state-stop">unrecoverable_stop</span></th><td><span data-lang-content="zh">拒绝</span><span data-lang-content="en">rejected</span></td><td><span data-lang-content="zh">无已认证回退</span><span data-lang-content="en">no certified fallback</span></td><td><span data-lang-content="zh">交给更高层干预</span><span data-lang-content="en">escalate to a higher-level intervention</span></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <section class="section fault-section" id="faults" aria-labelledby="faults-title">
-        <div class="shell">
-          <div class="section-heading reveal">
-            <p class="section-index">03 / REGISTERED FAULT MATRIX</p>
-            <h2 id="faults-title"><span data-lang-content="zh">27 个案例不是 27 次随机演示，而是一张固定输入矩阵。</span><span data-lang-content="en">The 27 cases are a fixed input matrix, not 27 random demos.</span></h2>
-            <p><span data-lang-content="zh">三个场景、两种负载和六类条件使用确定性配置。validator 重建输入并重新运行决策，而不是只读取保存的 JSON。</span><span data-lang-content="en">Three scenes, two payloads, and six condition classes use deterministic configuration. The validator rebuilds inputs and reruns decisions instead of merely reading saved JSON.</span></p>
-          </div>
-
-          <div class="fault-overview reveal">
-            <div class="fault-total"><strong>27</strong><span><span data-lang-content="zh">注册案例</span><span data-lang-content="en">registered cases</span></span><small>27/27 expected outputs matched</small></div>
-            <div class="outcome-bar">
-              <span class="bar-accepted"><b>12</b><small>accepted</small></span>
-              <span class="bar-brake"><b>6</b><small>brake</small></span>
-              <span class="bar-hold"><b>7</b><small>hold</small></span>
-              <span class="bar-stop"><b>2</b><small>stop</small></span>
+        <div class="system-map shell reveal" role="img" aria-label="ArmBench system architecture">
+          <div class="system-node node-input"><span>01</span><strong><span data-lang-content="zh">双相机观测 + 指令</span><span data-lang-content="en">dual-camera observation + instruction</span></strong><small>timestamp · state · reset generation</small></div>
+          <div class="system-arrow" aria-hidden="true">→</div>
+          <div class="system-node node-policy"><span>02</span><strong>OpenPI · π0.5 VLA / LIBERO</strong><small>independent GPU process · keyed sampling</small></div>
+          <div class="system-arrow" aria-hidden="true">→</div>
+          <div class="system-node node-runtime"><span>03</span><strong><span data-lang-content="zh">异步运行时核心</span><span data-lang-content="en">asynchronous runtime core</span></strong><small>latest-only mailbox · measured age · deadline</small></div>
+          <div class="system-branches">
+            <div class="branch branch-libero">
+              <div class="branch-label">TASK EFFICACY TRACK</div>
+              <div class="system-node"><span>A</span><strong>Age-aligned suffix / hold</strong><small>20 Hz LIBERO · success · execute duty · traces</small></div>
+              <div class="branch-proof"><b>240 + 720</b><span><span data-lang-content="zh">正式 rollout</span><span data-lang-content="en">formal rollouts</span></span></div>
+            </div>
+            <div class="branch branch-panda">
+              <div class="branch-label">EXECUTION ASSURANCE TRACK</div>
+              <div class="system-node"><span>B</span><strong>H×7 → H×8 · OSQP · CCD · brake</strong><small>MuJoCo Panda · atomic publish / fallback</small></div>
+              <div class="branch-proof"><b>351 / 351</b><span><span data-lang-content="zh">脚本任务边界通过</span><span data-lang-content="en">scripted task boundaries passed</span></span></div>
             </div>
           </div>
+        </div>
 
-          <div class="fault-matrix-wrap reveal" tabindex="0" aria-label="Registered fault outcomes">
-            <table class="fault-matrix">
-              <thead><tr><th scope="col"><span data-lang-content="zh">输入条件</span><span data-lang-content="en">Input condition</span></th><th scope="col"><span data-lang-content="zh">案例</span><span data-lang-content="en">Cases</span></th><th scope="col"><span data-lang-content="zh">预期决策</span><span data-lang-content="en">Expected decision</span></th><th scope="col"><span data-lang-content="zh">验证目的</span><span data-lang-content="en">What it probes</span></th></tr></thead>
+        <div class="method-notes shell reveal">
+          <div><span>TRAINING</span><strong><span data-lang-content="zh">无</span><span data-lang-content="en">none</span></strong><p><span data-lang-content="zh">不微调 π0.5 VLA；研究推理时调度与验证。</span><span data-lang-content="en">No π0.5 VLA fine-tuning; the intervention is runtime scheduling and verification.</span></p></div>
+          <div><span>DECISION</span><strong><span data-lang-content="zh">整块原子发布</span><span data-lang-content="en">atomic chunk publish</span></strong><p><span data-lang-content="zh">拒绝时不泄漏已经通过的局部动作前缀。</span><span data-lang-content="en">A rejected chunk exposes no partially accepted policy prefix.</span></p></div>
+          <div><span>ATTESTATION</span><strong>hash + recompute</strong><p><span data-lang-content="zh">checkpoint、响应、视频、实现与场景身份均进入 manifest。</span><span data-lang-content="en">Checkpoint, responses, video, implementation, and scene identity enter manifests.</span></p></div>
+        </div>
+      </section>
+
+      <section class="section results" id="results" aria-labelledby="results-title">
+        <div class="section-heading shell reveal">
+          <p class="section-label">04 · EVALUATION</p>
+          <h2 id="results-title"><span data-lang-content="zh">冻结配对实验显示：选择仍然有效的动作后缀，比从响应头部重新执行更可靠。</span><span data-lang-content="en">The frozen paired study shows that selecting a still-valid suffix is more reliable than restarting from the response head.</span></h2>
+          <p><span data-lang-content="zh">Spatial tasks 0-9、episodes 4-7、seeds 7/8/9；两种模式固定同一 checkpoint、175 ms deadline、hold 规则与 keyed sampling。所有 120 对的初态、query-0 输入、噪声与首个动作块哈希均一致。</span><span data-lang-content="en">Spatial tasks 0-9, episodes 4-7, and seeds 7/8/9; both modes fix the checkpoint, 175 ms deadline, hold rules, and keyed sampling. Initial state, query-0 input, noise, and first action chunk hashes match for all 120 pairs.</span></p>
+        </div>
+
+        <div class="result-layout shell reveal">
+          <div class="selection-chart" role="img" aria-label="Held-out action selection success comparison">
+            <div class="chart-title"><strong>HELD-OUT ACTION SELECTION</strong><span>120 pairs · 240 rollouts</span></div>
+            <div class="bar-row"><span>Age-aligned suffix</span><div class="bar-track"><i class="bar-aligned"></i></div><b>114 / 120</b></div>
+            <div class="bar-row"><span>Response-relative</span><div class="bar-track"><i class="bar-response"></i></div><b>100 / 120</b></div>
+            <div class="chart-axis"><span>0%</span><span>50%</span><span>100%</span></div>
+            <dl class="chart-stats">
+              <div><dt>+11.67 pp</dt><dd><span data-lang-content="zh">配对差值</span><span data-lang-content="en">paired difference</span></dd></div>
+              <div><dt>[+1.67, +21.67]</dt><dd>30-block bootstrap 95% CI</dd></div>
+              <div><dt>20 / 6 / 94</dt><dd><span data-lang-content="zh">对齐胜 / 响应胜 / 同时成功</span><span data-lang-content="en">aligned-only / response-only / both success</span></dd></div>
+            </dl>
+          </div>
+          <div class="seed-table-wrap">
+            <table>
+              <caption><span data-lang-content="zh">按 joint seed 分层</span><span data-lang-content="en">Stratified by joint seed</span></caption>
+              <thead><tr><th scope="col">Seed</th><th scope="col">Pairs</th><th scope="col">Age-aligned</th><th scope="col">Response-relative</th></tr></thead>
               <tbody>
-                <tr><th scope="row">nominal</th><td>6</td><td><span class="state state-accepted">accepted</span></td><td><span data-lang-content="zh">正常动作块端到端通过</span><span data-lang-content="en">nominal complete-chunk pass</span></td></tr>
-                <tr><th scope="row">velocity_spike</th><td>6</td><td><span class="state state-accepted">accepted</span></td><td><span data-lang-content="zh">尖峰经投影修复后通过</span><span data-lang-content="en">spike repaired by projection before acceptance</span></td></tr>
-                <tr><th scope="row">stale_response</th><td>6</td><td><span class="state state-brake">verified_brake</span></td><td><span data-lang-content="zh">过期策略动作不被发布</span><span data-lang-content="en">stale policy action is not published</span></td></tr>
-                <tr><th scope="row">state_mismatch</th><td>6</td><td><span class="state state-hold">hold</span></td><td><span data-lang-content="zh">观测状态不一致时保持</span><span data-lang-content="en">hold on observed-state mismatch</span></td></tr>
-                <tr><th scope="row">intermediate_self_collision</th><td>1</td><td><span class="state state-hold">hold</span></td><td><span data-lang-content="zh">端点安全但边中间碰撞</span><span data-lang-content="en">safe endpoints with an intermediate collision</span></td></tr>
-                <tr><th scope="row">near_limit_stop</th><td>2</td><td><span class="state state-stop">unrecoverable_stop</span></td><td><span data-lang-content="zh">连模型内回退都不可认证</span><span data-lang-content="en">even the in-model fallback cannot be certified</span></td></tr>
+                <tr><th scope="row">7</th><td>40</td><td>38</td><td>36</td></tr>
+                <tr><th scope="row">8</th><td>40</td><td>36</td><td>29</td></tr>
+                <tr><th scope="row">9</th><td>40</td><td>40</td><td>35</td></tr>
               </tbody>
             </table>
+            <p><span data-lang-content="zh">exact two-sided McNemar <strong>p=0.0093553</strong>。这是一项单 checkpoint、单主 suite 的探索性正式实验，不是跨模型结论。</span><span data-lang-content="en">Exact two-sided McNemar <strong>p=0.0093553</strong>. This is a formal exploratory study for one checkpoint and one main suite, not a cross-model conclusion.</span></p>
+            <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/pi05_selection_heldout_report_240_20260810_001/summary.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开 frozen-240 报告</span><span data-lang-content="en">Open the frozen-240 report</span> ↗</a>
           </div>
-          <div class="inline-evidence reveal"><span>124</span><p><strong><span data-lang-content="zh">连续边被检查</span><span data-lang-content="en">continuous edges checked</span></strong><small><span data-lang-content="zh">矩阵记录 P95 588.49 ms、最大 2.972 s；这是离线 CPU 参考耗时。</span><span data-lang-content="en">Recorded P95 is 588.49 ms and maximum 2.972 s; these are offline CPU reference timings.</span></small></p><a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/integrated_panda_fault_matrix_001/summary.json" target="_blank" rel="noreferrer">summary.json ↗</a></div>
         </div>
-      </section>
 
-      <section class="section task-section" id="tasks" aria-labelledby="tasks-title">
-        <div class="shell">
-          <div class="section-heading reveal">
-            <p class="section-index">04 / ASSURED MUJOCO EXECUTION</p>
-            <h2 id="tasks-title"><span data-lang-content="zh">规划、完整块保障、力矩执行，已经在同一条 Panda 路径接通。</span><span data-lang-content="en">Planning, full-chunk assurance, and torque execution now share one Panda path.</span></h2>
-            <p><span data-lang-content="zh">每条任务先重建 RRT-Connect 参考轨迹，再离线保障完整 horizon，最后将接受的关节轨迹交给 MuJoCo 力矩控制器。</span><span data-lang-content="en">Each task rebuilds an RRT-Connect reference, assures the complete horizon offline, and then passes the accepted joint trajectory to a MuJoCo torque controller.</span></p>
+        <div class="deadline-block shell reveal">
+          <div class="deadline-copy">
+            <p class="section-label">DEADLINE STRESS STUDY</p>
+            <h3><span data-lang-content="zh">可执行动作占空比在离散控制边界附近发生跃迁。</span><span data-lang-content="en">Executable-action duty changes sharply near a discrete control boundary.</span></h3>
+            <p><span data-lang-content="zh">18 个独立验证单元、720 次 rollout 固定 checkpoint、20 Hz 控制、H=10、mailbox 与 hold 语义，只改变 suite、joint seed 和注册 deadline。</span><span data-lang-content="en">Eighteen independently validated cells and 720 rollouts fix the checkpoint, 20 Hz controller, H=10, mailbox, and hold semantics while varying suite, joint seed, and registered deadline.</span></p>
+            <ul>
+              <li><span data-lang-content="zh">Spatial：150 ms 为 0/40，155 ms 恢复至 36-40/40。</span><span data-lang-content="en">Spatial: 0/40 at 150 ms, recovering to 36-40/40 at 155 ms.</span></li>
+              <li><span data-lang-content="zh">Object：150 ms 为 0/40，175 ms 恢复至 37-39/40。</span><span data-lang-content="en">Object: 0/40 at 150 ms, recovering to 37-39/40 at 175 ms.</span></li>
+              <li><span data-lang-content="zh">更宽 deadline 没有一致单调增益，因此不声称“通用阈值”。</span><span data-lang-content="en">Wider deadlines do not yield a consistent monotonic gain, so no universal threshold is claimed.</span></li>
+            </ul>
+            <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/pi05_deadline_multisuite_report_720_20260810_001/summary.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开 720-rollout 报告</span><span data-lang-content="en">Open the 720-rollout report</span> ↗</a>
           </div>
-
-          <div class="task-table-wrap reveal" tabindex="0" aria-label="Assured MuJoCo task results">
-            <table class="task-table">
-              <thead><tr><th scope="col"><span data-lang-content="zh">案例</span><span data-lang-content="en">Case</span></th><th scope="col"><span data-lang-content="zh">条件</span><span data-lang-content="en">Conditions</span></th><th scope="col">Horizon</th><th scope="col"><span data-lang-content="zh">目标误差</span><span data-lang-content="en">Target error</span></th><th scope="col">RMSE</th><th scope="col"><span data-lang-content="zh">离线保障</span><span data-lang-content="en">Offline assurance</span></th><th scope="col"><span data-lang-content="zh">结果</span><span data-lang-content="en">Result</span></th></tr></thead>
-              <tbody>
-                <tr><th scope="row">single_block_goal</th><td>0 kg · 0 ms</td><td>120</td><td>0.00343 rad</td><td>0.00607 rad</td><td>5.27 s</td><td><span class="state state-accepted"><span data-lang-content="zh">到达</span><span data-lang-content="en">reached</span></span></td></tr>
-                <tr><th scope="row">narrow_gate_payload_delay_goal</th><td>0.5 kg · 80 ms</td><td>231</td><td>0.01962 rad</td><td>0.03057 rad</td><td>10.20 s</td><td><span class="state state-accepted"><span data-lang-content="zh">到达</span><span data-lang-content="en">reached</span></span></td></tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="predicate-grid reveal">
-            <div><strong>0</strong><span><span data-lang-content="zh">障碍接触 steps</span><span data-lang-content="en">obstacle-contact steps</span></span></div>
-            <div><strong>0</strong><span><span data-lang-content="zh">自碰撞 steps</span><span data-lang-content="en">self-contact steps</span></span></div>
-            <div><strong>0</strong><span><span data-lang-content="zh">关节限位违规 steps</span><span data-lang-content="en">joint-limit violation steps</span></span></div>
-            <div><strong>0</strong><span><span data-lang-content="zh">力矩饱和事件</span><span data-lang-content="en">torque saturation events</span></span></div>
-          </div>
-
-          <div class="boundary-grid reveal">
-            <article class="technical-boundary">
-              <span class="boundary-label">ALLOWED-COLLISION BOUNDARY</span>
-              <h3><span data-lang-content="zh">只排除固定张开夹爪的一条 body 规则。</span><span data-lang-content="en">Only one fixed-open gripper body rule is excluded.</span></h3>
-              <p><span data-lang-content="zh"><code>left_finger / right_finger</code> 在编译模型中展开为 36 个 geom pair。它不是任意关闭 36 对机械臂自碰撞；其余注册 Panda 自碰撞对仍全部启用。</span><span data-lang-content="en"><code>left_finger / right_finger</code> expands to 36 geom pairs in the compiled model. This is not 36 arbitrary disabled arm pairs; every other registered Panda self pair stays enabled.</span></p>
-            </article>
-            <article class="technical-boundary warning-boundary">
-              <span class="boundary-label">LATENCY BOUNDARY</span>
-              <h3><span data-lang-content="zh">5.27 s 与 10.20 s，公开说明它不是在线 deadline。</span><span data-lang-content="en">5.27 s and 10.20 s: explicitly not an online deadline result.</span></h3>
-              <p><span data-lang-content="zh">完整 horizon 的保障在物理执行前完成。这证明本地接线和模型内约束检查，不证明硬实时调度或在线安全。</span><span data-lang-content="en">Full-horizon assurance completes before physics execution. It proves local integration and in-model checking, not hard-real-time scheduling or online safety.</span></p>
-            </article>
+          <div class="deadline-chart" role="img" aria-label="Mean task success by registered deadline for LIBERO Spatial and Object suites">
+            <svg viewBox="0 0 680 360" role="img" aria-labelledby="deadline-chart-title deadline-chart-desc">
+              <title id="deadline-chart-title">Deadline stress curve</title>
+              <desc id="deadline-chart-desc">Mean task success across registered seed cells. Spatial rises from zero percent at 150 milliseconds to 95 percent at 155 milliseconds. Object rises from zero percent at 150 milliseconds to 95 percent at 175 milliseconds.</desc>
+              <g class="grid-lines">
+                <line x1="74" y1="52" x2="630" y2="52"></line><line x1="74" y1="104" x2="630" y2="104"></line><line x1="74" y1="156" x2="630" y2="156"></line><line x1="74" y1="208" x2="630" y2="208"></line><line x1="74" y1="260" x2="630" y2="260"></line>
+              </g>
+              <g class="axis-labels"><text x="34" y="57">100</text><text x="43" y="109">75</text><text x="43" y="161">50</text><text x="43" y="213">25</text><text x="51" y="265">0</text><text x="73" y="298">150</text><text x="121" y="298">155</text><text x="313" y="298">175</text><text x="552" y="298">200 ms</text><text x="12" y="31">Success (%)</text></g>
+              <polyline class="line-spatial" points="80,260 128,62 320,62 560,60"></polyline>
+              <polyline class="line-object" points="80,260 320,62 560,57"></polyline>
+              <g class="points spatial"><circle cx="80" cy="260" r="6"></circle><circle cx="128" cy="62" r="6"></circle><circle cx="320" cy="62" r="6"></circle><circle cx="560" cy="60" r="6"></circle></g>
+              <g class="points object"><rect x="74" y="254" width="12" height="12"></rect><rect x="314" y="56" width="12" height="12"></rect><rect x="554" y="51" width="12" height="12"></rect></g>
+              <g class="legend"><line class="line-spatial" x1="390" y1="325" x2="425" y2="325"></line><text x="433" y="330">Spatial · 3 seeds</text><line class="line-object" x1="535" y1="325" x2="570" y2="325"></line><text x="578" y="330">Object · 2</text></g>
+            </svg>
+            <p><span data-lang-content="zh">点为每个 deadline 的 seed-cell 平均任务成功率；完整报告保留逐 seed 的 Wilson 区间和 execute-duty 数据。</span><span data-lang-content="en">Points show the mean task success over registered seed cells at each deadline; the full report preserves per-seed Wilson intervals and execute-duty data.</span></p>
           </div>
         </div>
       </section>
 
-      <!-- Live bridge evidence and prior LIBERO outcome studies remain separately scoped. -->
-      <section class="section vla-section" id="vla-context" aria-labelledby="vla-title">
-        <div class="shell">
-          <div class="section-heading reveal">
-            <p class="section-index">05 / LIVE BRIDGE + PRIOR VLA OUTCOME EVIDENCE</p>
-            <h2 id="vla-title"><span data-lang-content="zh">checkpoint-to-Panda 接线已验证；任务能力证据仍按协议分开。</span><span data-lang-content="en">The checkpoint-to-Panda bridge is verified; task-competence evidence remains protocol-separated.</span></h2>
-            <p><span data-lang-content="zh">G01 证明真实 pi0.5 响应能进入 Panda runtime；下面的旧 LIBERO 配对实验回答另一件事：观测年龄对齐是否改变官方 LIBERO 任务结果。两者不能合并成“Panda 任务成功率”。</span><span data-lang-content="en">G01 proves that live pi0.5 responses can enter the Panda runtime. The prior paired LIBERO study answers a different question: whether observation-age alignment changes official LIBERO outcomes. They cannot be combined into a Panda task-success claim.</span></p>
+      <section class="section rollouts" id="rollouts" aria-labelledby="rollouts-title">
+        <div class="section-heading shell reveal">
+          <p class="section-label">05 · ROLLOUTS &amp; FAILURES</p>
+          <h2 id="rollouts-title"><span data-lang-content="zh">成功视频只能说明“能做”，保留失败才能说明系统知道自己做不到什么。</span><span data-lang-content="en">Success footage shows capability; retained failures show whether the system knows its operating boundary.</span></h2>
+          <p><span data-lang-content="zh">所有媒体均为项目真实仿真输出。标签区分正式 frozen-240 失败、独立时钟 pilot 与 Panda 执行基座，不将不同实验合并。</span><span data-lang-content="en">Every clip is authentic project simulation output. Labels separate frozen-240 failures, the independent-clock pilot, and the Panda execution substrate; experiments are not pooled.</span></p>
+        </div>
+
+        <div class="media-tabs shell reveal" data-tabs>
+          <div class="tab-list" role="tablist" aria-label="Rollout groups">
+            <button type="button" id="tab-frozen" role="tab" aria-selected="true" aria-controls="panel-frozen" tabindex="0" data-tab="panel-frozen"><span data-lang-content="zh">Frozen-240 失败</span><span data-lang-content="en">Frozen-240 failures</span></button>
+            <button type="button" id="tab-pilot" role="tab" aria-selected="false" aria-controls="panel-pilot" tabindex="-1" data-tab="panel-pilot"><span data-lang-content="zh">独立时钟 pilot</span><span data-lang-content="en">Independent-clock pilot</span></button>
+            <button type="button" id="tab-panda" role="tab" aria-selected="false" aria-controls="panel-panda" tabindex="-1" data-tab="panel-panda"><span data-lang-content="zh">Panda 基座</span><span data-lang-content="en">Panda substrate</span></button>
           </div>
 
-          <div class="vla-summary reveal">
-            <div><span>async baseline</span><strong>88/120</strong></div>
-            <b aria-hidden="true">→</b>
-            <div><span>age aligned</span><strong>116/120</strong></div>
-            <p><strong>+23.33 pp</strong><span>Exact McNemar p = 1.94e-6 · 120 matched initial states</span></p>
-          </div>
-
-          <div class="comparison" data-comparison>
-            <figure class="comparison-item failure-item reveal">
-              <div class="comparison-media">
-                <video id="compare-baseline" muted playsinline preload="none" poster="assets/media/pi05-baseline-poster.webp" width="224" height="224" aria-describedby="baseline-caption" data-lazy-video data-sync-video>
-                  <source data-src="assets/media/pi05-baseline-failure.mp4" type="video/mp4">
-                </video>
-                <p class="media-fallback" data-video-fallback hidden><span data-lang-content="zh">视频不可用，请打开结果文件。</span><span data-lang-content="en">Video unavailable; open the result files.</span></p>
-              </div>
-              <figcaption id="baseline-caption"><strong>BASELINE / FAILURE</strong><span>async_unguarded · LIBERO simulation · Task 0 · Episode 6 · 1×</span></figcaption>
+          <div class="tab-panel media-grid media-grid-two" id="panel-frozen" role="tabpanel" aria-labelledby="tab-frozen">
+            <figure class="media-card failure-card">
+              <video muted playsinline controls preload="none" poster="assets/media/frozen240-response-failure-s8-t5-e4-poster.webp" width="448" height="448" data-lazy-video>
+                <source data-src="assets/media/frozen240-response-failure-s8-t5-e4.mp4" type="video/mp4">
+              </video>
+              <figcaption><strong>RESPONSE-RELATIVE · FAILURE</strong><span>Spatial · seed 8 · task 5 · episode 4 · paired age-aligned run succeeded</span></figcaption>
             </figure>
-            <figure class="comparison-item success-item reveal">
-              <div class="comparison-media">
-                <video id="compare-aligned" muted playsinline preload="none" poster="assets/media/pi05-aligned-poster.webp" width="224" height="224" aria-describedby="aligned-caption" data-lazy-video data-sync-video>
-                  <source data-src="assets/media/pi05-aligned-success.mp4" type="video/mp4">
-                </video>
-                <p class="media-fallback" data-video-fallback hidden><span data-lang-content="zh">视频不可用，请打开结果文件。</span><span data-lang-content="en">Video unavailable; open the result files.</span></p>
-              </div>
-              <figcaption id="aligned-caption"><strong>ALIGNED / SUCCESS</strong><span>latency_aligned · LIBERO simulation · Task 0 · Episode 6 · 1×</span></figcaption>
+            <figure class="media-card failure-card">
+              <video muted playsinline controls preload="none" poster="assets/media/frozen240-aligned-failure-s8-t7-e5-poster.webp" width="448" height="448" data-lazy-video>
+                <source data-src="assets/media/frozen240-aligned-failure-s8-t7-e5.mp4" type="video/mp4">
+              </video>
+              <figcaption><strong>AGE-ALIGNED · FAILURE</strong><span>Spatial · seed 8 · task 7 · episode 5 · paired response-relative run succeeded</span></figcaption>
             </figure>
+            <p class="panel-disclosure"><span data-lang-content="zh">这里只展示 validator 保留的失败视频。两种方法都有反例；聚合结论来自全部 120 对，而不是挑选的视频。</span><span data-lang-content="en">Only validator-retained failure videos are shown here. Both methods have counterexamples; the aggregate conclusion comes from all 120 pairs, not selected clips.</span></p>
           </div>
-          <div class="comparison-controls" role="group" aria-label="Matched video controls">
-            <button type="button" class="control-button" data-comparison-play aria-label="播放两段视频" data-aria-play-zh="播放两段视频" data-aria-play-en="Play both videos" data-aria-pause-zh="暂停两段视频" data-aria-pause-en="Pause both videos"><span data-control-icon="play" aria-hidden="true">▶</span><span data-control-icon="pause" aria-hidden="true">Ⅱ</span><span data-comparison-label><span data-lang-content="zh">同步播放</span><span data-lang-content="en">Play together</span></span></button>
-            <button type="button" class="icon-button control-restart" data-comparison-restart aria-label="重新开始" title="重新开始" data-aria-zh="重新开始" data-aria-en="Restart" data-title-zh="重新开始" data-title-en="Restart">↺</button>
-            <label class="scrubber"><span class="sr-only"><span data-lang-content="zh">视频进度</span><span data-lang-content="en">Video progress</span></span><input type="range" min="0" max="100" value="0" step="0.1" data-comparison-scrubber></label>
-            <output data-comparison-time>0:00 / 0:22</output>
-            <label class="speed-select"><span data-lang-content="zh">速度</span><span data-lang-content="en">Speed</span><select data-comparison-speed aria-label="Playback speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label>
+
+          <div class="tab-panel media-grid media-grid-three" id="panel-pilot" role="tabpanel" aria-labelledby="tab-pilot" hidden>
+            <figure class="media-card success-card">
+              <video muted playsinline controls preload="none" poster="assets/media/pi05-independent-clock-success-poster.webp" width="256" height="256" data-lazy-video>
+                <source data-src="assets/media/pi05-independent-clock-success.mp4" type="video/mp4">
+              </video>
+              <figcaption><strong>VISUAL SUCCESS</strong><span>Task 0 · episode 0 · curated 1/1 visual run · excluded from pilot statistics</span></figcaption>
+            </figure>
+            <figure class="media-card failure-card">
+              <video muted playsinline controls preload="none" poster="assets/media/pi05-independent-clock-failure-task004-ep00-poster.webp" width="256" height="256" data-lazy-video>
+                <source data-src="assets/media/pi05-independent-clock-failure-task004-ep00.mp4" type="video/mp4">
+              </video>
+              <figcaption><strong>RETAINED FAILURE</strong><span>Task 4 · episode 0 · max_ticks · counted in 38/40</span></figcaption>
+            </figure>
+            <figure class="media-card failure-card">
+              <video muted playsinline controls preload="none" poster="assets/media/pi05-independent-clock-failure-task004-ep02-poster.webp" width="256" height="256" data-lazy-video>
+                <source data-src="assets/media/pi05-independent-clock-failure-task004-ep02.mp4" type="video/mp4">
+              </video>
+              <figcaption><strong>RETAINED FAILURE</strong><span>Task 4 · episode 2 · max_ticks · counted in 38/40</span></figcaption>
+            </figure>
+            <p class="panel-disclosure"><span data-lang-content="zh">40/40 rollout 完成，38/40 成功；4,521/4,623 个控制 tick 与推理区间重叠。</span><span data-lang-content="en">All 40 rollouts completed, 38 succeeded, and 4,521 of 4,623 control ticks overlapped inference intervals.</span></p>
           </div>
-          <p class="media-disclosure"><span data-lang-content="zh">定性视频是 32 个 aligned-only win 中选出的 1 组；聚合数字使用全部 120 组配对。两段录像均为 1×，较短的成功录像完成后停在末帧，基线继续到 22 秒。另有跨任务集扩展和一个不支持 RTC 优越性的 null result，均在 RESULTS.md 如实保留。</span><span data-lang-content="en">The qualitative pair is 1 selected case among 32 aligned-only wins; aggregate numbers use all 120 pairs. Both clips run at 1×; the shorter success clip holds its final frame while the baseline continues to 22 seconds. A cross-suite extension and a null result that does not support RTC superiority are preserved in RESULTS.md.</span></p>
-          <div class="inline-evidence lerobot-evidence reveal">
-            <span>v3.0</span>
-            <p><strong><span data-lang-content="zh">官方 LeRobotDataset roundtrip</span><span data-lang-content="en">Official LeRobotDataset roundtrip</span></strong><small><span data-lang-content="zh">LeRobot 0.4.4 · 3 帧 / 6 图像 · Panda H×8 语义 · 未做 SO-101 转换</span><span data-lang-content="en">LeRobot 0.4.4 · 3 frames / 6 images · Panda H×8 semantics · no SO-101 conversion</span></small></p>
-            <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/official_lerobot_roundtrip_001/summary.json" target="_blank" rel="noreferrer">summary.json <span aria-hidden="true">↗</span></a>
+
+          <div class="tab-panel media-grid media-grid-two" id="panel-panda" role="tabpanel" aria-labelledby="tab-panda" hidden>
+            <figure class="media-card warning-card">
+              <video muted playsinline controls preload="none" poster="assets/media/pi05-panda-live-poster.webp" width="640" height="480" data-lazy-video>
+                <source data-src="assets/media/pi05-panda-live-smoke.mp4" type="video/mp4">
+              </video>
+              <figcaption><strong>LIVE π0.5 VLA → PANDA PROBE</strong><span>MuJoCo · content-attested checkpoint responses · target not reached</span></figcaption>
+            </figure>
+            <figure class="media-card success-card">
+              <video muted playsinline controls preload="none" poster="assets/media/panda-poster.webp" width="640" height="480" data-lazy-video>
+                <source data-src="assets/media/panda-narrow-gate.mp4" type="video/mp4">
+              </video>
+              <figcaption><strong>SCRIPTED PANDA FOUNDATION</strong><span>RRT-Connect · 0.5 kg payload · 80 ms delay · assured MuJoCo execution</span></figcaption>
+            </figure>
+            <p class="panel-disclosure"><span data-lang-content="zh">右侧 2/2 到达结果来自 scripted RRT-Connect，不是 π0.5 VLA 任务成功；它证明的是底层执行保障，而非策略能力。</span><span data-lang-content="en">The 2/2 target reaches on the right come from scripted RRT-Connect, not π0.5 VLA task success. They validate the execution substrate rather than policy capability.</span></p>
           </div>
-          <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/RESULTS.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">查看完整 VLA 统计与 null result</span><span data-lang-content="en">Inspect full VLA statistics and the null result</span><span aria-hidden="true">↗</span></a>
         </div>
       </section>
 
-      <section class="section g02-section" id="g02" aria-labelledby="g02-title">
-        <div class="shell">
-          <div class="section-heading reveal">
-            <p class="section-index">06 / INDEPENDENT-CLOCK PILOT</p>
-            <h2 id="g02-title"><span data-lang-content="zh">G02：仿真时钟不再等待推理，失败也完整保留</span><span data-lang-content="en">G02: simulation keeps ticking while inference is in flight.</span></h2>
-            <p><span data-lang-content="zh">官方 attested pi0.5-LIBERO checkpoint 在独立的推理进程中运行，LIBERO 父进程继续以 20 Hz 推进。40 次 pilot 全部完成，38 次成功；两条 task 4 的 max_ticks 失败和每个请求生命周期都留在 artifact 中。</span><span data-lang-content="en">The attested pi0.5-LIBERO checkpoint runs in a separate inference process while the LIBERO parent keeps a 20 Hz control clock. All 40 pilot rollouts completed, 38 succeeded, and both task-4 max_ticks failures remain in the artifact with every request lifecycle.</span></p>
-          </div>
+      <section class="section reproduce" id="reproduce" aria-labelledby="reproduce-title">
+        <div class="section-heading shell reveal">
+          <p class="section-label">06 · REPRODUCIBILITY</p>
+          <h2 id="reproduce-title"><span data-lang-content="zh">无需 GPU，也能验收保存的结论是否与代码和 manifest 一致。</span><span data-lang-content="en">A GPU is not required to verify that saved conclusions agree with code and manifests.</span></h2>
+          <p><span data-lang-content="zh">重新运行 π0.5 VLA 推理需要 GPU；验证已经发布的证据只需要 Python 3.10 与本地 CPU。</span><span data-lang-content="en">Rerunning π0.5 VLA inference requires a GPU; validating published evidence only needs Python 3.10 and a local CPU.</span></p>
+        </div>
 
-          <dl class="metric-strip g02-metrics reveal">
-            <div><dt>38 / 40</dt><dd><span data-lang-content="zh">LIBERO Spatial 任务成功</span><span data-lang-content="en">LIBERO Spatial task success</span></dd><small>95.0% · pilot only</small></div>
-            <div><dt>4,521</dt><dd><span data-lang-content="zh">推理期间的控制 tick</span><span data-lang-content="en">control ticks during inference</span></dd><small>4,623 total ticks</small></div>
-            <div><dt>4,031 / 592</dt><dd><span data-lang-content="zh">execute / hold</span><span data-lang-content="en">execute / hold ticks</span></dd><small>latest-only mailbox</small></div>
-            <div><dt>0 / 0</dt><dd><span data-lang-content="zh">deadline 超时 / provider 失败</span><span data-lang-content="en">deadline / provider failures</span></dd><small>200 ms deadline</small></div>
+        <div class="reproduce-grid shell reveal">
+          <div class="command-stack">
+            <div class="command-block"><span>01 · CLONE &amp; INSTALL</span><code>git clone https://github.com/Shiraikuroko123/armbench-vla-runtime.git
+cd armbench-vla-runtime
+py -3.10 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[test]"</code><button type="button" data-copy-code><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
+            <div class="command-block"><span>02 · CPU ACCEPTANCE</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\accept_cpu.ps1"</code><button type="button" data-copy-code><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
+            <div class="command-block"><span>03 · PANDA RECOMPUTE + VIEW</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\accept_integrated_panda.ps1" -Visualize -Case narrow_gate_payload_delay_goal</code><button type="button" data-copy-code><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
+          </div>
+          <dl class="verification-ledger">
+            <div><dt>764</dt><dd><span data-lang-content="zh">完整 pytest 通过</span><span data-lang-content="en">full pytest passes</span><small>3 optional LeRobot skips</small></dd></div>
+            <div><dt>48</dt><dd><span data-lang-content="zh">CPU acceptance 通过</span><span data-lang-content="en">CPU acceptance passes</span><small>0 failures</small></dd></div>
+            <div><dt>56</dt><dd><span data-lang-content="zh">登记 artifacts</span><span data-lang-content="en">registered artifacts</span><small>4,270 catalogued files</small></dd></div>
+            <div><dt>0</dt><dd><span data-lang-content="zh">正式 GPU provider failure</span><span data-lang-content="en">formal GPU provider failures</span><small>held-out 240</small></dd></div>
           </dl>
-
-          <div class="g02-grid reveal">
-            <figure class="g02-card success-item">
-              <div class="g02-media">
-                <video muted playsinline controls preload="none" poster="assets/media/pi05-independent-clock-success-poster.webp" width="256" height="256" aria-describedby="g02-success-caption" data-lazy-video>
-                  <source data-src="assets/media/pi05-independent-clock-success.mp4" type="video/mp4">
-                </video>
-                <p class="media-fallback" data-video-fallback hidden><span data-lang-content="zh">视频不可用，请打开 artifact。</span><span data-lang-content="en">Video unavailable; open the artifact.</span></p>
-              </div>
-              <figcaption id="g02-success-caption"><strong>SUCCESS / VISUAL RUN</strong><span>Task 0 · Episode 0 · 1/1 · curated media, excluded from core statistics</span></figcaption>
-            </figure>
-            <figure class="g02-card failure-item">
-              <div class="g02-media">
-                <video muted playsinline controls preload="none" poster="assets/media/pi05-independent-clock-failure-task004-ep00-poster.webp" width="256" height="256" aria-describedby="g02-failure-a-caption" data-lazy-video>
-                  <source data-src="assets/media/pi05-independent-clock-failure-task004-ep00.mp4" type="video/mp4">
-                </video>
-                <p class="media-fallback" data-video-fallback hidden><span data-lang-content="zh">视频不可用，请打开 artifact。</span><span data-lang-content="en">Video unavailable; open the artifact.</span></p>
-              </div>
-              <figcaption id="g02-failure-a-caption"><strong>FAILURE / RETAINED</strong><span>Task 4 · Episode 0 · max_ticks · counted in 38/40</span></figcaption>
-            </figure>
-            <figure class="g02-card failure-item">
-              <div class="g02-media">
-                <video muted playsinline controls preload="none" poster="assets/media/pi05-independent-clock-failure-task004-ep02-poster.webp" width="256" height="256" aria-describedby="g02-failure-b-caption" data-lazy-video>
-                  <source data-src="assets/media/pi05-independent-clock-failure-task004-ep02.mp4" type="video/mp4">
-                </video>
-                <p class="media-fallback" data-video-fallback hidden><span data-lang-content="zh">视频不可用，请打开 artifact。</span><span data-lang-content="en">Video unavailable; open the artifact.</span></p>
-              </div>
-              <figcaption id="g02-failure-b-caption"><strong>FAILURE / RETAINED</strong><span>Task 4 · Episode 2 · max_ticks · counted in 38/40</span></figcaption>
-            </figure>
-          </div>
-          <div class="g02-footer reveal">
-            <p><span data-lang-content="zh">这是 simulation pilot，不是官方 LIBERO leaderboard、硬实时保证、硬件安全证明或真机部署。G02 与 G01 的 Panda 集成探针、旧的 measured-age 配对研究分开统计。</span><span data-lang-content="en">This is a simulation pilot, not an official LIBERO leaderboard score, hard-real-time guarantee, hardware-safety result, or robot deployment. G02 remains separate from the G01 Panda integration probe and the earlier measured-age paired study.</span></p>
-            <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/G02_INDEPENDENT_CLOCK_PILOT.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开 G02 协议、artifact 与 validator</span><span data-lang-content="en">Open the G02 protocol, artifacts, and validator</span><span aria-hidden="true">↗</span></a>
-          </div>
         </div>
       </section>
 
-      <section class="section g02-section" id="deadline-curve" aria-labelledby="deadline-curve-title">
-        <div class="shell">
-          <div class="section-heading reveal">
-            <p class="section-index">06A / DEADLINE STRESS CURVE</p>
-            <h2 id="deadline-curve-title"><span data-lang-content="zh">运行时预算改变可发布动作的占空比。</span><span data-lang-content="en">A runtime budget changes the duty cycle of publishable actions.</span></h2>
-            <p><span data-lang-content="zh">18 个独立验证单元、720 次 rollout 固定同一 checkpoint、20 Hz 控制、H=10、latest-only mailbox 与 fail-closed hold，仅改变 suite、joint seed 和注册 deadline。</span><span data-lang-content="en">Eighteen independently validated cells and 720 rollouts hold checkpoint, 20 Hz control, H=10 chunks, latest-only mailbox, and fail-closed hold fixed while varying suite, joint seed, and registered deadline.</span></p>
+      <section class="section scope" id="scope" aria-labelledby="scope-title">
+        <div class="section-heading shell reveal">
+          <p class="section-label">07 · RESEARCH STATUS</p>
+          <h2 id="scope-title"><span data-lang-content="zh">这是一个前沿问题上的强简历项目，也是论文基础；它还不是顶会论文。</span><span data-lang-content="en">This is a strong portfolio project and a paper foundation on a current research problem; it is not yet a top-conference paper.</span></h2>
+        </div>
+
+        <div class="scope-columns shell reveal">
+          <div class="scope-list proven">
+            <h3><span data-lang-content="zh">现在已经证明</span><span data-lang-content="en">Established today</span></h3>
+            <ul>
+              <li><span data-lang-content="zh">真实 π0.5 VLA checkpoint 能在独立推理/控制时钟下闭环运行。</span><span data-lang-content="en">A live π0.5 VLA checkpoint runs with independent inference and control clocks.</span></li>
+              <li><span data-lang-content="zh">在冻结 120 对中，age-aligned suffix 的任务结果显著优于 response-relative chunk。</span><span data-lang-content="en">Age-aligned suffix selection outperforms response-relative chunks in the frozen 120-pair study.</span></li>
+              <li><span data-lang-content="zh">deadline 与离散控制 tick 的关系可通过 720 次多 suite/seed rollout 重现。</span><span data-lang-content="en">The deadline/control-tick interaction reproduces over 720 multi-suite, multi-seed rollouts.</span></li>
+              <li><span data-lang-content="zh">从七自由度规划继承的 QP、连续碰撞和制动基座可由 CPU 独立重算。</span><span data-lang-content="en">The inherited seven-DoF QP, continuous-collision, and braking substrate is independently recomputable on CPU.</span></li>
+            </ul>
           </div>
-          <div class="g02-grid reveal">
-            <article class="g02-card">
-              <div class="ledger-head"><span>REGISTERED MATRIX</span><strong>18 cells / 720 rollouts</strong></div>
-              <p><span data-lang-content="zh">Spatial 使用 seeds 7/8/9，Object 使用 seeds 7/8；每个 cell 覆盖 tasks 0-9 与四个 episode。</span><span data-lang-content="en">Spatial uses seeds 7/8/9 and Object uses seeds 7/8; every cell covers tasks 0-9 and four episodes.</span></p>
-              <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/pi05_deadline_multisuite_report_720_20260810_001/summary.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开 720-rollout 报告</span><span data-lang-content="en">Open the 720-rollout report</span> <span aria-hidden="true">&#8599;</span></a>
-            </article>
-            <article class="g02-card">
-              <div class="ledger-head"><span>SPATIAL / 150 → 155 MS</span><strong>0/40 → 36-40/40</strong></div>
-              <p><span data-lang-content="zh">三个 seed 的 execute duty 从 26.2%-26.6% 跃迁到 85.6%-87.3%。该现象与服务时延跨过离散控制 tick 一致。</span><span data-lang-content="en">Across three seeds, execute duty moves from 26.2%-26.6% to 85.6%-87.3%, consistent with service latency crossing discrete controller ticks.</span></p>
-            </article>
-            <article class="g02-card">
-              <div class="ledger-head"><span>OBJECT / 150 → 175 MS</span><strong>0/40 → 37-39/40</strong></div>
-              <p><span data-lang-content="zh">第二个 suite 的两个 seed 出现同方向变化；200 ms reference 为 39/40、39/40。</span><span data-lang-content="en">Two seeds in a second suite show the same operational direction; the 200 ms references are 39/40 and 39/40.</span></p>
-            </article>
-            <article class="g02-card">
-              <div class="ledger-head"><span>ABOVE THE TRANSITION</span><strong>No monotonic gain</strong></div>
-              <p><span data-lang-content="zh">从 155/175 ms 提高到 200 ms 没有一致提高成功率，因此报告不把某个数字包装成通用 VLA 阈值。</span><span data-lang-content="en">Moving from 155/175 ms to 200 ms does not improve success consistently, so no single value is presented as a universal VLA threshold.</span></p>
-            </article>
-            <article class="g02-card">
-              <div class="ledger-head"><span>G04 / 50 MS CONTROL</span><strong>0 execute / 8,800 hold</strong></div>
-              <p><span data-lang-content="zh">该极限压力对照单独保留，不混入 720 次平衡矩阵，也不被解释为模型质量失败。</span><span data-lang-content="en">This infeasible stress control remains separate from the 720-rollout balanced matrix and is not interpreted as model-quality failure.</span></p>
-              <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/g04_spatial_deadline50_40_20260810_001" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开 G04 artifact</span><span data-lang-content="en">Open G04 artifact</span> <span aria-hidden="true">↗</span></a>
-            </article>
-          </div>
-          <div class="g02-footer reveal">
-            <p><span data-lang-content="zh">所有 cell 按 suite、seed 与 deadline 分层；Wilson 区间描述注册 episode，不把 task 或 seed block 当作 iid 部署样本。</span><span data-lang-content="en">Every cell is stratified by suite, seed, and deadline. Wilson intervals describe registered episodes without treating task or seed blocks as iid deployment samples.</span></p>
-            <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/RESULTS.md" target="_blank" rel="noreferrer">Read the full results and boundaries <span aria-hidden="true">↗</span></a>
+          <div class="scope-list missing">
+            <h3><span data-lang-content="zh">仍然缺少</span><span data-lang-content="en">Still missing</span></h3>
+            <ul>
+              <li><span data-lang-content="zh">第二个真实 VLA checkpoint 家族，验证方法是否跨模型成立。</span><span data-lang-content="en">A second real VLA checkpoint family to test cross-model generality.</span></li>
+              <li><span data-lang-content="zh">把 QP/连续碰撞/制动正式放入任务对齐的 VLA 在线闭环并做 no-repair 对照。</span><span data-lang-content="en">Task-aligned online VLA repair with QP, continuous collision, braking, and a no-repair baseline.</span></li>
+              <li><span data-lang-content="zh">第二仿真器或真机复现；当前没有硬件安全、ROS2 或硬实时结论。</span><span data-lang-content="en">A second simulator or real-robot replication; there is no hardware-safety, ROS2, or hard-real-time claim today.</span></li>
+              <li><span data-lang-content="zh">与 RTC、Action ControlNet 等直接方法在同一时钟与任务协议下的强基线。</span><span data-lang-content="en">Strong direct baselines such as RTC or Action ControlNet under the same clocks and task protocol.</span></li>
+            </ul>
           </div>
         </div>
-      </section>
 
-      <section class="section g02-section" id="selection-study" aria-labelledby="selection-study-title">
-        <div class="shell">
-          <div class="section-heading reveal">
-            <p class="section-index">06B / HELD-OUT ACTION SELECTION</p>
-            <h2 id="selection-study-title"><span data-lang-content="zh">从相同初态与 query-0 动作块出发，两种闭环选择语义得到不同结果。</span><span data-lang-content="en">From the same initial state and query-0 action chunk, two closed-loop selection semantics produce different outcomes.</span></h2>
-            <p><span data-lang-content="zh">冻结矩阵覆盖 Spatial tasks 0-9、episodes 4-7 与 joint seeds 7/8/9。两种模式共享 checkpoint、独立时钟、175 ms deadline、hold 规则与 keyed sampling；response-relative 不是 unguarded。</span><span data-lang-content="en">The frozen matrix covers Spatial tasks 0-9, episodes 4-7, and joint seeds 7/8/9. Both modes share checkpoint, independent clocks, a 175 ms deadline, hold semantics, and keyed sampling; response-relative is not unguarded.</span></p>
-          </div>
-
-          <dl class="metric-strip reveal">
-            <div><dt>114 / 120</dt><dd>age-aligned suffix</dd><small>95.0% task success</small></div>
-            <div><dt>100 / 120</dt><dd>response-relative chunk</dd><small>83.3% task success</small></div>
-            <div><dt>+11.67 pp</dt><dd><span data-lang-content="zh">成对成功率差</span><span data-lang-content="en">paired success difference</span></dd><small>20 wins / 6 losses</small></div>
-            <div><dt>p = 0.00936</dt><dd>exact McNemar</dd><small>two-sided · frozen test</small></div>
-          </dl>
-
-          <div class="g02-grid reveal">
-            <article class="g02-card">
-              <div class="ledger-head"><span>SEED 7 / 40 PAIRS</span><strong>38 vs 36</strong></div>
-              <p>34 both-success · 4 age-aligned-only · 2 response-relative-only · 0 both-failure</p>
-            </article>
-            <article class="g02-card">
-              <div class="ledger-head"><span>SEED 8 / 40 PAIRS</span><strong>36 vs 29</strong></div>
-              <p>25 both-success · 11 age-aligned-only · 4 response-relative-only · 0 both-failure</p>
-            </article>
-            <article class="g02-card">
-              <div class="ledger-head"><span>SEED 9 / 40 PAIRS</span><strong>40 vs 35</strong></div>
-              <p>35 both-success · 5 age-aligned-only · 0 response-relative-only · 0 both-failure</p>
-            </article>
-            <article class="g02-card">
-              <div class="ledger-head"><span>PAIRING GATE</span><strong>120 / 120 passed</strong></div>
-              <p><span data-lang-content="zh">初态、规范化策略输入、采样 key、采样 noise 与 query-0 动作块哈希全部一致。</span><span data-lang-content="en">Initial state, canonical policy input, sampling key, sampling noise, and query-0 action chunk hashes all match.</span></p>
-            </article>
-            <article class="g02-card">
-              <div class="ledger-head"><span>30 TASK × SEED BLOCKS</span><strong>95% CI +1.67 to +21.67 pp</strong></div>
-              <p><span data-lang-content="zh">固定 10,000 次 block bootstrap；12 个正向、3 个反向、15 个持平 block。episode 不按 iid 部署样本处理。</span><span data-lang-content="en">Fixed 10,000-replicate block bootstrap: 12 positive, 3 negative, and 15 tied blocks. Episodes are not treated as iid deployment samples.</span></p>
-            </article>
-          </div>
-          <div class="g02-footer reveal">
-            <p><span data-lang-content="zh">age-aligned 的配对平均 execute duty 低 0.75 个百分点，因此观测到的收益没有伴随更高的平均发布占空比。该研究只覆盖一个 checkpoint 与一个 suite，不证明跨模型或真机效果。</span><span data-lang-content="en">Age alignment has 0.75 percentage points lower paired mean execute duty, so the observed gain is not accompanied by a higher mean publication duty cycle. This study covers one checkpoint and one suite, not cross-model or hardware performance.</span></p>
-            <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/pi05_selection_heldout_report_240_20260810_001/summary.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开 frozen-240 报告、逐 block 结果与 source manifests</span><span data-lang-content="en">Open the frozen-240 report, block results, and source manifests</span> <span aria-hidden="true">↗</span></a>
-          </div>
+        <div class="next-roadmap shell reveal">
+          <div><span>P0</span><strong><span data-lang-content="zh">跨模型复现</span><span data-lang-content="en">Cross-model replication</span></strong><p>OpenVLA-OFT smoke → provider adapter → 120 matched pairs</p></div>
+          <div><span>P0</span><strong><span data-lang-content="zh">在线任务级修复</span><span data-lang-content="en">Online task-level repair</span></strong><p>no repair / kinematic projection / collision + brake</p></div>
+          <div><span>P1</span><strong><span data-lang-content="zh">部署真实性</span><span data-lang-content="en">Deployment realism</span></strong><p>Isaac Lab or ManiSkill replication → ROS2 / real robot collaboration</p></div>
         </div>
-      </section>
 
-      <section class="section reproduce-section" id="reproduce" aria-labelledby="reproduce-title">
-        <div class="shell">
-          <div class="section-heading reveal">
-            <p class="section-index">07 / ONE-CLICK LOCAL ACCEPTANCE</p>
-            <h2 id="reproduce-title"><span data-lang-content="zh">无需 GPU 即可验证保存证据；重新推理才需要 GPU。</span><span data-lang-content="en">Validate saved evidence without a GPU; only fresh inference needs one.</span></h2>
-            <p><span data-lang-content="zh">live bundle validator 会独立检查 checkpoint 身份、响应来源、事件、时钟、轨迹和视频；总验收入口则重跑全部本地 CPU artifact。二者都不会伪装成重新执行 checkpoint。</span><span data-lang-content="en">The live bundle validator independently checks checkpoint identity, response origin, events, clocks, traces, and video. The full acceptance entry reruns every local CPU artifact. Neither pretends to re-execute the checkpoint.</span></p>
-          </div>
-
-          <div class="command-console reveal">
-            <div class="console-head"><span>POWERSHELL · LOCAL CPU</span><span>scripts/accept_cpu.ps1</span></div>
-            <div class="command-row"><div><span>LIVE CHECKPOINT BUNDLE</span><code>&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_live_panda_smoke '.\evidence\g01_live_panda_smoke_final_001' --json</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_live_panda_smoke '.\evidence\g01_live_panda_smoke_final_001' --json"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
-            <div class="command-row"><div><span>G02 INDEPENDENT CLOCK</span><code>&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\pi05_libero_independent_clock_core_40_001\evaluation' --json</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\pi05_libero_independent_clock_core_40_001\evaluation' --json"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
-            <div class="command-row"><div><span>G05 150 MS STRESS</span><code>&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\g05_spatial_deadline150_40_20260810_001\evaluation' --json</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\g05_spatial_deadline150_40_20260810_001\evaluation' --json"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
-            <div class="command-row"><div><span>G06 175 MS STRESS</span><code>&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\g06_spatial_deadline175_40_20260810_001\evaluation' --json</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\g06_spatial_deadline175_40_20260810_001\evaluation' --json"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
-            <div class="command-row"><div><span>SEED-8 175 MS REPLICATION</span><code>&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\pi05_libero_spatial_deadline175_seed8_40_20260810_001\evaluation' --json</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\pi05_libero_spatial_deadline175_seed8_40_20260810_001\evaluation' --json"><span data-lang-content="en">Copy</span></button></div>
-            <div class="command-row"><div><span>FULL LOCAL EVIDENCE</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_cpu.ps1'</code></div><button type="button" class="copy-button" data-copy="powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_cpu.ps1'"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
-            <div class="command-row"><div><span>RECOMPUTE</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_integrated_panda.ps1'</code></div><button type="button" class="copy-button" data-copy="powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_integrated_panda.ps1'"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
-            <div class="command-row"><div><span>ASYNC BOUNDARY</span><code>&amp; '.\.venv\Scripts\python.exe' -m armbench vla-cpu-runtime-validate '.\reports\cpu_runtime_completion_001'</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m armbench vla-cpu-runtime-validate '.\reports\cpu_runtime_completion_001'"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
-            <div class="command-row"><div><span>RECOMPUTE + VIEW</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_integrated_panda.ps1' -Visualize -Case narrow_gate_payload_delay_goal</code></div><button type="button" class="copy-button" data-copy="powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_integrated_panda.ps1' -Visualize -Case narrow_gate_payload_delay_goal"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
-          </div>
-
-          <div class="inline-evidence workspace-evidence reveal">
-            <span>IDE</span>
-            <p><strong><span data-lang-content="zh">从 <code>ArmBench.code-workspace</code> 打开 VS Code</span><span data-lang-content="en">Open VS Code from <code>ArmBench.code-workspace</code></span></strong><small><span data-lang-content="zh">固定 CPython 3.10 解释器与源码分析范围；构建副本、报告和缓存不再产生重复 Pylance 诊断。</span><span data-lang-content="en">Pins CPython 3.10 and the maintained source scope; build copies, reports, and caches no longer create duplicate Pylance diagnostics.</span></small></p>
-            <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/ArmBench.code-workspace" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开工作区文件</span><span data-lang-content="en">Open workspace file</span><span aria-hidden="true">↗</span></a>
-          </div>
-
-          <ol class="acceptance-path reveal">
-            <li><span>01</span><p><strong><span data-lang-content="zh">验证保存清单</span><span data-lang-content="en">Validate saved manifests</span></strong><small>artifact hashes · implementation hashes · scene hash</small></p></li>
-            <li><span>02</span><p><strong><span data-lang-content="zh">重算全部 CPU 边界</span><span data-lang-content="en">Recompute every CPU boundary</span></strong><small>collision · dynamics · provider · LeRobot · async matrices</small></p></li>
-            <li><span>03</span><p><strong><span data-lang-content="zh">重跑规划、保障与物理</span><span data-lang-content="en">Rerun planning, assurance, and physics</span></strong><small>RRT-Connect · OSQP · certificates · MuJoCo torque execution</small></p></li>
-            <li><span>04</span><p><strong><span data-lang-content="zh">可选可视化实测轨迹</span><span data-lang-content="en">Optionally replay measured traces</span></strong><small>actual_positions · 1,216-frame narrow-gate trace</small></p></li>
-          </ol>
-
-          <!-- This artifact validates the asynchronous software boundary, not a hard-real-time loop. -->
-          <div class="runtime-artifact reveal" data-artifact-status="verified">
-            <div><span class="verified-dot" aria-hidden="true"></span><strong><span data-lang-content="zh">异步 CPU 边界 artifact</span><span data-lang-content="en">Asynchronous CPU boundary artifact</span></strong><small>VERIFIED · 17/17</small></div>
-            <p><span data-lang-content="zh">17 个注册案例全部重现，发布 6 个完整计划、10 个 hold、1 个不可恢复停止，局部策略前缀泄漏为 0。保障 worker P95 为 281.2 ms；这是单机 best-effort Python 调度记录，不是 deadline 保证。</span><span data-lang-content="en">All 17 registered cases reproduce: 6 complete plans, 10 holds, 1 unrecoverable stop, and 0 partial policy prefixes exposed. Assurance-worker P95 is 281.2 ms; this is a single-machine best-effort Python scheduling record, not a deadline guarantee.</span></p>
-            <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/cpu_runtime_completion_001/summary.md" target="_blank" rel="noreferrer">summary.md <span aria-hidden="true">↗</span></a>
-          </div>
-        </div>
-      </section>
-
-      <section class="section scope-section" id="scope" aria-labelledby="scope-title">
-        <div class="shell">
-          <div class="section-heading reveal">
-            <p class="section-index">08 / CLAIM BOUNDARY</p>
-            <h2 id="scope-title"><span data-lang-content="zh">现在能证明什么，也明确不能证明什么。</span><span data-lang-content="en">What the project proves, and what it explicitly does not.</span></h2>
-          </div>
-          <div class="scope-grid reveal">
-            <div class="scope-proven">
-              <h3><span data-lang-content="zh">已有证据</span><span data-lang-content="en">Evidence in hand</span></h3>
-              <ul>
-                <li><span data-lang-content="zh">CPU 上完整动作块的时序、QP、连续碰撞与制动检查</span><span data-lang-content="en">CPU temporal, QP, continuous-collision, and braking checks for complete chunks</span></li>
-                <li><span data-lang-content="zh">17/17 个 provider-neutral 异步边界案例可由 validator 重跑</span><span data-lang-content="en">17/17 provider-neutral asynchronous boundary cases rerun by a validator</span></li>
-                <li><span data-lang-content="zh">拒绝时不泄漏已通过的局部策略前缀</span><span data-lang-content="en">no accepted partial policy prefix leaks on rejection</span></li>
-                <li><span data-lang-content="zh">注册故障矩阵与两条 MuJoCo 力矩执行任务可本地重算</span><span data-lang-content="en">locally recomputable fault matrix and two MuJoCo torque-executed tasks</span></li>
-                <li><span data-lang-content="zh">内容校验过的 pi0.5-LIBERO checkpoint 通过 H×7→H×8 适配器进入 Panda 异步闭环</span><span data-lang-content="en">a content-attested pi0.5-LIBERO checkpoint enters the asynchronous Panda loop through an Hx7→Hx8 adapter</span></li>
-                <li><span data-lang-content="zh">G02 的 40/40 rollout 均记录独立推理/仿真时钟重叠，38/40 在冻结 pilot 中成功</span><span data-lang-content="en">all 40 G02 rollouts record independent inference/simulation overlap; 38/40 succeeded in the frozen pilot</span></li>
-                <li><span data-lang-content="zh">18-cell / 720-rollout deadline 报告与全部 source artifact 可由 CPU 重算</span><span data-lang-content="en">the 18-cell / 720-rollout deadline report and every source artifact are CPU-recomputable</span></li>
-                <li><span data-lang-content="zh">冻结的 120 对动作选择结果为 114/120 对 100/120，全部 query-0 pairing gate 通过</span><span data-lang-content="en">the frozen 120-pair action-selection result is 114/120 versus 100/120 with every query-0 pairing gate passed</span></li>
-                <li><span data-lang-content="zh">独立的官方 π<sub>0.5</sub>-LIBERO 观测年龄实验</span><span data-lang-content="en">a separate official π<sub>0.5</sub>-LIBERO observation-age experiment</span></li>
-              </ul>
-            </div>
-            <div class="scope-open">
-              <h3><span data-lang-content="zh">尚未声称</span><span data-lang-content="en">Not claimed</span></h3>
-              <ul>
-                <li><span data-lang-content="zh">2/2 到达的 Panda 任务仍来自 scripted RRT-Connect；不能借用 G01 把它们改称 pi0.5 任务结果</span><span data-lang-content="en">the 2/2 reached Panda tasks still come from scripted RRT-Connect; G01 does not turn them into pi0.5 task results</span></li>
-                <li><span data-lang-content="zh">任务是关节路点到达，不是抓取或物体操作</span><span data-lang-content="en">tasks are joint-waypoint reaching, not grasping or object manipulation</span></li>
-                <li><span data-lang-content="zh">没有真机、硬实时、ROS2 或安全认证结论</span><span data-lang-content="en">no physical robot, hard-real-time, ROS2, or safety-certification claim</span></li>
-                <li><span data-lang-content="zh">G02 的 38/40 不是官方排行榜成绩、方法优越性或跨模型结论</span><span data-lang-content="en">G02's 38/40 is not an official leaderboard score, method-superiority result, or cross-model claim</span></li>
-                <li><span data-lang-content="zh">held-out 动作选择结果只覆盖一个 checkpoint、一个 suite 和三个 joint seed；不代表跨模型或 iid 部署效果</span><span data-lang-content="en">the held-out selection result covers one checkpoint, one suite, and three joint seeds; it is not cross-model or iid deployment evidence</span></li>
-                <li><span data-lang-content="zh">G01 的自由空间目标未到达，不是官方 LIBERO 协议，也不是 Panda 任务成功率</span><span data-lang-content="en">the G01 free-space target was not reached; it is neither an official LIBERO protocol nor a Panda task-success rate</span></li>
-              </ul>
-            </div>
-          </div>
-          <div class="scope-footer reveal">
-            <p><span data-lang-content="zh">下一项真正需要 GPU 的研究步骤，是加入第二个开放 VLA，并在任务对齐的同一异步协议下做多 seed、deadline 与扰动矩阵；真机结论仍需要 ROS2/驱动、标定和实体平台。</span><span data-lang-content="en">The next GPU step is a second open VLA plus a task-aligned multi-seed deadline and perturbation matrix under one asynchronous protocol. Hardware claims still require ROS2/drivers, calibration, and a physical platform.</span></p>
-            <a class="button button-primary" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/PROJECT_ARCHITECTURE_ZH.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">阅读工程结构</span><span data-lang-content="en">Read the architecture</span><span aria-hidden="true">↗</span></a>
-          </div>
+        <div class="research-verdict shell reveal">
+          <strong><span data-lang-content="zh">顶会发展判断</span><span data-lang-content="en">Top-conference trajectory</span></strong>
+          <p><span data-lang-content="zh">问题本身是前沿的：异步 action chunk、观测陈旧、deadline 与运行时安全正在快速升温。要形成 RSS/CoRL/ICRA/RA-L 级论文，下一步必须把“单模型时序现象”升级为<strong>跨模型成立、任务级修复有效、强基线公平、最好有真机</strong>的完整论证。当前代码和证据工程可以直接作为这项研究的实验基础。</span><span data-lang-content="en">The problem is current: asynchronous action chunks, observation staleness, deadlines, and runtime assurance are rapidly growing topics. An RSS, CoRL, ICRA, or RA-L submission needs to turn the single-model timing result into a complete case with <strong>cross-model generality, effective task-level repair, fair strong baselines, and ideally real-robot evidence</strong>. The current code and evidence system are a direct experimental foundation for that work.</span></p>
         </div>
       </section>
     </main>
 
-    <footer class="site-footer">
-      <div class="shell footer-inner">
-        <div><a class="brand footer-brand" href="#top"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>ArmBench</span></a><p><span data-lang-content="zh">仿真研究工程 · 更新于 2026-08-10</span><span data-lang-content="en">Simulation research engineering · updated 2026-08-10</span></p></div>
-        <p><span data-lang-content="zh">媒体与数字来自仓库保存 artifact。代码 MIT；第三方模型、数据与媒体遵循各自许可。</span><span data-lang-content="en">Media and numbers come from preserved repository artifacts. Code is MIT; third-party models, data, and media retain their own licenses.</span></p>
-        <nav aria-label="Footer links"><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/LICENSE" target="_blank" rel="noreferrer">License</a><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noreferrer">Attribution</a><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/actions" target="_blank" rel="noreferrer">CI</a></nav>
+    <footer>
+      <div class="footer-inner shell">
+        <div><strong>ArmBench</strong><span><span data-lang-content="zh">异步 VLA 运行时与可复现实验系统</span><span data-lang-content="en">Asynchronous VLA runtime and reproducible evaluation system</span></span></div>
+        <p><span data-lang-content="zh">全部图表和媒体来自仓库保存 artifact。代码 MIT；模型、数据和第三方资产遵循各自许可。</span><span data-lang-content="en">All charts and media derive from checked-in artifacts. Code is MIT licensed; models, data, and third-party assets retain their own terms.</span></p>
+        <nav aria-label="Footer links"><a href="media-manifest.json">Media manifest</a><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/LICENSE" target="_blank" rel="noreferrer">License</a><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noreferrer">Attribution</a><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/actions" target="_blank" rel="noreferrer">CI</a></nav>
       </div>
     </footer>
   </body>

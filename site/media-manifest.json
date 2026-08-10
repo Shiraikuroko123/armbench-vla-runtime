@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "updated": "2026-08-10",
+  "scope": "ArmBench public project-site media",
+  "assets": [
+    {
+      "id": "hero-two-track-teaser",
+      "file": "assets/media/armbench-teaser.mp4",
+      "poster": "assets/media/armbench-teaser-poster.webp",
+      "reality": "simulation",
+      "source": [
+        "evidence/pi05_libero_independent_clock_visual_success_001/evaluation/videos/libero_spatial__task_000__episode_00.mp4",
+        "evidence/g01_live_panda_smoke_final_001/run/panda_trace.mp4"
+      ],
+      "caption": "Official pi0.5-LIBERO independent-clock visual run beside the pi0.5-to-Panda integration probe.",
+      "curation": "composed teaser from two explicitly separate evidence tracks",
+      "included_in_statistics": false,
+      "claim_boundary": "The Panda probe target was not reached; the panes are not pooled into one task-success result.",
+      "sha256": "53461d12857b5c709e612d53e934420f4ed9c834e2fe6cf5a1f25f577e6b2a11"
+    },
+    {
+      "id": "frozen240-response-failure-s8-t5-e4",
+      "file": "assets/media/frozen240-response-failure-s8-t5-e4.mp4",
+      "poster": "assets/media/frozen240-response-failure-s8-t5-e4-poster.webp",
+      "reality": "simulation",
+      "source": "evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/evaluation/videos/libero_spatial__task_005__episode_04.mp4",
+      "caption": "Response-relative retained failure; the paired age-aligned rollout succeeded.",
+      "curation": "validator-retained qualitative counterexample",
+      "source_run_in_statistics": true,
+      "clip_selection_in_statistics": false,
+      "sha256": "83c154a160057c9cc1895a1ef7b3e9935199fdd2cf851d8c4a9046df633375e8"
+    },
+    {
+      "id": "frozen240-aligned-failure-s8-t7-e5",
+      "file": "assets/media/frozen240-aligned-failure-s8-t7-e5.mp4",
+      "poster": "assets/media/frozen240-aligned-failure-s8-t7-e5-poster.webp",
+      "reality": "simulation",
+      "source": "evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/evaluation/videos/libero_spatial__task_007__episode_05.mp4",
+      "caption": "Age-aligned retained failure; the paired response-relative rollout succeeded.",
+      "curation": "validator-retained qualitative counterexample",
+      "source_run_in_statistics": true,
+      "clip_selection_in_statistics": false,
+      "sha256": "6956a7faf977f8c3662aa36b064436bb6d06b7095c2dff1757d90b44210b7f89"
+    },
+    {
+      "id": "independent-clock-visual-success",
+      "file": "assets/media/pi05-independent-clock-success.mp4",
+      "poster": "assets/media/pi05-independent-clock-success-poster.webp",
+      "reality": "simulation",
+      "source": "evidence/pi05_libero_independent_clock_visual_success_001/evaluation/videos/libero_spatial__task_000__episode_00.mp4",
+      "caption": "Curated visual-success run from the official pi0.5-LIBERO checkpoint.",
+      "curation": "separate media-only run",
+      "included_in_statistics": false,
+      "sha256": "fbee04cd6c8134d2f6de4a401eb476aed5bc989c88477e8307dc0b0ed307f2f9"
+    },
+    {
+      "id": "independent-clock-core-failure-task4-episode0",
+      "file": "assets/media/pi05-independent-clock-failure-task004-ep00.mp4",
+      "poster": "assets/media/pi05-independent-clock-failure-task004-ep00-poster.webp",
+      "reality": "simulation",
+      "source": "evidence/pi05_libero_independent_clock_core_40_001/evaluation/videos/libero_spatial__task_004__episode_00.mp4",
+      "caption": "Retained max-ticks failure from the registered 40-rollout pilot.",
+      "source_run_in_statistics": true,
+      "clip_selection_in_statistics": false,
+      "sha256": "2a31db70a4d1cace75cafb0fce97d7dd4f6910e68cae154c0f569a9ebd88a0df"
+    },
+    {
+      "id": "independent-clock-core-failure-task4-episode2",
+      "file": "assets/media/pi05-independent-clock-failure-task004-ep02.mp4",
+      "poster": "assets/media/pi05-independent-clock-failure-task004-ep02-poster.webp",
+      "reality": "simulation",
+      "source": "evidence/pi05_libero_independent_clock_core_40_001/evaluation/videos/libero_spatial__task_004__episode_02.mp4",
+      "caption": "Retained max-ticks failure from the registered 40-rollout pilot.",
+      "source_run_in_statistics": true,
+      "clip_selection_in_statistics": false,
+      "sha256": "20472311d1d7a70eb1db082ebf1e976f8dce0f265e3ce41c1bdc1b93bbcdd641"
+    },
+    {
+      "id": "pi05-panda-live-probe",
+      "file": "assets/media/pi05-panda-live-smoke.mp4",
+      "poster": "assets/media/pi05-panda-live-poster.webp",
+      "reality": "simulation",
+      "source": "evidence/g01_live_panda_smoke_final_001/run/panda_trace.mp4",
+      "caption": "Content-attested official-checkpoint response entering the Panda runtime.",
+      "included_in_statistics": false,
+      "claim_boundary": "Integration probe only; target_reached=false.",
+      "sha256": "c3efc87f8a0f5323fb1cef6403528d38c0a01a9d24a346f26f7e13eea66220b4"
+    },
+    {
+      "id": "panda-scripted-narrow-gate",
+      "file": "assets/media/panda-narrow-gate.mp4",
+      "poster": "assets/media/panda-poster.webp",
+      "reality": "simulation",
+      "source": "reports/integrated_panda_task_001/traces/narrow_gate_payload_delay_goal.npz",
+      "caption": "Scripted RRT-Connect Panda execution with 0.5 kg payload and 80 ms delay.",
+      "source_run_in_statistics": true,
+      "clip_selection_in_statistics": false,
+      "claim_boundary": "Execution-substrate evidence, not pi0.5 task success.",
+      "sha256": "0847d7eb7fa91b5e2904537bb601e244a848bdf66d302a1f7e1202ac821f3b1a"
+    },
+    {
+      "id": "legacy-measured-age-pair",
+      "files": [
+        "assets/media/pi05-aligned-success.mp4",
+        "assets/media/pi05-baseline-failure.mp4",
+        "assets/media/pi05-aligned-poster.webp",
+        "assets/media/pi05-baseline-poster.webp"
+      ],
+      "reality": "simulation",
+      "source": "evidence/pi05_libero_measured_age_confirmatory_001",
+      "status": "retained but unused by the current page",
+      "claim_boundary": "Belongs to the earlier blocking-inference measured-age study, not the independent-clock frozen-240 result."
+    },
+    {
+      "id": "legacy-method-landscape",
+      "file": "assets/media/method-landscape.webp",
+      "reality": "authored diagram",
+      "status": "retained but unused by the current page",
+      "caption": "Historical comparison figure with citations embedded in the image footer.",
+      "included_in_statistics": false,
+      "sha256": "1cf5b90adcc37d91b50b5c09a4885fe70835c8b0201d39e5c13eed58a504ada9"
+    }
+  ]
+}

@@ -1,128 +1,93 @@
-# ArmBench Website Design System
+# ArmBench website design system
 
-## Product archetype
+## Archetype
 
-Primary archetype: research / engineering project. Secondary archetype:
-platform-style reproducibility surface. The page answers, in order:
+Primary archetype: research project page. Secondary archetype: engineering
+reproducibility surface. The page follows a paper-like proof sequence while
+keeping the commands and artifact trail directly usable by an interviewer.
 
-1. Did a real checkpoint response reach the Panda runtime?
-2. Did LIBERO continue to advance while model inference was blocked elsewhere?
-3. What does the Panda runtime boundary check?
-4. How can a visitor run the acceptance script locally?
-5. Where does the evidence stop?
+## Visual thesis
 
-The first viewport uses repository-authentic footage from the final G01
-checkpoint-to-Panda integration probe. The page does not use generated robot
-imagery, a generic VLA hero, or a marketing claim.
+The visual system represents the project's central mechanism rather than a
+generic AI aesthetic:
 
-## Content contract
+- near-black graphite is the simulator and workbench substrate;
+- coral is the inference clock, response age, and stale-action risk;
+- teal is the control clock, accepted action suffix, and verified execution;
+- amber is provenance, caution, and claim-boundary evidence;
+- red is reserved for retained failures.
 
-- **Identity:** ArmBench, an attested pi0.5-to-Panda runtime and evaluation
-  platform.
-- **Claim:** a real H×7 pi0.5-LIBERO response crosses an explicit H×8 Panda
-  adapter and asynchronous measured-age runtime; task competence remains a
-  separate question.
-- **Evidence:** `pi05-panda-live-smoke.mp4`, the final G01 bundle, the 17-case asynchronous provider
-  boundary, the 27-case fault matrix, two saved MuJoCo task traces, and the
-  separate π0.5-LIBERO comparison pair, plus the official LeRobotDataset v3.0
-  Panda H×8 roundtrip. G02 adds one authentic independent-clock success clip,
-  both retained task-4 failure clips, and the complete 40-rollout artifact.
-- **Current facts:** 35 accepted live responses, mean/P95 latency 82.75/89.56
-  ms, 290/311 control ticks concurrent with inference, 94 video frames, and
-  zero registered G01 simulation violations; 17/17 asynchronous boundary outcomes, 6 complete plans,
-  10 holds, 1 unrecoverable stop, and zero partial prefixes; 27/27 expected
-  fault outcomes, 12 accepted, 6 verified
-  brakes, 7 holds, 2 unrecoverable stops; 2/2 task targets; 351/351 edges and
-  braking boundaries; zero registered contacts, limit violations, or torque
-  saturation; offline supervision of 5.27 s and 10.20 s.
-- **G02 facts:** 40/40 completed, 38/40 task success, all 40 episodes prove
-  inference/simulation overlap, 4,521/4,623 control ticks occurred during
-  inference, 4,031 execute and 592 hold ticks, with no deadline/provider
-  failures.
-- **Deadline facts:** the registered synthesis covers 18 cells / 720 rollouts.
-  Spatial seeds 7/8/9 move from 0/40 at 150 ms to 36-40/40 at 155 ms;
-  Object seeds 7/8 move from 0/40 at 150 ms to 37-39/40 at 175 ms. Above
-  those cells, success does not improve consistently. G04 at 50 ms remains a
-  separate stress control.
-- **Selection facts:** the frozen held-out comparison covers 120 pairs / 240
-  rollouts. Age-aligned suffix reaches 114/120 versus 100/120 for
-  response-relative chunk execution: +11.67 points, exact McNemar p=0.00936,
-  30-block bootstrap 95% [+1.67,+21.67]. All 120 query-0 pairing gates pass.
-- **Boundary:** the 2/2 reached Panda task source is scripted RRT-Connect. G01
-  is a single free-space integration probe with `target_reached=false`, not an
-  official LIBERO/Panda task score. All evidence is MuJoCo simulation with
-  best-effort Python scheduling, not hard real time or safety certification.
+Large directional color fields separate inference and control without using
+purple branding, stock robots, decorative orbs, or generated concept art. A
+faint control lattice appears only where it supports the timing/runtime idea.
+Each full-width section has a distinct field or grid treatment so the page has
+depth and progression, while the authentic rollout pixels remain unfiltered.
 
-## Visual direction
+The visual rhythm borrows the useful part of modern research sites such as
+TwinRL: a confident centered identity, immediate physical evidence, and broad
+background transitions. It does not copy TwinRL assets, purple/pink identity,
+source code, or card styling.
 
-Graphite workbench neutrals are taken from the simulator frame. Signal yellow
-marks measurements and provenance; green, blue, amber, and red encode the four
-supervisor outcomes. There are no gradients, glows, decorative orbs, stock
-robots, remote fonts, analytics, or runtime dependencies.
+## Layout contract
 
-Sections are full-width bands with a constrained inner rail. Cards are limited
-to the two evidence ledgers and repeated technical boundary items. Tables are
-real semantic tables inside horizontally scrollable wrappers, so the method
-column and long case identifiers remain inspectable on mobile.
+- The first viewport contains ArmBench, a literal technical claim, artifact
+  actions, and the beginning of the authentic teaser.
+- Media uses a wider evidence rail than prose.
+- Sections are full-width bands; cards are limited to repeated rollout items
+  and framed tools.
+- Method, chart, table, and media dimensions remain stable across state
+  changes.
+- Desktop, tablet, and mobile are separately composed; no desktop figure is
+  simply scaled until its labels become unreadable.
+
+## Media contract
+
+- Only the hero teaser may autoplay. It is muted, inline, poster-backed, and
+  has a visible pause control.
+- Below-fold videos attach their source near the viewport or when their tab is
+  selected. Hidden-tab videos are paused.
+- Captions identify simulator, embodiment, task/seed/episode, method, outcome,
+  and whether the clip participates in a registered study.
+- Failure clips are retained alongside success evidence. Aggregate claims come
+  from full reports, never from selected footage.
+- Provenance and inclusion status are recorded in `media-manifest.json`.
 
 ## Interaction contract
 
-- Chinese / English switching persists for the session and local storage.
-- The mobile navigation exposes `aria-expanded`, closes on Escape and outside
-  click, and returns focus to its trigger.
-- The hero is the only autoplay candidate. It is muted, inline, poster-backed,
-  and paused for reduced-motion or data-saving preferences.
-- π0.5 comparison videos are below the fold and lazy-attached. One controller
-  synchronizes play, pause, restart, scrub, and speed for both clips. The
-  shorter success clip holds its last decodable frame while the 22-second
-  baseline completes, and the disclosure states this explicitly.
-- G02 media is also below the fold and lazy-attached. Native controls keep the
-  success and two failure clips independently inspectable; the success clip is
-  explicitly labeled as a separate curated run.
-- The deadline curve is text-and-metric evidence rather than a decorative
-  chart. It links the 18-cell report and separate 50 ms stress artifact, and
-  states the service-clock interpretation beside the numbers.
-- The held-out selection section presents the overall paired effect, all three
-  seed blocks, query-0 gate, task-by-seed bootstrap, execute-duty contrast, and
-  claim boundary without hiding the response-relative wins.
-- Acceptance commands expose copy buttons with a clipboard fallback.
-- All media and dynamic controls have adjacent text labels and stable aspect
-  ratios; no information depends on hover.
+- Chinese and English switching persists in local storage.
+- Mobile navigation exposes state through `aria-expanded` and closes after
+  navigation.
+- Rollout tabs support click plus Left/Right/Home/End keyboard movement.
+- Copy controls provide visible success/failure feedback.
+- Reduced-motion and data-saving users receive a paused hero and stable page.
+- Content is visible without scroll-trigger JavaScript; enhancement failure
+  must not produce an empty page or incomplete full-page capture.
 
-## Responsive and performance targets
+## Accessibility and performance
 
-- Desktop target: 1440 × 900; intermediate target: 900–1100 px; mobile target:
-  390 × 844 (minimum supported width 320 px).
-- Hero height reserves a visible artifact-bar cue below the first viewport.
-- The hero video is under 8 MB and uses `preload="none"`; comparison videos
-  load on intersection or user intent.
-- HTML, CSS, and JavaScript are dependency-free and below the 500 KB source
-  target. Media slots reserve dimensions to avoid layout shift.
-- `prefers-reduced-motion`, forced colors, and high contrast receive explicit
-  handling.
+- One `h1`, semantic landmarks, ordered headings, named controls, and visible
+  focus states.
+- Text and controls target WCAG AA contrast against their actual backgrounds.
+- The site has no remote fonts or runtime framework dependencies.
+- Initial HTML/CSS/JavaScript remains below 500 KB; hero video remains below
+  8 MB; below-fold videos are not fetched at initial load.
+- Supported verification viewports: 1440x900, an intermediate tablet width,
+  390x844, and 320 px minimum width.
 
-## Provenance
+## Result and claim rules
 
-- Hero media: `evidence/g01_live_panda_smoke_final_001/run/panda_trace.mp4`,
-  copied to `site/assets/media/pi05-panda-live-smoke.mp4` with a derived poster.
-- π0.5 media: `evidence/pi05_libero_measured_age_confirmatory_001`, copied to
-  the two comparison clips and posters.
-- G02 media: the success clip comes from
-  `pi05_libero_independent_clock_visual_success_001`; both failure clips come
-  from `pi05_libero_independent_clock_core_40_001`. Posters are derived from
-  those exact MP4 files.
-- Numerical evidence: `docs/INTEGRATED_PANDA_ASSURANCE_ZH.md`,
-  `docs/RESULTS.md`, and manifests under
-  `reports/cpu_runtime_completion_001/`,
-  `reports/integrated_panda_fault_matrix_001/` and
-  `reports/integrated_panda_task_001/`, plus
-  `reports/official_lerobot_roundtrip_001/`,
-  `reports/pi05_deadline_multisuite_report_720_20260810_001/`, and
-  `reports/pi05_selection_heldout_report_240_20260810_001/`.
-- Code and artifact links point to the public repository
-  `Shiraikuroko123/armbench-vla-runtime`.
-- Code license and third-party asset terms are linked in the footer.
+- `π0.5` is written as Physical Intelligence's π0.5 VLA; OpenPI is the model
+  implementation and serving stack, not another model.
+- LIBERO checkpoint results and Panda substrate results stay separate.
+- The G01 π0.5-to-Panda probe is integration evidence with
+  `target_reached=false`.
+- The Panda 2/2 result is scripted planning evidence.
+- No text implies hard real time, hardware safety, training, fine-tuning,
+  cross-model generality, or a completed top-conference paper.
 
-The asynchronous CPU artifact is presented as a provider-to-supervisor boundary
-result. Its recorded 281.2 ms assurance-worker P95 is explicitly not a deadline
-guarantee, learned-policy result, closed-loop task score, or real-robot claim.
+## QA release gate
+
+Before publication, verify HTML and JavaScript syntax, desktop/tablet/mobile
+screenshots, horizontal overflow, keyboard tabs, language/menu/copy controls,
+posters and nonblank video frames, lazy media loading, console/network errors,
+metadata, and the public GitHub Pages URL.

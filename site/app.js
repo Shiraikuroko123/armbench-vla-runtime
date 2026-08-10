@@ -1,455 +1,207 @@
-/* ArmBench site runtime. Keep this file dependency-free so the GitHub Pages
- * build has the same behavior when opened from a local static server. */
-(function () {
+(() => {
   "use strict";
 
-  var root = document.documentElement;
-  var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-  var saveData = Boolean(connection && connection.saveData);
-  var activeLanguage = "zh";
-  var pageTitles = Object.freeze({
-    zh: "ArmBench | pi0.5 运行时证据",
-    en: "ArmBench | pi0.5 Runtime Evidence"
-  });
+  const root = document.documentElement;
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const saveData = Boolean(navigator.connection && navigator.connection.saveData);
 
-  // The visible figures are duplicated here as a small content contract. If a
-  // future artifact changes, one verified source can update the metric strip.
-  var evidence = Object.freeze({
-    liveResponses: "35",
-    policyLatency: "82.75 / 89.56",
-    inferenceTicks: "290 / 311",
-    liveViolations: "0",
-    violations: "0",
-    g02Success: "38 / 40",
-    g02OverlapTicks: "4,521"
-  });
-
-  Object.keys(evidence).forEach(function (key) {
-    document.querySelectorAll('[data-evidence="' + key + '"]').forEach(function (element) {
-      element.textContent = evidence[key];
-    });
-  });
-
-  function readStoredLanguage() {
+  const getLanguage = () => {
     try {
-      var saved = window.localStorage.getItem("armbench-language");
-      return saved === "en" || saved === "zh" ? saved : null;
-    } catch (error) {
-      return null;
+      return localStorage.getItem("armbench-language") === "en" ? "en" : "zh";
+    } catch {
+      return "zh";
     }
-  }
+  };
 
-  function storeLanguage(language) {
+  const languageButtons = [...document.querySelectorAll("[data-set-lang]")];
+  const updateLocalizedLabels = (language) => {
+    document.querySelectorAll("[data-aria-play-zh]").forEach((control) => {
+      const isPressed = control.getAttribute("aria-pressed") === "true";
+      const key = isPressed ? `ariaPause${language === "zh" ? "Zh" : "En"}` : `ariaPlay${language === "zh" ? "Zh" : "En"}`;
+      const label = control.dataset[key];
+      if (label) control.setAttribute("aria-label", label);
+    });
+
+    const menuButton = document.querySelector("[data-menu-button]");
+    if (menuButton) {
+      const isOpen = menuButton.getAttribute("aria-expanded") === "true";
+      const key = isOpen ? `ariaClose${language === "zh" ? "Zh" : "En"}` : `ariaOpen${language === "zh" ? "Zh" : "En"}`;
+      const label = menuButton.dataset[key];
+      if (label) menuButton.setAttribute("aria-label", label);
+    }
+  };
+
+  const setLanguage = (language) => {
+    root.dataset.lang = language;
+    root.lang = language === "zh" ? "zh-CN" : "en";
+    languageButtons.forEach((button) => {
+      button.setAttribute("aria-pressed", String(button.dataset.setLang === language));
+    });
     try {
-      window.localStorage.setItem("armbench-language", language);
-    } catch (error) {
-      // Private browsing can deny storage; the current session still works.
+      localStorage.setItem("armbench-language", language);
+    } catch {
+      // Language persistence is optional.
     }
-  }
+    updateLocalizedLabels(language);
+  };
 
-  function updateLocalizedAttributes(language) {
-    document.querySelectorAll("[data-aria-zh][data-aria-en]").forEach(function (element) {
-      element.setAttribute("aria-label", language === "zh" ? element.dataset.ariaZh : element.dataset.ariaEn);
-    });
-    document.querySelectorAll("[data-title-zh][data-title-en]").forEach(function (element) {
-      element.setAttribute("title", language === "zh" ? element.dataset.titleZh : element.dataset.titleEn);
-    });
-  }
-
-  function setLanguage(language, persist) {
-    activeLanguage = language === "en" ? "en" : "zh";
-    root.dataset.lang = activeLanguage;
-    root.lang = activeLanguage === "zh" ? "zh-CN" : "en";
-    document.title = pageTitles[activeLanguage];
-    document.querySelectorAll("[data-set-lang]").forEach(function (button) {
-      button.setAttribute("aria-pressed", button.dataset.setLang === activeLanguage ? "true" : "false");
-    });
-    updateLocalizedAttributes(activeLanguage);
-    if (persist) storeLanguage(activeLanguage);
-    document.dispatchEvent(new CustomEvent("armbench:language", { detail: { language: activeLanguage } }));
-  }
-
-  var browserLanguage = (navigator.language || "").toLowerCase();
-  setLanguage(readStoredLanguage() || (browserLanguage.indexOf("zh") === 0 ? "zh" : "en"), false);
-  document.querySelectorAll("[data-set-lang]").forEach(function (button) {
-    button.addEventListener("click", function () {
-      setLanguage(button.dataset.setLang, true);
-    });
+  languageButtons.forEach((button) => {
+    button.addEventListener("click", () => setLanguage(button.dataset.setLang));
   });
+  setLanguage(getLanguage());
 
-  // The mobile navigation is a real stateful menu, rather than CSS-only hover.
-  var menuButton = document.querySelector("[data-menu-button]");
-  var navigation = document.getElementById("site-nav");
-
-  function syncMenuLabel() {
-    if (!menuButton) return;
-    var open = menuButton.getAttribute("aria-expanded") === "true";
-    var label = open
-      ? (activeLanguage === "zh" ? menuButton.dataset.ariaCloseZh : menuButton.dataset.ariaCloseEn)
-      : (activeLanguage === "zh" ? menuButton.dataset.ariaOpenZh : menuButton.dataset.ariaOpenEn);
-    menuButton.setAttribute("aria-label", label);
-  }
-
-  function setMenu(open, returnFocus) {
+  const menuButton = document.querySelector("[data-menu-button]");
+  const navigation = document.querySelector("#site-nav");
+  const closeMenu = () => {
     if (!menuButton || !navigation) return;
-    menuButton.setAttribute("aria-expanded", open ? "true" : "false");
-    navigation.dataset.open = open ? "true" : "false";
-    document.body.classList.toggle("menu-open", open);
-    syncMenuLabel();
-    if (!open && returnFocus) menuButton.focus();
-  }
+    navigation.classList.remove("is-open");
+    menuButton.setAttribute("aria-expanded", "false");
+    document.body.classList.remove("menu-open");
+    updateLocalizedLabels(root.dataset.lang || "zh");
+  };
 
   if (menuButton && navigation) {
-    menuButton.addEventListener("click", function () {
-      setMenu(menuButton.getAttribute("aria-expanded") !== "true", false);
+    menuButton.addEventListener("click", () => {
+      const open = menuButton.getAttribute("aria-expanded") !== "true";
+      navigation.classList.toggle("is-open", open);
+      menuButton.setAttribute("aria-expanded", String(open));
+      document.body.classList.toggle("menu-open", open);
+      updateLocalizedLabels(root.dataset.lang || "zh");
     });
-    navigation.querySelectorAll("a").forEach(function (link) {
-      link.addEventListener("click", function () { setMenu(false, false); });
+    navigation.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeMenu));
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 940) closeMenu();
     });
-    document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape" && menuButton.getAttribute("aria-expanded") === "true") setMenu(false, true);
+  }
+
+  const loadVideo = (video) => {
+    if (!video || video.dataset.loaded === "true") return;
+    let attached = false;
+    video.querySelectorAll("source[data-src]").forEach((source) => {
+      source.src = source.dataset.src;
+      attached = true;
     });
-    document.addEventListener("pointerdown", function (event) {
-      if (menuButton.getAttribute("aria-expanded") !== "true") return;
-      if (!navigation.contains(event.target) && !menuButton.contains(event.target)) setMenu(false, false);
-    });
-    var desktopMedia = window.matchMedia("(min-width: 1001px)");
-    var closeDesktopMenu = function (event) { if (event.matches) setMenu(false, false); };
-    if (typeof desktopMedia.addEventListener === "function") desktopMedia.addEventListener("change", closeDesktopMenu);
-    else desktopMedia.addListener(closeDesktopMenu);
-    document.addEventListener("armbench:language", syncMenuLabel);
-    syncMenuLabel();
-  }
+    if (attached) video.load();
+    video.dataset.loaded = "true";
+  };
 
-  // Attach a video source only when it is useful. Posters remain the no-data
-  // fallback, which keeps the initial GitHub Pages request small.
-  var videoPromises = new WeakMap();
-
-  function showVideoError(video) {
-    var frame = video.closest(".comparison-media, .hero");
-    var fallback = frame && frame.querySelector("[data-video-fallback]");
-    if (fallback) fallback.hidden = false;
-  }
-
-  function attachVideo(video) {
-    if (!video || videoPromises.has(video)) return videoPromises.get(video);
-    var promise = new Promise(function (resolve) {
-      var sources = Array.from(video.querySelectorAll("source[data-src]"));
-      if (!sources.length) { resolve(video); return; }
-      var settled = false;
-      var finish = function () { if (!settled) { settled = true; resolve(video); } };
-      var fail = function () { showVideoError(video); finish(); };
-      video.addEventListener("loadedmetadata", finish, { once: true });
-      video.addEventListener("error", fail, { once: true });
-      sources.forEach(function (source) {
-        source.src = source.dataset.src;
-        source.removeAttribute("data-src");
-        source.addEventListener("error", fail, { once: true });
-      });
-      video.load();
-      // Some browsers do not emit metadata for a blocked local file.
-      window.setTimeout(finish, 3000);
-    });
-    videoPromises.set(video, promise);
-    return promise;
-  }
-
-  var heroVideo = document.querySelector("[data-hero-video]");
-  var heroToggle = heroVideo && document.querySelector('[data-video-toggle="' + heroVideo.id + '"]');
-  var heroUserPaused = reducedMotion.matches || saveData;
-
-  function syncHeroButton() {
-    if (!heroToggle || !heroVideo) return;
-    var playing = !heroVideo.paused && !heroVideo.ended;
-    var label = playing
-      ? (activeLanguage === "zh" ? heroToggle.dataset.ariaPauseZh : heroToggle.dataset.ariaPauseEn)
-      : (activeLanguage === "zh" ? heroToggle.dataset.ariaPlayZh : heroToggle.dataset.ariaPlayEn);
-    heroToggle.dataset.playing = playing ? "true" : "false";
-    heroToggle.setAttribute("aria-pressed", playing ? "true" : "false");
-    heroToggle.setAttribute("aria-label", label);
-    heroToggle.setAttribute("title", label);
-  }
-
-  function playHero(manual) {
-    if (!heroVideo) return;
-    if (manual) heroUserPaused = false;
-    attachVideo(heroVideo).then(function () {
-      return heroVideo.play();
-    }).catch(function () {
-      // Autoplay may be denied; the poster and manual button remain usable.
-    }).finally(syncHeroButton);
-  }
-
-  function pauseHero(manual) {
-    if (!heroVideo) return;
-    if (manual) heroUserPaused = true;
-    heroVideo.pause();
-    syncHeroButton();
-  }
-
-  if (heroVideo) {
-    heroVideo.addEventListener("play", syncHeroButton);
-    heroVideo.addEventListener("pause", syncHeroButton);
-    heroVideo.addEventListener("ended", syncHeroButton);
-    heroVideo.addEventListener("error", function () { showVideoError(heroVideo); });
-    if (heroToggle) heroToggle.addEventListener("click", function () {
-      if (heroVideo.paused) playHero(true); else pauseHero(true);
-    });
-    document.addEventListener("armbench:language", syncHeroButton);
-    syncHeroButton();
-    if (!heroUserPaused) window.setTimeout(function () { playHero(false); }, 250);
-  }
-
-  var lazyVideos = Array.from(document.querySelectorAll("[data-lazy-video]"));
-  lazyVideos.forEach(function (video) {
-    var loadOnIntent = function () { attachVideo(video); };
-    video.addEventListener("pointerdown", loadOnIntent, { once: true });
-    video.addEventListener("keydown", loadOnIntent, { once: true });
-  });
+  const lazyVideos = [...document.querySelectorAll("video[data-lazy-video]")];
   if ("IntersectionObserver" in window) {
-    var mediaObserver = new IntersectionObserver(function (entries, observer) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        attachVideo(entry.target);
+    const videoObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting || entry.target.closest("[hidden]")) return;
+        loadVideo(entry.target);
         observer.unobserve(entry.target);
       });
-    }, { rootMargin: "240px 0px", threshold: 0.01 });
-    lazyVideos.forEach(function (video) { mediaObserver.observe(video); });
-  }
-
-  // Matched π0.5 clips share one timeline. This is intentionally a viewer for
-  // the separate LIBERO experiment, not a claim that it drives the Panda path.
-  var comparisonVideos = Array.from(document.querySelectorAll("[data-sync-video]"));
-  var comparisonPlay = document.querySelector("[data-comparison-play]");
-  var comparisonRestart = document.querySelector("[data-comparison-restart]");
-  var comparisonScrubber = document.querySelector("[data-comparison-scrubber]");
-  var comparisonTime = document.querySelector("[data-comparison-time]");
-  var comparisonSpeed = document.querySelector("[data-comparison-speed]");
-  var comparisonPlaying = false;
-  var comparisonFrame = 0;
-
-  function finiteDuration(video) {
-    return video && Number.isFinite(video.duration) ? video.duration : 22;
-  }
-
-  function comparisonDuration() {
-    return comparisonVideos.reduce(function (max, video) { return Math.max(max, finiteDuration(video)); }, 22);
-  }
-
-  function formatTime(seconds) {
-    var safe = Math.max(0, Number(seconds) || 0);
-    return Math.floor(safe / 60) + ":" + String(Math.floor(safe % 60)).padStart(2, "0");
-  }
-
-  function currentComparisonTime() {
-    return comparisonVideos.length ? (Number(comparisonVideos[0].currentTime) || 0) : 0;
-  }
-
-  function updateComparisonButton() {
-    if (!comparisonPlay) return;
-    comparisonPlay.dataset.playing = comparisonPlaying ? "true" : "false";
-    comparisonPlay.setAttribute("aria-pressed", comparisonPlaying ? "true" : "false");
-    comparisonPlay.setAttribute("aria-label", comparisonPlaying
-      ? (activeLanguage === "zh" ? "暂停两段视频" : "Pause both videos")
-      : (activeLanguage === "zh" ? "播放两段视频" : "Play both videos"));
-  }
-
-  function renderComparisonProgress() {
-    var time = currentComparisonTime();
-    var duration = comparisonDuration();
-    if (comparisonScrubber) comparisonScrubber.value = String(Math.min(100, duration ? (time / duration) * 100 : 0));
-    if (comparisonTime) comparisonTime.textContent = formatTime(time) + " / " + formatTime(duration);
-  }
-
-  function syncComparisonFollowers() {
-    if (!comparisonVideos.length) return;
-    var master = comparisonVideos[0];
-    comparisonVideos.slice(1).forEach(function (video) {
-      if (!Number.isFinite(video.duration)) return;
-
-      // The successful clip is shorter than the failed rollout. Keep it on its
-      // last decodable frame instead of seeking to duration, which some
-      // browsers interpret as "ended" and reset to frame zero.
-      var lastFrame = Math.max(0, video.duration - (1 / 30));
-      var targetTime = Math.min(master.currentTime, lastFrame);
-      if (Math.abs(video.currentTime - targetTime) > 0.08) {
-        try { video.currentTime = targetTime; } catch (error) { /* unloaded */ }
-      }
-      if (master.currentTime >= lastFrame && !video.paused) video.pause();
-    });
-    renderComparisonProgress();
-    if (comparisonPlaying) comparisonFrame = window.requestAnimationFrame(syncComparisonFollowers);
-  }
-
-  function stopComparisonFrame() {
-    if (comparisonFrame) window.cancelAnimationFrame(comparisonFrame);
-    comparisonFrame = 0;
-  }
-
-  function ensureComparisonLoaded() {
-    return Promise.all(comparisonVideos.map(attachVideo));
-  }
-
-  function setComparisonTime(time) {
-    var safe = Math.max(0, Number(time) || 0);
-    comparisonVideos.forEach(function (video) {
-      if (Number.isFinite(video.duration)) {
-        var lastFrame = Math.max(0, video.duration - (1 / 30));
-        video.currentTime = Math.min(safe, lastFrame);
-      }
-    });
-    renderComparisonProgress();
-  }
-
-  function pauseComparison() {
-    comparisonPlaying = false;
-    stopComparisonFrame();
-    comparisonVideos.forEach(function (video) { video.pause(); });
-    updateComparisonButton();
-  }
-
-  function playComparison() {
-    if (!comparisonVideos.length) return;
-    ensureComparisonLoaded().then(function () {
-      comparisonVideos.forEach(function (video) {
-        video.playbackRate = comparisonSpeed ? Number(comparisonSpeed.value) : 1;
-      });
-      return Promise.all(comparisonVideos.map(function (video) { return video.play(); }));
-    }).then(function () {
-      comparisonPlaying = true;
-      updateComparisonButton();
-      stopComparisonFrame();
-      comparisonFrame = window.requestAnimationFrame(syncComparisonFollowers);
-    }).catch(function () {
-      comparisonVideos.forEach(showVideoError);
-      pauseComparison();
-    });
-  }
-
-  if (comparisonPlay) comparisonPlay.addEventListener("click", function () {
-    if (comparisonPlaying) pauseComparison(); else playComparison();
-  });
-  if (comparisonRestart) comparisonRestart.addEventListener("click", function () {
-    ensureComparisonLoaded().then(function () {
-      pauseComparison();
-      setComparisonTime(0);
-    });
-  });
-  if (comparisonScrubber) comparisonScrubber.addEventListener("input", function () {
-    ensureComparisonLoaded().then(function () { setComparisonTime((Number(comparisonScrubber.value) / 100) * comparisonDuration()); });
-  });
-  if (comparisonSpeed) comparisonSpeed.addEventListener("change", function () {
-    comparisonVideos.forEach(function (video) { video.playbackRate = Number(comparisonSpeed.value); });
-  });
-  comparisonVideos.forEach(function (video) {
-    video.addEventListener("timeupdate", renderComparisonProgress);
-    video.addEventListener("ended", function () { if (video === comparisonVideos[0]) pauseComparison(); });
-    video.addEventListener("error", function () { showVideoError(video); });
-  });
-  document.addEventListener("armbench:language", updateComparisonButton);
-  updateComparisonButton();
-  renderComparisonProgress();
-
-  // Copy buttons use the system clipboard when available and a textarea
-  // fallback for the local-file / older-browser case.
-  function fallbackCopy(value) {
-    var input = document.createElement("textarea");
-    input.value = value;
-    input.setAttribute("readonly", "");
-    input.style.position = "fixed";
-    input.style.opacity = "0";
-    document.body.appendChild(input);
-    input.select();
-    var copied = document.execCommand("copy");
-    input.remove();
-    return copied;
-  }
-
-  function copyText(value) {
-    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(value);
-    return fallbackCopy(value) ? Promise.resolve() : Promise.reject(new Error("copy failed"));
-  }
-
-  function renderCopyButton(button, copied) {
-    if (copied) {
-      button.textContent = activeLanguage === "zh" ? "已复制" : "COPIED";
-      return;
-    }
-    button.innerHTML = activeLanguage === "zh" ? "复制" : "Copy";
-  }
-
-  document.querySelectorAll("[data-copy]").forEach(function (button) {
-    var resetTimer = 0;
-    renderCopyButton(button, false);
-    button.addEventListener("click", function () {
-      window.clearTimeout(resetTimer);
-      copyText(button.dataset.copy).then(function () {
-        button.classList.add("copied");
-        renderCopyButton(button, true);
-        resetTimer = window.setTimeout(function () {
-          button.classList.remove("copied");
-          renderCopyButton(button, false);
-        }, 1800);
-      }).catch(function () {
-        button.textContent = activeLanguage === "zh" ? "复制失败" : "Failed";
-      });
-    });
-    document.addEventListener("armbench:language", function () {
-      if (!button.classList.contains("copied")) renderCopyButton(button, false);
-    });
-  });
-
-  // Reveal is intentionally a small enhancement: all content remains visible
-  // without JavaScript, while an observer adds a quiet entrance on long pages.
-  var revealItems = Array.from(document.querySelectorAll(".reveal"));
-  if ("IntersectionObserver" in window && !reducedMotion.matches) {
-    var revealObserver = new IntersectionObserver(function (entries, observer) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add("is-visible");
-        observer.unobserve(entry.target);
-      });
-    }, { rootMargin: "0px 0px -8%", threshold: 0.05 });
-    revealItems.forEach(function (item) { revealObserver.observe(item); });
+    }, { rootMargin: "240px 0px" });
+    lazyVideos.forEach((video) => videoObserver.observe(video));
   } else {
-    revealItems.forEach(function (item) { item.classList.add("is-visible"); });
+    lazyVideos.forEach(loadVideo);
   }
 
-  // Highlight the section currently under the reading line in the header.
-  var sectionLinks = Array.from(document.querySelectorAll(".nav-links a[href^='#']"));
-  if ("IntersectionObserver" in window) {
-    var sectionObserver = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        sectionLinks.forEach(function (link) {
-          var active = link.getAttribute("href") === "#" + entry.target.id;
-          if (active) link.setAttribute("aria-current", "location"); else link.removeAttribute("aria-current");
-        });
-      });
-    }, { rootMargin: "-38% 0px -55%", threshold: 0 });
-    sectionLinks.forEach(function (link) {
-      var section = document.querySelector(link.getAttribute("href"));
-      if (section) sectionObserver.observe(section);
+  const heroVideo = document.querySelector("[data-hero-video]");
+  const heroToggle = document.querySelector("[data-video-toggle]");
+  const syncHeroState = () => {
+    if (!heroVideo || !heroToggle) return;
+    heroToggle.setAttribute("aria-pressed", String(!heroVideo.paused));
+    updateLocalizedLabels(root.dataset.lang || "zh");
+  };
+
+  if (heroVideo && heroToggle) {
+    heroToggle.addEventListener("click", async () => {
+      if (heroVideo.paused) {
+        try {
+          await heroVideo.play();
+        } catch {
+          // Native controls remain available if autoplay/play is blocked.
+        }
+      } else {
+        heroVideo.pause();
+      }
+      syncHeroState();
     });
-  }
+    heroVideo.addEventListener("play", syncHeroState);
+    heroVideo.addEventListener("pause", syncHeroState);
 
-  function handleReducedMotionChange(event) {
-    if (!event.matches) return;
-    pauseHero(false);
-    pauseComparison();
-    revealItems.forEach(function (item) { item.classList.add("is-visible"); });
-  }
-
-  if (typeof reducedMotion.addEventListener === "function") reducedMotion.addEventListener("change", handleReducedMotionChange);
-  else reducedMotion.addListener(handleReducedMotionChange);
-
-  document.addEventListener("visibilitychange", function () {
-    if (document.hidden) {
-      pauseHero(false);
-      pauseComparison();
-    } else if (!heroUserPaused && !reducedMotion.matches && !saveData) {
-      playHero(false);
+    if (!reducedMotion.matches && !saveData) {
+      heroVideo.play().catch(syncHeroState);
+    } else {
+      heroVideo.pause();
+      syncHeroState();
     }
+  }
+
+  reducedMotion.addEventListener("change", (event) => {
+    if (event.matches && heroVideo) heroVideo.pause();
   });
+
+  document.querySelectorAll("[data-tabs]").forEach((tabGroup) => {
+    const tabs = [...tabGroup.querySelectorAll("[role='tab']")];
+    const panels = [...tabGroup.querySelectorAll("[role='tabpanel']")];
+
+    const activateTab = (nextTab) => {
+      tabs.forEach((tab) => {
+        const active = tab === nextTab;
+        tab.setAttribute("aria-selected", String(active));
+        tab.tabIndex = active ? 0 : -1;
+      });
+      panels.forEach((panel) => {
+        const active = panel.id === nextTab.dataset.tab;
+        panel.hidden = !active;
+        if (active) {
+          panel.querySelectorAll("video[data-lazy-video]").forEach(loadVideo);
+        } else {
+          panel.querySelectorAll("video").forEach((video) => video.pause());
+        }
+      });
+    };
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener("click", () => activateTab(tab));
+      tab.addEventListener("keydown", (event) => {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+        event.preventDefault();
+        let nextIndex = index;
+        if (event.key === "ArrowLeft") nextIndex = (index - 1 + tabs.length) % tabs.length;
+        if (event.key === "ArrowRight") nextIndex = (index + 1) % tabs.length;
+        if (event.key === "Home") nextIndex = 0;
+        if (event.key === "End") nextIndex = tabs.length - 1;
+        tabs[nextIndex].focus();
+        activateTab(tabs[nextIndex]);
+      });
+    });
+  });
+
+  document.querySelectorAll("[data-copy-code]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const code = button.parentElement && button.parentElement.querySelector("code");
+      if (!code) return;
+      const language = root.dataset.lang || "zh";
+      const original = language === "zh" ? "复制" : "Copy";
+      try {
+        await navigator.clipboard.writeText(code.textContent.trim());
+        button.textContent = language === "zh" ? "已复制" : "Copied";
+      } catch {
+        button.textContent = language === "zh" ? "复制失败" : "Copy failed";
+      }
+      window.setTimeout(() => {
+        button.textContent = original;
+      }, 1600);
+    });
+  });
+
+  const sections = [...document.querySelectorAll("main section[id]")];
+  const navLinks = [...document.querySelectorAll("#site-nav a[href^='#']")];
+  if ("IntersectionObserver" in window) {
+    const sectionObserver = new IntersectionObserver((entries) => {
+      const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (!visible) return;
+      navLinks.forEach((link) => {
+        const current = link.getAttribute("href") === `#${visible.target.id}`;
+        if (current) link.setAttribute("aria-current", "true");
+        else link.removeAttribute("aria-current");
+      });
+    }, { rootMargin: "-20% 0px -68%", threshold: [0, 0.15, 0.4] });
+    sections.forEach((section) => sectionObserver.observe(section));
+  }
 })();
