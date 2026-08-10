@@ -1,0 +1,138 @@
+{
+  "schema_version": "armbench.pi05_independent_clock_selection_baseline_protocol.v1",
+  "created_at_utc": "2026-08-10T04:29:59.5862051Z",
+  "status": "protocol_frozen_before_smoke_and_all_scored_cells",
+  "scope": "Held-out direct comparison of action-selection semantics under a true independent inference and control clock",
+  "runtime_commit": "1551900d2c66b0e8a1d46af51ee5df53e8c63bcc",
+  "repository_commit_at_freeze": "1551900d2c66b0e8a1d46af51ee5df53e8c63bcc",
+  "research_question": "Does observation-age-aligned suffix selection change closed-loop task progress relative to starting each completed action chunk at its head when checkpoint, deadline, clock, mailbox, hold rule, and keyed sampling are fixed?",
+  "fixed_protocol": {
+    "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+    "task_suite": "libero_spatial",
+    "task_ids": "0:10",
+    "episode_indices": "4:8",
+    "control_period_ms": 50,
+    "action_horizon": 10,
+    "submit_every_ticks": 1,
+    "deadline_ms": 175,
+    "mailbox": "latest_only_single_pending_observation",
+    "deadline_disposition": "hold",
+    "horizon_exhaustion_disposition": "hold",
+    "video_mode": "failures",
+    "max_task_steps": null,
+    "fresh_environment_per_rollout": true,
+    "policy_input_audit": "canonical_pi05_libero_request_sha256_v1"
+  },
+  "modes": [
+    {
+      "id": "age_aligned_suffix",
+      "definition": "At each control tick execute chunk index ceil(observation_age/control_period); hold if the deadline is exceeded or no fresh suffix remains."
+    },
+    {
+      "id": "response_relative_chunk",
+      "definition": "After a response arrives execute chunk indices 0, 1, 2, ... relative to response completion; retain the same observation-age deadline and fail-closed hold rule."
+    }
+  ],
+  "smoke_gate": {
+    "task_ids": "0",
+    "episode_indices": "4",
+    "seed": 7,
+    "modes": [
+      "age_aligned_suffix",
+      "response_relative_chunk"
+    ],
+    "required_before_scored_matrix": [
+      "both artifacts pass the independent validator",
+      "both episodes contain inference/simulation overlap",
+      "provider failures equal zero",
+      "query-0 policy_input_sha256 values match",
+      "query-0 policy sampling key and noise SHA-256 values match",
+      "query-0 action_chunk_sha256 values match"
+    ],
+    "task_success_is_not_a_gate": true
+  },
+  "registered_cells": [
+    {
+      "label": "seed7_age_aligned_suffix",
+      "seed": 7,
+      "action_selection_mode": "age_aligned_suffix",
+      "planned_rollouts": 40,
+      "order": 1
+    },
+    {
+      "label": "seed7_response_relative_chunk",
+      "seed": 7,
+      "action_selection_mode": "response_relative_chunk",
+      "planned_rollouts": 40,
+      "order": 2
+    },
+    {
+      "label": "seed8_response_relative_chunk",
+      "seed": 8,
+      "action_selection_mode": "response_relative_chunk",
+      "planned_rollouts": 40,
+      "order": 3
+    },
+    {
+      "label": "seed8_age_aligned_suffix",
+      "seed": 8,
+      "action_selection_mode": "age_aligned_suffix",
+      "planned_rollouts": 40,
+      "order": 4
+    },
+    {
+      "label": "seed9_age_aligned_suffix",
+      "seed": 9,
+      "action_selection_mode": "age_aligned_suffix",
+      "planned_rollouts": 40,
+      "order": 5
+    },
+    {
+      "label": "seed9_response_relative_chunk",
+      "seed": 9,
+      "action_selection_mode": "response_relative_chunk",
+      "planned_rollouts": 40,
+      "order": 6
+    }
+  ],
+  "pairing_gate": {
+    "unit": "task_id plus episode_index within a joint seed",
+    "query_zero_required_equal": [
+      "initial_state_sha256",
+      "policy_input_sha256",
+      "policy sampling key_sha256",
+      "policy sampling noise_sha256",
+      "action_chunk_sha256"
+    ],
+    "failure_disposition": "Exclude the affected seed pair from method-effect claims; preserve and document the rejected artifacts."
+  },
+  "primary_outcomes": [
+    "paired task success",
+    "execute duty cycle",
+    "hold-reason counts",
+    "executed action-index distribution",
+    "provider failures",
+    "inference/simulation overlap"
+  ],
+  "analysis_plan": {
+    "success_test": "Exact two-sided McNemar test over registered paired episodes, reported with discordant counts.",
+    "cluster_reporting": "Report each task and seed separately; task-by-seed blocks, not 120 episodes as iid deployment draws, define robustness summaries.",
+    "process_metrics": "Report paired differences descriptively with task-by-seed block intervals.",
+    "pooling": "Do not combine this held-out matrix with earlier episodes 0:3 to increase the paired sample size.",
+    "negative_result_policy": "Retain and report a null or reversed result; do not add modes, deadlines, or seeds after inspection."
+  },
+  "stop_conditions": [
+    "smoke pairing gate fails",
+    "provider failure, missing inference/simulation overlap, worker not stopped, or validator invalid",
+    "checkpoint attestation, OpenPI commit, runtime commit, or source hashes differ between paired modes",
+    "less than 90 minutes of server lease remains before starting another scored cell",
+    "do not stop a 40-rollout cell based on intermediate task success"
+  ],
+  "claim_boundaries": [
+    "one attested pi0.5 checkpoint and one LIBERO suite, not cross-model generality",
+    "exploratory held-out simulation evidence, not an official LIBERO leaderboard score",
+    "not a hard-real-time guarantee",
+    "not hardware safety or real-robot deployment evidence",
+    "query-0 pairing does not imply later observations remain identical after the modes diverge"
+  ]
+}
