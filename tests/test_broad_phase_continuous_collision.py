@@ -117,6 +117,7 @@ def test_broad_phase_matches_registered_safe_and_collision_edges() -> None:
     assert self_broad.certified_safe is False
     assert self_broad.status == self_reference.status
     assert free_broad.broad_phase_pruned_pairs > 0
+    assert free_broad.broad_phase_exact_pair_evaluations > 0
     assert safe_broad.pair_evaluations < safe_reference.pair_evaluations
 
 

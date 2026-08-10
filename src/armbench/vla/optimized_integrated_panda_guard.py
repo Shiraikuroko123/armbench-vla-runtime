@@ -83,6 +83,9 @@ class OptimizedIntegratedPandaSupervisor(IntegratedPandaSupervisor):
             ),
             "broad_phase_pair_tests": self.checker.broad_phase_pair_tests,
             "broad_phase_pruned_pairs": self.checker.broad_phase_pruned_pairs,
+            "broad_phase_exact_pair_evaluations": (
+                self.checker.broad_phase_exact_pair_evaluations
+            ),
             "broad_phase_prune_rate": self.checker.broad_phase_prune_rate,
             "safe_configuration_cache_hits": (
                 self.checker.safe_configuration_cache_hits

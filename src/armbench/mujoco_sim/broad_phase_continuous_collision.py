@@ -40,6 +40,7 @@ class BroadPhaseContinuousMuJoCoCollisionChecker(
         self._refresh_pair_arrays()
         self.broad_phase_pair_tests = 0
         self.broad_phase_pruned_pairs = 0
+        self.broad_phase_exact_pair_evaluations = 0
         self.safe_configuration_cache_hits = 0
         self._safe_configuration_cache: OrderedDict[bytes, None] = OrderedDict()
         self._safe_configuration_cache_capacity = 4096
@@ -54,6 +55,7 @@ class BroadPhaseContinuousMuJoCoCollisionChecker(
     def reset_metrics(self) -> None:
         self.broad_phase_pair_tests = 0
         self.broad_phase_pruned_pairs = 0
+        self.broad_phase_exact_pair_evaluations = 0
         self.safe_configuration_cache_hits = 0
 
     @property
@@ -102,6 +104,18 @@ class BroadPhaseContinuousMuJoCoCollisionChecker(
         first = self.data.geom_xpos[self._pair_geom1]
         second = self.data.geom_xpos[self._pair_geom2]
         return np.linalg.norm(first - second, axis=1) - self._pair_radius_sums
+
+    def _pair_distance(
+        self,
+        pair: ContinuousCollisionPair,
+        state: _CertificateState,
+    ) -> float | None:
+        before = state.pair_evaluations
+        distance = super()._pair_distance(pair, state)
+        self.broad_phase_exact_pair_evaluations += (
+            state.pair_evaluations - before
+        )
+        return distance
 
     def _configuration_collision(
         self,
