@@ -142,6 +142,17 @@ def _specs() -> list[dict[str, Any]]:
             ],
         },
         {
+            "id": "frozen_pi05_integrated_replay",
+            "argv": [
+                "-m",
+                "armbench",
+                "vla-panda-integrated-replay-validate",
+                "reports/pi05_integrated_panda_cpu_replay_270_001",
+                "--source-directory",
+                "evidence/pi05_rtc_overlap_primary_v3_seed_20260807_001/evaluation",
+            ],
+        },
+        {
             "id": "integrated_fault_matrix",
             "argv": [
                 "-m",

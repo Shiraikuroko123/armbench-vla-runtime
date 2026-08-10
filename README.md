@@ -106,6 +106,7 @@ for the full design and the current integration gap.
 | Cross-suite validation | Object, Goal, and LIBERO-10: 300 rollouts / 150 pairs, 83/150 to 141/150 | Extends deterministic-delay evidence within the same model family and simulator suite |
 | RTC-style continuation | 300 rollouts / 100 matched triplets: 96/100 baseline, 97/100 hard projection, 97/100 RTC guidance | No task-success superiority; motion-seam measurements remain exploratory |
 | Braking-invariant Panda repair | 270 paired offline cases: 264/270 to 270/270 registered constraints, all 6 legacy conflicts resolved, 0 regressions | Frozen `pi0.5` responses replayed through the Panda adapter; no task-success or hard-real-time claim |
+| Frozen-response integrated Panda CPU gate | 270 paired rows over 30 attested responses, 3 scenes, and 3 modes: direct published 90/90 unsafe candidates; QP published 1/90; full assurance held 90/90 with zero partial prefixes | Prospectively frozen 20 ms go/no-go result; identifies latency and candidate-feasibility bottlenecks without rerunning the checkpoint or claiming task success |
 | Integrated Panda supervisor | 27/27 registered fault outcomes reproduced: 12 accepted plans, 6 verified brakes, 7 holds, 2 unrecoverable stops; no rejected chunk exposed a partial prefix | Atomic CPU reference chain combining OSQP kinematic projection, continuous collision certificates, and a stop invariant; scripted actions, not hard real time |
 | Asynchronous assurance publication | 17/17 provider, timing, state, reset, budget, and collision outcomes reproduced: 6 complete plans, 10 holds, 1 unrecoverable stop, 0 partial prefixes | Separate policy/assurance workers and activation-time atomic gate; mock, frozen, and interface fixtures only, not a learned checkpoint |
 | Assured Panda task execution | 2/2 MuJoCo targets reached under nominal and 0.5 kg/80 ms conditions; 351/351 motion edges and stop boundaries certified, zero registered contact/limit/saturation events | Offline assurance followed by torque-controlled joint-waypoint execution; not a learned VLA, manipulation, or hardware result |
@@ -310,6 +311,24 @@ loop, or provide a physical-safety or hard-real-time guarantee. For trajectory
 inspection, use the `raw_positions`, `legacy_positions`, and `repair_positions`
 arrays with `mujoco-view`; the method and claim boundary are documented in
 [deadline-bounded braking-invariant repair](docs/PI05_PANDA_BRAKING_REPAIR.md).
+
+The stricter R02 CPU preflight sends the same frozen response through direct
+dispatch, kinematic QP projection, and the complete continuous-collision plus
+inverse-dynamics assurance worker:
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m armbench `
+  vla-panda-integrated-replay-validate `
+  reports\pi05_integrated_panda_cpu_replay_270_001 `
+  --source-directory `
+  evidence\pi05_rtc_overlap_primary_v3_seed_20260807_001\evaluation
+```
+
+Under the prospectively fixed 20 ms software budget, full assurance held all
+90 cases and exposed zero partial prefixes. This preserved `no_go` result
+separates runtime latency from candidate feasibility and defines the next CPU
+optimization target. See the
+[integrated frozen-response replay](docs/PI05_INTEGRATED_PANDA_CPU_REPLAY.md).
 
 The local asynchronous closed-loop stage connects live dual-camera capture, a
 blocking policy worker, observation-age suffix selection, deadline fallback,

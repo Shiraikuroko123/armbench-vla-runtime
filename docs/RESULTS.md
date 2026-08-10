@@ -619,6 +619,52 @@ and [the method document](PI05_PANDA_BRAKING_REPAIR.md). The result does not
 establish task-success improvement, continuous collision safety, physical
 safety, or worst-case hard-real-time behavior.
 
+## Frozen pi0.5 responses through integrated Panda CPU assurance
+
+### Provenance and protocol
+
+- Derived report ID: `pi05_integrated_panda_cpu_replay_270_001`
+- Protocol frozen before implementation and scoring:
+  `research/pi05_integrated_panda_cpu_protocol_20260810.json`
+- Source: the attested `pi05_libero` transition archive; all 7,934 response
+  hashes and the checkpoint content identity were reverified
+- Selection: 30 responses balanced across 30 task/method strata, crossed with
+  three Panda scenes and three modes for 270 rows
+- Fixed timing: 20 ms software budget, 5 ms per-QP-step budget, and 200 ms
+  response deadline
+- Stored evidence: separate candidate and published trajectories, exact CSV,
+  protocol, implementation/environment provenance, summary, and recursive
+  manifest
+
+### Outcomes
+
+| Mode | Execute / cases | Constraint-safe candidates | Unsafe plans published | Budget misses | P95 mode latency | Mean motion retained |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Direct dispatch | 90/90 | 0/90 | 90 | 0 | 0.002 ms | 1.000 |
+| QP projection | 1/90 | 5/90 | 1 | 89 | 28.848 ms | 0.009 |
+| Full assurance | 0/90 | 5/90 | 0 | 90 | 42.974 ms | 0.000 |
+
+The registered outcome is `no_go`. The complete supervisor did not publish a
+plan within 20 ms, but all 90 failures held with zero partial-prefix exposure.
+The result identifies both a performance problem and a method problem: the QP
+implementation exceeds the budget in 89/90 rows, while only 5/90 projected
+candidates satisfy all registered kinematic, continuous-collision, and
+inverse-dynamics braking predicates even when audit time is excluded.
+
+This does not contradict the earlier 12.777 ms P95 braking-scale repair. The
+new path adds OSQP, registered continuous static/self-collision certificates,
+an inverse-dynamics stop at every action boundary, a separate assurance worker,
+and activation-time atomic publication. The validator independently recomputes
+the source binding, matrix, trajectory integration, collision/braking
+predicates, aggregates, and Markdown; re-signed CSV and NPZ tampering tests are
+also retained. See the
+[artifact](../reports/pi05_integrated_panda_cpu_replay_270_001/summary.md) and
+[method/acceptance document](PI05_INTEGRATED_PANDA_CPU_REPLAY.md).
+
+The checkpoint was not executed, Panda observations were not returned to the
+policy, and hand displacement is only command retention. This result does not
+measure task success, hard real time, hardware safety, or cross-model validity.
+
 ## Asynchronous Panda closed-loop runtime
 
 ### Provenance and protocol
