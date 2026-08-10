@@ -1,0 +1,112 @@
+{
+  "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+  "limitations": [
+    "The pilot is not an official aggregate LIBERO leaderboard score unless all required suite episodes are run.",
+    "Process separation and measured overlap do not establish an OS hard-real-time guarantee.",
+    "LIBERO simulation success is not hardware deployment or safety certification.",
+    "The deadline rule is training-free temporal selection, not dynamics-aware action repair."
+  ],
+  "matrix": {
+    "cells": [
+      {
+        "episode_id": "libero_spatial__task_000__episode_04",
+        "episode_index": 4,
+        "task_id": 0,
+        "task_suite": "libero_spatial"
+      }
+    ],
+    "planned_rollouts": 1
+  },
+  "official_protocol": {
+    "action_dimension": 7,
+    "action_horizon": 10,
+    "camera_rotation_degrees": 180,
+    "control_frequency_hz": 20,
+    "environment_render_resolution": [
+      256,
+      256
+    ],
+    "request_image_resolution": [
+      224,
+      224
+    ],
+    "stabilization_steps": 10,
+    "state_dimension": 8,
+    "task_success_source": "LIBERO environment done"
+  },
+  "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+  "policy_config": "pi05_libero",
+  "policy_sampling": {
+    "generator": "numpy_randomstate_mt19937_standard_normal_float32_v1",
+    "json_encoding": "utf-8 canonical sorted compact ASCII",
+    "mode_in_key": false,
+    "namespaces": {
+      "scored": {
+        "pairing_key_fields": [
+          "task_suite",
+          "task_id",
+          "episode_index",
+          "replan_steps"
+        ]
+      },
+      "warmup": {
+        "pairing_key_fields": [
+          "task_suite",
+          "task_id",
+          "episode_index"
+        ]
+      }
+    },
+    "noise_dtype": "little-endian float32",
+    "noise_shape": [
+      10,
+      32
+    ],
+    "pairing_key": [
+      "task_suite",
+      "task_id",
+      "episode_index",
+      "submit_every_ticks"
+    ],
+    "payload_fields": [
+      "schema_version",
+      "namespace",
+      "seed",
+      "pairing_key",
+      "query_index"
+    ],
+    "query_index": "observation_sequence_id",
+    "request_field": "armbench_policy_sampling",
+    "response_field": "armbench_policy_sampling",
+    "schema_version": "armbench.policy_sampling.v1",
+    "seed": 7,
+    "trace_schema_version": "armbench.policy_sampling_trace.v1"
+  },
+  "research_question": "Can an attested pi0.5-LIBERO policy run with simulation and blocking inference on independent clocks while every deadline, stale suffix, hold, action, and task outcome remains independently auditable?",
+  "runtime": {
+    "action_period_ms": 50.0,
+    "action_selection_mode": "age_aligned_suffix",
+    "control_period_ms": 50.0,
+    "controller_model": "parent_simulation_spawned_blocking_provider",
+    "deadline_disposition": "hold",
+    "deadline_ms": 175.0,
+    "hold_semantics": "zero Cartesian motion, preserve last gripper command",
+    "horizon_exhaustion_disposition": "hold",
+    "mailbox": "latest_only_single_pending_observation",
+    "policy_input_audit": "canonical_pi05_libero_request_sha256_v1",
+    "stale_prefix_rule": "ceil(observation_age/control_period)",
+    "submit_every_ticks": 1
+  },
+  "schema_version": "armbench.pi05_libero_independent_clock.v1",
+  "server_attestation_schema": "armbench.openpi_server_attestation.v1",
+  "server_launch_args": "--policy-config pi05_libero --checkpoint gs://openpi-assets/checkpoints/pi05_libero --openpi-root /app --expected-openpi-commit 15a9616a00943ada6c20a0f158e3adb39df2ccac --attestation-output /armbench_results/server/checkpoint_attestation.json --host 0.0.0.0 --port 8000",
+  "suite_task_step_limits": {
+    "libero_10": 520,
+    "libero_90": 400,
+    "libero_goal": 300,
+    "libero_object": 280,
+    "libero_spatial": 220
+  },
+  "task_step_override": null,
+  "video_mode": "all"
+}

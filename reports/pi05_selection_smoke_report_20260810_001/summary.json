@@ -1,0 +1,106 @@
+{
+  "analysis_boundary": "Registered episodes are paired within task, initial state, and joint seed. Task and seed blocks are not iid deployment samples, and query-0 equality does not imply later observations remain equal after modes diverge.",
+  "artifact_count": 2,
+  "claim_boundaries": [
+    "not an official LIBERO leaderboard score",
+    "not a hard-real-time guarantee",
+    "not hardware safety or real-robot deployment evidence",
+    "not cross-model superiority"
+  ],
+  "modes": {
+    "age_aligned_suffix": {
+      "action_indices": {
+        "3": 28,
+        "4": 62
+      },
+      "control_ticks": 104,
+      "execute_duty_cycle": 0.8653846153846154,
+      "execute_ticks": 90,
+      "hold_reasons": {
+        "deadline_exceeded": 11,
+        "no_policy_response": 3
+      },
+      "rollouts": 1,
+      "success_rate": 1.0,
+      "successes": 1
+    },
+    "response_relative_chunk": {
+      "action_indices": {
+        "0": 61,
+        "1": 26
+      },
+      "control_ticks": 98,
+      "execute_duty_cycle": 0.8877551020408163,
+      "execute_ticks": 87,
+      "hold_reasons": {
+        "deadline_exceeded": 8,
+        "no_policy_response": 3
+      },
+      "rollouts": 1,
+      "success_rate": 1.0,
+      "successes": 1
+    }
+  },
+  "pair_count": 1,
+  "paired_success": {
+    "age_aligned_only": 0,
+    "both_failure": 0,
+    "both_success": 1,
+    "mcnemar_exact_two_sided_p": 1.0,
+    "response_relative_only": 0,
+    "success_rate_difference": 0.0
+  },
+  "pairing_gate": {
+    "checked_fields": [
+      "initial_state_sha256",
+      "policy_input_sha256",
+      "sampling_key_sha256",
+      "sampling_noise_sha256",
+      "query0_action_chunk_sha256"
+    ],
+    "valid": true
+  },
+  "pairs": [
+    {
+      "age_aligned_execute_duty": 0.8653846153846154,
+      "age_aligned_success": true,
+      "episode_index": 4,
+      "execute_duty_difference": -0.022370486656200894,
+      "initial_state_sha256": "e028ab4976791a4c402249a77b5b09b44549d6a65acd8f629d9a61c45f049c6b",
+      "policy_input_sha256": "1dd7a23f11e394753ebca9be7273cdf55d821d2ea5dd9a68873255741a37bfcb",
+      "query0_action_chunk_sha256": "eb521b412826ae0ad48e002476650f8f323405ae920bfe3672c033ff0d86281f",
+      "response_relative_execute_duty": 0.8877551020408163,
+      "response_relative_success": true,
+      "sampling_key_sha256": "7bf058c6523dfa34152bb122d86837c1595737a94ce3c463ea6197605d92e9d6",
+      "sampling_noise_sha256": "a16c76a663c74f3d324f9e3d57b1ef3790e8a92d9f06a462fd0ab35ecdfb00ec",
+      "seed": 7,
+      "success_difference": 0,
+      "task_id": 0,
+      "task_suite": "libero_spatial"
+    }
+  ],
+  "schema_version": "armbench.pi05_selection_report.v1",
+  "seed_summaries": [
+    {
+      "age_aligned_successes": 1,
+      "pairs": 1,
+      "response_relative_successes": 1,
+      "seed": 7
+    }
+  ],
+  "sources": [
+    {
+      "artifact_id": "pi05_selection_smoke_age_aligned_seed7_1_20260810_001",
+      "manifest_sha256": "18a202d83c8a122a5d24fdc9a2672bb83c4983b3c9051f1e09fccba7c073a8c1",
+      "mode": "age_aligned_suffix",
+      "seed": 7
+    },
+    {
+      "artifact_id": "pi05_selection_smoke_response_relative_seed7_1_20260810_001",
+      "manifest_sha256": "d80901ef7406185a900044b8004c3497d34cdd159edf9385f0f735edf746a662",
+      "mode": "response_relative_chunk",
+      "seed": 7
+    }
+  ],
+  "total_rollouts": 2
+}

@@ -1,0 +1,31 @@
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.2.2
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+WARNING: The NVIDIA Driver was not detected.  GPU functionality will not be available.
+   Use the NVIDIA Container Toolkit to start this container with GPU support; see
+   https://docs.nvidia.com/datacenter/cloud-native/ .
+
+{
+  "artifact": "/armbench_results/pi05_selection_smoke_age_aligned_seed7_1_20260810_001/evaluation",
+  "checks": [
+    "manifest coverage, sizes, hashes, and path safety",
+    "checkpoint, sampling, commit, and runtime source provenance",
+    "initial states, request lifecycles, action chunks, ticks, and outcomes",
+    "derived rows, aggregate, summary, progress, and overlap proof"
+  ],
+  "errors": [],
+  "schema_version": "armbench.pi05_libero_independent_clock_validation.v1",
+  "valid": true
+}

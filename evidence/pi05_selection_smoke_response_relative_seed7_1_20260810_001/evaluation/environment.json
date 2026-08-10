@@ -1,0 +1,173 @@
+{
+  "arguments": {
+    "action_selection_mode": "response_relative_chunk",
+    "allow_unattested_server": false,
+    "armbench_root": "/armbench",
+    "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+    "command": "run",
+    "control_period_ms": 50.0,
+    "deadline_ms": 175.0,
+    "episode_indices": "4",
+    "expected_openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+    "host": "127.0.0.1",
+    "inference_timeout_s": 600.0,
+    "max_task_steps": null,
+    "num_steps_wait": 10,
+    "openpi_root": "/app",
+    "output_dir": "/armbench_results/pi05_selection_smoke_response_relative_seed7_1_20260810_001/evaluation",
+    "port": 8000,
+    "seed": 7,
+    "server_launch_args": "--policy-config pi05_libero --checkpoint gs://openpi-assets/checkpoints/pi05_libero --openpi-root /app --expected-openpi-commit 15a9616a00943ada6c20a0f158e3adb39df2ccac --attestation-output /armbench_results/server/checkpoint_attestation.json --host 0.0.0.0 --port 8000",
+    "server_startup_timeout_s": 1200.0,
+    "shutdown_timeout_s": 5.0,
+    "submit_every_ticks": 1,
+    "task_ids": "0",
+    "task_suite": "libero_spatial",
+    "video_mode": "all"
+  },
+  "armbench_git_commit": "1551900d2c66b0e8a1d46af51ee5df53e8c63bcc",
+  "armbench_git_status": "",
+  "captured_at_utc": "2026-08-10T05:02:40.847837+00:00",
+  "nvidia_smi": "NVIDIA GeForce RTX 4090, 570.153.02, 49140 MiB",
+  "openpi_git_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+  "packages": {
+    "imageio": "2.37.0",
+    "libero": null,
+    "numpy": "1.26.4",
+    "openpi-client": "0.1.0"
+  },
+  "platform": "Linux-5.15.0-113-generic-x86_64-with-glibc2.35",
+  "python": "3.11.9 (main, Aug 14 2024, 05:07:28) [Clang 18.1.8 ]",
+  "runtime_source_sha256": {
+    "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+    "integrations/openpi/libero_independent_clock.py": "fc6649ac1c95de8132e1a34fe1086975caa6524af75b9272eee68e99dde62ccc",
+    "integrations/openpi/libero_independent_clock_eval.py": "f9e9e0e950b3ea72b8cd86f61d0bdf6742519ae76fb7dc75ccbda6937ee9cff3",
+    "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+    "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+    "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+    "integrations/openpi/validate_libero_independent_clock.py": "7de46533687483284c8060b4e34627682acd7c81b4c4b27040e7202f5cdc3d59",
+    "src/armbench/vla/independent_clock.py": "c3cc53e93feefd6397d1a709d8d87c0271c639f63a4ea6af92e5b5424e6ecc66"
+  },
+  "schema_version": "armbench.pi05_libero_independent_clock.v1",
+  "selected_environment_variables": {
+    "ARMBENCH_SERVER_ARGS": "--policy-config pi05_libero --checkpoint gs://openpi-assets/checkpoints/pi05_libero --openpi-root /app --expected-openpi-commit 15a9616a00943ada6c20a0f158e3adb39df2ccac --attestation-output /armbench_results/server/checkpoint_attestation.json --host 0.0.0.0 --port 8000",
+    "MUJOCO_EGL_DEVICE_ID": "0",
+    "MUJOCO_GL": "egl",
+    "NVIDIA_VISIBLE_DEVICES": "void",
+    "OPENPI_DATA_HOME": null
+  },
+  "server_metadata": {
+    "armbench_policy_conditioning_contract": {
+      "actions_dtype": "little-endian float32",
+      "mask_dtype": "bool",
+      "mask_semantics": "contiguous committed prefix",
+      "mask_shape": [
+        10
+      ],
+      "method": "projected_flow_inpainting",
+      "model_action_shape": [
+        10,
+        32
+      ],
+      "raw_action_shape": [
+        10,
+        7
+      ],
+      "request_field": "armbench_policy_conditioning",
+      "response_field": "armbench_policy_conditioning",
+      "schema_version": "armbench.policy_conditioning.v1",
+      "trace_schema_version": "armbench.policy_conditioning_trace.v1"
+    },
+    "armbench_policy_guidance_contract": {
+      "actions_dtype": "little-endian float32",
+      "maximum_guidance_weight": 5.0,
+      "method": "rtc_pseudoinverse_guidance",
+      "model_action_shape": [
+        10,
+        32
+      ],
+      "raw_action_shape": [
+        10,
+        7
+      ],
+      "request_field": "armbench_policy_guidance",
+      "response_field": "armbench_policy_guidance",
+      "schedules": [
+        "linear",
+        "exp",
+        "ones",
+        "zeros"
+      ],
+      "schema_version": "armbench.policy_guidance.v1",
+      "trace_schema_version": "armbench.policy_guidance_trace.v1",
+      "weight_source": "server_recomputed_from_inference_delay_execute_horizon_schedule",
+      "weights_dtype": "little-endian float32",
+      "weights_shape": [
+        10
+      ]
+    },
+    "armbench_policy_sampling_contract": {
+      "generator": "numpy_randomstate_mt19937_standard_normal_float32_v1",
+      "json_encoding": "utf-8 canonical sorted compact ASCII",
+      "mode_in_key": false,
+      "namespaces": {
+        "scored": {
+          "pairing_key_fields": [
+            "task_suite",
+            "task_id",
+            "episode_index",
+            "replan_steps"
+          ]
+        },
+        "warmup": {
+          "pairing_key_fields": [
+            "task_suite",
+            "task_id",
+            "episode_index"
+          ]
+        }
+      },
+      "noise_dtype": "little-endian float32",
+      "noise_shape": [
+        10,
+        32
+      ],
+      "payload_fields": [
+        "schema_version",
+        "namespace",
+        "seed",
+        "pairing_key",
+        "query_index"
+      ],
+      "request_field": "armbench_policy_sampling",
+      "response_field": "armbench_policy_sampling",
+      "schema_version": "armbench.policy_sampling.v1",
+      "trace_schema_version": "armbench.policy_sampling_trace.v1"
+    },
+    "armbench_server_attestation": {
+      "action_horizon": 10,
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "checkpoint_file_count": 16,
+      "checkpoint_total_bytes": 12439085481,
+      "checkpoint_uri": "gs://openpi-assets/checkpoints/pi05_libero",
+      "created_at_utc": "2026-08-09T12:00:28.729288+00:00",
+      "model_action_dim": 32,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "openpi_extension_files": {
+        "src/openpi/models/pi0.py": "24b32d7c6ed5e409459afa8ca5af96a4dae09c2dcdf48e828907e411f4f12342",
+        "src/openpi/policies/policy.py": "a2ac5236e23b11d0f5a840d4a8fef148d89dba921d5452ec5dfcd5a6ffa46f20"
+      },
+      "openpi_submodule_status": " d1dc83afd89ded4379851257fe5d85632d31d5ec third_party/aloha (d1dc83a)\n f78abd68ee283de9f9be3c8f7e2a9ad60246e95c third_party/libero (f78abd6)",
+      "openpi_submodules_clean": true,
+      "openpi_tracked_clean": true,
+      "openpi_tracked_status": "",
+      "openpi_upstream_base_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "platform": "Linux-5.15.0-113-generic-x86_64-with-glibc2.35",
+      "policy_config": "pi05_libero",
+      "policy_loaded": true,
+      "python": "3.11.9 (main, Aug 14 2024, 05:07:28) [Clang 18.1.8 ]",
+      "schema_version": "armbench.openpi_server_attestation.v1",
+      "server_source_sha256": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8"
+    }
+  }
+}

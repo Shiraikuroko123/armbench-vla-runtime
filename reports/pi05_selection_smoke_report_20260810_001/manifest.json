@@ -1,0 +1,17 @@
+{
+  "files": {
+    "pairs.csv": {
+      "bytes": 684,
+      "sha256": "747669ca5d74072980cfa4935431d7846286ba072718cb9729afef6c46b49bdf"
+    },
+    "summary.json": {
+      "bytes": 3329,
+      "sha256": "ca35137ed19ceb15d8645214531cb0203335c4e18947d91961a47dde64f29b97"
+    },
+    "summary.md": {
+      "bytes": 1666,
+      "sha256": "6415b6e4b21fcea30669cf060a37185cf60bb3b74316b501ad9727fb9c76314b"
+    }
+  },
+  "schema_version": "armbench.pi05_selection_report_manifest.v1"
+}
