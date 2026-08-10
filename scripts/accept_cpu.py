@@ -270,6 +270,8 @@ def _specs() -> list[dict[str, Any]]:
         "pi05_selection_spatial_s7_response_relative_40_20260810_001",
         "pi05_selection_spatial_s8_age_aligned_40_20260810_001",
         "pi05_selection_spatial_s8_response_relative_40_20260810_001",
+        "pi05_selection_spatial_s9_age_aligned_40_20260810_001",
+        "pi05_selection_spatial_s9_response_relative_40_20260810_001",
     )
     specs.extend(
         {
@@ -308,6 +310,11 @@ def _specs() -> list[dict[str, Any]]:
         "pi05_selection_smoke_age_aligned_seed7_1_20260810_001",
         "pi05_selection_smoke_response_relative_seed7_1_20260810_001",
     )
+    selection_artifact_ids = tuple(
+        f"pi05_selection_spatial_s{seed}_{mode}_40_20260810_001"
+        for seed in (7, 8, 9)
+        for mode in ("age_aligned", "response_relative")
+    )
     specs.extend(
         [
             {
@@ -335,6 +342,21 @@ def _specs() -> list[dict[str, Any]]:
                     "smoke",
                     "--output-dir",
                     "reports/pi05_selection_smoke_report_20260810_001",
+                    "--check",
+                ],
+            },
+            {
+                "id": "pi05_selection_heldout_report_240",
+                "argv": [
+                    "scripts/build_pi05_selection_report.py",
+                    *[
+                        f"evidence/{artifact_id}/evaluation"
+                        for artifact_id in selection_artifact_ids
+                    ],
+                    "--profile",
+                    "frozen-240",
+                    "--output-dir",
+                    "reports/pi05_selection_heldout_report_240_20260810_001",
                     "--check",
                 ],
             },
