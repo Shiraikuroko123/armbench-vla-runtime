@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "If you use VLA-Sync, cite this software and the upstream models and benchmarks relevant to your experiment."
 title: "VLA-Sync: Runtime Evaluation for Action-Chunk VLA Policies"
 type: software
-version: 0.2.0
-date-released: 2026-08-10
+version: 0.3.0
+date-released: 2026-08-11
 authors:
   - family-names: "谌"
     given-names: "章伟"
