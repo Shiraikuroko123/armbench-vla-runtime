@@ -1,0 +1,117 @@
+{
+  "claim_flags": {
+    "hard_realtime_claim": false,
+    "panda_closed_loop_executed": false,
+    "physical_safety_claim": false,
+    "policy_checkpoint_executed_in_replay": false,
+    "source_policy_checkpoint_attested": true,
+    "task_success_evaluated": false
+  },
+  "configuration": {
+    "chunk_count": 30,
+    "modes": [
+      "direct_dispatch",
+      "qp_projection",
+      "full_assurance"
+    ],
+    "qp_step_budget_ms": 5.0,
+    "response_deadline_ms": 200.0,
+    "scenarios": [
+      "free_space",
+      "single_block",
+      "narrow_gate"
+    ],
+    "selection_seed": 20260810,
+    "software_budget_ms": 20.0,
+    "worker_timeout_s": 30.0
+  },
+  "environment": {
+    "menagerie_commit": "71f066ad0be9cd271f7ed58c030243ef157af9f4",
+    "mujoco_scenario_version": "2.0-mujoco",
+    "mujoco_version": "3.11.0",
+    "numpy_version": "1.26.4",
+    "osqp_version": "1.1.3",
+    "panda_scene_sha256": "60658e01f59909eadaffbb4eb98a98715f67f67e9ae49f42ac114567fddaf230",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python_version": "3.10.8"
+  },
+  "implementation_sha256": {
+    "armbench/mujoco_sim/continuous_collision.py": "4bdf6b26572b9754e40a870ec7ce5b72dfbeff341f033cf084f7638b32d224e7",
+    "armbench/mujoco_sim/dynamics_braking.py": "fb9894ec618a1cc9dd6f85af7babbf29ef55d45733c56826208330cbc8e63c8a",
+    "armbench/vla/cartesian_adapter.py": "f067cfa1d84eed27acb7e3be190ed7fd43aafb7a5e187d9d3b951f63c06205af",
+    "armbench/vla/integrated_panda_async.py": "f1098b2e5bf71006511754092e815a61c5882ef21f4154606394c66d7d3a1610",
+    "armbench/vla/integrated_panda_guard.py": "821d5e82b4db620aec4401bea6646bbc87111100e124fb3bd3ef31284b6d81fb",
+    "armbench/vla/integrated_panda_task.py": "2d9f8a11d53387f1be081306bce1c5ccb2666a63d32a2563b1c3b84825f31141",
+    "armbench/vla/pi05_archive_replay.py": "3d4f54c51b0efbf55a07f3658fcc63f9a104a408768410f4408230d74f682864",
+    "armbench/vla/pi05_integrated_replay.py": "f3bee733d47b2d1a70224b65ba6fb7c1bab3223a4f1bf911b0db8980fe7b1d35",
+    "armbench/vla/qp_projection.py": "c68f37c9ee55fd2069522d4a05c5f7de930166b4cc3b4f8ca07c6de33fd990ae"
+  },
+  "policy": {
+    "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+    "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+    "checkpoint_executed_this_run": false,
+    "config": "pi05_libero",
+    "family": "pi0.5"
+  },
+  "protocol": {
+    "conformant": true,
+    "relative_path": "docs/research/pi05_integrated_panda_cpu_protocol_20260810.json",
+    "schema_version": "armbench.pi05_integrated_panda_cpu_protocol.v1",
+    "sha256": "b422144a8260ace901b6e7d60f4386284e418c7ded98c54c9f43632b29ecc92e"
+  },
+  "schema_version": "armbench.pi05_integrated_panda_cpu_replay.v1",
+  "scope": "frozen_pi05_paired_integrated_panda_cpu_replay",
+  "selection": {
+    "algorithm": "sha256_rank_equal_per_task_method_v1",
+    "chunk_count": 30,
+    "modes": [
+      "direct_dispatch",
+      "qp_projection",
+      "full_assurance"
+    ],
+    "scenarios": [
+      "free_space",
+      "single_block",
+      "narrow_gate"
+    ],
+    "seed": 20260810,
+    "source_row_indices": [
+      763,
+      458,
+      222,
+      1467,
+      954,
+      1576,
+      2114,
+      2316,
+      2045,
+      2736,
+      2456,
+      2938,
+      3122,
+      3163,
+      3741,
+      4298,
+      3805,
+      3853,
+      4953,
+      4773,
+      4462,
+      5082,
+      5128,
+      5011,
+      6407,
+      6364,
+      6056,
+      7683,
+      7373,
+      7772
+    ]
+  },
+  "source": {
+    "directory": "evidence/pi05_rtc_overlap_primary_v3_seed_20260807_001/evaluation",
+    "response_action_hashes_verified": 7934,
+    "root_manifest_sha256": "41df96b43de6015a381dde152381b6167e1d07ff0b2e4b3070fbca131ae04f54",
+    "transition_count": 7934
+  }
+}

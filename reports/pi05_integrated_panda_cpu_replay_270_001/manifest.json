@@ -1,0 +1,36 @@
+{
+  "files": [
+    {
+      "bytes": 163856,
+      "path": "per_case.csv",
+      "sha256": "21b98861fb8a0f70c75b0d986dcd6765984432c728f696bf3fe710464eb9833e"
+    },
+    {
+      "bytes": 5797,
+      "path": "protocol.json",
+      "sha256": "b422144a8260ace901b6e7d60f4386284e418c7ded98c54c9f43632b29ecc92e"
+    },
+    {
+      "bytes": 3884,
+      "path": "provenance.json",
+      "sha256": "57e1704d5ab664d61a93cc1187e6b43485412581e0214409f921287c90385843"
+    },
+    {
+      "bytes": 4604,
+      "path": "summary.json",
+      "sha256": "a2c168102f69700ad08fcf5168a666ad3684b641d531ae3c0677d43d14cd93f0"
+    },
+    {
+      "bytes": 821,
+      "path": "summary.md",
+      "sha256": "152a25ef108fc35ee4dda858e647e354516b6d4e3d74e25ba32e82ffbea42851"
+    },
+    {
+      "bytes": 102802,
+      "path": "trajectories.npz",
+      "sha256": "1cd3dd43a5d85a2fc9f56ba19a5d87dc45acdcbd59d998a849778a78a6657f81"
+    }
+  ],
+  "files_sha256": "d3ef0f0ef37c8a4609d68437eaf142bccfb2bd4e0ea2c61868c3e080fa134d9d",
+  "schema_version": "armbench.root_manifest.v1"
+}

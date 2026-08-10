@@ -1,0 +1,132 @@
+{
+  "by_mode": {
+    "direct_dispatch": {
+      "braking_invalid_boundaries": 134,
+      "cases": 90,
+      "complete_candidates": 90,
+      "constraint_satisfied_candidates": 0,
+      "continuous_unsafe_edges": 90,
+      "execute": 90,
+      "hold": 0,
+      "maximum_mode_latency_ms": 0.008899995009414852,
+      "mean_published_motion_retention_ratio": 1.0,
+      "p50_mode_latency_ms": 0.0020000006770715117,
+      "p95_audit_latency_ms": 1025.7126000000426,
+      "p95_mode_latency_ms": 0.0023000029614195228,
+      "partial_prefixes_exposed": 0,
+      "qp_intervention_steps": 0,
+      "response_deadline_exceeded": 0,
+      "software_budget_exceeded": 0,
+      "unrecoverable_stop": 0,
+      "unsafe_plans_published": 90,
+      "verified_brake": 0
+    },
+    "full_assurance": {
+      "braking_invalid_boundaries": 105,
+      "cases": 90,
+      "complete_candidates": 90,
+      "constraint_satisfied_candidates": 5,
+      "continuous_unsafe_edges": 65,
+      "execute": 0,
+      "hold": 90,
+      "maximum_mode_latency_ms": 45.94129999895813,
+      "mean_published_motion_retention_ratio": 0.0,
+      "p50_mode_latency_ms": 34.28995000285795,
+      "p95_audit_latency_ms": 816.4545349995024,
+      "p95_mode_latency_ms": 42.97436999804631,
+      "partial_prefixes_exposed": 0,
+      "qp_intervention_steps": 900,
+      "response_deadline_exceeded": 3,
+      "software_budget_exceeded": 90,
+      "unrecoverable_stop": 0,
+      "unsafe_plans_published": 0,
+      "verified_brake": 0
+    },
+    "qp_projection": {
+      "braking_invalid_boundaries": 105,
+      "cases": 90,
+      "complete_candidates": 90,
+      "constraint_satisfied_candidates": 5,
+      "continuous_unsafe_edges": 65,
+      "execute": 1,
+      "hold": 89,
+      "maximum_mode_latency_ms": 33.26079999533249,
+      "mean_published_motion_retention_ratio": 0.008949192837391106,
+      "p50_mode_latency_ms": 24.064450004516402,
+      "p95_audit_latency_ms": 826.5518849973887,
+      "p95_mode_latency_ms": 28.84757500178239,
+      "partial_prefixes_exposed": 0,
+      "qp_intervention_steps": 900,
+      "response_deadline_exceeded": 1,
+      "software_budget_exceeded": 89,
+      "unrecoverable_stop": 0,
+      "unsafe_plans_published": 1,
+      "verified_brake": 0
+    }
+  },
+  "claim_boundary": [
+    "Frozen official responses are replayed; the checkpoint is not executed.",
+    "LIBERO actions are cross-controller inputs, not native Panda outputs.",
+    "Hand displacement measures command retention, not task progress.",
+    "Cases reset independently and provide no policy feedback loop.",
+    "Measured Python timing is not a hard-real-time guarantee.",
+    "MuJoCo predicates are not physical-robot safety certification."
+  ],
+  "configuration": {
+    "chunk_count": 30,
+    "modes": [
+      "direct_dispatch",
+      "qp_projection",
+      "full_assurance"
+    ],
+    "qp_step_budget_ms": 5.0,
+    "response_deadline_ms": 200.0,
+    "scenarios": [
+      "free_space",
+      "single_block",
+      "narrow_gate"
+    ],
+    "selection_seed": 20260810,
+    "software_budget_ms": 20.0,
+    "worker_timeout_s": 30.0
+  },
+  "go_no_go": {
+    "decision": "no_go",
+    "full_assurance_has_executable_plan": false,
+    "full_assurance_unsafe_plans_published": 0,
+    "partial_prefixes_exposed": 0,
+    "thresholds_changed_after_freeze": false
+  },
+  "overall": {
+    "braking_invalid_boundaries": 344,
+    "cases": 270,
+    "complete_candidates": 270,
+    "constraint_satisfied_candidates": 10,
+    "continuous_unsafe_edges": 220,
+    "execute": 91,
+    "hold": 179,
+    "maximum_mode_latency_ms": 45.94129999895813,
+    "mean_published_motion_retention_ratio": 0.3363163976124637,
+    "p50_mode_latency_ms": 24.064450004516402,
+    "p95_audit_latency_ms": 956.3133450017629,
+    "p95_mode_latency_ms": 38.73744999582413,
+    "partial_prefixes_exposed": 0,
+    "qp_intervention_steps": 1800,
+    "response_deadline_exceeded": 4,
+    "software_budget_exceeded": 179,
+    "unrecoverable_stop": 0,
+    "unsafe_plans_published": 91,
+    "verified_brake": 0
+  },
+  "panda_closed_loop_executed": false,
+  "policy_checkpoint_executed_in_replay": false,
+  "protocol_conformant": true,
+  "schema_version": "armbench.pi05_integrated_panda_cpu_replay_summary.v1",
+  "scope": "frozen_pi05_paired_integrated_panda_cpu_replay",
+  "source_policy_checkpoint_attested": true,
+  "source_validation": {
+    "response_action_hashes_verified": 7934,
+    "transition_count": 7934
+  },
+  "task_success_evaluated": false
+}

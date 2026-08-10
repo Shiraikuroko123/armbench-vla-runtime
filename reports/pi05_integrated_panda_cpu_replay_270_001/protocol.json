@@ -1,0 +1,86 @@
+{
+  "schema_version": "armbench.pi05_integrated_panda_cpu_protocol.v1",
+  "created_at_utc": "2026-08-10T13:09:04.9716816Z",
+  "status": "protocol_frozen_before_runner_implementation_and_scored_replay",
+  "scope": "CPU-only paired replay of attested frozen pi0.5 LIBERO responses through Panda runtime-assurance modes",
+  "repository_commit_at_freeze": "d96570c8e9a52ac9e66b1d65825da2c9be630646",
+  "milestone": "R02 CPU preflight",
+  "research_question": "When an identical frozen pi0.5 Cartesian action chunk is adapted to a seven-DoF Panda state, how do direct dispatch, kinematic QP projection, and full collision-plus-braking assurance trade command retention, constraint violations, intervention, and CPU latency under the same response-age contract?",
+  "source_contract": {
+    "policy_family": "pi0.5",
+    "policy_config": "pi05_libero",
+    "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+    "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+    "source_artifact": "evidence/pi05_rtc_overlap_primary_v3_seed_20260807_001/evaluation",
+    "source_validation": "Revalidate the recursive source manifest, checkpoint attestation, transition chain, response shapes, and every response action SHA-256 before selection.",
+    "checkpoint_executed_this_run": false,
+    "response_origin": "previously captured official checkpoint responses"
+  },
+  "fixed_protocol": {
+    "selection_algorithm": "sha256_rank_equal_per_task_method_v1",
+    "selection_seed": 20260810,
+    "selected_response_chunks": 30,
+    "scenarios": [
+      "free_space",
+      "single_block",
+      "narrow_gate"
+    ],
+    "control_period_ms": 50,
+    "response_deadline_ms": 200,
+    "software_budget_ms": 20,
+    "qp_step_budget_ms": 5,
+    "initial_joint_velocity_rad_s": 0,
+    "state_mismatch_rad": 0,
+    "collision_checker": "registered continuous MuJoCo Panda static and self-collision checker",
+    "braking_checker": "MuJoCo inverse-dynamics bounded stop with inter-sample edge checks",
+    "case_reset": "Every response, scenario, and mode starts from the registered scenario start configuration with zero joint velocity.",
+    "matrix_rows": 270
+  },
+  "modes": [
+    {
+      "id": "direct_dispatch",
+      "definition": "Dispatch the Hx8 output of the registered LIBERO-to-Panda differential-IK adapter without runtime QP, collision rejection, or braking repair. Constraint certificates are computed after the candidate is formed and do not gate this baseline except for response deadline and software budget."
+    },
+    {
+      "id": "qp_projection",
+      "definition": "Project the complete adapted action chunk with OSQP joint-position, joint-velocity, and joint-acceleration constraints. Continuous collision and braking certificates are measured after projection but do not gate this baseline. QP infeasibility, response deadline, or software-budget expiry produces hold."
+    },
+    {
+      "id": "full_assurance",
+      "definition": "Run complete QP projection, continuous static/self-collision certification, and an inverse-dynamics braking invariant on a separate assurance worker. Atomically publish the complete plan only after activation-time response-age and state checks; otherwise publish no policy prefix and return hold or a verified brake."
+    }
+  ],
+  "paired_unit": "one source response SHA-256 plus one Panda scenario; all three modes receive identical adapted input bytes and initial state",
+  "primary_outcomes": [
+    "atomic dispatch status and reason",
+    "published action count and partial-prefix exposure",
+    "any registered kinematic, continuous-collision, or braking violation",
+    "intervention steps and intervention rate",
+    "candidate and published hand-displacement command-retention proxy",
+    "mode latency P50, P95, and maximum",
+    "20 ms software-budget exceedance",
+    "200 ms response-deadline exceedance"
+  ],
+  "artifact_contract": [
+    "one exact-schema CSV row per selected response, scenario, and mode",
+    "fixed-shape NPZ candidate and published trajectories bound to row identities",
+    "source, protocol, implementation, scene, and response hashes",
+    "recursive manifest with exact file inventory",
+    "independent validator that recomputes aggregates and geometric/kinematic trajectory predicates",
+    "tamper tests for the CSV, trajectory archive, protocol identity, source binding, and implementation binding"
+  ],
+  "go_no_go_rule": {
+    "go": "At least one full-assurance plan is atomically executable, no full-assurance executed plan violates a registered predicate, no partial prefix is exposed, and the 20 ms budget result is reported without suppression.",
+    "no_go": "No full-assurance plan is executable, any executed full-assurance plan violates a registered predicate, any partial prefix is exposed, or the artifact cannot be independently validated.",
+    "interpretation": "A no-go result is retained as evidence that the current Python CPU implementation or cross-controller input is not ready for an online task-level experiment; thresholds are not changed after inspection."
+  },
+  "claim_boundaries": [
+    "This is a frozen-response CPU replay; the pi0.5 checkpoint is not executed during this run.",
+    "The LIBERO response is a cross-controller input to Panda, not a native Panda policy output.",
+    "Hand displacement is a command-retention proxy, not task progress or task success.",
+    "The matrix resets each case and does not feed Panda observations back to the policy.",
+    "Measured Python latency is not a worst-case or hard-real-time guarantee.",
+    "MuJoCo predicates and braking certificates are not physical-robot safety certification.",
+    "The result covers one checkpoint family and cannot establish cross-model generality."
+  ]
+}
