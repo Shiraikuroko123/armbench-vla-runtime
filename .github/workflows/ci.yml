@@ -124,6 +124,7 @@ jobs:
           tests/test_mujoco_sim.py
           tests/test_cartesian_adapter.py
           tests/test_pi05_archive_replay.py
+          tests/test_pi05_integrated_replay.py
           tests/test_trajectory_repair.py
           tests/test_async_runtime.py
           tests/test_integrated_panda_async.py

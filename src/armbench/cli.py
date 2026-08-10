@@ -58,6 +58,12 @@ from armbench.vla.pi05_braking_repair import (
     execute_pi05_braking_comparison,
     validate_pi05_braking_comparison,
 )
+from armbench.vla.pi05_integrated_replay import (
+    MODES as PI05_INTEGRATED_REPLAY_MODES,
+    Pi05IntegratedReplayConfig,
+    execute_pi05_integrated_cpu_replay,
+    validate_pi05_integrated_cpu_replay,
+)
 from armbench.vla.provider_contract import (
     run_provider_contract_audit,
     validate_frozen_provider_bundle,
@@ -426,6 +432,47 @@ def build_parser() -> argparse.ArgumentParser:
     )
     braking_repair_validate.add_argument("directory", type=Path)
     braking_repair_validate.add_argument("--source-directory", type=Path)
+
+    integrated_replay = subparsers.add_parser(
+        "vla-panda-integrated-replay",
+        help="compare direct, QP, and full Panda assurance on frozen pi0.5 chunks",
+    )
+    integrated_replay.add_argument("source_directory", type=Path)
+    integrated_replay.add_argument("--output-directory", type=Path, required=True)
+    integrated_replay.add_argument("--chunks", type=int, default=30)
+    integrated_replay.add_argument(
+        "--selection-seed", type=int, default=20260810
+    )
+    integrated_replay.add_argument(
+        "--scenarios",
+        nargs="+",
+        choices=("free_space", "single_block", "narrow_gate"),
+        default=("free_space", "single_block", "narrow_gate"),
+    )
+    integrated_replay.add_argument(
+        "--modes",
+        nargs="+",
+        choices=PI05_INTEGRATED_REPLAY_MODES,
+        default=PI05_INTEGRATED_REPLAY_MODES,
+    )
+    integrated_replay.add_argument(
+        "--response-deadline-ms", type=float, default=200.0
+    )
+    integrated_replay.add_argument(
+        "--software-budget-ms", type=float, default=20.0
+    )
+    integrated_replay.add_argument(
+        "--qp-step-budget-ms", type=float, default=5.0
+    )
+    integrated_replay.add_argument(
+        "--worker-timeout-s", type=float, default=30.0
+    )
+    integrated_replay_validate = subparsers.add_parser(
+        "vla-panda-integrated-replay-validate",
+        help="recompute a frozen-response integrated Panda CPU replay artifact",
+    )
+    integrated_replay_validate.add_argument("directory", type=Path)
+    integrated_replay_validate.add_argument("--source-directory", type=Path)
 
     validate = subparsers.add_parser("validate", help="validate config and scenario geometry")
     validate.add_argument(
@@ -1208,6 +1255,33 @@ def main(arguments: list[str] | None = None) -> int:
         return 0
     if args.command == "vla-panda-braking-repair-validate":
         result = validate_pi05_braking_comparison(
+            args.directory, source_directory=args.source_directory
+        )
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0
+    if args.command == "vla-panda-integrated-replay":
+        output = execute_pi05_integrated_cpu_replay(
+            args.source_directory,
+            args.output_directory,
+            Pi05IntegratedReplayConfig(
+                chunk_count=args.chunks,
+                selection_seed=args.selection_seed,
+                scenarios=tuple(args.scenarios),
+                modes=tuple(args.modes),
+                response_deadline_ms=args.response_deadline_ms,
+                software_budget_ms=args.software_budget_ms,
+                qp_step_budget_ms=args.qp_step_budget_ms,
+                worker_timeout_s=args.worker_timeout_s,
+            ),
+        )
+        result = validate_pi05_integrated_cpu_replay(
+            output, source_directory=args.source_directory
+        )
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-panda-integrated-replay-validate":
+        result = validate_pi05_integrated_cpu_replay(
             args.directory, source_directory=args.source_directory
         )
         print(json.dumps(result, indent=2, ensure_ascii=False))

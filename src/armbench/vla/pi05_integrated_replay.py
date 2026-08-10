@@ -330,6 +330,14 @@ def _protocol_path() -> Path:
     return _project_root() / _PROTOCOL_RELATIVE
 
 
+def _portable_path(path: Path) -> str:
+    resolved = path.resolve()
+    try:
+        return resolved.relative_to(_project_root()).as_posix()
+    except ValueError:
+        return str(resolved)
+
+
 def _implementation_hashes() -> dict[str, str]:
     source_root = Path(__file__).resolve().parents[2]
     return {
@@ -1082,7 +1090,7 @@ def _provenance(
             "checkpoint_executed_this_run": False,
         },
         "source": {
-            "directory": str(archive.root),
+            "directory": _portable_path(archive.root),
             "root_manifest_sha256": archive.root_manifest_sha256,
             "transition_count": archive.transition_count,
             "response_action_hashes_verified": len(archive.response_hashes),
@@ -1434,7 +1442,19 @@ def _validate_provenance(
         "integrated replay source selection is invalid",
     )
     source = provenance.get("source")
-    _require(isinstance(source, Mapping), "integrated replay source provenance is missing")
+    _require(
+        isinstance(source, Mapping)
+        and set(source)
+        == {
+            "directory",
+            "root_manifest_sha256",
+            "transition_count",
+            "response_action_hashes_verified",
+        }
+        and isinstance(source.get("directory"), str)
+        and bool(source.get("directory")),
+        "integrated replay source provenance is missing",
+    )
     if archive is not None:
         _require(
             source.get("root_manifest_sha256") == archive.root_manifest_sha256
