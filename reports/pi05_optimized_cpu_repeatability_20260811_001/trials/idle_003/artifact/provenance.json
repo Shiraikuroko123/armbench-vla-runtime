@@ -1,0 +1,69 @@
+{
+  "claim_boundary": [
+    "This is an engineering audit fixed after optimization profiling, not a preregistered inferential study.",
+    "Frozen official responses are replayed; the pi0.5 checkpoint is not executed.",
+    "LIBERO actions are cross-controller Panda inputs, not native Panda outputs.",
+    "Independent cases do not provide closed-loop policy feedback or task success.",
+    "Measured Python timing is not a hard-real-time guarantee.",
+    "MuJoCo checks are not physical-robot safety certification."
+  ],
+  "environment": {
+    "menagerie_commit": "71f066ad0be9cd271f7ed58c030243ef157af9f4",
+    "mujoco_version": "3.11.0",
+    "numpy_version": "1.26.4",
+    "osqp_version": "1.1.3",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python_version": "3.10.8"
+  },
+  "implementation_sha256": {
+    "docs/research/pi05_optimized_cpu_replay_protocol_20260810.json": "c42a7bd0fbe2ba3c56335b55e571c22af9bc07c7c693c378d06896c0020b5596",
+    "src/armbench/mujoco_sim/broad_phase_continuous_collision.py": "a1ccee40bb136d9efede4923a62d82c2030c92a6f5e46f8f79c9e8d109a9830a",
+    "src/armbench/mujoco_sim/continuous_collision.py": "4bdf6b26572b9754e40a870ec7ce5b72dfbeff341f033cf084f7638b32d224e7",
+    "src/armbench/mujoco_sim/dynamics_braking.py": "fb9894ec618a1cc9dd6f85af7babbf29ef55d45733c56826208330cbc8e63c8a",
+    "src/armbench/mujoco_sim/persistent_dynamics_braking.py": "55431be91275c33da757136ff1147cc0e243998feba6670fdd7196a7f23e7e58",
+    "src/armbench/vla/integrated_panda_async.py": "f1098b2e5bf71006511754092e815a61c5882ef21f4154606394c66d7d3a1610",
+    "src/armbench/vla/optimized_cpu_replay.py": "6c0f96ab278687f370cfe0156dc48080d850b93e43e35bc6a21b61555daf87a5",
+    "src/armbench/vla/optimized_integrated_panda_guard.py": "a88336806806c80339c9b7199e27ac269456bfdd6cb4cb2a390f807ccec55c44",
+    "src/armbench/vla/persistent_qp_projection.py": "b03698aa82c811f4eb6a6d8ea8c3baa05d7298f5f10be9ea5c6180db52f2a75d"
+  },
+  "input": {
+    "directory": "D:\\arm-planning-control-project\\project\\reports\\pi05_integrated_panda_cpu_replay_270_001",
+    "inventory_sha256": "d3ef0f0ef37c8a4609d68437eaf142bccfb2bd4e0ea2c61868c3e080fa134d9d",
+    "manifest_sha256": "24776de458ffb106d3f877a7a3936435400edc70cf9b3f6ecde197d102f00e62",
+    "source_root_manifest_sha256": "41df96b43de6015a381dde152381b6167e1d07ff0b2e4b3070fbca131ae04f54",
+    "summary_sha256": "a2c168102f69700ad08fcf5168a666ad3684b641d531ae3c0677d43d14cd93f0"
+  },
+  "protocol": {
+    "conformant": true,
+    "schema_version": "armbench.pi05_optimized_cpu_replay_protocol.v1",
+    "sha256": "c42a7bd0fbe2ba3c56335b55e571c22af9bc07c7c693c378d06896c0020b5596"
+  },
+  "schema_version": "armbench.pi05_optimized_cpu_replay.v1",
+  "scope": "frozen_pi05_panda_optimized_atomic_cpu_engineering_audit",
+  "worker_setup": {
+    "diagnostic_100ms:free_space": {
+      "excluded_from_request_latency": true,
+      "startup_ms": 0.593299999309238
+    },
+    "diagnostic_100ms:narrow_gate": {
+      "excluded_from_request_latency": true,
+      "startup_ms": 0.9411999999429099
+    },
+    "diagnostic_100ms:single_block": {
+      "excluded_from_request_latency": true,
+      "startup_ms": 0.9769999960553832
+    },
+    "operational_20ms:free_space": {
+      "excluded_from_request_latency": true,
+      "startup_ms": 0.5544000014197081
+    },
+    "operational_20ms:narrow_gate": {
+      "excluded_from_request_latency": true,
+      "startup_ms": 0.7516999976360239
+    },
+    "operational_20ms:single_block": {
+      "excluded_from_request_latency": true,
+      "startup_ms": 0.8457000003545545
+    }
+  }
+}

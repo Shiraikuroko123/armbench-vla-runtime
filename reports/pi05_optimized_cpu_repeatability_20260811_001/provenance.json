@@ -1,0 +1,33 @@
+{
+  "claim_boundary": [
+    "Frozen official responses are replayed; the pi0.5 checkpoint is not executed.",
+    "LIBERO actions are cross-controller Panda inputs, not native Panda policy outputs.",
+    "Independent cases do not provide closed-loop policy feedback or task success.",
+    "Python CPU timing is best effort and is not a hard-real-time guarantee.",
+    "MuJoCo geometry and inverse dynamics are not physical-robot safety certification.",
+    "A repeatability audit cannot establish robot-level safety or generalization."
+  ],
+  "environment": {
+    "cpu_count": 20,
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python_executable": "D:\\arm-planning-control-project\\.venv\\Scripts\\python.exe",
+    "python_version": "3.10.8"
+  },
+  "implementation_sha256": {
+    "docs/research/pi05_optimized_cpu_repeatability_protocol_20260811.json": "ad20d37461e41f27ab3ad579d0d230fff5abaf8856394b2d1a71cf2a903f350a",
+    "src/armbench/vla/optimized_cpu_repeatability.py": "bd52cfae9dc7261212fc39f6a8618833b6a55ce875c593418529e6e4c9ed588b"
+  },
+  "protocol": {
+    "conformant": true,
+    "schema_version": "armbench.pi05_optimized_cpu_repeatability_protocol.v1",
+    "sha256": "ad20d37461e41f27ab3ad579d0d230fff5abaf8856394b2d1a71cf2a903f350a"
+  },
+  "schema_version": "armbench.pi05_optimized_cpu_repeatability_provenance.v1",
+  "scope": "frozen_pi05_optimized_cpu_repeatability_audit",
+  "source": {
+    "directory": "reports\\pi05_integrated_panda_cpu_replay_270_001",
+    "inventory_sha256": "d3ef0f0ef37c8a4609d68437eaf142bccfb2bd4e0ea2c61868c3e080fa134d9d",
+    "manifest_sha256": "24776de458ffb106d3f877a7a3936435400edc70cf9b3f6ecde197d102f00e62",
+    "summary_sha256": "a2c168102f69700ad08fcf5168a666ad3684b641d531ae3c0677d43d14cd93f0"
+  }
+}

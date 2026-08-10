@@ -1,0 +1,21 @@
+{
+  "valid": true,
+  "scope": "frozen_pi05_panda_optimized_atomic_cpu_engineering_audit",
+  "cases": 180,
+  "operational_execute": 0,
+  "diagnostic_execute": 16,
+  "unsafe_plans_published": 0,
+  "partial_prefixes_exposed": 0,
+  "go_no_go": "no_go",
+  "manifest_inventory_sha256": "bb8245f01c6775d133b407e19f8677d3be9912f091d1fbb25d465b346af99fdf",
+  "checks": [
+    "recursive_manifest_and_exact_file_set",
+    "frozen_input_manifest_and_response_bindings",
+    "implementation_and_protocol_hashes",
+    "all_or_none_trajectory_publication",
+    "candidate_kinematics_recomputed",
+    "continuous_collision_and_braking_audit_recomputed",
+    "summary_and_markdown_recomputed"
+  ]
+}
+results: D:\arm-planning-control-project\project\reports\pi05_optimized_cpu_repeatability_20260811_001\trials\idle_003\artifact
