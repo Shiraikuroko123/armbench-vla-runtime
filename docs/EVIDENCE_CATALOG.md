@@ -7,10 +7,10 @@ scripted runtime checks, and rejected runs.
 
 ## Repository inventory
 
-- Artifact directories: 52
-- Files: 3846
-- Stored size: 667.6 MiB
-- Catalog tree SHA-256: `91cf43564a46d9b2d98edd48cb6ffc287cf9e6d21d551b4500891f790301b711`
+- Artifact directories: 54
+- Files: 4063
+- Stored size: 707.9 MiB
+- Catalog tree SHA-256: `49a1f3c4e1adeb2830811c03becf73e6e10615ddee6e5f8b15bf3dbf2b472fa3`
 - Fingerprint basis: Git blob IDs + canonical paths + blob sizes
 - Machine-readable form: [evidence_catalog.json](evidence_catalog.json)
 
@@ -25,7 +25,7 @@ commands below define the stronger scientific validation available per artifact.
 | --- | ---: | --- |
 | Primary or confirmatory | 3 | Frozen or prospectively defined studies used for the repository's bounded result claims. |
 | Primary source artifact | 2 | Raw input to a primary combined analysis; interpret it with the linked companion artifact and protocol. |
-| Exploratory pilot | 27 | Pilot or smoke evidence used to test feasibility or choose a later protocol, not a confirmatory result. |
+| Exploratory pilot | 29 | Pilot or smoke evidence used to test feasibility or choose a later protocol, not a confirmatory result. |
 | Mechanism or integration gate | 6 | Component-level evidence that an implementation contract holds; it is not task-success evidence. |
 | Diagnostic | 1 | A bounded debugging artifact retained for traceability rather than a headline efficacy claim. |
 | Rejected from effect analysis | 2 | Byte-preserved evidence excluded after a documented protocol or pairing failure. |
@@ -354,6 +354,30 @@ Pilot or smoke evidence used to test feasibility or choose a later protocol, not
 - Validator: `python -m integrations.openpi.validate_libero_independent_clock evidence/pi05_selection_spatial_s7_response_relative_40_20260810_001/evaluation --json`. Recomputes the registered seed-7 response-relative chunk cell, including provenance, clean worker shutdown, request/action/tick traces, query-0 pairing inputs, overlap, episode rows, and aggregate values without rerunning inference.
 - Claim boundary: One seed block in an exploratory held-out LIBERO Spatial action-selection comparison. It is not a standalone superiority result, official leaderboard score, hard-real-time guarantee, hardware-safety result, cross-model comparison, or iid deployment estimate.
 - Inventory: 104 files, 21.4 MiB, tree SHA-256 `5f8a217f070f3404bc17197e163863168958044be1c2d14c2bf6d657f5031eb6`
+
+### pi0.5 held-out action selection seed-8: age-aligned suffix
+
+- Artifact: `pi05_selection_spatial_s8_age_aligned_40_20260810_001`
+- Policy provenance: `official_openpi_pi05_libero`
+- Result: [README.md](../evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/README.md)
+- Protocol: [resolved_protocol.json](../evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/evaluation/resolved_protocol.json)
+- Manifest: [manifest.json](../evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/evaluation/manifest.json)
+- Raw review files: [aggregate.json](../evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/evaluation/aggregate.json), [per_episode.csv](../evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/evaluation/per_episode.csv), [per_episode.json](../evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/evaluation/per_episode.json), [runtime.json](../evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/evaluation/episodes/libero_spatial__task_000__episode_04/runtime.json), [libero_spatial__task_007__episode_05.mp4](../evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/evaluation/videos/libero_spatial__task_007__episode_05.mp4)
+- Validator: `python -m integrations.openpi.validate_libero_independent_clock evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/evaluation --json`. Recomputes the registered seed-8 age-aligned suffix cell, including provenance, clean worker shutdown, request/action/tick traces, query-0 pairing inputs, overlap, episode rows, and aggregate values without rerunning inference.
+- Claim boundary: One seed block in an exploratory held-out LIBERO Spatial action-selection comparison. It is not a standalone superiority result, official leaderboard score, hard-real-time guarantee, hardware-safety result, cross-model comparison, or iid deployment estimate.
+- Inventory: 105 files, 16.6 MiB, tree SHA-256 `0c7abea214575f84314a5189efd4adfee7e6c09ddac467250c0abd47deeb78d2`
+
+### pi0.5 held-out action selection seed-8: response-relative chunk
+
+- Artifact: `pi05_selection_spatial_s8_response_relative_40_20260810_001`
+- Policy provenance: `official_openpi_pi05_libero`
+- Result: [README.md](../evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/README.md)
+- Protocol: [resolved_protocol.json](../evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/evaluation/resolved_protocol.json)
+- Manifest: [manifest.json](../evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/evaluation/manifest.json)
+- Raw review files: [aggregate.json](../evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/evaluation/aggregate.json), [per_episode.csv](../evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/evaluation/per_episode.csv), [per_episode.json](../evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/evaluation/per_episode.json), [runtime.json](../evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/evaluation/episodes/libero_spatial__task_000__episode_04/runtime.json), [libero_spatial__task_000__episode_04.mp4](../evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/evaluation/videos/libero_spatial__task_000__episode_04.mp4)
+- Validator: `python -m integrations.openpi.validate_libero_independent_clock evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/evaluation --json`. Recomputes the registered seed-8 response-relative chunk cell, including provenance, clean worker shutdown, request/action/tick traces, query-0 pairing inputs, overlap, episode rows, and aggregate values without rerunning inference.
+- Claim boundary: One seed block in an exploratory held-out LIBERO Spatial action-selection comparison. It is not a standalone superiority result, official leaderboard score, hard-real-time guarantee, hardware-safety result, cross-model comparison, or iid deployment estimate.
+- Inventory: 112 files, 23.6 MiB, tree SHA-256 `0ec1eefc7180014d8e3a989c24717bab3245038a1a8e5a990532b4721c1de05e`
 
 ### pi0.5-LIBERO Spatial 150 ms seed-9 boundary cell
 

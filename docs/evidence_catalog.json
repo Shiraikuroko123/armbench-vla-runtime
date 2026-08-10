@@ -1,17 +1,17 @@
 {
   "schema_version": "armbench.evidence_catalog.v1",
   "source": "configs/evidence_catalog.json",
-  "artifact_count": 52,
+  "artifact_count": 54,
   "inventory": {
     "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
-    "file_count": 3846,
-    "total_bytes": 700041568,
-    "tree_sha256": "91cf43564a46d9b2d98edd48cb6ffc287cf9e6d21d551b4500891f790301b711"
+    "file_count": 4063,
+    "total_bytes": 742240706,
+    "tree_sha256": "49a1f3c4e1adeb2830811c03becf73e6e10615ddee6e5f8b15bf3dbf2b472fa3"
   },
   "class_counts": {
     "primary": 3,
     "primary_source": 2,
-    "exploratory": 27,
+    "exploratory": 29,
     "mechanism_gate": 6,
     "diagnostic": 1,
     "rejected": 2,
@@ -1153,6 +1153,74 @@
         "file_count": 104,
         "total_bytes": 22471800,
         "tree_sha256": "5f8a217f070f3404bc17197e163863168958044be1c2d14c2bf6d657f5031eb6"
+      }
+    },
+    {
+      "id": "pi05_selection_spatial_s8_age_aligned_40_20260810_001",
+      "title": "pi0.5 held-out action selection seed-8: age-aligned suffix",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/evaluation/episodes/libero_spatial__task_000__episode_04/runtime.json",
+        "evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/evaluation/videos/libero_spatial__task_007__episode_05.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_selection_spatial_s8_age_aligned_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the registered seed-8 age-aligned suffix cell, including provenance, clean worker shutdown, request/action/tick traces, query-0 pairing inputs, overlap, episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "One seed block in an exploratory held-out LIBERO Spatial action-selection comparison. It is not a standalone superiority result, official leaderboard score, hard-real-time guarantee, hardware-safety result, cross-model comparison, or iid deployment estimate.",
+      "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
+        "file_count": 105,
+        "total_bytes": 17457582,
+        "tree_sha256": "0c7abea214575f84314a5189efd4adfee7e6c09ddac467250c0abd47deeb78d2"
+      }
+    },
+    {
+      "id": "pi05_selection_spatial_s8_response_relative_40_20260810_001",
+      "title": "pi0.5 held-out action selection seed-8: response-relative chunk",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/evaluation/episodes/libero_spatial__task_000__episode_04/runtime.json",
+        "evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/evaluation/videos/libero_spatial__task_000__episode_04.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_selection_spatial_s8_response_relative_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the registered seed-8 response-relative chunk cell, including provenance, clean worker shutdown, request/action/tick traces, query-0 pairing inputs, overlap, episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "One seed block in an exploratory held-out LIBERO Spatial action-selection comparison. It is not a standalone superiority result, official leaderboard score, hard-real-time guarantee, hardware-safety result, cross-model comparison, or iid deployment estimate.",
+      "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
+        "file_count": 112,
+        "total_bytes": 24741556,
+        "tree_sha256": "0ec1eefc7180014d8e3a989c24717bab3245038a1a8e5a990532b4721c1de05e"
       }
     },
     {

@@ -268,6 +268,8 @@ def _specs() -> list[dict[str, Any]]:
         "pi05_selection_smoke_response_relative_seed7_1_20260810_001",
         "pi05_selection_spatial_s7_age_aligned_40_20260810_001",
         "pi05_selection_spatial_s7_response_relative_40_20260810_001",
+        "pi05_selection_spatial_s8_age_aligned_40_20260810_001",
+        "pi05_selection_spatial_s8_response_relative_40_20260810_001",
     )
     specs.extend(
         {
