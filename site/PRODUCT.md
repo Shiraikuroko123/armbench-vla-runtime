@@ -42,7 +42,8 @@ in its own rollout tab and is never pooled into a π0.5 task-success claim.
 | Registered deadline matrix | 18 independently validated cells / 720 rollouts; Spatial and Object suites; all provider-failure counts zero | service-, clock-, checkpoint-, simulator-, and protocol-specific |
 | Independent-clock pilot | 40/40 complete, 38/40 successful; 4,521/4,623 control ticks overlap inference | simulation pilot, not a leaderboard result |
 | Panda scripted execution | 2/2 target reaches; 351/351 motion and braking boundaries; zero registered contacts, limit violations, or torque saturation | scripted RRT-Connect references, not π0.5 VLA competence |
-| Reproducibility surface | 764 pytest passes, 48 CPU-acceptance passes, 56 registered artifacts / 4,270 catalogued files | validates saved evidence and software contracts; it does not rerun the checkpoint on CPU |
+| Optimized Panda CPU assurance | 180 frozen-response cases; 20 ms profile 1/90 execute, 66/90 constraint-safe, zero unsafe publications, zero partial prefixes, 23.888 ms P95 | minimum-rule `go`, not stable deadline compliance, task success, or physical safety |
+| Reproducibility surface | 806 pytest passes, 48 CPU-acceptance passes, 56 registered artifacts / 4,270 catalogued files | validates saved evidence and software contracts; it does not rerun the checkpoint on CPU |
 
 ## Information architecture
 
@@ -53,8 +54,8 @@ in its own rollout tab and is never pooled into a π0.5 task-success claim.
    and deadline behavior on one timing diagram.
 4. **Method:** perception/policy/runtime flow followed by visibly separate
    LIBERO and Panda evidence branches.
-5. **Evaluation:** held-out paired result, exact statistics, seed table, and
-   registered deadline curve.
+5. **Evaluation:** held-out paired result, exact statistics, seed table,
+   registered deadline curve, and the optimized Panda CPU audit.
 6. **Rollouts:** validator-retained failures, the independent-clock pilot,
    and the Panda execution substrate in task tabs.
 7. **Reproduce:** GPU-free validation commands and the current verification

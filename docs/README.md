@@ -41,6 +41,7 @@ to match later results.
 | [Panda 集成动作保障链](INTEGRATED_PANDA_ASSURANCE_ZH.md) | Current | 原子动作监管、注册故障矩阵、闭环任务证据、本地验收与在线耗时边界 |
 | [Panda 异步动作保障 CPU 收口](CPU_RUNTIME_COMPLETION_ZH.md) | Operational | provider、双 worker、完整监督与 reset-safe 原子发布的 17 案例验收 |
 | [冻结 pi0.5 响应的完整 Panda CPU 回放](PI05_INTEGRATED_PANDA_CPU_REPLAY_ZH.md) | Current | 真实保存响应、三模式成对矩阵、20 ms go/no-go、候选/发布轨迹和独立 validator |
+| [优化后的 pi0.5 到 Panda CPU 保障回放](PI05_OPTIMIZED_CPU_REPLAY_ZH.md) | Current | persistent OSQP、broad phase、workspace/证书复用、180 案例审计与边界性 `go` |
 | [Official LeRobotDataset round-trip](OFFICIAL_LEROBOT_ROUNDTRIP.md) | Current | Pinned LeRobot v3.0 dataset export, isolated loader reload, and exact Panda feature semantics |
 | [官方 LeRobotDataset round-trip](OFFICIAL_LEROBOT_ROUNDTRIP_ZH.md) | Current | 官方 loader 版本锁定、Panda Hx8 动作语义与逐字段 round-trip |
 | [MuJoCo swept 碰撞审计](MUJOCO_SWEPT_AUDIT_ZH.md) | Current | 基于 clearance 的静态障碍细分、dense 对照和主张边界 |
@@ -76,6 +77,8 @@ to match later results.
 | [延迟有界的终端制动不变量修复](PI05_PANDA_BRAKING_REPAIR_ZH.md) | Current | 冻结 `pi0.5` 响应上的轨迹级动作修复、可视化验收与主张边界 |
 | [Frozen responses through integrated Panda assurance](PI05_INTEGRATED_PANDA_CPU_REPLAY.md) | Current | Direct/QP/full-assurance CPU matrix with a frozen 20 ms go/no-go rule |
 | [冻结响应的 Panda 完整保障 CPU 回放](PI05_INTEGRATED_PANDA_CPU_REPLAY_ZH.md) | Current | 同一真实响应上的直接发布、QP 与完整连续碰撞/制动保障对照 |
+| [Optimized pi0.5-to-Panda CPU assurance replay](PI05_OPTIMIZED_CPU_REPLAY.md) | Current | Persistent workspaces, conservative collision pruning, atomic publication, and the 180-case timing audit |
+| [优化后的 pi0.5 到 Panda CPU 保障回放](PI05_OPTIMIZED_CPU_REPLAY_ZH.md) | Current | 20/100 ms 双 profile、独立 validator、最低 `go` 条件与稳定实时边界 |
 | [RTC-guided pi0.5 integration](RTC_PI05_INTEGRATION.md) | Current | Scheduler contract, reverse-time VJP mapping, and corrected-v3 outcome |
 | [Projected-overlap pilot](PI05_PROJECTED_OVERLAP_PILOT.md) | Current | Exploratory hard-conditioning study and its result boundary |
 | [Top-venue engineering gap analysis](research/VLA_TOP_VENUE_GAP_ANALYSIS_2026.md) | Current | Method positioning, evidence classes, and remaining research gaps |

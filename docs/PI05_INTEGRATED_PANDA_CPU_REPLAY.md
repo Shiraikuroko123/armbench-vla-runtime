@@ -1,7 +1,9 @@
 # Frozen pi0.5 Responses Through Integrated Panda Assurance
 
-Status: current R02 CPU preflight. The scored artifact is
+Status: retained R02 CPU baseline. The scored artifact is
 [`reports/pi05_integrated_panda_cpu_replay_270_001`](../reports/pi05_integrated_panda_cpu_replay_270_001/summary.md).
+The separately versioned
+[`optimized CPU audit`](PI05_OPTIMIZED_CPU_REPLAY.md) is its successor.
 
 ## Question
 
@@ -95,14 +97,18 @@ publication, trajectory integration, continuous collision, inverse-dynamics
 braking, aggregates, and Markdown. Tests also re-sign modified CSV/NPZ files and
 confirm that semantic tampering is rejected.
 
-## Next CPU iteration
+## Optimized successor
 
-The next implementation should retain the frozen result and create a new
-artifact. The local priorities are persistent/prebuilt OSQP solves, reusable
-MuJoCo braking workspaces and actuator limits, conservative broad-phase
-collision rejection, certificate reuse, and a whole-chunk repair that improves
-feasibility before the expensive exact checks. GPU inference is not needed for
-that work.
+The CPU optimization stage has been completed without deleting this baseline.
+Persistent OSQP, reusable MuJoCo braking workspaces, conservative broad-phase
+collision pruning, safe-only certificate reuse, and an optimized atomic
+supervisor are evaluated in
+[`pi05_optimized_cpu_replay_180_001`](../reports/pi05_optimized_cpu_replay_180_001/summary.md).
+The 20 ms profile moves from 0/90 to 1/90 complete executions and from 5/90 to
+66/90 constraint-safe candidates, with zero unsafe publication and zero
+partial-prefix exposure. Its P95 remains 23.888 ms, so the registered `go` is a
+minimum-rule pass rather than stable real-time performance. See the
+[`optimized audit document`](PI05_OPTIMIZED_CPU_REPLAY.md).
 
 ## Claim boundary
 

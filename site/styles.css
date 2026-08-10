@@ -1064,6 +1064,28 @@ tbody th { color: var(--text); }
   font-size: 10px;
 }
 
+.runtime-audit {
+  margin-top: 76px;
+  padding-top: 56px;
+  grid-template-columns: minmax(300px, 1.1fr) minmax(320px, 0.9fr);
+  border-top: 1px solid var(--line);
+}
+
+.runtime-audit-copy h3 {
+  margin: 0;
+  max-width: 720px;
+  font-size: 27px;
+  line-height: 1.28;
+}
+
+.runtime-audit-copy > p:not(.section-label) {
+  max-width: 720px;
+  color: var(--text-soft);
+  font-size: 14px;
+}
+
+.runtime-audit-copy .text-link { margin-top: 8px; }
+
 .grid-lines line {
   stroke: #303731;
   stroke-width: 1;

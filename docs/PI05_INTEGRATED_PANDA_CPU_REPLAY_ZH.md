@@ -1,7 +1,8 @@
 # 冻结 pi0.5 响应的 Panda 完整保障 CPU 回放
 
-状态：R02 本地 CPU 预检已完成。正式 artifact 位于
+状态：作为 R02 本地 CPU 基线保留。正式 artifact 位于
 [`reports/pi05_integrated_panda_cpu_replay_270_001`](../reports/pi05_integrated_panda_cpu_replay_270_001/summary.md)。
+后续版本见独立的[`优化 CPU 审计`](PI05_OPTIMIZED_CPU_REPLAY_ZH.md)。
 
 ## 这一步回答什么
 
@@ -91,12 +92,16 @@ validator 会重新计算源响应绑定、270 行成对矩阵、轨迹积分、
 逆动力学制动、汇总和 Markdown。测试还会修改 CSV/NPZ 并重新生成 manifest，确认重新
 签名后的语义篡改仍然被拒绝。
 
-## 下一轮 CPU 优化
+## 优化后的后续版本
 
-下一轮不需要 GPU。优先级固定为：复用并预构建 OSQP、复用 MuJoCo `MjData` 和执行器
-力矩上限、增加保守 broad phase 与证书缓存，以及在昂贵精确检查前加入能提高候选
-可行性的 whole-chunk repair。优化完成后另建协议和 artifact；当前 no-go 结果不删除，
-也不通过事后放宽 20 ms 阈值改写。
+本地 CPU 优化已经完成，且没有删除当前基线。新版本加入 persistent OSQP、MuJoCo
+制动 workspace 复用、保守 broad phase、安全证书复用和优化后的原子 supervisor，
+结果保存在
+[`pi05_optimized_cpu_replay_180_001`](../reports/pi05_optimized_cpu_replay_180_001/summary.md)。
+20 ms profile 从 0/90 提升为 1/90 条完整计划执行，满足全部约束的候选从 5/90
+提升为 66/90，发布不安全计划和动作前缀泄漏仍均为 0。P95 仍为 23.888 ms，
+因此新的 `go` 只是达到最低判定规则，不表示稳定实时达标。完整解释见
+[`优化后的 CPU 保障回放`](PI05_OPTIMIZED_CPU_REPLAY_ZH.md)。
 
 ## 主张边界
 

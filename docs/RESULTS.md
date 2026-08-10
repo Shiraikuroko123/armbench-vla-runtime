@@ -665,6 +665,60 @@ The checkpoint was not executed, Panda observations were not returned to the
 policy, and hand displacement is only command retention. This result does not
 measure task success, hard real time, hardware safety, or cross-model validity.
 
+## Optimized pi0.5-to-Panda CPU assurance audit
+
+### Provenance and protocol
+
+- Run ID: `pi05_optimized_cpu_replay_180_001`
+- Input: the manifest-bound `pi05_integrated_panda_cpu_replay_270_001`
+  baseline, preserving the same 30 attested responses and three Panda scenes
+- Protocol: `research/pi05_optimized_cpu_replay_protocol_20260810.json`, fixed
+  after implementation profiling as an engineering audit rather than a
+  preregistered inferential study
+- Matrix: 90 cases under the primary `operational_20ms` profile and the same
+  90 cases under a separate `diagnostic_100ms` profile
+- Implementation: persistent OSQP, conservative vectorized broad phase,
+  reusable inverse-dynamics/braking workspaces, safe-only configuration reuse,
+  and complete-plan atomic publication
+- Isolation: each formal case clears its safe cache; worker startup is
+  measured but excluded from request latency
+- Stored evidence: row-level CSV, candidate/published NPZ trajectories,
+  protocol, source and implementation hashes, summary, and recursive manifest
+- Manifest inventory SHA-256:
+  `26646113dd9032b6bc385b595e3d1f4737590487e7ec5a18128c5a35b0f0faa3`
+
+### Outcomes
+
+| Profile | Execute / cases | Constraint-safe candidates | Unsafe published | Budget misses | Deadline misses | P50 / P95 supervisor | Broad-phase prune rate |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `operational_20ms` | 1/90 | 66/90 | 0 | 69 | 3 | 21.493 / 23.888 ms | 95.55% |
+| `diagnostic_100ms` | 58/90 | 66/90 | 0 | 3 | 8 | 49.560 / 86.559 ms | 94.99% |
+
+Both profiles expose zero partial prefixes. The frozen operational decision is
+`go`: one complete 20 ms-profile plan executes, no published plan fails the
+independent registered-constraint audit, the artifact validates, and no
+partial prefix is exposed. The diagnostic profile cannot alter that decision.
+
+The decision is deliberately narrow. It is a minimum-rule pass, not stable
+20 ms performance: 89/90 operational cases hold, 69 exceed the software
+budget, and the P50/P95 supervisor latencies are both above 20 ms. Relative to
+the retained baseline full-assurance path, complete executions move from 0/90
+to 1/90, constraint-safe candidates from 5/90 to 66/90, and P95 from 42.974 to
+23.888 ms. This is a versioned engineering progression on frozen inputs, not
+an inferential claim that one research method is superior.
+
+The independent validator recomputes the protocol/input/implementation
+binding, row identities, trajectory integration, registered
+kinematic/collision/braking predicates, all-or-none publication, aggregates,
+and Markdown. See the
+[artifact](../reports/pi05_optimized_cpu_replay_180_001/summary.md) and
+[method/acceptance document](PI05_OPTIMIZED_CPU_REPLAY.md).
+
+The checkpoint was not rerun, the cross-controller Panda cases do not form a
+policy feedback loop, and the audit does not measure task success. Python
+wall-clock measurements are not an operating-system hard-real-time guarantee,
+and MuJoCo checks are not physical-robot safety certification.
+
 ## Asynchronous Panda closed-loop runtime
 
 ### Provenance and protocol

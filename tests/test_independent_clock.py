@@ -184,14 +184,17 @@ def test_independent_clock_parent_keeps_stepping_and_records_suffix() -> None:
 
 
 def test_response_relative_baseline_starts_at_chunk_head() -> None:
+    # Keep transport scheduling outside this semantic comparison: a spawned
+    # Windows manager can take seconds to service its first proxy call under
+    # load, while this test only distinguishes the selected chunk index.
     aligned_environment = _FakeEnvironment(max_steps=30)
     aligned = run_independent_clock(
         aligned_environment,
         _DelayedFactory(0.02),
         config=IndependentClockConfig(
             control_period_s=0.01,
-            action_period_s=0.50,
-            deadline_s=2.0,
+            action_period_s=10.0,
+            deadline_s=30.0,
             max_ticks=100,
             action_dim=1,
             submit_every_ticks=100,
@@ -205,8 +208,8 @@ def test_response_relative_baseline_starts_at_chunk_head() -> None:
         _DelayedFactory(0.02),
         config=IndependentClockConfig(
             control_period_s=0.01,
-            action_period_s=0.50,
-            deadline_s=2.0,
+            action_period_s=10.0,
+            deadline_s=30.0,
             max_ticks=100,
             action_dim=1,
             submit_every_ticks=100,
