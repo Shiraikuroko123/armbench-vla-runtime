@@ -1,0 +1,2023 @@
+{
+  "adjacent_deadline_comparisons": [
+    {
+      "deadline_hold_tick_difference": -7443,
+      "execute_duty_cycle_difference": 0.6152925144945243,
+      "from_deadline_ms": 150.0,
+      "seed": 7,
+      "task_success_rate_difference": 0.925,
+      "task_suite": "libero_object",
+      "to_deadline_ms": 175.0
+    },
+    {
+      "deadline_hold_tick_difference": -11,
+      "execute_duty_cycle_difference": -0.0013469355843717112,
+      "from_deadline_ms": 175.0,
+      "seed": 7,
+      "task_success_rate_difference": 0.04999999999999993,
+      "task_suite": "libero_object",
+      "to_deadline_ms": 200.0
+    },
+    {
+      "deadline_hold_tick_difference": -7408,
+      "execute_duty_cycle_difference": 0.601658187900945,
+      "from_deadline_ms": 150.0,
+      "seed": 8,
+      "task_success_rate_difference": 0.975,
+      "task_suite": "libero_object",
+      "to_deadline_ms": 175.0
+    },
+    {
+      "deadline_hold_tick_difference": -121,
+      "execute_duty_cycle_difference": 0.016031751470028777,
+      "from_deadline_ms": 175.0,
+      "seed": 8,
+      "task_success_rate_difference": 0.0,
+      "task_suite": "libero_object",
+      "to_deadline_ms": 200.0
+    },
+    {
+      "deadline_hold_tick_difference": -5882,
+      "execute_duty_cycle_difference": 0.6059094841145014,
+      "from_deadline_ms": 150.0,
+      "seed": 7,
+      "task_success_rate_difference": 0.95,
+      "task_suite": "libero_spatial",
+      "to_deadline_ms": 155.0
+    },
+    {
+      "deadline_hold_tick_difference": 6,
+      "execute_duty_cycle_difference": -0.0028732352371438896,
+      "from_deadline_ms": 155.0,
+      "seed": 7,
+      "task_success_rate_difference": 0.0,
+      "task_suite": "libero_spatial",
+      "to_deadline_ms": 175.0
+    },
+    {
+      "deadline_hold_tick_difference": -23,
+      "execute_duty_cycle_difference": 0.006522012188852844,
+      "from_deadline_ms": 175.0,
+      "seed": 7,
+      "task_success_rate_difference": 0.0,
+      "task_suite": "libero_spatial",
+      "to_deadline_ms": 200.0
+    },
+    {
+      "deadline_hold_tick_difference": -5846,
+      "execute_duty_cycle_difference": 0.6070242581252944,
+      "from_deadline_ms": 150.0,
+      "seed": 8,
+      "task_success_rate_difference": 0.9,
+      "task_suite": "libero_spatial",
+      "to_deadline_ms": 155.0
+    },
+    {
+      "deadline_hold_tick_difference": 9,
+      "execute_duty_cycle_difference": -0.005824582453817784,
+      "from_deadline_ms": 155.0,
+      "seed": 8,
+      "task_success_rate_difference": 0.025000000000000022,
+      "task_suite": "libero_spatial",
+      "to_deadline_ms": 175.0
+    },
+    {
+      "deadline_hold_tick_difference": -32,
+      "execute_duty_cycle_difference": 0.0003935811727346916,
+      "from_deadline_ms": 175.0,
+      "seed": 8,
+      "task_success_rate_difference": 0.04999999999999993,
+      "task_suite": "libero_spatial",
+      "to_deadline_ms": 200.0
+    },
+    {
+      "deadline_hold_tick_difference": -5815,
+      "execute_duty_cycle_difference": 0.5910205207413946,
+      "from_deadline_ms": 150.0,
+      "seed": 9,
+      "task_success_rate_difference": 1.0,
+      "task_suite": "libero_spatial",
+      "to_deadline_ms": 155.0
+    },
+    {
+      "deadline_hold_tick_difference": -46,
+      "execute_duty_cycle_difference": 0.01152253649619206,
+      "from_deadline_ms": 155.0,
+      "seed": 9,
+      "task_success_rate_difference": -0.025000000000000022,
+      "task_suite": "libero_spatial",
+      "to_deadline_ms": 175.0
+    },
+    {
+      "deadline_hold_tick_difference": 17,
+      "execute_duty_cycle_difference": 0.0010195289957416476,
+      "from_deadline_ms": 175.0,
+      "seed": 9,
+      "task_success_rate_difference": -0.025000000000000022,
+      "task_suite": "libero_spatial",
+      "to_deadline_ms": 200.0
+    }
+  ],
+  "analysis_boundary": "Registered benchmark episodes are reported by suite, seed, and task cluster. They are not pooled as iid deployment draws or a universal VLA deadline estimate.",
+  "artifact_count": 18,
+  "cells": [
+    {
+      "action_horizon": 10,
+      "action_selection_mode": "age_aligned_suffix",
+      "armbench_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+      "artifact_id": "pi05_object_deadline150_seed7_40_20260810_001",
+      "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "control_period_ms": 50.0,
+      "control_ticks": 11200,
+      "deadline_hold_ticks": 8067,
+      "deadline_ms": 150.0,
+      "episodes_with_inference_overlap": 40,
+      "execute_duty_cycle": 0.26901785714285714,
+      "execute_ticks": 3013,
+      "hold_ticks": 8187,
+      "mailbox": "latest_only_single_pending_observation",
+      "no_response_hold_ticks": 120,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "provider_failures": 0,
+      "response_level_deadline_rejections": 9,
+      "rollouts": 40,
+      "runtime_source_sha256": {
+        "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+        "integrations/openpi/libero_independent_clock.py": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1",
+        "integrations/openpi/libero_independent_clock_eval.py": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1",
+        "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+        "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+        "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+        "integrations/openpi/validate_libero_independent_clock.py": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599",
+        "src/armbench/vla/independent_clock.py": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+      },
+      "seed": 7,
+      "source_manifest_sha256": "19a9060e779ae6042096e53002d96df7a0eacf2f7a38f7fd8ad89e3427cf22c5",
+      "submit_every_ticks": 1,
+      "task_clusters": [
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 0
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 1
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 2
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 3
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 4
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 5
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 6
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 7
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 8
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 9
+        }
+      ],
+      "task_success_rate": 0.0,
+      "task_successes": 0,
+      "task_suite": "libero_object",
+      "tasks_all_success": 0,
+      "tasks_any_success": 0,
+      "ticks_during_inference": 11071,
+      "wilson95_high": 0.08762160119728664,
+      "wilson95_low": 0.0
+    },
+    {
+      "action_horizon": 10,
+      "action_selection_mode": "age_aligned_suffix",
+      "armbench_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+      "artifact_id": "pi05_object_deadline175_seed7_40_20260810_001",
+      "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "control_period_ms": 50.0,
+      "control_ticks": 6431,
+      "deadline_hold_ticks": 624,
+      "deadline_ms": 175.0,
+      "episodes_with_inference_overlap": 40,
+      "execute_duty_cycle": 0.8843103716373815,
+      "execute_ticks": 5687,
+      "hold_ticks": 744,
+      "mailbox": "latest_only_single_pending_observation",
+      "no_response_hold_ticks": 120,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "provider_failures": 0,
+      "response_level_deadline_rejections": 0,
+      "rollouts": 40,
+      "runtime_source_sha256": {
+        "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+        "integrations/openpi/libero_independent_clock.py": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1",
+        "integrations/openpi/libero_independent_clock_eval.py": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1",
+        "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+        "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+        "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+        "integrations/openpi/validate_libero_independent_clock.py": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599",
+        "src/armbench/vla/independent_clock.py": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+      },
+      "seed": 7,
+      "source_manifest_sha256": "fe1b5b655f7f37c1d864cecbdf66b5cc30ae2d62d2d1df08742bdfc2a6d99b5b",
+      "submit_every_ticks": 1,
+      "task_clusters": [
+        {
+          "rollouts": 4,
+          "success_rate": 0.75,
+          "successes": 3,
+          "task_id": 0
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 1
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 2
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 3
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 4
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.75,
+          "successes": 3,
+          "task_id": 5
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 6
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 7
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 8
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.75,
+          "successes": 3,
+          "task_id": 9
+        }
+      ],
+      "task_success_rate": 0.925,
+      "task_successes": 37,
+      "task_suite": "libero_object",
+      "tasks_all_success": 7,
+      "tasks_any_success": 10,
+      "ticks_during_inference": 6319,
+      "wilson95_high": 0.9741639742254119,
+      "wilson95_low": 0.8013576647568946
+    },
+    {
+      "action_horizon": 10,
+      "action_selection_mode": "age_aligned_suffix",
+      "armbench_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+      "artifact_id": "g03_independent_clock_object_40_20260810_001",
+      "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "control_period_ms": 50.0,
+      "control_ticks": 6263,
+      "deadline_hold_ticks": 613,
+      "deadline_ms": 200.0,
+      "episodes_with_inference_overlap": 40,
+      "execute_duty_cycle": 0.8829634360530098,
+      "execute_ticks": 5530,
+      "hold_ticks": 733,
+      "mailbox": "latest_only_single_pending_observation",
+      "no_response_hold_ticks": 120,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "provider_failures": 0,
+      "response_level_deadline_rejections": 0,
+      "rollouts": 40,
+      "runtime_source_sha256": {
+        "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+        "integrations/openpi/libero_independent_clock.py": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1",
+        "integrations/openpi/libero_independent_clock_eval.py": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1",
+        "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+        "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+        "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+        "integrations/openpi/validate_libero_independent_clock.py": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599",
+        "src/armbench/vla/independent_clock.py": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+      },
+      "seed": 7,
+      "source_manifest_sha256": "e9481fdefa179cbc5d9d36d010a98ccf005b7893f1a1943ea8db609a45f604c0",
+      "submit_every_ticks": 1,
+      "task_clusters": [
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 0
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 1
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 2
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 3
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 4
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 5
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 6
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 7
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 8
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.75,
+          "successes": 3,
+          "task_id": 9
+        }
+      ],
+      "task_success_rate": 0.975,
+      "task_successes": 39,
+      "task_suite": "libero_object",
+      "tasks_all_success": 9,
+      "tasks_any_success": 10,
+      "ticks_during_inference": 6161,
+      "wilson95_high": 0.9955731684973186,
+      "wilson95_low": 0.8711863103652591
+    },
+    {
+      "action_horizon": 10,
+      "action_selection_mode": "age_aligned_suffix",
+      "armbench_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+      "artifact_id": "pi05_object_deadline150_seed8_40_20260810_001",
+      "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "control_period_ms": 50.0,
+      "control_ticks": 11200,
+      "deadline_hold_ticks": 8122,
+      "deadline_ms": 150.0,
+      "episodes_with_inference_overlap": 40,
+      "execute_duty_cycle": 0.2641071428571429,
+      "execute_ticks": 2958,
+      "hold_ticks": 8242,
+      "mailbox": "latest_only_single_pending_observation",
+      "no_response_hold_ticks": 120,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "provider_failures": 0,
+      "response_level_deadline_rejections": 1,
+      "rollouts": 40,
+      "runtime_source_sha256": {
+        "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+        "integrations/openpi/libero_independent_clock.py": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1",
+        "integrations/openpi/libero_independent_clock_eval.py": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1",
+        "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+        "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+        "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+        "integrations/openpi/validate_libero_independent_clock.py": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599",
+        "src/armbench/vla/independent_clock.py": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+      },
+      "seed": 8,
+      "source_manifest_sha256": "7656edc083b9920451676ef08514916dc2aece41bbcd2ab8c72e9ab37406522d",
+      "submit_every_ticks": 1,
+      "task_clusters": [
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 0
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 1
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 2
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 3
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 4
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 5
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 6
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 7
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 8
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 9
+        }
+      ],
+      "task_success_rate": 0.0,
+      "task_successes": 0,
+      "task_suite": "libero_object",
+      "tasks_all_success": 0,
+      "tasks_any_success": 0,
+      "ticks_during_inference": 11058,
+      "wilson95_high": 0.08762160119728664,
+      "wilson95_low": 0.0
+    },
+    {
+      "action_horizon": 10,
+      "action_selection_mode": "age_aligned_suffix",
+      "armbench_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+      "artifact_id": "pi05_object_deadline175_seed8_40_20260810_001",
+      "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "control_period_ms": 50.0,
+      "control_ticks": 6213,
+      "deadline_hold_ticks": 714,
+      "deadline_ms": 175.0,
+      "episodes_with_inference_overlap": 40,
+      "execute_duty_cycle": 0.8657653307580879,
+      "execute_ticks": 5379,
+      "hold_ticks": 834,
+      "mailbox": "latest_only_single_pending_observation",
+      "no_response_hold_ticks": 120,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "provider_failures": 0,
+      "response_level_deadline_rejections": 1,
+      "rollouts": 40,
+      "runtime_source_sha256": {
+        "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+        "integrations/openpi/libero_independent_clock.py": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1",
+        "integrations/openpi/libero_independent_clock_eval.py": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1",
+        "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+        "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+        "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+        "integrations/openpi/validate_libero_independent_clock.py": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599",
+        "src/armbench/vla/independent_clock.py": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+      },
+      "seed": 8,
+      "source_manifest_sha256": "9cbfc9a5253611e38e4ec415dc98272c31fcb5b43c8802cea3a1890f418b3320",
+      "submit_every_ticks": 1,
+      "task_clusters": [
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 0
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 1
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 2
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 3
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 4
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 5
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 6
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 7
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.75,
+          "successes": 3,
+          "task_id": 8
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 9
+        }
+      ],
+      "task_success_rate": 0.975,
+      "task_successes": 39,
+      "task_suite": "libero_object",
+      "tasks_all_success": 9,
+      "tasks_any_success": 10,
+      "ticks_during_inference": 6105,
+      "wilson95_high": 0.9955731684973186,
+      "wilson95_low": 0.8711863103652591
+    },
+    {
+      "action_horizon": 10,
+      "action_selection_mode": "age_aligned_suffix",
+      "armbench_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+      "artifact_id": "pi05_object_deadline200_seed8_40_20260810_001",
+      "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "control_period_ms": 50.0,
+      "control_ticks": 6032,
+      "deadline_hold_ticks": 593,
+      "deadline_ms": 200.0,
+      "episodes_with_inference_overlap": 40,
+      "execute_duty_cycle": 0.8817970822281167,
+      "execute_ticks": 5319,
+      "hold_ticks": 713,
+      "mailbox": "latest_only_single_pending_observation",
+      "no_response_hold_ticks": 120,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "provider_failures": 0,
+      "response_level_deadline_rejections": 0,
+      "rollouts": 40,
+      "runtime_source_sha256": {
+        "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+        "integrations/openpi/libero_independent_clock.py": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1",
+        "integrations/openpi/libero_independent_clock_eval.py": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1",
+        "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+        "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+        "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+        "integrations/openpi/validate_libero_independent_clock.py": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599",
+        "src/armbench/vla/independent_clock.py": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+      },
+      "seed": 8,
+      "source_manifest_sha256": "f1d1bf874414280dfa1bcfdfce14932edece12ba75291b7248816c6e091fe77e",
+      "submit_every_ticks": 1,
+      "task_clusters": [
+        {
+          "rollouts": 4,
+          "success_rate": 0.75,
+          "successes": 3,
+          "task_id": 0
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 1
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 2
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 3
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 4
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 5
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 6
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 7
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 8
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 9
+        }
+      ],
+      "task_success_rate": 0.975,
+      "task_successes": 39,
+      "task_suite": "libero_object",
+      "tasks_all_success": 9,
+      "tasks_any_success": 10,
+      "ticks_during_inference": 5927,
+      "wilson95_high": 0.9955731684973186,
+      "wilson95_low": 0.8711863103652591
+    },
+    {
+      "action_horizon": 10,
+      "action_selection_mode": "age_aligned_suffix",
+      "armbench_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+      "artifact_id": "g05_spatial_deadline150_40_20260810_001",
+      "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "control_period_ms": 50.0,
+      "control_ticks": 8800,
+      "deadline_hold_ticks": 6371,
+      "deadline_ms": 150.0,
+      "episodes_with_inference_overlap": 40,
+      "execute_duty_cycle": 0.26238636363636364,
+      "execute_ticks": 2309,
+      "hold_ticks": 6491,
+      "mailbox": "latest_only_single_pending_observation",
+      "no_response_hold_ticks": 120,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "provider_failures": 0,
+      "response_level_deadline_rejections": 16,
+      "rollouts": 40,
+      "runtime_source_sha256": {
+        "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+        "integrations/openpi/libero_independent_clock.py": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1",
+        "integrations/openpi/libero_independent_clock_eval.py": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1",
+        "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+        "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+        "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+        "integrations/openpi/validate_libero_independent_clock.py": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599",
+        "src/armbench/vla/independent_clock.py": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+      },
+      "seed": 7,
+      "source_manifest_sha256": "8a8eb72341c5f0cccfb7af3ecf2f66b405a273174efa4969691af978f211ae51",
+      "submit_every_ticks": 1,
+      "task_clusters": [
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 0
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 1
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 2
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 3
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 4
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 5
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 6
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 7
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 8
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 9
+        }
+      ],
+      "task_success_rate": 0.0,
+      "task_successes": 0,
+      "task_suite": "libero_spatial",
+      "tasks_all_success": 0,
+      "tasks_any_success": 0,
+      "ticks_during_inference": 8686,
+      "wilson95_high": 0.08762160119728664,
+      "wilson95_low": 0.0
+    },
+    {
+      "action_horizon": 10,
+      "action_selection_mode": "age_aligned_suffix",
+      "armbench_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+      "artifact_id": "pi05_spatial_deadline155_seed7_40_20260810_001",
+      "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "control_period_ms": 50.0,
+      "control_ticks": 4624,
+      "deadline_hold_ticks": 489,
+      "deadline_ms": 155.0,
+      "episodes_with_inference_overlap": 40,
+      "execute_duty_cycle": 0.8682958477508651,
+      "execute_ticks": 4015,
+      "hold_ticks": 609,
+      "mailbox": "latest_only_single_pending_observation",
+      "no_response_hold_ticks": 120,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "provider_failures": 0,
+      "response_level_deadline_rejections": 2,
+      "rollouts": 40,
+      "runtime_source_sha256": {
+        "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+        "integrations/openpi/libero_independent_clock.py": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1",
+        "integrations/openpi/libero_independent_clock_eval.py": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1",
+        "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+        "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+        "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+        "integrations/openpi/validate_libero_independent_clock.py": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599",
+        "src/armbench/vla/independent_clock.py": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+      },
+      "seed": 7,
+      "source_manifest_sha256": "3d24e3a122fc3ed66991bb4d6c4b7fb26f4320e40cba3d4a3324de208d57bea7",
+      "submit_every_ticks": 1,
+      "task_clusters": [
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 0
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 1
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 2
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 3
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.5,
+          "successes": 2,
+          "task_id": 4
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 5
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 6
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 7
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 8
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 9
+        }
+      ],
+      "task_success_rate": 0.95,
+      "task_successes": 38,
+      "task_suite": "libero_spatial",
+      "tasks_all_success": 9,
+      "tasks_any_success": 10,
+      "ticks_during_inference": 4541,
+      "wilson95_high": 0.9861793326138516,
+      "wilson95_low": 0.8349612263085903
+    },
+    {
+      "action_horizon": 10,
+      "action_selection_mode": "age_aligned_suffix",
+      "armbench_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+      "artifact_id": "g06_spatial_deadline175_40_20260810_001",
+      "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "control_period_ms": 50.0,
+      "control_ticks": 4555,
+      "deadline_hold_ticks": 495,
+      "deadline_ms": 175.0,
+      "episodes_with_inference_overlap": 40,
+      "execute_duty_cycle": 0.8654226125137212,
+      "execute_ticks": 3942,
+      "hold_ticks": 613,
+      "mailbox": "latest_only_single_pending_observation",
+      "no_response_hold_ticks": 118,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "provider_failures": 0,
+      "response_level_deadline_rejections": 0,
+      "rollouts": 40,
+      "runtime_source_sha256": {
+        "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+        "integrations/openpi/libero_independent_clock.py": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1",
+        "integrations/openpi/libero_independent_clock_eval.py": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1",
+        "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+        "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+        "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+        "integrations/openpi/validate_libero_independent_clock.py": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599",
+        "src/armbench/vla/independent_clock.py": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+      },
+      "seed": 7,
+      "source_manifest_sha256": "d6d15f8cd64733da7a63b00890fdbc6ef6bb859b9e86542c7db841fec5f03aac",
+      "submit_every_ticks": 1,
+      "task_clusters": [
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 0
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 1
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 2
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 3
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.5,
+          "successes": 2,
+          "task_id": 4
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 5
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 6
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 7
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 8
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 9
+        }
+      ],
+      "task_success_rate": 0.95,
+      "task_successes": 38,
+      "task_suite": "libero_spatial",
+      "tasks_all_success": 9,
+      "tasks_any_success": 10,
+      "ticks_during_inference": 4472,
+      "wilson95_high": 0.9861793326138516,
+      "wilson95_low": 0.8349612263085903
+    },
+    {
+      "action_horizon": 10,
+      "action_selection_mode": "age_aligned_suffix",
+      "armbench_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+      "artifact_id": "pi05_libero_independent_clock_core_40_001",
+      "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "control_period_ms": 50.0,
+      "control_ticks": 4623,
+      "deadline_hold_ticks": 472,
+      "deadline_ms": 200.0,
+      "episodes_with_inference_overlap": 40,
+      "execute_duty_cycle": 0.8719446247025741,
+      "execute_ticks": 4031,
+      "hold_ticks": 592,
+      "mailbox": "latest_only_single_pending_observation",
+      "no_response_hold_ticks": 120,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "provider_failures": 0,
+      "response_level_deadline_rejections": 0,
+      "rollouts": 40,
+      "runtime_source_sha256": {
+        "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+        "integrations/openpi/libero_independent_clock.py": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1",
+        "integrations/openpi/libero_independent_clock_eval.py": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1",
+        "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+        "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+        "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+        "integrations/openpi/validate_libero_independent_clock.py": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599",
+        "src/armbench/vla/independent_clock.py": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+      },
+      "seed": 7,
+      "source_manifest_sha256": "8346840626373428cd00723aff248567264ebc164c2df48ea620a248fe6111d9",
+      "submit_every_ticks": 1,
+      "task_clusters": [
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 0
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 1
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 2
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 3
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.5,
+          "successes": 2,
+          "task_id": 4
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 5
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 6
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 7
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 8
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 9
+        }
+      ],
+      "task_success_rate": 0.95,
+      "task_successes": 38,
+      "task_suite": "libero_spatial",
+      "tasks_all_success": 9,
+      "tasks_any_success": 10,
+      "ticks_during_inference": 4521,
+      "wilson95_high": 0.9861793326138516,
+      "wilson95_low": 0.8349612263085903
+    },
+    {
+      "action_horizon": 10,
+      "action_selection_mode": "age_aligned_suffix",
+      "armbench_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+      "artifact_id": "pi05_libero_spatial_deadline150_seed8_40_20260810_001",
+      "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "control_period_ms": 50.0,
+      "control_ticks": 8800,
+      "deadline_hold_ticks": 6338,
+      "deadline_ms": 150.0,
+      "episodes_with_inference_overlap": 40,
+      "execute_duty_cycle": 0.2661363636363636,
+      "execute_ticks": 2342,
+      "hold_ticks": 6458,
+      "mailbox": "latest_only_single_pending_observation",
+      "no_response_hold_ticks": 120,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "provider_failures": 0,
+      "response_level_deadline_rejections": 2,
+      "rollouts": 40,
+      "runtime_source_sha256": {
+        "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+        "integrations/openpi/libero_independent_clock.py": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1",
+        "integrations/openpi/libero_independent_clock_eval.py": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1",
+        "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+        "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+        "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+        "integrations/openpi/validate_libero_independent_clock.py": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599",
+        "src/armbench/vla/independent_clock.py": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+      },
+      "seed": 8,
+      "source_manifest_sha256": "345b54aa4a99d1ffa96f913f5f7b8eed17f0f4ccb981d33b2fc706d5423967bf",
+      "submit_every_ticks": 1,
+      "task_clusters": [
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 0
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 1
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 2
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 3
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 4
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 5
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 6
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 7
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 8
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 9
+        }
+      ],
+      "task_success_rate": 0.0,
+      "task_successes": 0,
+      "task_suite": "libero_spatial",
+      "tasks_all_success": 0,
+      "tasks_any_success": 0,
+      "ticks_during_inference": 8678,
+      "wilson95_high": 0.08762160119728664,
+      "wilson95_low": 0.0
+    },
+    {
+      "action_horizon": 10,
+      "action_selection_mode": "age_aligned_suffix",
+      "armbench_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+      "artifact_id": "pi05_spatial_deadline155_seed8_40_20260810_001",
+      "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "control_period_ms": 50.0,
+      "control_ticks": 4825,
+      "deadline_hold_ticks": 492,
+      "deadline_ms": 155.0,
+      "episodes_with_inference_overlap": 40,
+      "execute_duty_cycle": 0.873160621761658,
+      "execute_ticks": 4213,
+      "hold_ticks": 612,
+      "mailbox": "latest_only_single_pending_observation",
+      "no_response_hold_ticks": 120,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "provider_failures": 0,
+      "response_level_deadline_rejections": 2,
+      "rollouts": 40,
+      "runtime_source_sha256": {
+        "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+        "integrations/openpi/libero_independent_clock.py": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1",
+        "integrations/openpi/libero_independent_clock_eval.py": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1",
+        "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+        "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+        "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+        "integrations/openpi/validate_libero_independent_clock.py": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599",
+        "src/armbench/vla/independent_clock.py": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+      },
+      "seed": 8,
+      "source_manifest_sha256": "d84437eb5bda813c7dcf274d6755256bac98a0af7415b72686a3a76c2f4d19ef",
+      "submit_every_ticks": 1,
+      "task_clusters": [
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 0
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 1
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 2
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 3
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.75,
+          "successes": 3,
+          "task_id": 4
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.75,
+          "successes": 3,
+          "task_id": 5
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 6
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 7
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 8
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.5,
+          "successes": 2,
+          "task_id": 9
+        }
+      ],
+      "task_success_rate": 0.9,
+      "task_successes": 36,
+      "task_suite": "libero_spatial",
+      "tasks_all_success": 7,
+      "tasks_any_success": 10,
+      "ticks_during_inference": 4735,
+      "wilson95_high": 0.9604204713173936,
+      "wilson95_low": 0.7694822477247771
+    },
+    {
+      "action_horizon": 10,
+      "action_selection_mode": "age_aligned_suffix",
+      "armbench_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+      "artifact_id": "pi05_libero_spatial_deadline175_seed8_40_20260810_001",
+      "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "control_period_ms": 50.0,
+      "control_ticks": 4681,
+      "deadline_hold_ticks": 501,
+      "deadline_ms": 175.0,
+      "episodes_with_inference_overlap": 40,
+      "execute_duty_cycle": 0.8673360393078402,
+      "execute_ticks": 4060,
+      "hold_ticks": 621,
+      "mailbox": "latest_only_single_pending_observation",
+      "no_response_hold_ticks": 120,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "provider_failures": 0,
+      "response_level_deadline_rejections": 0,
+      "rollouts": 40,
+      "runtime_source_sha256": {
+        "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+        "integrations/openpi/libero_independent_clock.py": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1",
+        "integrations/openpi/libero_independent_clock_eval.py": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1",
+        "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+        "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+        "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+        "integrations/openpi/validate_libero_independent_clock.py": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599",
+        "src/armbench/vla/independent_clock.py": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+      },
+      "seed": 8,
+      "source_manifest_sha256": "362b69537e0c186a420523f6737b3f970ec2bc8cf09de47742a832153fd19b2b",
+      "submit_every_ticks": 1,
+      "task_clusters": [
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 0
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 1
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 2
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.75,
+          "successes": 3,
+          "task_id": 3
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.75,
+          "successes": 3,
+          "task_id": 4
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 5
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 6
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.75,
+          "successes": 3,
+          "task_id": 7
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 8
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 9
+        }
+      ],
+      "task_success_rate": 0.925,
+      "task_successes": 37,
+      "task_suite": "libero_spatial",
+      "tasks_all_success": 7,
+      "tasks_any_success": 10,
+      "ticks_during_inference": 4590,
+      "wilson95_high": 0.9741639742254119,
+      "wilson95_low": 0.8013576647568946
+    },
+    {
+      "action_horizon": 10,
+      "action_selection_mode": "age_aligned_suffix",
+      "armbench_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+      "artifact_id": "pi05_spatial_deadline200_seed8_40_20260810_001",
+      "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "control_period_ms": 50.0,
+      "control_ticks": 4453,
+      "deadline_hold_ticks": 469,
+      "deadline_ms": 200.0,
+      "episodes_with_inference_overlap": 40,
+      "execute_duty_cycle": 0.8677296204805749,
+      "execute_ticks": 3864,
+      "hold_ticks": 589,
+      "mailbox": "latest_only_single_pending_observation",
+      "no_response_hold_ticks": 120,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "provider_failures": 0,
+      "response_level_deadline_rejections": 0,
+      "rollouts": 40,
+      "runtime_source_sha256": {
+        "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+        "integrations/openpi/libero_independent_clock.py": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1",
+        "integrations/openpi/libero_independent_clock_eval.py": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1",
+        "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+        "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+        "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+        "integrations/openpi/validate_libero_independent_clock.py": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599",
+        "src/armbench/vla/independent_clock.py": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+      },
+      "seed": 8,
+      "source_manifest_sha256": "51802399c51b8e842288e845c6acdb7d7a1e93e634445189c4ac1a4f8ebdb499",
+      "submit_every_ticks": 1,
+      "task_clusters": [
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 0
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 1
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 2
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 3
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 4
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 5
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 6
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.75,
+          "successes": 3,
+          "task_id": 7
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 8
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 9
+        }
+      ],
+      "task_success_rate": 0.975,
+      "task_successes": 39,
+      "task_suite": "libero_spatial",
+      "tasks_all_success": 9,
+      "tasks_any_success": 10,
+      "ticks_during_inference": 4368,
+      "wilson95_high": 0.9955731684973186,
+      "wilson95_low": 0.8711863103652591
+    },
+    {
+      "action_horizon": 10,
+      "action_selection_mode": "age_aligned_suffix",
+      "armbench_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+      "artifact_id": "pi05_spatial_deadline150_seed9_40_20260810_001",
+      "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "control_period_ms": 50.0,
+      "control_ticks": 8800,
+      "deadline_hold_ticks": 6347,
+      "deadline_ms": 150.0,
+      "episodes_with_inference_overlap": 40,
+      "execute_duty_cycle": 0.2651136363636364,
+      "execute_ticks": 2333,
+      "hold_ticks": 6467,
+      "mailbox": "latest_only_single_pending_observation",
+      "no_response_hold_ticks": 120,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "provider_failures": 0,
+      "response_level_deadline_rejections": 5,
+      "rollouts": 40,
+      "runtime_source_sha256": {
+        "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+        "integrations/openpi/libero_independent_clock.py": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1",
+        "integrations/openpi/libero_independent_clock_eval.py": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1",
+        "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+        "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+        "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+        "integrations/openpi/validate_libero_independent_clock.py": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599",
+        "src/armbench/vla/independent_clock.py": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+      },
+      "seed": 9,
+      "source_manifest_sha256": "c158dfc3dca5d78d62d3fa9244c2cf472653aed55054e12715b436b47b78744b",
+      "submit_every_ticks": 1,
+      "task_clusters": [
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 0
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 1
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 2
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 3
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 4
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 5
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 6
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 7
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 8
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.0,
+          "successes": 0,
+          "task_id": 9
+        }
+      ],
+      "task_success_rate": 0.0,
+      "task_successes": 0,
+      "task_suite": "libero_spatial",
+      "tasks_all_success": 0,
+      "tasks_any_success": 0,
+      "ticks_during_inference": 8664,
+      "wilson95_high": 0.08762160119728664,
+      "wilson95_low": 0.0
+    },
+    {
+      "action_horizon": 10,
+      "action_selection_mode": "age_aligned_suffix",
+      "armbench_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+      "artifact_id": "pi05_spatial_deadline155_seed9_40_20260810_001",
+      "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "control_period_ms": 50.0,
+      "control_ticks": 4532,
+      "deadline_hold_ticks": 532,
+      "deadline_ms": 155.0,
+      "episodes_with_inference_overlap": 40,
+      "execute_duty_cycle": 0.8561341571050309,
+      "execute_ticks": 3880,
+      "hold_ticks": 652,
+      "mailbox": "latest_only_single_pending_observation",
+      "no_response_hold_ticks": 120,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "provider_failures": 0,
+      "response_level_deadline_rejections": 2,
+      "rollouts": 40,
+      "runtime_source_sha256": {
+        "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+        "integrations/openpi/libero_independent_clock.py": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1",
+        "integrations/openpi/libero_independent_clock_eval.py": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1",
+        "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+        "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+        "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+        "integrations/openpi/validate_libero_independent_clock.py": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599",
+        "src/armbench/vla/independent_clock.py": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+      },
+      "seed": 9,
+      "source_manifest_sha256": "9d06d8a322933f27112636244e2b4db8d15790613c430766afd34b38d1b9e070",
+      "submit_every_ticks": 1,
+      "task_clusters": [
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 0
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 1
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 2
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 3
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 4
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 5
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 6
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 7
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 8
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 9
+        }
+      ],
+      "task_success_rate": 1.0,
+      "task_successes": 40,
+      "task_suite": "libero_spatial",
+      "tasks_all_success": 10,
+      "tasks_any_success": 10,
+      "ticks_during_inference": 4441,
+      "wilson95_high": 1.0,
+      "wilson95_low": 0.9123783988027135
+    },
+    {
+      "action_horizon": 10,
+      "action_selection_mode": "age_aligned_suffix",
+      "armbench_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+      "artifact_id": "pi05_spatial_deadline175_seed9_40_20260810_001",
+      "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "control_period_ms": 50.0,
+      "control_ticks": 4579,
+      "deadline_hold_ticks": 486,
+      "deadline_ms": 175.0,
+      "episodes_with_inference_overlap": 40,
+      "execute_duty_cycle": 0.867656693601223,
+      "execute_ticks": 3973,
+      "hold_ticks": 606,
+      "mailbox": "latest_only_single_pending_observation",
+      "no_response_hold_ticks": 120,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "provider_failures": 0,
+      "response_level_deadline_rejections": 0,
+      "rollouts": 40,
+      "runtime_source_sha256": {
+        "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+        "integrations/openpi/libero_independent_clock.py": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1",
+        "integrations/openpi/libero_independent_clock_eval.py": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1",
+        "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+        "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+        "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+        "integrations/openpi/validate_libero_independent_clock.py": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599",
+        "src/armbench/vla/independent_clock.py": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+      },
+      "seed": 9,
+      "source_manifest_sha256": "c1dd5243e8521f87f221af3193d78af573d5d0a985b141329eceeefde82d5349",
+      "submit_every_ticks": 1,
+      "task_clusters": [
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 0
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 1
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 2
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.75,
+          "successes": 3,
+          "task_id": 3
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 4
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 5
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 6
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 7
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 8
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 9
+        }
+      ],
+      "task_success_rate": 0.975,
+      "task_successes": 39,
+      "task_suite": "libero_spatial",
+      "tasks_all_success": 9,
+      "tasks_any_success": 10,
+      "ticks_during_inference": 4485,
+      "wilson95_high": 0.9955731684973186,
+      "wilson95_low": 0.8711863103652591
+    },
+    {
+      "action_horizon": 10,
+      "action_selection_mode": "age_aligned_suffix",
+      "armbench_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+      "artifact_id": "pi05_spatial_deadline200_seed9_40_20260810_001",
+      "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+      "checkpoint_content_sha256": "9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5",
+      "control_period_ms": 50.0,
+      "control_ticks": 4744,
+      "deadline_hold_ticks": 503,
+      "deadline_ms": 200.0,
+      "episodes_with_inference_overlap": 40,
+      "execute_duty_cycle": 0.8686762225969646,
+      "execute_ticks": 4121,
+      "hold_ticks": 623,
+      "mailbox": "latest_only_single_pending_observation",
+      "no_response_hold_ticks": 120,
+      "openpi_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+      "provider_failures": 0,
+      "response_level_deadline_rejections": 0,
+      "rollouts": 40,
+      "runtime_source_sha256": {
+        "integrations/openpi/compose.libero-independent-clock.yml": "5ae89b76c737a0945624bd1f54f7ae33f857c87da3dffefe18afc744ce980701",
+        "integrations/openpi/libero_independent_clock.py": "f421bd73c1f1eab2dbd001dcd27b1edf93b16c7e5326efb623f96652ce1901e1",
+        "integrations/openpi/libero_independent_clock_eval.py": "4e05148cdca753ba9fd1aacb758c1daf6e1ebf301c87e98f4b9c68d21458b3f1",
+        "integrations/openpi/libero_runtime.py": "ba96cf6941d3ce10bb2c5b7063b4f450459b221e317e07a2c0855e9fc9631683",
+        "integrations/openpi/libero_runtime_eval.py": "52293298f63ea0686a318417884f7522ee5f813c2de235f7e9df11e6fa1bf59f",
+        "integrations/openpi/serve_policy_attested.py": "a39d451259b0cd10a4b103c2009b17dbf45530bab3a3c99de7a7c006529d6dc8",
+        "integrations/openpi/validate_libero_independent_clock.py": "072e8467af39030d279b98ad1abccdebe2d75a8adc6b15f90525ddc85f9ed599",
+        "src/armbench/vla/independent_clock.py": "c9d1084f795a83c36d742d3e81cb42617d20e4e676615e5f54a8748501ab643f"
+      },
+      "seed": 9,
+      "source_manifest_sha256": "350f50fdad437fd82c4047863d7812928c6f45be128d51c6741a441852884a03",
+      "submit_every_ticks": 1,
+      "task_clusters": [
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 0
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 1
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 2
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 3
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.75,
+          "successes": 3,
+          "task_id": 4
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 0.75,
+          "successes": 3,
+          "task_id": 5
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 6
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 7
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 8
+        },
+        {
+          "rollouts": 4,
+          "success_rate": 1.0,
+          "successes": 4,
+          "task_id": 9
+        }
+      ],
+      "task_success_rate": 0.95,
+      "task_successes": 38,
+      "task_suite": "libero_spatial",
+      "tasks_all_success": 8,
+      "tasks_any_success": 10,
+      "ticks_during_inference": 4655,
+      "wilson95_high": 0.9861793326138516,
+      "wilson95_low": 0.8349612263085903
+    }
+  ],
+  "claim_boundaries": [
+    "not an official LIBERO leaderboard score",
+    "not a hard-real-time guarantee",
+    "not hardware safety or real-robot deployment evidence",
+    "not cross-model superiority"
+  ],
+  "schema_version": "armbench.pi05_deadline_report.v1",
+  "total_rollouts": 720
+}

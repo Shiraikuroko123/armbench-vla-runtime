@@ -185,7 +185,11 @@ def _runtime_payload(
                 "holds": 1,
                 "executes": 1,
             },
-            "worker": {"queue_dropped": 0},
+            "worker": {
+                "closed": True,
+                "queue_dropped": 0,
+                "worker_alive": False,
+            },
             "requests": [request],
             "ticks": ticks,
         },
@@ -293,3 +297,56 @@ def test_response_relative_artifact_is_validated_and_action_index_is_bound(
     report = validate_artifact(artifact)
     assert not report.valid
     assert any("execute action index mismatch" in error for error in report.errors)
+
+
+def test_validator_rejects_self_consistent_non_stopped_worker(tmp_path) -> None:
+    artifact = tmp_path / "worker-not-stopped"
+    _write_valid_artifact(artifact)
+
+    runtime_path = next(artifact.glob("episodes/*/runtime.json"))
+    payload = json.loads(runtime_path.read_text(encoding="utf-8"))
+    payload["runtime"]["worker_stopped"] = False
+    runtime_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    recorded_row = json.loads((artifact / "per_episode.json").read_text("utf-8"))[0]
+    cell = ExperimentCell("libero_spatial", 0, 0)
+    row = episode_row(
+        cell,
+        recorded_row["task_description"],
+        7,
+        payload,
+        wall_time_s=recorded_row["wall_time_s"],
+        video_path=recorded_row["video_path"],
+    )
+    _write_derived(artifact, [row], 1)
+    _write_manifest(artifact)
+
+    report = validate_artifact(artifact)
+    assert not report.valid
+    assert any(
+        "per-episode worker_stopped must be true" in error for error in report.errors
+    )
+    assert any(
+        "runtime worker_stopped must be true" in error for error in report.errors
+    )
+
+
+def test_validator_rejects_unclean_worker_terminal_metrics(tmp_path) -> None:
+    cases = (
+        ("closed", False, "runtime worker closed must be true"),
+        ("worker_alive", True, "runtime worker_alive must be false"),
+        ("queue_dropped", 1, "runtime worker queue_dropped must be zero"),
+    )
+    for field, value, expected_error in cases:
+        artifact = tmp_path / field
+        _write_valid_artifact(artifact)
+
+        runtime_path = next(artifact.glob("episodes/*/runtime.json"))
+        payload = json.loads(runtime_path.read_text(encoding="utf-8"))
+        payload["runtime"]["worker"][field] = value
+        runtime_path.write_text(json.dumps(payload), encoding="utf-8")
+        _write_manifest(artifact)
+
+        report = validate_artifact(artifact)
+        assert not report.valid
+        assert any(expected_error in error for error in report.errors)

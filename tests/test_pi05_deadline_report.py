@@ -67,3 +67,40 @@ def test_rendered_report_is_deterministic_and_checkable(tmp_path: pathlib.Path) 
     (output / "summary.md").write_text("tampered\n", encoding="utf-8")
     with pytest.raises(ValueError, match="stale"):
         report.check_outputs(output, second)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    (
+        ("checkpoint_content_sha256", "different", "checkpoint content"),
+        ("openpi_commit", "different", "OpenPI commit"),
+        ("armbench_commit", "different", "ArmBench commit"),
+        ("control_period_ms", 25.0, "control period"),
+        ("action_horizon", 8, "action horizon"),
+    ),
+)
+def test_report_rejects_mixed_protocol_cells(
+    monkeypatch: pytest.MonkeyPatch,
+    field: str,
+    value: object,
+    message: str,
+) -> None:
+    first = report._load_deadline_cell(_seed8_artifacts()[0])
+    second = report._load_deadline_cell(_seed8_artifacts()[1])
+    second[field] = value
+    cells = iter((first, second))
+    monkeypatch.setattr(report, "_load_deadline_cell", lambda _path: next(cells))
+
+    with pytest.raises(ValueError, match=message):
+        report.build_summary((pathlib.Path("first"), pathlib.Path("second")))
+
+
+def test_report_rejects_non_age_aligned_selection_mode(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    first = report._load_deadline_cell(_seed8_artifacts()[0])
+    first["action_selection_mode"] = "response_relative_chunk"
+    monkeypatch.setattr(report, "_load_deadline_cell", lambda _path: first)
+
+    with pytest.raises(ValueError, match="age_aligned_suffix"):
+        report.build_summary((pathlib.Path("only"),))

@@ -12,6 +12,7 @@ evidence/g05_*/** -text whitespace=-blank-at-eol
 evidence/g06_*/** -text whitespace=-blank-at-eol
 reports/pi05_panda_archive_replay_*/** -text whitespace=-blank-at-eol
 reports/pi05_panda_braking_repair_*/** -text whitespace=-blank-at-eol
+reports/pi05_deadline_*/** -text whitespace=-blank-at-eol,-blank-at-eof
 reports/pi05_selection_*/** -text whitespace=-blank-at-eol,-blank-at-eof
 reports/async_panda_closed_loop_*/** -text whitespace=-blank-at-eol
 reports/mujoco_swept_audit_*/** -text whitespace=-blank-at-eol

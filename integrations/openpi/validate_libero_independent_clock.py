@@ -216,6 +216,23 @@ def _validate_runtime(
     if not isinstance(metrics, Mapping):
         collector.error(cell.episode_id, "metrics must be an object")
         return
+    if runtime.get("worker_stopped") is not True:
+        collector.error(cell.episode_id, "runtime worker_stopped must be true")
+    worker = runtime.get("worker")
+    if not isinstance(worker, Mapping):
+        collector.error(cell.episode_id, "runtime worker metrics must be an object")
+    else:
+        if worker.get("closed") is not True:
+            collector.error(cell.episode_id, "runtime worker closed must be true")
+        if worker.get("worker_alive") is not False:
+            collector.error(cell.episode_id, "runtime worker_alive must be false")
+        queue_dropped = worker.get("queue_dropped")
+        if (
+            not isinstance(queue_dropped, int)
+            or isinstance(queue_dropped, bool)
+            or queue_dropped != 0
+        ):
+            collector.error(cell.episode_id, "runtime worker queue_dropped must be zero")
     parent_pid = runtime.get("parent_process_id")
     worker_pid = runtime.get("worker_process_id")
     if (
@@ -575,6 +592,8 @@ def validate_artifact(path: pathlib.Path) -> ValidationReport:
             ):
                 collector.error(cell.episode_id, "runtime or episode row is invalid")
                 continue
+            if recorded_row.get("worker_stopped") is not True:
+                collector.error(cell.episode_id, "per-episode worker_stopped must be true")
             digest = initial_state_digest(initial_state)
             if payload.get("initial_state_sha256") != digest:
                 collector.error(cell.episode_id, "initial state digest mismatch")

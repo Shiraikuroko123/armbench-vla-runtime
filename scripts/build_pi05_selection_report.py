@@ -30,6 +30,17 @@ SCHEMA_VERSION = "armbench.pi05_selection_report.v1"
 MANIFEST_SCHEMA_VERSION = "armbench.pi05_selection_report_manifest.v1"
 OUTPUT_NAMES = ("pairs.csv", "summary.json", "summary.md", "manifest.json")
 MODES = (AGE_ALIGNED_SUFFIX, RESPONSE_RELATIVE_CHUNK)
+SMOKE_PROFILE = "smoke"
+FROZEN_240_PROFILE = "frozen-240"
+PROFILES = (SMOKE_PROFILE, FROZEN_240_PROFILE)
+FROZEN_240_RUNTIME_COMMIT = "1551900d2c66b0e8a1d46af51ee5df53e8c63bcc"
+FROZEN_240_SEEDS = (7, 8, 9)
+FROZEN_240_TASK_SUITE = "libero_spatial"
+FROZEN_240_TASK_IDS = tuple(range(10))
+FROZEN_240_EPISODE_INDICES = tuple(range(4, 8))
+FROZEN_240_PAIRS_PER_SEED = 40
+FROZEN_240_PAIR_COUNT = 120
+FROZEN_240_ROLLOUT_COUNT = 240
 PAIR_FIELDS = (
     "task_suite",
     "seed",
@@ -253,7 +264,78 @@ def _require_equal(values: Sequence[Any], label: str) -> Any:
     return values[0]
 
 
-def build_summary(paths: Sequence[pathlib.Path]) -> dict[str, Any]:
+def _require_frozen_240_inputs(
+    artifacts: Sequence[Mapping[str, Any]],
+    grouped: Mapping[tuple[int, str], Mapping[str, Any]],
+) -> None:
+    expected_groups = {
+        (seed, mode) for seed in FROZEN_240_SEEDS for mode in MODES
+    }
+    actual_groups = set(grouped)
+    if actual_groups != expected_groups:
+        missing = sorted(expected_groups - actual_groups)
+        extra = sorted(actual_groups - expected_groups)
+        raise ValueError(
+            "frozen-240 requires exactly seeds 7/8/9 and both selection modes; "
+            f"missing={missing}, extra={extra}"
+        )
+
+    wrong_commits = sorted(
+        {
+            str(artifact["armbench_commit"])
+            for artifact in artifacts
+            if artifact["armbench_commit"] != FROZEN_240_RUNTIME_COMMIT
+        }
+    )
+    if wrong_commits:
+        raise ValueError(
+            "frozen-240 requires ArmBench runtime commit "
+            f"{FROZEN_240_RUNTIME_COMMIT}; found {wrong_commits}"
+        )
+
+    for seed, mode in sorted(expected_groups):
+        artifact = grouped[(seed, mode)]
+        expected_records = {
+            (FROZEN_240_TASK_SUITE, seed, task_id, episode_index)
+            for task_id in FROZEN_240_TASK_IDS
+            for episode_index in FROZEN_240_EPISODE_INDICES
+        }
+        actual_records = set(artifact["records"])
+        if actual_records != expected_records:
+            missing = sorted(expected_records - actual_records)
+            extra = sorted(actual_records - expected_records)
+            raise ValueError(
+                "frozen-240 episode matrix mismatch for "
+                f"seed {seed} mode {mode}: expected exactly "
+                f"{FROZEN_240_PAIRS_PER_SEED} libero_spatial task 0-9 / "
+                f"episode 4-7 records; missing={missing}, extra={extra}"
+            )
+
+
+def _require_frozen_240_summary(
+    seed_summaries: Sequence[Mapping[str, Any]], pairs: Sequence[Mapping[str, Any]]
+) -> None:
+    pairs_by_seed = {int(row["seed"]): int(row["pairs"]) for row in seed_summaries}
+    expected_pairs_by_seed = {
+        seed: FROZEN_240_PAIRS_PER_SEED for seed in FROZEN_240_SEEDS
+    }
+    if pairs_by_seed != expected_pairs_by_seed:
+        raise ValueError(
+            "frozen-240 requires exactly 40 paired episodes per seed; "
+            f"found {pairs_by_seed}"
+        )
+    if len(pairs) != FROZEN_240_PAIR_COUNT or 2 * len(pairs) != FROZEN_240_ROLLOUT_COUNT:
+        raise ValueError(
+            "frozen-240 requires exactly 120 pairs / 240 rollouts; "
+            f"found {len(pairs)} pairs / {2 * len(pairs)} rollouts"
+        )
+
+
+def build_summary(
+    paths: Sequence[pathlib.Path], *, profile: str = SMOKE_PROFILE
+) -> dict[str, Any]:
+    if profile not in PROFILES:
+        raise ValueError(f"unknown report profile: {profile}")
     if not paths:
         raise ValueError("at least two artifacts are required")
     artifacts = [_load_artifact(path) for path in paths]
@@ -268,6 +350,8 @@ def build_summary(paths: Sequence[pathlib.Path]) -> dict[str, Any]:
         missing = [mode for mode in MODES if (seed, mode) not in grouped]
         if missing:
             raise ValueError(f"seed {seed} is missing modes: {', '.join(missing)}")
+    if profile == FROZEN_240_PROFILE:
+        _require_frozen_240_inputs(artifacts, grouped)
 
     _require_equal([artifact["checkpoint"] for artifact in artifacts], "checkpoint")
     _require_equal(
@@ -383,6 +467,9 @@ def build_summary(paths: Sequence[pathlib.Path]) -> dict[str, Any]:
             }
         )
 
+    if profile == FROZEN_240_PROFILE:
+        _require_frozen_240_summary(seed_summaries, pairs)
+
     aligned_only = sum(
         pair["age_aligned_success"] and not pair["response_relative_success"]
         for pair in pairs
@@ -409,7 +496,7 @@ def build_summary(paths: Sequence[pathlib.Path]) -> dict[str, Any]:
             "action_indices": dict(sorted(totals["action_indices"].items())),
         }
 
-    return {
+    summary = {
         "schema_version": SCHEMA_VERSION,
         "artifact_count": len(artifacts),
         "pair_count": len(pairs),
@@ -461,6 +548,21 @@ def build_summary(paths: Sequence[pathlib.Path]) -> dict[str, Any]:
             "not cross-model superiority",
         ],
     }
+    if profile == FROZEN_240_PROFILE:
+        summary["scoring_profile"] = FROZEN_240_PROFILE
+        summary["frozen_matrix_gate"] = {
+            "valid": True,
+            "runtime_commit": FROZEN_240_RUNTIME_COMMIT,
+            "seeds": list(FROZEN_240_SEEDS),
+            "modes": list(MODES),
+            "task_suite": FROZEN_240_TASK_SUITE,
+            "task_ids": list(FROZEN_240_TASK_IDS),
+            "episode_indices": list(FROZEN_240_EPISODE_INDICES),
+            "pairs_per_seed": FROZEN_240_PAIRS_PER_SEED,
+            "pair_count": FROZEN_240_PAIR_COUNT,
+            "total_rollouts": FROZEN_240_ROLLOUT_COUNT,
+        }
+    return summary
 
 
 def _format_float(value: float) -> str:
@@ -552,11 +654,26 @@ def _render_markdown(summary: Mapping[str, Any]) -> str:
             "## Analysis boundary",
             "",
             str(summary["analysis_boundary"]),
-            "",
-            "## Source artifacts",
-            "",
         ]
     )
+    if summary.get("scoring_profile") == FROZEN_240_PROFILE:
+        gate = summary["frozen_matrix_gate"]
+        lines.extend(
+            [
+                "",
+                "## Frozen matrix gate",
+                "",
+                "Profile `{}` passed: runtime commit `{}`, seeds `{}`, two modes, "
+                "LIBERO-Spatial tasks `0-9`, episodes `4-7`, and `{} pairs / {} rollouts`.".format(
+                    FROZEN_240_PROFILE,
+                    gate["runtime_commit"],
+                    ", ".join(str(seed) for seed in gate["seeds"]),
+                    gate["pair_count"],
+                    gate["total_rollouts"],
+                ),
+            ]
+        )
+    lines.extend(["", "## Source artifacts", ""])
     for source in summary["sources"]:
         lines.append(
             "- `{artifact_id}`: mode `{mode}`, seed `{seed}`, manifest `{manifest_sha256}`".format(
@@ -619,13 +736,19 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
     parser.add_argument("artifacts", nargs="+", type=pathlib.Path)
     parser.add_argument("--output-dir", required=True, type=pathlib.Path)
+    parser.add_argument(
+        "--profile",
+        choices=PROFILES,
+        default=SMOKE_PROFILE,
+        help="validation profile; use frozen-240 for the registered scored matrix",
+    )
     parser.add_argument("--check", action="store_true")
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
-    summary = build_summary(args.artifacts)
+    summary = build_summary(args.artifacts, profile=args.profile)
     outputs = render_outputs(summary)
     if args.check:
         check_outputs(args.output_dir, outputs)
@@ -639,6 +762,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "output_dir": str(args.output_dir.resolve()),
                 "pair_count": summary["pair_count"],
                 "pairing_gate_valid": summary["pairing_gate"]["valid"],
+                "profile": args.profile,
                 "total_rollouts": summary["total_rollouts"],
                 "valid": True,
             },

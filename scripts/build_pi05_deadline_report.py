@@ -20,6 +20,9 @@ if str(PROJECT_ROOT) not in sys.path:
 from integrations.openpi.validate_libero_independent_clock import (  # noqa: E402
     validate_artifact,
 )
+from integrations.openpi.libero_independent_clock import (  # noqa: E402
+    AGE_ALIGNED_SUFFIX,
+)
 
 
 SCHEMA_VERSION = "armbench.pi05_deadline_report.v1"
@@ -115,6 +118,12 @@ def _load_deadline_cell(path: pathlib.Path) -> dict[str, Any]:
     )
     environment = _require_mapping(
         _strict_json(evaluation / "environment.json"), "environment"
+    )
+    server_metadata = _require_mapping(
+        environment.get("server_metadata"), "environment.server_metadata"
+    )
+    attestation = _require_mapping(
+        server_metadata.get("armbench_server_attestation"), "server attestation"
     )
     rows = _strict_json(evaluation / "per_episode.json")
     if not isinstance(rows, list) or not rows:
@@ -223,11 +232,24 @@ def _load_deadline_cell(path: pathlib.Path) -> dict[str, Any]:
         ),
         "provider_failures": int(aggregate["total_failed_responses"]),
         "checkpoint": str(protocol["checkpoint"]),
+        "checkpoint_content_sha256": str(attestation["checkpoint_content_sha256"]),
         "openpi_commit": str(protocol["openpi_commit"]),
-        "armbench_commit": environment.get("armbench_git_commit"),
+        "armbench_commit": str(environment.get("armbench_git_commit")),
+        "runtime_source_sha256": environment.get("runtime_source_sha256"),
         "control_period_ms": float(runtime_protocol["control_period_ms"]),
+        "submit_every_ticks": int(runtime_protocol["submit_every_ticks"]),
+        "mailbox": str(runtime_protocol["mailbox"]),
+        "action_selection_mode": str(
+            runtime_protocol.get("action_selection_mode", AGE_ALIGNED_SUFFIX)
+        ),
         "action_horizon": int(protocol["official_protocol"]["action_horizon"]),
     }
+
+
+def _require_equal(values: Sequence[Any], label: str) -> Any:
+    if not values or any(value != values[0] for value in values[1:]):
+        raise ValueError(f"deadline artifacts disagree on {label}")
+    return values[0]
 
 
 def build_summary(paths: Sequence[pathlib.Path]) -> dict[str, Any]:
@@ -242,6 +264,25 @@ def build_summary(paths: Sequence[pathlib.Path]) -> dict[str, Any]:
         if identity in identities:
             raise ValueError(f"duplicate suite/seed/deadline cell: {identity}")
         identities.add(identity)
+
+    consistency_fields = (
+        ("checkpoint", "checkpoint URI"),
+        ("checkpoint_content_sha256", "checkpoint content"),
+        ("openpi_commit", "OpenPI commit"),
+        ("armbench_commit", "ArmBench commit"),
+        ("runtime_source_sha256", "runtime source hashes"),
+        ("control_period_ms", "control period"),
+        ("submit_every_ticks", "submission cadence"),
+        ("mailbox", "mailbox semantics"),
+        ("action_selection_mode", "action-selection mode"),
+        ("action_horizon", "action horizon"),
+    )
+    for field, label in consistency_fields:
+        _require_equal([cell[field] for cell in cells], label)
+    if cells[0]["action_selection_mode"] != AGE_ALIGNED_SUFFIX:
+        raise ValueError(
+            "deadline report requires the age_aligned_suffix action-selection mode"
+        )
 
     comparisons = []
     grouped: dict[tuple[str, int], list[dict[str, Any]]] = defaultdict(list)

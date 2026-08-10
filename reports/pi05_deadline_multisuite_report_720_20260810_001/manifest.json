@@ -1,0 +1,17 @@
+{
+  "files": {
+    "deadline_cells.csv": {
+      "bytes": 4002,
+      "sha256": "cbe3ea08bb154c86d6aa68070574b78ce93684758bd3aa5c487f219e403d0d19"
+    },
+    "summary.json": {
+      "bytes": 70991,
+      "sha256": "9b4ae460d1bf029ca63f5ed8104b6e6454bb1841e2cad229e72caede2d290def"
+    },
+    "summary.md": {
+      "bytes": 5681,
+      "sha256": "cc8eba8615eeae35b9275f17e90f53fcb8d93121294a20cdcfd4994bc5b24301"
+    }
+  },
+  "schema_version": "armbench.pi05_deadline_report_manifest.v1"
+}
