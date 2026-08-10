@@ -1,0 +1,60 @@
+{
+  "schema_version": "armbench.pi05_optimized_cpu_replay_protocol.v1",
+  "created_at_utc": "2026-08-10T18:30:00Z",
+  "status": "engineering_protocol_fixed_after_optimization_profiling_before_scored_artifact",
+  "scope": "CPU-only replay of the frozen pi0.5-to-Panda inputs through the optimized atomic assurance runtime",
+  "research_question": "Can persistent OSQP, conservative broad-phase pruning, safe-only configuration caching, and reusable braking workspaces make any complete frozen Panda action chunk executable without weakening the registered constraints or exposing a partial prefix?",
+  "input_contract": {
+    "artifact": "reports/pi05_integrated_panda_cpu_replay_270_001",
+    "source_rows": "the 90 direct-dispatch rows: 30 frozen official pi0.5 responses crossed with three registered Panda scenes",
+    "action_identity": "candidate Hx8 arrays, start states, source row indices, and response SHA-256 values are read from the manifest-bound v1 artifact",
+    "checkpoint_executed_this_run": false
+  },
+  "profiles": [
+    {
+      "id": "operational_20ms",
+      "supervision_budget_ms": 20,
+      "role": "primary engineering go/no-go condition"
+    },
+    {
+      "id": "diagnostic_100ms",
+      "supervision_budget_ms": 100,
+      "role": "diagnostic separation of method infeasibility from CPU budget infeasibility"
+    }
+  ],
+  "fixed_runtime_contract": {
+    "response_deadline_ms": 200,
+    "qp_step_budget_ms": 5,
+    "control_period_ms": 50,
+    "action_horizon": 10,
+    "case_reset": "Each profile, source response, and scene starts at the registered scene state with zero joint velocity.",
+    "cache_reset": "The safe-configuration cache is empty at the start of every scored case; only reuse within one complete action assurance request is allowed.",
+    "worker_lifecycle": "One assurance worker remains alive per scene and profile. One-time worker startup and shutdown are measured separately and excluded from per-request supervision latency.",
+    "publication": "The atomic gate publishes either all Hx8 actions or no policy action.",
+    "collision": "World-space bounding-sphere lower bounds prune exact MuJoCo geometry distances only when the complete interval is certified above clearance.",
+    "braking": "Every action boundary retains sampled inverse-dynamics effort checks and one continuous certificate for its synchronized joint-linear stopping segment."
+  },
+  "primary_outcomes": [
+    "complete plans atomically executed",
+    "unsafe plans published",
+    "partial prefixes exposed",
+    "20 ms software-budget misses",
+    "200 ms response-deadline misses",
+    "QP, continuous-collision, braking, and fallback stage latency",
+    "exact geometry evaluations, broad-phase prune rate, and safe-cache hits",
+    "independent candidate constraint audit"
+  ],
+  "go_no_go_rule": {
+    "go": "The operational_20ms profile executes at least one complete plan, publishes zero plans that fail the independent registered-constraint audit, exposes zero partial prefixes, and the artifact validates.",
+    "no_go": "No operational_20ms plan executes, any operational plan fails the independent audit, any partial prefix is exposed, or the artifact cannot be validated.",
+    "diagnostic_profile": "The diagnostic_100ms profile cannot change the operational decision; it only identifies candidates that are method-feasible under a relaxed CPU budget."
+  },
+  "claim_boundaries": [
+    "This protocol was fixed after implementation profiling and is an engineering audit, not a preregistered inferential study.",
+    "Frozen official responses are replayed; the pi0.5 checkpoint is not executed in this run.",
+    "LIBERO actions remain cross-controller inputs to Panda, not native Panda policy outputs.",
+    "Cases reset independently and do not feed Panda observations back to the policy.",
+    "Python CPU timing is best effort and is not a hard-real-time guarantee.",
+    "MuJoCo geometry and inverse dynamics are not physical-robot safety certification."
+  ]
+}
