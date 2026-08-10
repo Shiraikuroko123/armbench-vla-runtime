@@ -1,0 +1,106 @@
+{
+  "schema_version": "armbench.pi05_deadline_followup_protocol.v1",
+  "created_at_utc": "2026-08-10T02:24:00.3791458Z",
+  "status": "protocol_frozen_before_remaining_followup_cells",
+  "scope": "Exploratory MuJoCo LIBERO deadline replication for one attested pi0.5 checkpoint",
+  "runtime_commit": "8686490",
+  "repository_commit_at_freeze": "f1d8d3ec503687ea1e3b140d0212cdd3bb3df8cb",
+  "fixed_protocol": {
+    "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+    "task_suite": "libero_spatial",
+    "task_ids": "0:10",
+    "episode_indices": "0:4",
+    "control_period_ms": 50,
+    "action_horizon": 10,
+    "submit_every_ticks": 1,
+    "mailbox": "latest_only_single_pending_observation",
+    "deadline_disposition": "hold",
+    "video_mode": "failures",
+    "max_task_steps": null
+  },
+  "primary_outcomes": [
+    "task_success_rate",
+    "execute_duty_cycle",
+    "deadline_hold_ticks",
+    "provider_failures",
+    "inference_simulation_overlap"
+  ],
+  "decision_rule_after_seed8_endpoints": {
+    "continue_fine_boundary_replication_if": {
+      "seed8_175_successes_minus_seed8_150_successes_at_least": 20,
+      "seed8_175_execute_duty_minus_seed8_150_execute_duty_at_least": 0.3,
+      "seed8_provider_failures": 0
+    },
+    "continue_cells": [
+      {
+        "label": "seed9_spatial_deadline175",
+        "task_suite": "libero_spatial",
+        "deadline_ms": 175,
+        "seed": 9,
+        "planned_rollouts": 40
+      },
+      {
+        "label": "seed7_spatial_deadline155",
+        "task_suite": "libero_spatial",
+        "deadline_ms": 155,
+        "seed": 7,
+        "planned_rollouts": 40
+      },
+      {
+        "label": "seed8_spatial_deadline155",
+        "task_suite": "libero_spatial",
+        "deadline_ms": 155,
+        "seed": 8,
+        "planned_rollouts": 40
+      },
+      {
+        "label": "seed9_spatial_deadline155",
+        "task_suite": "libero_spatial",
+        "deadline_ms": 155,
+        "seed": 9,
+        "planned_rollouts": 40
+      },
+      {
+        "label": "seed9_spatial_deadline150",
+        "task_suite": "libero_spatial",
+        "deadline_ms": 150,
+        "seed": 9,
+        "planned_rollouts": 40
+      }
+    ],
+    "order_note": "Seed 9 endpoint cells run 175 -> 155 -> 150 to counterbalance the earlier 150 -> 175 order."
+  },
+  "fallback_if_seed8_transition_not_reproduced": [
+    {
+      "label": "seed9_spatial_deadline175",
+      "deadline_ms": 175,
+      "seed": 9,
+      "planned_rollouts": 40
+    },
+    {
+      "label": "seed9_spatial_deadline150",
+      "deadline_ms": 150,
+      "seed": 9,
+      "planned_rollouts": 40
+    }
+  ],
+  "analysis_plan": {
+    "reporting": "descriptive per-seed tables with Wilson intervals and paired episode discordance",
+    "paired_unit": "task_id plus episode_index within a fixed task suite",
+    "pooling": "do not pool cells into an iid population estimate or universal threshold",
+    "interpretation": "treat 150-to-175 behavior as a service/task-specific clock-quantization transition unless reproduced across the registered cells",
+    "multiple_comparisons": "no post-hoc threshold search beyond the registered 155 ms boundary probe"
+  },
+  "stop_conditions": [
+    "provider failure, missing inference/simulation overlap, worker not stopped, or validator invalid",
+    "checkpoint attestation, OpenPI commit, or runtime source hashes differ from the fixed protocol",
+    "less than 60 minutes of server lease remains before starting another cell",
+    "do not launch a new cell solely because an intermediate success rate looks favorable"
+  ],
+  "claim_boundaries": [
+    "not an official LIBERO leaderboard score",
+    "not a hard-real-time guarantee",
+    "not hardware safety or real-robot deployment evidence",
+    "not cross-model superiority or a universal VLA deadline threshold"
+  ]
+}
