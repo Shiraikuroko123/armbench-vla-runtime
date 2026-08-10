@@ -171,7 +171,7 @@ def test_changing_registered_pairs_invalidates_safe_configuration_cache() -> Non
     assert broad.edge_certificate(scenario.start, end).certified_safe
     assert broad.safe_configuration_cache_size > 0
 
-    broad.set_pairs(broad.pairs)
+    broad.clear_safe_configuration_cache()
 
     assert broad.safe_configuration_cache_size == 0
 

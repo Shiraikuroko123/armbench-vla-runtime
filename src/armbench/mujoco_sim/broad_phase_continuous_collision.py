@@ -66,6 +66,11 @@ class BroadPhaseContinuousMuJoCoCollisionChecker(
     def safe_configuration_cache_size(self) -> int:
         return len(self._safe_configuration_cache)
 
+    def clear_safe_configuration_cache(self) -> None:
+        """Start an independent case without reusing earlier safe states."""
+
+        self._safe_configuration_cache.clear()
+
     def _refresh_pair_arrays(self) -> None:
         self._pair_geom1 = np.asarray(
             [pair.geom1 for pair in self.pairs], dtype=np.int32
