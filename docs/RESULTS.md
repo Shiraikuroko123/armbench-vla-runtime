@@ -224,32 +224,47 @@ Validate it without a GPU:
 
     python -m integrations.openpi.validate_libero_independent_clock evidence/g06_spatial_deadline175_40_20260810_001/evaluation --json
 
-## pi0.5-LIBERO deadline seed-8 replication
+## Registered pi0.5-LIBERO deadline study
 
-The second-seed cells retain the Spatial task matrix, checkpoint, runtime, and
-deadlines while changing the joint environment and keyed-policy sampling seed
-from 7 to 8. They were selected after observing seed 7 and remain exploratory.
+The completed study contains 18 independently validated cells and 720
+rollouts. Every cell uses the official `pi05_libero` checkpoint, 20 Hz control,
+H=10 action chunks, a latest-only mailbox, `age_aligned_suffix` selection, and
+the same fail-closed hold rule. Spatial covers seeds 7/8/9; Object covers seeds
+7/8. Each seed-deadline cell contains tasks 0-9 and episodes 0-3. The 50 ms G04
+run remains a separate stress control and is not pooled into this balanced
+matrix.
 
-| Deadline | Seed-7 success / execute duty | Seed-8 success / execute duty |
-|---:|---:|---:|
-| 150 ms | 0/40 / 26.2% | 0/40 / 26.6% |
-| 175 ms | 38/40 / 86.5% | 37/40 / 86.7% |
+| Suite | Deadline | Seed-level task successes |
+|---|---:|---:|
+| Spatial | 150 ms | 0/40, 0/40, 0/40 |
+| Spatial | 155 ms | 38/40, 36/40, 40/40 |
+| Spatial | 175 ms | 38/40, 37/40, 39/40 |
+| Spatial | 200 ms | 38/40, 39/40, 38/40 |
+| Object | 150 ms | 0/40, 0/40 |
+| Object | 175 ms | 37/40, 39/40 |
+| Object | 200 ms | 39/40, 39/40 |
 
-The seed-8 cells independently preserve all requests, tick decisions, initial
-states, failures, videos, source snapshots, and manifests. Tick-level deadline
-holds were 6,338 at 150 ms and 501 at 175 ms; these are distinct from the 2 and
-0 response-level deadline rejections. The complete seed-stratified report is
-[`reports/pi05_deadline_seed_replication_20260810_001/summary.md`](../reports/pi05_deadline_seed_replication_20260810_001/summary.md).
+For Spatial, the registered transition from 150 to 155 ms changes execute duty
+from 26.2%-26.6% to 85.6%-87.3% and task success from 0/40 for every seed to
+36-40/40. Increasing the deadline from 155 to 175 or 200 ms does not produce a
+consistent success improvement. For Object, 150 ms also yields 0/40 in both
+seeds, while 175 and 200 ms yield 37-39/40. This pattern is consistent with
+service latency crossing discrete 50 ms controller ticks and changing the
+fraction of publishable actions. It is not evidence of a universal VLA
+deadline threshold.
 
-Validate the saved artifacts without a GPU:
+The deterministic report validates every source artifact before rebuilding
+the table and keeps tick-level deadline holds separate from response-level
+deadline rejections. See the
+[`720-rollout report`](../reports/pi05_deadline_multisuite_report_720_20260810_001/summary.md)
+or run the repository-wide CPU acceptance script. All requests, action chunks,
+tick decisions, initial states, failures, videos, worker terminal states,
+source hashes, and manifests remain available in the evidence catalog.
 
-    python -m integrations.openpi.validate_libero_independent_clock evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation --json
-    python -m integrations.openpi.validate_libero_independent_clock evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation --json
-
-The replication supports a service/task-specific clock-quantization
-interpretation. It does not establish a universal VLA threshold, an official
-LIBERO score, hard-real-time scheduling, hardware safety, cross-model
-superiority, or real-robot deployment.
+Wilson intervals describe registered episode cells and do not make task or
+seed blocks iid deployment samples. The study is simulation-only and does not
+establish an official LIBERO score, hard-real-time scheduling, hardware safety,
+cross-model superiority, or real-robot deployment.
 
 ## pi0.5 RTC guidance G0
 

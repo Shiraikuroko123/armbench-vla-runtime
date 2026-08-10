@@ -27,6 +27,21 @@ tick 发生在推理进行期间，0 次 deadline 超时、0 次 provider 失败
   'evidence\pi05_libero_independent_clock_core_40_001\evaluation' --json
 ```
 
+## 已完成的独立时钟 deadline 研究
+
+在 G02 pilot 之后，项目把相同的官方 checkpoint、20 Hz 控制周期、H=10
+动作块、latest-only mailbox、观测年龄后缀选择和 fail-closed hold 规则扩展为
+18 个可独立验证的实验单元，共 720 次 rollout。Spatial 的 seed 7/8/9 在
+150 ms 均为 0/40，在 155 ms 为 38/40、36/40、40/40；Object 的 seed 7/8
+在 150 ms 均为 0/40，在 175 ms 为 37/40、39/40。继续提高到 175 或
+200 ms 没有产生一致的成功率提升。
+
+该结果更符合“服务时延跨过 20 Hz 控制 tick 后，可发布动作占比发生离散变化”
+的解释，不能写成所有 VLA 通用的 deadline 阈值。完整的 seed 分层表、Wilson
+区间、执行/hold 统计、来源 manifest 与边界见
+[720-rollout 报告](reports/pi05_deadline_multisuite_report_720_20260810_001/summary.md)。
+50 ms 的 G04 是单独的极限压力对照，不混入这 720 次平衡矩阵。
+
 ArmBench 是一个面向动作块式视觉-语言-动作策略的运行时与评测平台。它研究的不是重新训练一个 VLA，而是 VLA 已经输出一段未来动作后，如何在推理延迟、状态变化和异常响应下可信地进入控制回路。
 
 本文首次使用的规范名称为：**Physical Intelligence 的 `pi0.5`（pi-zero-point-five）视觉-语言-动作模型，简称 `pi0.5 VLA`**。`OpenPI` 是项目使用的模型与推理实现栈，不是另一个模型名称。
