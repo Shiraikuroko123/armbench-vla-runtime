@@ -1,0 +1,22 @@
+{
+  "schema_version": "armbench.pi05_object_selection_exploratory_protocol_amendment.v1",
+  "created_at_utc": "2026-08-10T06:53:30Z",
+  "status": "frozen_before_the_first_cell_completed_and_before_any_task_outcome_was_inspected",
+  "parent_protocol": "pi05_object_selection_exploratory_protocol_20260810.json",
+  "parent_protocol_sha256": "7ebe9efb78db4e868745879178e6f45a3719e440b5d1fecf403d01e8c4d1cac3",
+  "reason": "The first cell's outcome-blind progress timestamps showed that the original 25-minute lease reserve could leave one complete but scientifically uninterpretable unpaired cell. Historical cell durations and archive sizes support a 20-minute reserve for the second cell, validation, report generation, and immediate download.",
+  "amendment": {
+    "original_second_cell_latest_start_utc": "2026-08-10T06:55:00Z",
+    "amended_second_cell_latest_start_utc": "2026-08-10T07:00:00Z",
+    "minimum_reported_lease_reserve_minutes": 20
+  },
+  "unchanged": [
+    "checkpoint and runtime commit",
+    "task suite, task IDs, episode indices, and seed",
+    "deadline, control period, action horizon, mailbox, and hold behavior",
+    "action-selection modes and their fixed order",
+    "pairing gates, outcomes, analysis, and claim boundaries",
+    "no outcome-dependent stopping"
+  ],
+  "outcome_blinding_statement": "No task success, paired outcome, action index, hold reason, or provider result from the running Object cell was inspected before this amendment was written. Only completed-rollout count and wall-clock progress were read."
+}
