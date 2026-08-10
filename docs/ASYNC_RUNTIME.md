@@ -1,10 +1,13 @@
 # Non-blocking runtime harness
 
-Status: Current component-level validation
+Status: Current component and official-checkpoint validation
 
-The completed `pi0.5`-LIBERO studies use blocking inference followed by
-simulator catch-up. The maintained runtime now includes a separate development
-harness for removing that architectural limitation without requiring a GPU.
+The repository retains earlier `pi0.5`-LIBERO studies that use blocking
+inference followed by simulator catch-up. The maintained runtime also includes
+an independently ticking inference/simulation path: a policy worker can block
+while the 20 Hz simulator continues to advance. That path has now run the
+attested official `pi05_libero` checkpoint; the scripted CPU harness remains
+the fast local contract test.
 
 ## Runtime structure
 
@@ -56,6 +59,12 @@ behavior with a delayed scripted policy. It does not run OpenPI, `pi0.5`,
 LIBERO, or MuJoCo; it produces no task-success evidence. It also does not set
 real-time thread priorities and cannot provide a worst-case scheduling bound.
 
-The next integration step is to place this worker/dispatcher between the
-official policy client and a continuously advancing simulator, then pass the
-selected suffix through the existing kinematic guard before actuator dispatch.
+The official-checkpoint path is reported separately in the
+[720-rollout deadline study](../reports/pi05_deadline_multisuite_report_720_20260810_001/summary.md)
+and the
+[240-rollout held-out action-selection study](../reports/pi05_selection_heldout_report_240_20260810_001/summary.md).
+Those results establish independently advancing inference and simulation for
+one checkpoint and two LIBERO suites; they do not establish hard-real-time
+scheduling, a universal deadline threshold, hardware safety, or cross-model
+generality. The next integration step is to place constrained projection and
+braking repair inside the same task-level evaluator.

@@ -39,11 +39,15 @@ imagery, a generic VLA hero, or a marketing claim.
   inference/simulation overlap, 4,521/4,623 control ticks occurred during
   inference, 4,031 execute and 592 hold ticks, with no deadline/provider
   failures.
-- **Stress facts:** G04 at 50 ms produced 0 execute and 8,800 hold ticks;
-  G05 at 150 ms produced 2,309 execute and 6,491 hold ticks with 0/40 task
-  successes; G06 at 175 ms produced 3,942 execute and 613 hold ticks with
-  38/40 successes. These are separate exploratory stress artifacts, not
-  threshold certification.
+- **Deadline facts:** the registered synthesis covers 18 cells / 720 rollouts.
+  Spatial seeds 7/8/9 move from 0/40 at 150 ms to 36-40/40 at 155 ms;
+  Object seeds 7/8 move from 0/40 at 150 ms to 37-39/40 at 175 ms. Above
+  those cells, success does not improve consistently. G04 at 50 ms remains a
+  separate stress control.
+- **Selection facts:** the frozen held-out comparison covers 120 pairs / 240
+  rollouts. Age-aligned suffix reaches 114/120 versus 100/120 for
+  response-relative chunk execution: +11.67 points, exact McNemar p=0.00936,
+  30-block bootstrap 95% [+1.67,+21.67]. All 120 query-0 pairing gates pass.
 - **Boundary:** the 2/2 reached Panda task source is scripted RRT-Connect. G01
   is a single free-space integration probe with `target_reached=false`, not an
   official LIBERO/Panda task score. All evidence is MuJoCo simulation with
@@ -75,12 +79,12 @@ column and long case identifiers remain inspectable on mobile.
 - G02 media is also below the fold and lazy-attached. Native controls keep the
   success and two failure clips independently inspectable; the success clip is
   explicitly labeled as a separate curated run.
-- The deadline curve is text-and-metric evidence rather than a generated chart:
-  G02 (200 ms), G06 (175 ms), G05 (150 ms), and G04 (50 ms) link directly to
-  their checked-in manifests and validator commands.
-- A separate seed-8 replication card links the 150/175 ms artifacts and
-  seed-stratified report; it is labeled exploratory and does not recast the
-  curve as a universal threshold.
+- The deadline curve is text-and-metric evidence rather than a decorative
+  chart. It links the 18-cell report and separate 50 ms stress artifact, and
+  states the service-clock interpretation beside the numbers.
+- The held-out selection section presents the overall paired effect, all three
+  seed blocks, query-0 gate, task-by-seed bootstrap, execute-duty contrast, and
+  claim boundary without hiding the response-relative wins.
 - Acceptance commands expose copy buttons with a clipboard fallback.
 - All media and dynamic controls have adjacent text labels and stable aspect
   ratios; no information depends on hover.
@@ -112,7 +116,9 @@ column and long case identifiers remain inspectable on mobile.
   `reports/cpu_runtime_completion_001/`,
   `reports/integrated_panda_fault_matrix_001/` and
   `reports/integrated_panda_task_001/`, plus
-  `reports/official_lerobot_roundtrip_001/`.
+  `reports/official_lerobot_roundtrip_001/`,
+  `reports/pi05_deadline_multisuite_report_720_20260810_001/`, and
+  `reports/pi05_selection_heldout_report_240_20260810_001/`.
 - Code and artifact links point to the public repository
   `Shiraikuroko123/armbench-vla-runtime`.
 - Code license and third-party asset terms are linked in the footer.

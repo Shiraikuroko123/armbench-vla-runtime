@@ -95,6 +95,10 @@ to match later results.
 | [Cross-suite external-validation freeze](PI05_CROSS_SUITE_EXTERNAL_VALIDATION_FREEZE.md) | Frozen | 300-rollout Object, Goal, and LIBERO-10 validation |
 | [Corrected RTC primary protocol](research/RTC_OVERLAP_PRIMARY_300_V3_PROTOCOL.md) | Frozen | 300-rollout corrected-v3 RTC comparison |
 | [RTC query-zero pairing audit](research/RTC_OVERLAP_PAIRING_AUDIT_20260805.md) | Audit | Detection and remediation of v2 environment carryover |
+| [Independent-clock deadline follow-up](research/pi05_deadline_followup_protocol_20260810.json) | Frozen | Spatial 150/155/175 ms multi-seed boundary matrix |
+| [Independent-clock nominal references](research/pi05_deadline_nominal_reference_protocol_20260810.json) | Frozen | Registered 200 ms Spatial/Object reference cells |
+| [Independent-clock Object transfer](research/pi05_object_deadline_transfer_protocol_20260810.json) | Frozen | Object 150/175 ms cross-suite deadline cells |
+| [Held-out action-selection baseline](research/pi05_independent_clock_selection_baseline_protocol_20260810.json) | Frozen | Three-seed Spatial comparison with query-0 pairing gates |
 
 ## Historical records
 
@@ -119,3 +123,11 @@ The active result summary is [Results](RESULTS.md). When a summary and a frozen
 protocol use different tense or status language, the protocol records what was
 declared before execution; the current result summary records what was
 subsequently observed and validated.
+
+The current independent-clock deadline synthesis is the
+[18-cell / 720-rollout report](../reports/pi05_deadline_multisuite_report_720_20260810_001/summary.md).
+Its 50 ms stress control remains separate from the balanced report. The
+held-out action-selection study is the
+[six-cell / 240-rollout report](../reports/pi05_selection_heldout_report_240_20260810_001/summary.md);
+all six source cells, 120 query-0 pairing gates, and the exact frozen-matrix
+profile pass current-code validation.

@@ -1,10 +1,11 @@
 # 非阻塞运行时验收
 
-状态：当前组件级验证
+状态：当前组件与官方 checkpoint 验证
 
-已完成的 `pi0.5`-LIBERO 实验采用 blocking inference，再对等待期间进行
-simulator catch-up。当前维护版本增加了不依赖 GPU 的独立开发验收，用于逐步
-消除这个架构限制。
+仓库保留了早期采用 blocking inference 和 simulator catch-up 的
+`pi0.5`-LIBERO 实验。当前维护版本同时包含推理与仿真独立推进的路径：策略
+worker 可以阻塞，而 20 Hz 仿真继续运行。该路径已经运行经过认证的官方
+`pi05_libero` checkpoint；scripted CPU harness 继续作为快速的本地契约测试。
 
 ## 运行结构
 
@@ -51,5 +52,10 @@ tick 间隔、后缀偏移、hold 次数和最终调度决定。还可以显式�
 运行 OpenPI、`pi0.5`、LIBERO 或 MuJoCo，也不产生任务成功率证据。它没有设置
 实时线程优先级，不能提供最坏调度时延保证。
 
-下一步应将 worker/dispatcher 接到官方策略客户端与持续推进的 simulator 之间，
-并在 actuator dispatch 前把选中的动作后缀送入现有运动学 guard。
+官方 checkpoint 证据单独记录在
+[720-rollout deadline 研究](../reports/pi05_deadline_multisuite_report_720_20260810_001/summary.md)
+与
+[240-rollout held-out 动作选择研究](../reports/pi05_selection_heldout_report_240_20260810_001/summary.md)。
+这些结果只证明一个 checkpoint、两个 LIBERO suite 中的独立时钟仿真行为；不证明
+硬实时调度、通用 deadline 阈值、实体安全或跨模型泛化。下一步是把受约束投影和
+制动修复接入同一个任务级 evaluator。

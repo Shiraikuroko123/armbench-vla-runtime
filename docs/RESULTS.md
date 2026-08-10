@@ -266,6 +266,69 @@ seed blocks iid deployment samples. The study is simulation-only and does not
 establish an official LIBERO score, hard-real-time scheduling, hardware safety,
 cross-model superiority, or real-robot deployment.
 
+## Held-out independent-clock action-selection study
+
+### Frozen protocol and pairing
+
+- Runtime commit: `1551900d2c66b0e8a1d46af51ee5df53e8c63bcc`
+- Policy/checkpoint: official `pi05_libero`, content SHA-256
+  `9cd1b00d402cc0447454dad6054dcc6f019b53e498469f209d2b749d4487e1d5`
+- Matrix: LIBERO Spatial tasks 0-9, episodes 4-7, joint seeds 7/8/9,
+  two modes, 120 pairs / 240 rollouts
+- Fixed runtime: independent inference/simulation processes, 20 Hz control,
+  H=10 chunks, 175 ms observation-age deadline, latest-only mailbox, keyed
+  sampling, and fail-closed hold
+- Pairing gate: all 120 pairs match initial-state, canonical policy-input,
+  sampling-key, sampling-noise, and query-0 action-chunk hashes
+
+`age_aligned_suffix` executes index
+`ceil(observation_age / control_period)` from a fresh chunk.
+`response_relative_chunk` starts an accepted response at index zero. The latter
+retains the same observation-age deadline and hold behavior; it is not an
+unguarded baseline.
+
+### Registered outcome
+
+| Mode | Task success | Execute duty | Inference overlap | Provider failures |
+|---|---:|---:|---:|---:|
+| `age_aligned_suffix` | 114/120 (95.0%) | 86.42% | 120/120 | 0 |
+| `response_relative_chunk` | 100/120 (83.3%) | 87.18% | 120/120 | 0 |
+
+| Seed | Pairs | Age-aligned | Response-relative |
+|---:|---:|---:|---:|
+| 7 | 40 | 38/40 | 36/40 |
+| 8 | 40 | 36/40 | 29/40 |
+| 9 | 40 | 40/40 | 35/40 |
+
+The paired success-rate difference is +11.67 percentage points. Outcomes are
+94 both-success, 20 age-aligned-only, 6 response-relative-only, and 0
+both-failure; the frozen exact two-sided McNemar test gives `p=0.0093553`.
+Across the 30 registered task-by-seed blocks, the fixed 10,000-replicate
+block-bootstrap 95% interval is [+1.67,+21.67] points, with 12 positive, 3
+negative, and 15 tied blocks. This interval resamples task-by-seed blocks, not
+episodes as iid deployment draws.
+
+Age alignment does not win by publishing more often. Its paired mean execute
+duty is 0.75 points lower, with a task-by-seed block-bootstrap 95% interval of
+[-1.16,-0.38] points. Aggregate hold accounting is 1,516 deadline-exceeded plus
+359 no-response ticks for age alignment, versus 2,088 plus 359 for
+response-relative selection. Executed indices are 3/4 for the age-aligned
+selector and 0/1 for the response-relative selector, matching their registered
+semantics. Response-level deadline rejections are 0 and 2 respectively.
+
+The current-code report independently validates all six source artifacts and
+enforces the exact frozen matrix before writing any statistic. See the
+[`frozen-240 report`](../reports/pi05_selection_heldout_report_240_20260810_001/summary.md)
+and its machine-readable `summary.json` and `pairs.csv`. It is also part of
+`scripts/accept_cpu.py`.
+
+The protocol was frozen before execution, but this remains exploratory
+simulation evidence for one checkpoint and one LIBERO suite. It is not an
+official leaderboard score, hard-real-time
+guarantee, hardware-safety or real-robot evidence, cross-model superiority, or
+iid deployment statistics. Query-0 equality does not imply later observations
+remain equal after the two modes produce different trajectories.
+
 ## pi0.5 RTC guidance G0
 
 ### Provenance and protocol

@@ -37,6 +37,16 @@ pattern is consistent with service latency crossing discrete 20 Hz controller
 ticks, not a universal VLA threshold. The balanced report is in
 [`reports/pi05_deadline_multisuite_report_720_20260810_001`](reports/pi05_deadline_multisuite_report_720_20260810_001/summary.md).
 
+A separately frozen held-out study then isolates action-selection semantics
+under the same independent clocks, 175 ms deadline, hold rule, checkpoint, and
+keyed sampling. Across 120 paired Spatial episodes, age-aligned suffix
+selection reaches 114/120 tasks versus 100/120 when each accepted response
+starts at chunk index zero: +11.67 points, 20/6 discordant wins/losses, exact
+McNemar `p=0.00936`, and a 30-block bootstrap 95% interval of
+[+1.67,+21.67] points. All 120 query-0 pairs pass initial-state, canonical
+input, sampling-key, sampling-noise, and action-chunk hash gates. See the
+[`frozen-240 report`](reports/pi05_selection_heldout_report_240_20260810_001/summary.md).
+
 The naming change reflects an engineering progression, not a replacement of
 the original project. The seven-DoF planning and tracking benchmark became the
 Panda execution substrate; ArmBench adds the action-chunk timing, validation,
@@ -90,6 +100,7 @@ for the full design and the current integration gap.
 | G05 150 ms deadline stress | Same 40-rollout Spatial matrix: 0/40 successes, 2,309 execute and 6,491 hold ticks, 16 deadline exceedances | Intermediate exploratory stress point: actions execute, but the available duty cycle is insufficient for task completion |
 | G06 175 ms deadline stress | Same 40-rollout Spatial matrix: 38/40 successes, 3,942 execute and 613 hold ticks, 0 deadline/provider failures | Exploratory transition point; not a universal deadline threshold or hard-real-time claim |
 | Registered deadline study | 18 cells / 720 rollouts: Spatial seeds 7/8/9 at 150/155/175/200 ms and Object seeds 7/8 at 150/175/200 ms; all source validators and the combined report pass | Service- and clock-specific simulation evidence; cells remain seed-stratified and do not establish a universal threshold, iid deployment estimate, or hard-real-time guarantee |
+| Held-out independent-clock action selection | 120 paired Spatial episodes / 240 rollouts: age-aligned suffix 114/120, response-relative chunk 100/120, +11.67 points, exact McNemar `p=0.00936`, task-by-seed block-bootstrap 95% [+1.67,+21.67] | Protocol frozen before execution; exploratory evidence for one checkpoint and suite. Response-relative retains the same deadline/hold rule, and the result is not cross-model, hardware, or leaderboard evidence |
 | Measured-age temporal alignment | Official `pi0.5`-LIBERO Spatial, 120 matched pairs: 88/120 to 116/120, +23.33 points, exact McNemar `p=1.94e-6` | Training-free, observation-age-based suffix selection improves this frozen simulation matrix |
 | Cross-suite validation | Object, Goal, and LIBERO-10: 300 rollouts / 150 pairs, 83/150 to 141/150 | Extends deterministic-delay evidence within the same model family and simulator suite |
 | RTC-style continuation | 300 rollouts / 100 matched triplets: 96/100 baseline, 97/100 hard projection, 97/100 RTC guidance | No task-success superiority; motion-seam measurements remain exploratory |
@@ -153,8 +164,12 @@ boundary.
   conditions; it is reported separately and is not a universal deadline claim.
 - G06 is a second exploratory transition point at 175 ms; its 38/40 result is
   not pooled with G02 or presented as a threshold certification.
-- The temporal studies use blocking inference plus simulator catch-up, not an
-  operating-system-level hard-real-time control loop.
+- The G02, deadline, and held-out action-selection studies use separate
+  inference and 20 Hz simulation processes. They remain best-effort Python
+  simulation and do not provide operating-system hard-real-time guarantees.
+- The held-out action-selection result covers one checkpoint, one LIBERO suite,
+  three joint seeds, and episodes 4-7. Query-0 equality does not imply later
+  observations remain equal after the two modes diverge.
 - Integrated Panda assurance has synchronous task evidence and an asynchronous
   worker/publication boundary. Its 2/2 reached task actions remain scripted
   RRT-Connect; those results must not be relabeled as `pi0.5` task outcomes.

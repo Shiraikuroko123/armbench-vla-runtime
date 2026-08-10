@@ -42,6 +42,27 @@ tick 发生在推理进行期间，0 次 deadline 超时、0 次 provider 失败
 [720-rollout 报告](reports/pi05_deadline_multisuite_report_720_20260810_001/summary.md)。
 50 ms 的 G04 是单独的极限压力对照，不混入这 720 次平衡矩阵。
 
+## 冻结的独立时钟动作选择对照
+
+项目随后固定了一个不与前述 episodes 0-3 混合的 held-out 协议：LIBERO
+Spatial tasks 0-9、episodes 4-7、joint seeds 7/8/9，两种模式都使用同一
+官方 checkpoint、175 ms observation-age deadline、latest-only mailbox、
+keyed sampling 和 fail-closed hold。`age_aligned_suffix` 根据观测年龄选择
+动作后缀；`response_relative_chunk` 在响应返回后从 chunk 第 0 项开始，但
+它并不是 unguarded，仍受相同 deadline 和 hold 规则保护。
+
+120 组成对 episode / 240 次 rollout 中，age-aligned 为 114/120，
+response-relative 为 100/120，成对差值 +11.67 个百分点，discordance 为
+20/6，exact McNemar `p=0.00936`。以 30 个 task×seed block 为重采样单位的
+固定 bootstrap 95% 区间为 [+1.67,+21.67] 个百分点。全部 120 组 query-0
+的初态、规范化策略输入、采样 key、采样 noise 与动作块哈希均一致。
+[完整报告](reports/pi05_selection_heldout_report_240_20260810_001/summary.md)
+同时给出逐 seed、逐 task×seed、hold reason 和执行 action index。
+
+该协议在执行前已冻结，但仍是单 checkpoint、单 suite 的探索性仿真结果，不是
+官方排行榜、跨模型结论、硬实时保证、真机安全证明或 iid 部署统计。两种模式
+分叉后会产生不同轨迹，因此 query-0 相等不代表后续观测继续相等。
+
 ArmBench 是一个面向动作块式视觉-语言-动作策略的运行时与评测平台。它研究的不是重新训练一个 VLA，而是 VLA 已经输出一段未来动作后，如何在推理延迟、状态变化和异常响应下可信地进入控制回路。
 
 本文首次使用的规范名称为：**Physical Intelligence 的 `pi0.5`（pi-zero-point-five）视觉-语言-动作模型，简称 `pi0.5 VLA`**。`OpenPI` 是项目使用的模型与推理实现栈，不是另一个模型名称。
@@ -89,6 +110,8 @@ Panda 与 LIBERO 的动作契约不同，实验结果不会混合统计。完整
 | 研究 | 证据 | 可以得出的结论 |
 | --- | --- | --- |
 | 真实 `pi0.5` 到 Panda 集成门 | 官方 OpenPI `pi05_libero` checkpoint，35 个响应被接收，策略时延平均/P95 为 82.75/89.56 ms，推理期间控制 tick 为 290/311，注册仿真违规为 0 | 内容校验过的 H×7 响应穿过 Panda H×8 适配器与异步 runtime；探针目标未到达，因此只证明接线与运行时机制，不证明任务能力 |
+| 独立时钟 deadline 研究 | 18 个单元 / 720 次 rollout；Spatial seeds 7/8/9 覆盖 150/155/175/200 ms，Object seeds 7/8 覆盖 150/175/200 ms | 证明当前服务与 20 Hz 控制时钟下的发布占空比转变；不是通用 VLA 阈值或硬实时证明 |
+| Held-out 动作选择对照 | 120 对 / 240 次 rollout：age-aligned 114/120，response-relative 100/120，+11.67 个百分点，exact McNemar `p=0.00936`，block-bootstrap 95% [+1.67,+21.67] | 一个 checkpoint、一个 suite 的冻结探索性仿真证据；两种模式都有相同 deadline/hold，不证明跨模型或真机效果 |
 | 观测年龄时序对齐 | 官方 `pi0.5`-LIBERO Spatial，120 组匹配试验：88/120 到 116/120，+23.33 个百分点，exact McNemar `p=1.94e-6` | 在该冻结仿真矩阵中，免训练的观测年龄后缀选择有效 |
 | 跨任务集验证 | Object、Goal、LIBERO-10：300 rollouts / 150 pairs，83/150 到 141/150 | 将同一模型族和仿真套件内的确定性延迟证据扩展至三个任务集 |
 | RTC-style continuation | 300 rollouts / 100 matched triplets：baseline 96/100，hard projection 97/100，RTC guidance 97/100 | 没有任务成功率优势；motion seam 仅为探索性过程指标 |
@@ -119,7 +142,11 @@ Panda 与 LIBERO 的动作契约不同，实验结果不会混合统计。完整
 - 没有训练或微调 `pi0.5`。
 - 官方 checkpoint 结果仅覆盖仿真。LIBERO 研究遵循官方任务协议；Panda G01
   是单独的集成探针，并如实记录 `target_reached=false`。
-- 时序实验使用 blocking inference 加 simulator catch-up，不是操作系统级硬实时控制。
+- G02、deadline 与 held-out 动作选择实验让阻塞推理在独立 worker 中运行，
+  仿真进程以 20 Hz 继续推进；它仍是 best-effort Python 仿真，不是操作系统级
+  硬实时控制。
+- held-out 结果只覆盖一个 checkpoint、一个 suite 和三个 joint seed；两种模式
+  分叉后的后续轨迹不再配对，不能外推为跨模型或部署统计。
 - Panda 集成保障中的 2/2 到达任务仍来自 scripted RRT-Connect，不能借用 G01
   将其改写为 `pi0.5` 的任务结果；完整 horizon 检查也不能替代实体碰撞安全认证。
 - 没有集成 Isaac Lab、ROS2、真实 Franka Panda 或安全 PLC。

@@ -90,8 +90,13 @@ responses. Scripted policies provide the complete CPU fault matrix. The same
 threaded scheduling contract is now exercised by one content-attested live
 `pi05_libero` checkpoint smoke in the local torque-controlled MuJoCo Panda loop
 with dual-camera capture, measured-state terminal braking, and trace-derived
-validation. It has not replaced the blocking-inference plus simulator-catch-up
-evaluator used by the completed LIBERO outcome studies.
+validation. A separate process-based LIBERO harness advances simulation at 20
+Hz while an independent worker blocks on official `pi05_libero` inference. Its
+latest-only mailbox, observation-age deadline, action selector, and fail-closed
+hold rule are exercised by the G02 pilot and the registered 720-rollout
+deadline study. Earlier blocking-inference plus simulator-catch-up studies
+remain separate historical evidence and are not relabeled as independent-clock
+results.
 
 A CPU completion path now places the full integrated Panda supervisor on a
 second worker after provider inference. A generation-aware atomic gate rechecks
@@ -105,6 +110,9 @@ checkpoint execution.
 | Component | Validated result | Claim boundary |
 | --- | --- | --- |
 | Live `pi0.5`-to-Panda integration gate | 35 accepted responses; mean/P95 policy latency 82.75/89.56 ms; 290/311 control ticks concurrent with inference; zero registered simulation violations | One free-space integration probe with `target_reached=false`; not an official LIBERO/Panda task result, hardware claim, or safety certificate |
+| Independent-clock `pi0.5`-LIBERO pilot | Spatial tasks 0-9, episodes 0-3: 40/40 completed, 38/40 succeeded, and all 40 record inference/simulation overlap | One simulation pilot; not an official leaderboard score, hard-real-time guarantee, method comparison, or hardware result |
+| Independent-clock deadline study | 18 validated cells / 720 rollouts across Spatial seeds 7/8/9 and Object seeds 7/8; the 150 ms cells are 0/40 while adjacent registered cells recover 36-40/40 | Service- and 20 Hz clock-specific exploratory evidence; not a universal threshold, iid deployment estimate, or safety guarantee |
+| Held-out action selection | Spatial episodes 4-7 and seeds 7/8/9: age-aligned suffix 114/120 versus response-relative chunk 100/120; exact McNemar `p=0.00936`; 120/120 query-0 pairing gates pass | One checkpoint/suite under fixed deadline and hold semantics; query-0 equality does not imply matched later trajectories, and the result is not cross-model, hardware, or leaderboard evidence |
 | Measured-age dispatcher | `pi0.5`-LIBERO Spatial, 120 matched pairs: 88/120 to 116/120, +23.33 points, exact McNemar `p=1.94e-6` | One frozen official checkpoint and simulation matrix |
 | Cross-suite validation | Object, Goal, and LIBERO-10, 300 rollouts / 150 pairs: 83/150 to 141/150 | Same model family and simulator suite; deterministic-delay evidence |
 | RTC-style sampler extension | 300 matched triplets: 96/100 baseline, 97/100 hard projection, 97/100 RTC | No task-success superiority; seam metrics are exploratory |
@@ -236,8 +244,9 @@ hard-real-time behavior.
 Threaded inference/control scheduling is now wired to the official checkpoint
 for G01, but Python threads provide no operating-system scheduling or
 worst-case latency guarantee. The separate process-based independent-clock
-harness remains CPU contract evidence and was not used to claim G01 hard-real-
-time behavior.
+harness has now executed the official checkpoint in LIBERO, but it remains
+best-effort simulation evidence and does not make G01, the LIBERO studies, or
+the Panda runtime hard real time.
 
 ## Next integration milestone
 
@@ -260,6 +269,8 @@ Until then, the accurate public description is: a seven-DoF constrained
 execution base plus a `pi0.5` VLA runtime-evaluation path, with provider-neutral
 action semantics, an official LeRobot dataset round-trip, dynamics-aware
 MuJoCo braking audits, an independently rerunnable integrated Panda assurance
-chain, and shared auditable runtime infrastructure. Task-aligned learned-policy
-evaluation, statistically supported online deadline evidence, and physical-
-robot evidence remain future work.
+chain, and shared auditable runtime infrastructure. The official checkpoint now
+has independently clocked deadline and held-out action-selection evidence in
+LIBERO. Task-level online repair, cross-model replication, task-aligned learned-
+policy evaluation on the Panda path, and physical-robot evidence remain future
+work.

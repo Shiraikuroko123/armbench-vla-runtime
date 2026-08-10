@@ -1686,7 +1686,7 @@ html[data-lang="en"] [data-lang-content="zh"] {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
   :root {
     --header-height: 60px;
   }

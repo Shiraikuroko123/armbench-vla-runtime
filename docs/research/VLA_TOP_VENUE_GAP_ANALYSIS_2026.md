@@ -1,6 +1,6 @@
 # Engineering gap analysis for a VLA systems paper
 
-Status checked: 2026-08-05. This is a targeted engineering review, not a claim
+Status checked: 2026-08-10. This is a targeted engineering review, not a claim
 of exhaustive coverage. Formal proceedings and journal records are separated
 from arXiv-only work. The reproducible metadata catalog is
 `vla_runtime_literature_metadata.json`; the refresh and validation command is
@@ -30,15 +30,23 @@ under task-cluster sensitivity analyses.
 The corrected-v3 300-rollout RTC comparison found 96/100 baseline success and
 97/100 for both hard projection and RTC guidance, with Holm-adjusted `p=1.0`.
 It provides exploratory motion-seam evidence but no task-success superiority.
-Current evidence therefore does not establish RTC-guidance efficacy,
-cross-policy generality, independently scheduled control, or real-robot
-validity.
+ArmBench now also has independently scheduled official-checkpoint evidence: an
+18-cell / 720-rollout deadline study and a separately frozen 120-pair action-
+selection study. In the latter, age-aligned suffix selection reaches 114/120
+tasks versus 100/120 for response-relative chunk execution (+11.67 points,
+exact McNemar `p=0.00936`; 30-block bootstrap 95% [+1.67,+21.67]). Every
+query-0 pair matches initial state, canonical policy input, sampling key,
+sampling noise, and action chunk. This closes the independent-clock baseline
+gap for one checkpoint and one suite. It does not establish RTC-guidance
+efficacy under that clock, cross-policy generality, hardware safety, or
+real-robot validity.
 
 The next research question is:
 
-> Under independently ticking inference and control, when does sampler-internal
-> committed-action guidance improve temporal continuity without sacrificing
-> task progress?
+> Under the now-validated independently ticking inference and control runtime,
+> can sampler-internal committed-action guidance or constrained action repair
+> outperform the training-free age-aligned selector without sacrificing task
+> progress?
 
 That question follows directly from the demonstrated runtime mechanism; a
 small PPO experiment would address a different problem.
@@ -291,11 +299,14 @@ stage, not the policy-internal RTC, cross-model, concurrency, or hardware gaps.
 
 ### Stage B: direct asynchronous-method baseline
 
-The pinned OpenPI server now accepts committed actions inside the flow sampler
-and exposes a clearly named RTC-style approximation on the same checkpoint and
-tasks. The next direct comparison must place completed-chunk prefix selection
-and policy-internal continuation under the same independently ticking latency
-trace; the present overlap evaluator still blocks on each response.
+The pinned OpenPI server accepts committed actions inside the flow sampler and
+exposes a clearly named RTC-style approximation on the same checkpoint and
+tasks. The independent-clock action-selection baseline is now complete for
+age-aligned suffix versus response-relative chunk execution, but that evaluator
+does not yet invoke the sampler-internal extensions. The next direct comparison
+must place completed-chunk suffix selection and policy-internal continuation
+under the same independently ticking latency trace; the existing RTC overlap
+evaluator still blocks on each response.
 
 Stage B0 now has an executable reference contract in
 `integrations/openpi/realtime_chunking.py`. It reproduces RTC commit `9296f31`'s

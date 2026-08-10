@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#111310">
-    <meta name="description" content="ArmBench：将内容校验过的 pi0.5-LIBERO checkpoint 接入独立时钟 LIBERO 与 MuJoCo Panda runtime，展示 40-rollout pilot、动作语义适配、推理时延与可复核失败证据。">
+    <meta name="description" content="ArmBench：面向 pi0.5 动作块的独立时钟运行时与评测平台，公开 720-rollout deadline 研究、240-rollout held-out 动作选择对照、Panda 执行基座与 CPU 可复核证据。">
     <meta property="og:type" content="website">
     <meta property="og:title" content="ArmBench | Attested pi0.5-to-Panda runtime">
-    <meta property="og:description" content="An attested pi0.5-LIBERO checkpoint evaluated with independent simulation and inference clocks, plus an asynchronous MuJoCo Panda runtime, measured latency, failures, and saved validation evidence.">
+    <meta property="og:description" content="An attested pi0.5-LIBERO checkpoint evaluated across a 720-rollout deadline study and a frozen 240-rollout action-selection comparison, with an asynchronous MuJoCo Panda runtime and CPU-verifiable evidence.">
     <meta property="og:url" content="https://shiraikuroko123.github.io/armbench-vla-runtime/">
     <meta property="og:image" content="https://shiraikuroko123.github.io/armbench-vla-runtime/assets/og-armbench.png">
     <meta property="og:image:alt" content="Three frames from the ArmBench pi0.5-to-Panda MuJoCo integration probe, labeled as simulation with target not reached.">
@@ -15,7 +15,7 @@
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="ArmBench | Attested pi0.5-to-Panda runtime">
-    <meta name="twitter:description" content="A 40-rollout pi0.5-LIBERO independent-clock pilot preserves success, failure, timing, and provenance evidence alongside the Panda runtime.">
+    <meta name="twitter:description" content="Independent-clock pi0.5-LIBERO evidence: 720 deadline rollouts, a frozen 120-pair action-selection comparison, and a MuJoCo Panda runtime.">
     <meta name="twitter:image" content="https://shiraikuroko123.github.io/armbench-vla-runtime/assets/og-armbench.png">
     <meta name="twitter:image:alt" content="Three frames from the ArmBench pi0.5-to-Panda MuJoCo integration probe, labeled as simulation with target not reached.">
     <meta name="last-modified" content="2026-08-10">
@@ -58,6 +58,7 @@
           <a href="#tasks"><span data-lang-content="zh">任务执行</span><span data-lang-content="en">Tasks</span></a>
           <a href="#g02"><span data-lang-content="zh">G02 pilot</span><span data-lang-content="en">G02 pilot</span></a>
           <a href="#deadline-curve"><span data-lang-content="zh">Deadline curve</span><span data-lang-content="en">Deadline curve</span></a>
+          <a href="#selection-study"><span data-lang-content="zh">动作选择</span><span data-lang-content="en">Selection</span></a>
           <a href="#reproduce"><span data-lang-content="zh">本地验收</span><span data-lang-content="en">Reproduce</span></a>
           <a href="#scope"><span data-lang-content="zh">边界</span><span data-lang-content="en">Boundaries</span></a>
         </nav>
@@ -112,7 +113,7 @@
 
       <section class="artifact-bar" aria-label="Project artifacts">
         <div class="shell artifact-grid">
-          <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/g06_spatial_deadline175_40_20260810_001" target="_blank" rel="noreferrer"><span>G06 / 175 MS</span><strong>Transition point</strong></a>
+          <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/pi05_selection_heldout_report_240_20260810_001/summary.md" target="_blank" rel="noreferrer"><span>FROZEN-240</span><strong>114/120 vs 100/120</strong></a>
           <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime" target="_blank" rel="noreferrer"><span>CODE</span><strong><span data-lang-content="zh">源代码与测试</span><span data-lang-content="en">Source and tests</span></strong></a>
           <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/pi05_libero_independent_clock_core_40_001" target="_blank" rel="noreferrer"><span>G02 PILOT</span><strong><span data-lang-content="zh">40 次独立时钟证据</span><span data-lang-content="en">40-rollout clock evidence</span></strong></a>
           <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/g05_spatial_deadline150_40_20260810_001" target="_blank" rel="noreferrer"><span>G05 / 150 MS</span><strong><span data-lang-content="zh">中间 deadline 压力点</span><span data-lang-content="en">Intermediate deadline stress</span></strong></a>
@@ -379,39 +380,80 @@
         <div class="shell">
           <div class="section-heading reveal">
             <p class="section-index">06A / DEADLINE STRESS CURVE</p>
-            <h2 id="deadline-curve-title">A runtime budget changes what can be safely published.</h2>
-            <p>The same attested pi0.5-LIBERO checkpoint, Spatial matrix, seed, and 20 Hz simulator were held fixed while only the response deadline changed. The supervisor fails closed: an expired action is held rather than published.</p>
+            <h2 id="deadline-curve-title"><span data-lang-content="zh">运行时预算改变可发布动作的占空比。</span><span data-lang-content="en">A runtime budget changes the duty cycle of publishable actions.</span></h2>
+            <p><span data-lang-content="zh">18 个独立验证单元、720 次 rollout 固定同一 checkpoint、20 Hz 控制、H=10、latest-only mailbox 与 fail-closed hold，仅改变 suite、joint seed 和注册 deadline。</span><span data-lang-content="en">Eighteen independently validated cells and 720 rollouts hold checkpoint, 20 Hz control, H=10 chunks, latest-only mailbox, and fail-closed hold fixed while varying suite, joint seed, and registered deadline.</span></p>
           </div>
           <div class="g02-grid reveal">
             <article class="g02-card">
-              <div class="ledger-head"><span>G06 / 175 MS</span><strong>3,942 execute / 613 hold ticks</strong></div>
-              <p>40/40 rollouts completed with 38/40 task successes and no deadline or provider failures. This is an exploratory transition point, not a certified threshold.</p>
-              <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/g06_spatial_deadline175_40_20260810_001" target="_blank" rel="noreferrer">Open G06 artifact <span aria-hidden="true">&#8599;</span></a>
+              <div class="ledger-head"><span>REGISTERED MATRIX</span><strong>18 cells / 720 rollouts</strong></div>
+              <p><span data-lang-content="zh">Spatial 使用 seeds 7/8/9，Object 使用 seeds 7/8；每个 cell 覆盖 tasks 0-9 与四个 episode。</span><span data-lang-content="en">Spatial uses seeds 7/8/9 and Object uses seeds 7/8; every cell covers tasks 0-9 and four episodes.</span></p>
+              <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/pi05_deadline_multisuite_report_720_20260810_001/summary.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开 720-rollout 报告</span><span data-lang-content="en">Open the 720-rollout report</span> <span aria-hidden="true">&#8599;</span></a>
             </article>
             <article class="g02-card">
-              <div class="ledger-head"><span>G04 / 50 MS</span><strong>0 execute / 8,800 hold ticks</strong></div>
-              <p>40/40 rollouts completed with 5,474 deadline exceedances and 0/40 task successes. This is a deliberately infeasible stress condition.</p>
-              <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/g04_spatial_deadline50_40_20260810_001" target="_blank" rel="noreferrer">Open G04 artifact <span aria-hidden="true">↗</span></a>
+              <div class="ledger-head"><span>SPATIAL / 150 → 155 MS</span><strong>0/40 → 36-40/40</strong></div>
+              <p><span data-lang-content="zh">三个 seed 的 execute duty 从 26.2%-26.6% 跃迁到 85.6%-87.3%。该现象与服务时延跨过离散控制 tick 一致。</span><span data-lang-content="en">Across three seeds, execute duty moves from 26.2%-26.6% to 85.6%-87.3%, consistent with service latency crossing discrete controller ticks.</span></p>
             </article>
             <article class="g02-card">
-              <div class="ledger-head"><span>G05 / 150 MS</span><strong>2,309 execute / 6,491 hold ticks</strong></div>
-              <p>40/40 rollouts completed with 16 deadline exceedances and 0/40 task successes. Fresh action chunks execute on 26.2% of ticks, but the duty cycle remains insufficient for this task budget.</p>
-              <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/g05_spatial_deadline150_40_20260810_001" target="_blank" rel="noreferrer">Open G05 artifact <span aria-hidden="true">↗</span></a>
+              <div class="ledger-head"><span>OBJECT / 150 → 175 MS</span><strong>0/40 → 37-39/40</strong></div>
+              <p><span data-lang-content="zh">第二个 suite 的两个 seed 出现同方向变化；200 ms reference 为 39/40、39/40。</span><span data-lang-content="en">Two seeds in a second suite show the same operational direction; the 200 ms references are 39/40 and 39/40.</span></p>
             </article>
             <article class="g02-card">
-              <div class="ledger-head"><span>G02 / 200 MS</span><strong>4,031 execute / 592 hold ticks</strong></div>
-              <p>38/40 successes in the frozen Spatial pilot, with no deadline or provider failures. It remains a simulation pilot, not a leaderboard result.</p>
-              <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/pi05_libero_independent_clock_core_40_001" target="_blank" rel="noreferrer">Open G02 artifact <span aria-hidden="true">↗</span></a>
+              <div class="ledger-head"><span>ABOVE THE TRANSITION</span><strong>No monotonic gain</strong></div>
+              <p><span data-lang-content="zh">从 155/175 ms 提高到 200 ms 没有一致提高成功率，因此报告不把某个数字包装成通用 VLA 阈值。</span><span data-lang-content="en">Moving from 155/175 ms to 200 ms does not improve success consistently, so no single value is presented as a universal VLA threshold.</span></p>
             </article>
             <article class="g02-card">
-              <div class="ledger-head"><span>SEED 8 / REPLICATION</span><strong>0/40 at 150 ms &rarr; 37/40 at 175 ms</strong></div>
-              <p>Execute duty rises from 26.6% to 86.7% with zero provider failures. This reproduces the operational direction under a second joint environment and policy seed; it is exploratory, not confirmatory.</p>
-              <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/pi05_deadline_seed_replication_20260810_001/summary.md" target="_blank" rel="noreferrer">Open the seed-stratified report <span aria-hidden="true">&#8599;</span></a>
+              <div class="ledger-head"><span>G04 / 50 MS CONTROL</span><strong>0 execute / 8,800 hold</strong></div>
+              <p><span data-lang-content="zh">该极限压力对照单独保留，不混入 720 次平衡矩阵，也不被解释为模型质量失败。</span><span data-lang-content="en">This infeasible stress control remains separate from the 720-rollout balanced matrix and is not interpreted as model-quality failure.</span></p>
+              <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/tree/main/evidence/g04_spatial_deadline50_40_20260810_001" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开 G04 artifact</span><span data-lang-content="en">Open G04 artifact</span> <span aria-hidden="true">↗</span></a>
             </article>
           </div>
           <div class="g02-footer reveal">
-            <p>The deadline cells and two seeds are reported separately rather than pooled into a universal threshold or hard-real-time claim. They are reproducible MuJoCo evidence for the engineering trade-off between action freshness, fail-closed holding, and task progress.</p>
+            <p><span data-lang-content="zh">所有 cell 按 suite、seed 与 deadline 分层；Wilson 区间描述注册 episode，不把 task 或 seed block 当作 iid 部署样本。</span><span data-lang-content="en">Every cell is stratified by suite, seed, and deadline. Wilson intervals describe registered episodes without treating task or seed blocks as iid deployment samples.</span></p>
             <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/RESULTS.md" target="_blank" rel="noreferrer">Read the full results and boundaries <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section g02-section" id="selection-study" aria-labelledby="selection-study-title">
+        <div class="shell">
+          <div class="section-heading reveal">
+            <p class="section-index">06B / HELD-OUT ACTION SELECTION</p>
+            <h2 id="selection-study-title"><span data-lang-content="zh">从相同初态与 query-0 动作块出发，两种闭环选择语义得到不同结果。</span><span data-lang-content="en">From the same initial state and query-0 action chunk, two closed-loop selection semantics produce different outcomes.</span></h2>
+            <p><span data-lang-content="zh">冻结矩阵覆盖 Spatial tasks 0-9、episodes 4-7 与 joint seeds 7/8/9。两种模式共享 checkpoint、独立时钟、175 ms deadline、hold 规则与 keyed sampling；response-relative 不是 unguarded。</span><span data-lang-content="en">The frozen matrix covers Spatial tasks 0-9, episodes 4-7, and joint seeds 7/8/9. Both modes share checkpoint, independent clocks, a 175 ms deadline, hold semantics, and keyed sampling; response-relative is not unguarded.</span></p>
+          </div>
+
+          <dl class="metric-strip reveal">
+            <div><dt>114 / 120</dt><dd>age-aligned suffix</dd><small>95.0% task success</small></div>
+            <div><dt>100 / 120</dt><dd>response-relative chunk</dd><small>83.3% task success</small></div>
+            <div><dt>+11.67 pp</dt><dd><span data-lang-content="zh">成对成功率差</span><span data-lang-content="en">paired success difference</span></dd><small>20 wins / 6 losses</small></div>
+            <div><dt>p = 0.00936</dt><dd>exact McNemar</dd><small>two-sided · frozen test</small></div>
+          </dl>
+
+          <div class="g02-grid reveal">
+            <article class="g02-card">
+              <div class="ledger-head"><span>SEED 7 / 40 PAIRS</span><strong>38 vs 36</strong></div>
+              <p>34 both-success · 4 age-aligned-only · 2 response-relative-only · 0 both-failure</p>
+            </article>
+            <article class="g02-card">
+              <div class="ledger-head"><span>SEED 8 / 40 PAIRS</span><strong>36 vs 29</strong></div>
+              <p>25 both-success · 11 age-aligned-only · 4 response-relative-only · 0 both-failure</p>
+            </article>
+            <article class="g02-card">
+              <div class="ledger-head"><span>SEED 9 / 40 PAIRS</span><strong>40 vs 35</strong></div>
+              <p>35 both-success · 5 age-aligned-only · 0 response-relative-only · 0 both-failure</p>
+            </article>
+            <article class="g02-card">
+              <div class="ledger-head"><span>PAIRING GATE</span><strong>120 / 120 passed</strong></div>
+              <p><span data-lang-content="zh">初态、规范化策略输入、采样 key、采样 noise 与 query-0 动作块哈希全部一致。</span><span data-lang-content="en">Initial state, canonical policy input, sampling key, sampling noise, and query-0 action chunk hashes all match.</span></p>
+            </article>
+            <article class="g02-card">
+              <div class="ledger-head"><span>30 TASK × SEED BLOCKS</span><strong>95% CI +1.67 to +21.67 pp</strong></div>
+              <p><span data-lang-content="zh">固定 10,000 次 block bootstrap；12 个正向、3 个反向、15 个持平 block。episode 不按 iid 部署样本处理。</span><span data-lang-content="en">Fixed 10,000-replicate block bootstrap: 12 positive, 3 negative, and 15 tied blocks. Episodes are not treated as iid deployment samples.</span></p>
+            </article>
+          </div>
+          <div class="g02-footer reveal">
+            <p><span data-lang-content="zh">age-aligned 的配对平均 execute duty 低 0.75 个百分点，因此观测到的收益没有伴随更高的平均发布占空比。该研究只覆盖一个 checkpoint 与一个 suite，不证明跨模型或真机效果。</span><span data-lang-content="en">Age alignment has 0.75 percentage points lower paired mean execute duty, so the observed gain is not accompanied by a higher mean publication duty cycle. This study covers one checkpoint and one suite, not cross-model or hardware performance.</span></p>
+            <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/pi05_selection_heldout_report_240_20260810_001/summary.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开 frozen-240 报告、逐 block 结果与 source manifests</span><span data-lang-content="en">Open the frozen-240 report, block results, and source manifests</span> <span aria-hidden="true">↗</span></a>
           </div>
         </div>
       </section>
@@ -425,11 +467,11 @@
           </div>
 
           <div class="command-console reveal">
-            <div class="command-row"><div><span>G06 175 MS STRESS</span><code>&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\g06_spatial_deadline175_40_20260810_001\evaluation' --json</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\g06_spatial_deadline175_40_20260810_001\evaluation' --json"><span data-lang-content="en">Copy</span></button></div>
             <div class="console-head"><span>POWERSHELL · LOCAL CPU</span><span>scripts/accept_cpu.ps1</span></div>
             <div class="command-row"><div><span>LIVE CHECKPOINT BUNDLE</span><code>&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_live_panda_smoke '.\evidence\g01_live_panda_smoke_final_001' --json</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_live_panda_smoke '.\evidence\g01_live_panda_smoke_final_001' --json"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-row"><div><span>G02 INDEPENDENT CLOCK</span><code>&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\pi05_libero_independent_clock_core_40_001\evaluation' --json</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\pi05_libero_independent_clock_core_40_001\evaluation' --json"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-row"><div><span>G05 150 MS STRESS</span><code>&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\g05_spatial_deadline150_40_20260810_001\evaluation' --json</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\g05_spatial_deadline150_40_20260810_001\evaluation' --json"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
+            <div class="command-row"><div><span>G06 175 MS STRESS</span><code>&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\g06_spatial_deadline175_40_20260810_001\evaluation' --json</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\g06_spatial_deadline175_40_20260810_001\evaluation' --json"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-row"><div><span>SEED-8 175 MS REPLICATION</span><code>&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\pi05_libero_spatial_deadline175_seed8_40_20260810_001\evaluation' --json</code></div><button type="button" class="copy-button" data-copy="&amp; '.\.venv\Scripts\python.exe' -m integrations.openpi.validate_libero_independent_clock '.\evidence\pi05_libero_spatial_deadline175_seed8_40_20260810_001\evaluation' --json"><span data-lang-content="en">Copy</span></button></div>
             <div class="command-row"><div><span>FULL LOCAL EVIDENCE</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_cpu.ps1'</code></div><button type="button" class="copy-button" data-copy="powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_cpu.ps1'"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-row"><div><span>RECOMPUTE</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_integrated_panda.ps1'</code></div><button type="button" class="copy-button" data-copy="powershell -NoProfile -ExecutionPolicy Bypass -File '.\scripts\accept_integrated_panda.ps1'"><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
@@ -475,6 +517,8 @@
                 <li><span data-lang-content="zh">注册故障矩阵与两条 MuJoCo 力矩执行任务可本地重算</span><span data-lang-content="en">locally recomputable fault matrix and two MuJoCo torque-executed tasks</span></li>
                 <li><span data-lang-content="zh">内容校验过的 pi0.5-LIBERO checkpoint 通过 H×7→H×8 适配器进入 Panda 异步闭环</span><span data-lang-content="en">a content-attested pi0.5-LIBERO checkpoint enters the asynchronous Panda loop through an Hx7→Hx8 adapter</span></li>
                 <li><span data-lang-content="zh">G02 的 40/40 rollout 均记录独立推理/仿真时钟重叠，38/40 在冻结 pilot 中成功</span><span data-lang-content="en">all 40 G02 rollouts record independent inference/simulation overlap; 38/40 succeeded in the frozen pilot</span></li>
+                <li><span data-lang-content="zh">18-cell / 720-rollout deadline 报告与全部 source artifact 可由 CPU 重算</span><span data-lang-content="en">the 18-cell / 720-rollout deadline report and every source artifact are CPU-recomputable</span></li>
+                <li><span data-lang-content="zh">冻结的 120 对动作选择结果为 114/120 对 100/120，全部 query-0 pairing gate 通过</span><span data-lang-content="en">the frozen 120-pair action-selection result is 114/120 versus 100/120 with every query-0 pairing gate passed</span></li>
                 <li><span data-lang-content="zh">独立的官方 π<sub>0.5</sub>-LIBERO 观测年龄实验</span><span data-lang-content="en">a separate official π<sub>0.5</sub>-LIBERO observation-age experiment</span></li>
               </ul>
             </div>
@@ -485,6 +529,7 @@
                 <li><span data-lang-content="zh">任务是关节路点到达，不是抓取或物体操作</span><span data-lang-content="en">tasks are joint-waypoint reaching, not grasping or object manipulation</span></li>
                 <li><span data-lang-content="zh">没有真机、硬实时、ROS2 或安全认证结论</span><span data-lang-content="en">no physical robot, hard-real-time, ROS2, or safety-certification claim</span></li>
                 <li><span data-lang-content="zh">G02 的 38/40 不是官方排行榜成绩、方法优越性或跨模型结论</span><span data-lang-content="en">G02's 38/40 is not an official leaderboard score, method-superiority result, or cross-model claim</span></li>
+                <li><span data-lang-content="zh">held-out 动作选择结果只覆盖一个 checkpoint、一个 suite 和三个 joint seed；不代表跨模型或 iid 部署效果</span><span data-lang-content="en">the held-out selection result covers one checkpoint, one suite, and three joint seeds; it is not cross-model or iid deployment evidence</span></li>
                 <li><span data-lang-content="zh">G01 的自由空间目标未到达，不是官方 LIBERO 协议，也不是 Panda 任务成功率</span><span data-lang-content="en">the G01 free-space target was not reached; it is neither an official LIBERO protocol nor a Panda task-success rate</span></li>
               </ul>
             </div>

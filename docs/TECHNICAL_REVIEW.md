@@ -47,6 +47,8 @@ Evidence from one path is not used to establish claims about the other.
 | --- | --- |
 | Deterministic alignment core | At 200 ms, 18/50 asynchronous vs 50/50 aligned; +64 points, Holm-adjusted McNemar p=1.40e-9 |
 | Measured-age confirmation | 88/120 baseline vs 116/120 aligned; +23.33 points, McNemar p=1.94e-6 |
+| Independent-clock deadline study | 18 cells / 720 rollouts; registered boundary transitions reproduce across Spatial seeds 7/8/9 and Object seeds 7/8 without supporting a universal threshold |
+| Held-out independent-clock selection | 114/120 age-aligned versus 100/120 response-relative; +11.67 points, exact McNemar `p=0.00936`, 30-block bootstrap 95% [+1.67,+21.67] |
 | Cross-suite validation | Prespecified Object, Goal, and LIBERO-10 tests each remain significant after Holm correction |
 | Corrected-v3 RTC overlap | 96/100 unconditioned and 97/100 for each conditioned method; no success advantage, Holm-adjusted p=1.0 |
 | Local runtime fault matrix | Deterministic protocol and safety-fault handling with explicitly non-learned fixtures |
@@ -62,6 +64,8 @@ These studies answer different questions and must not be pooled.
 | --- | --- |
 | Fixed-delay action selection | integrations/openpi/libero_runtime.py |
 | Measured-age timing and suffix decisions | integrations/openpi/deadline_alignment.py |
+| Independent-clock mailbox and selection semantics | src/armbench/vla/independent_clock.py and integrations/openpi/libero_independent_clock.py |
+| Independent-clock artifact and paired-report validation | integrations/openpi/validate_libero_independent_clock.py and scripts/build_pi05_selection_report.py |
 | Explicit pi0.5 sampling noise and server attestation | integrations/openpi/serve_policy_attested.py |
 | RTC/projected-overlap scheduling | integrations/openpi/projected_overlap_runtime.py |
 | RTC combined analysis and validation | integrations/openpi/rtc_overlap_primary_analysis.py |
@@ -264,8 +268,9 @@ Negative and invalid results are handled differently:
 
 - one official VLA checkpoint family;
 - simulation-only execution;
-- blocking inference with simulator catch-up rather than independent control
-  and inference clocks;
+- the official-checkpoint independent-clock studies use one OpenPI service,
+  best-effort process scheduling, and a 20 Hz simulator; they do not provide
+  worst-case latency or hard-real-time guarantees;
 - no hardware adapter or safety certification;
 - no learned fallback, takeover, or recovery policy;
 - the braking-invariant repair is validated only on frozen responses and does
@@ -279,15 +284,18 @@ Negative and invalid results are handled differently:
 
 ## Recommended next milestones
 
-1. Wire the independently scheduled runtime, constrained projection, and
-   braking repair into an end-to-end evaluator, recording observation, action,
-   and commitment age at each control tick.
-2. Connect the continuous self-collision certificate and braking repair to
-   task-level online execution, and measure the resulting conservatism.
-3. Reproduce the runtime method on a second open VLA family without forcing
-   incompatible action semantics into the existing adapter.
-4. Evaluate calibrated abstention or takeover under registered faults.
-5. Add a hardware adapter only after watchdog, calibration, and emergency-stop
+1. Connect constrained projection, continuous self-collision checks, and
+   braking repair to the independently scheduled task evaluator, then measure
+   progress, intervention, and repair latency together.
+2. Reproduce the held-out action-selection study on a second suite and a
+   second open VLA family without forcing incompatible action semantics into
+   the existing adapter.
+3. Add a prospective latency-jitter and model-mismatch matrix around the
+   registered action-selection baseline.
+4. Compare suffix selection with the existing RTC-style sampler extensions
+   under the same independent-clock protocol and fixed policy noise.
+5. Evaluate calibrated abstention or takeover under registered faults.
+6. Add a hardware adapter only after watchdog, calibration, and emergency-stop
    requirements are specified and tested.
 
 ## Maintainer readiness

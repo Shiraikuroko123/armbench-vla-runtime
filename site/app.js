@@ -114,7 +114,7 @@
       if (menuButton.getAttribute("aria-expanded") !== "true") return;
       if (!navigation.contains(event.target) && !menuButton.contains(event.target)) setMenu(false, false);
     });
-    var desktopMedia = window.matchMedia("(min-width: 901px)");
+    var desktopMedia = window.matchMedia("(min-width: 1001px)");
     var closeDesktopMenu = function (event) { if (event.matches) setMenu(false, false); };
     if (typeof desktopMedia.addEventListener === "function") desktopMedia.addEventListener("change", closeDesktopMenu);
     else desktopMedia.addListener(closeDesktopMenu);

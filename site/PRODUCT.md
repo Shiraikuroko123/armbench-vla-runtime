@@ -28,12 +28,14 @@ dispatch, braking-invariant repair, and reviewable execution evidence.
    LeRobotDataset v3.0 Panda H×8 roundtrip.
 8. G02 independent-clock pilot with a 40-rollout metric strip, one separately
    labeled visual-success run, and both retained core-pilot failure videos.
-9. G03 cross-suite Object extension plus G04 50 ms and G05 150 ms deadline
-   stress artifacts, presented as a bounded runtime-budget curve.
-10. One-command full local CPU acceptance, focused Panda replay commands, a
+9. Registered 18-cell / 720-rollout Spatial and Object deadline study,
+   presented as a service- and clock-specific runtime-budget curve.
+10. Frozen 120-pair / 240-rollout held-out comparison of age-aligned suffix
+    and response-relative chunk selection, with seed blocks and pairing gates.
+11. One-command full local CPU acceptance, focused Panda replay commands, a
    checked-in VS Code workspace, and a four-step acceptance path.
-11. Verified 17-case asynchronous CPU boundary disclosure.
-12. Proven / not-claimed scope block and architecture link.
+12. Verified 17-case asynchronous CPU boundary disclosure.
+13. Proven / not-claimed scope block and architecture link.
 
 ## Audience
 
@@ -51,6 +53,8 @@ dispatch, braking-invariant repair, and reviewable execution evidence.
 | `g04_spatial_deadline50_40_20260810_001` | 40/40 completed; 0/40 task success; 0 execute and 8,800 hold ticks; 5,474 deadline exceedances | fail-closed tight-deadline stress; not a model-quality failure or universal threshold |
 | `g05_spatial_deadline150_40_20260810_001` | 40/40 completed; 0/40 task success; 2,309 execute and 6,491 hold ticks; 16 deadline exceedances | exploratory intermediate deadline point; action execution resumes but remains insufficient for this task budget |
 | `g06_spatial_deadline175_40_20260810_001` | 40/40 completed; 38/40 task success; 3,942 execute and 613 hold ticks; 0 deadline/provider failures | exploratory transition point; not a universal threshold or hard-real-time result |
+| `pi05_deadline_multisuite_report_720_20260810_001` | 18 cells / 720 rollouts; Spatial seeds 7/8/9 at 150/155/175/200 ms and Object seeds 7/8 at 150/175/200 ms; all source validators pass | seed- and suite-stratified simulation evidence; not a universal threshold, iid deployment estimate, or no-deadline baseline |
+| `pi05_selection_heldout_report_240_20260810_001` | 120 pairs / 240 rollouts; age-aligned 114/120, response-relative 100/120; +11.67 pp; exact McNemar p=0.00936; 30-block bootstrap 95% [+1.67,+21.67] | protocol frozen before execution; exploratory result for one checkpoint/suite; both modes retain the same deadline/hold rule; no cross-model, hardware, or leaderboard claim |
 | `pi05_libero_independent_clock_visual_success_001` | 1/1 curated success clip with 105/106 ticks during inference | media-only run; never pooled with the 40-rollout result |
 | `cpu_runtime_completion_001` | 17/17 expected outcomes; 6 complete plans, 10 holds, 1 unrecoverable stop; zero partial prefixes; assurance-worker P95 281.2 ms | scripted/frozen/contract fixtures; best-effort Python threads; no learned checkpoint |
 | `integrated_panda_fault_matrix_001` | 27/27 expected outcomes; 12 accepted, 6 verified brakes, 7 holds, 2 unrecoverable stops; 124 edges | scripted inputs; synchronous offline CPU |
@@ -74,13 +78,14 @@ hard-real-time or physical safety guarantee.
 - G02 is a 40-rollout simulation pilot. Its 38/40 result is not an official
   leaderboard entry or evidence of method superiority, hardware safety, or
   hard-real-time scheduling.
-- G03 is a separate exploratory suite-transfer artifact. G04 and G05 are
-  deadline stress points under one fixed Spatial matrix; none establishes a
-  universal threshold or OS hard-real-time behavior.
-- G06 adds a 175 ms transition point to the same curve and remains exploratory.
-- The seed-8 150/175 ms replication reproduces the operational direction but
-  remains post-hoc exploratory evidence; the seed changes both environment and
-  keyed-policy randomness and is not pooled into a universal threshold.
+- The complete deadline report contains 18 registered cells and remains
+  service-, clock-, checkpoint-, and simulator-specific. G04 at 50 ms stays a
+  separate stress control and 200 ms is a nominal reference, not no-deadline.
+- The held-out selection comparison covers one checkpoint, one suite, three
+  joint seeds, and episodes 4-7. Query-0 equality does not imply later
+  observations remain equal after the modes diverge.
+- `response_relative_chunk` is not unguarded; it retains the same 175 ms
+  observation-age deadline and fail-closed hold rule.
 - The asynchronous CPU artifact validates a provider-to-supervisor software
   boundary; it is not a closed-loop task-success or deadline-guarantee result.
 

@@ -1,6 +1,6 @@
 # ArmBench 架构与主张边界
 
-状态：Current。更新日期：2026-08-09。
+状态：Current。更新日期：2026-08-10。
 
 ## 项目目的
 
@@ -65,8 +65,11 @@ ArmBench 是一个研究动作块式 VLA 在“模型响应返回”和“机器
 待处理邮箱限制积压；控制侧拒绝乱序、失败、超过 deadline 或耗尽 action horizon
 的响应。scripted policy 提供完整 CPU 故障矩阵；同一线程调度契约现在还由一次
 内容可认证的真实 `pi05_libero` checkpoint smoke 驱动本地力矩控制 MuJoCo Panda
-闭环，包括双相机采集、基于实测状态的终端制动和 trace 重算验证。它没有替换既有
-LIBERO 结果实验采用的 blocking inference 加 simulator catch-up evaluator。
+闭环，包括双相机采集、基于实测状态的终端制动和 trace 重算验证。另一条基于进程
+的 LIBERO harness 让仿真以 20 Hz 推进，同时独立 worker 阻塞在官方 checkpoint
+推理上；latest-only mailbox、观测年龄 deadline、动作选择和 fail-closed hold 已由
+G02 pilot、720-rollout deadline 研究和 held-out 动作选择对照验证。早期 blocking
+inference 加 simulator catch-up 结果仍作为单独历史证据保留。
 
 CPU 收口路径进一步增加了独立的集成保障 worker：provider 返回完整 `ActionChunk`
 后，OSQP、连续碰撞和动力学制动在非控制线程完成，`AtomicPandaPlanGate` 在激活时
@@ -79,6 +82,9 @@ CPU 收口路径进一步增加了独立的集成保障 worker：provider 返回
 | 组件 | 已验证结果 | 主张边界 |
 | --- | --- | --- |
 | 真实 `pi0.5` 到 Panda 集成门 | 35 个响应被接收；策略时延平均/P95 为 82.75/89.56 ms；推理期间 control tick 为 290/311；注册仿真违规为 0 | 单次 free-space 集成探针，`target_reached=false`；不是官方 LIBERO/Panda 任务结果、真机或安全认证 |
+| 独立时钟 `pi0.5`-LIBERO pilot | Spatial tasks 0-9、episodes 0-3：40/40 完成、38/40 成功，40/40 均记录推理与仿真重叠 | 单次仿真 pilot；不是官方排行榜、硬实时保证、方法对比或硬件结果 |
+| 独立时钟 deadline 研究 | 18 个验证单元 / 720 次 rollout，覆盖 Spatial seeds 7/8/9 与 Object seeds 7/8；150 ms 单元均为 0/40，相邻注册单元恢复至 36-40/40 | 服务与 20 Hz 时钟特定的探索性证据；不是通用阈值、iid 部署估计或安全保证 |
+| Held-out 动作选择 | Spatial episodes 4-7、seeds 7/8/9：age-aligned suffix 114/120，response-relative chunk 100/120；exact McNemar `p=0.00936`；120/120 query-0 配对门通过 | 一个 checkpoint、一个 suite 与固定 deadline/hold 语义；不证明后续轨迹仍配对、跨模型优越性、硬件效果或排行榜成绩 |
 | Measured-age 调度器 | `pi0.5`-LIBERO Spatial，120 组匹配试验：88/120 到 116/120，+23.33 个百分点，exact McNemar `p=1.94e-6` | 一个冻结的官方 checkpoint 与仿真矩阵 |
 | 跨任务集验证 | Object、Goal、LIBERO-10，300 rollouts / 150 pairs：83/150 到 141/150 | 同一模型族和仿真套件内的确定性延迟证据 |
 | RTC-style sampler extension | 300 组匹配 triplet：baseline 96/100，hard projection 97/100，RTC 97/100 | 没有任务成功率优势；seam 是探索性指标 |
@@ -178,23 +184,22 @@ robosuite torque-level OSC；free-space 探针也不属于官方 LIBERO 协议�
 因此，不应表述为：`pi0.5` 已部署到 Panda、Panda guard 已证明 VLA 安全，或仿真结果已经达到硬实时。
 
 线程式推理/控制调度已经在 G01 中连接官方 checkpoint，但 Python 线程不提供
-操作系统调度或最坏时延保证。单独的进程级 independent-clock harness 仍属于 CPU
-契约证据，没有被用于声称 G01 具备硬实时能力。
+操作系统调度或最坏时延保证。单独的进程级 independent-clock harness 也已经在
+LIBERO 中运行官方 checkpoint，但仍是 best-effort 仿真证据，不能据此声称 G01、
+LIBERO 实验或 Panda runtime 具备硬实时能力。
 
 ## 下一阶段的合理整合
 
-真正有意义的下一步不是换一个仿真器，而是把已实现的组件适配器接入完整
-evaluator，并评测：
+真正有意义的下一步不是换一个仿真器，而是沿已经验证的独立时钟 evaluator 继续：
 
-1. 用经过认证的 OpenVLA-OFT checkpoint 响应替换合成 fixture，并运行预注册的跨模型闭环矩阵；
-2. 将官方 LeRobot 数据集边界和 Panda watchdog 接到具体驱动前，先冻结动作语义和 reset 行为；
-3. 把集成 supervisor 接入带明确 deadline 的异步执行，降低或并行化证书耗时，
-   并量化保守拒绝代价；
-4. 用任务对齐 evaluator 替换 G01 的 free-space 探针，由经过认证的学习策略输出驱动，
-   冻结多 seed 协议，再增加标定后的硬件时序、急停集成和重复实体故障注入证据。
+1. 将受约束投影、连续自碰检查和制动修复接入任务级执行，同时报告任务进度、干预率与修复时延；
+2. 在第二个 suite 和第二个开放 VLA 家族上复现 held-out 动作选择研究，不强行统一不兼容的动作语义；
+3. 围绕已注册的动作选择基线增加前瞻性的 latency jitter 与模型失配矩阵；
+4. 在相同独立时钟协议和固定策略噪声下，对比 suffix selection 与现有 RTC-style sampler extension；
+5. 完成校准拒绝/人工接管研究后，再增加标定后的硬件时序、急停集成和重复实体故障注入证据。
 
 在此之前，准确的公开表述是：**七自由度受限执行基座 + `pi0.5 VLA`
 运行时评测路径 + provider-neutral 动作语义 + 官方 LeRobot 数据集 round-trip +
 MuJoCo 动力学制动审计 + 可独立重算的 Panda 集成动作保障链，共用可审计运行时
-基础设施。任务对齐的学习策略评测、具有统计支撑的在线 deadline 证据和实体机器人
-证据仍是后续工作。**
+基础设施。官方 checkpoint 已有独立时钟 deadline 与 held-out 动作选择仿真证据；
+在线任务级动作修复、跨模型复现和实体机器人证据仍是后续工作。**
