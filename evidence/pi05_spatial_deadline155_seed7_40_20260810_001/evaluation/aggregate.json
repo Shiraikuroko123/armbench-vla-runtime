@@ -1,0 +1,15 @@
+{
+  "complete": true,
+  "completed_rollouts": 40,
+  "episodes_with_inference_overlap": 40,
+  "planned_rollouts": 40,
+  "schema_version": "armbench.pi05_libero_independent_clock.v1",
+  "task_success_rate": 0.95,
+  "task_successes": 38,
+  "total_control_ticks": 4624,
+  "total_deadline_exceeded_responses": 2,
+  "total_executes": 4015,
+  "total_failed_responses": 0,
+  "total_holds": 609,
+  "total_ticks_during_inference": 4541
+}
