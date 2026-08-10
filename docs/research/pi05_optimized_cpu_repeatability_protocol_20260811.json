@@ -1,0 +1,62 @@
+{
+  "schema_version": "armbench.pi05_optimized_cpu_repeatability_protocol.v1",
+  "created_at_utc": "2026-08-11T00:00:00Z",
+  "status": "engineering_protocol_fixed_before_scored_runs",
+  "scope": "cold-process repeatability and controlled CPU-contention audit of the frozen optimized pi0.5-to-Panda CPU replay",
+  "research_question": "Does the v0.2.0 optimized atomic assurance result remain reproducible across independent cold processes, and how does bounded CPU contention change the observed latency and publication outcomes?",
+  "input_contract": {
+    "artifact": "reports/pi05_integrated_panda_cpu_replay_270_001",
+    "source_rows": "the 90 direct-dispatch rows crossed with three registered Panda scenes",
+    "checkpoint_executed_this_run": false,
+    "source_manifest_and_inventory_are_reverified": true
+  },
+  "conditions": [
+    {
+      "id": "idle",
+      "role": "cold-process baseline",
+      "load_workers": 0
+    },
+    {
+      "id": "cpu_load",
+      "role": "controlled host-contention diagnostic",
+      "load_workers": 4,
+      "load_model": "four independent deterministic Python busy-loop workers started before each replay and terminated after it"
+    }
+  ],
+  "replicates": {
+    "idle": 3,
+    "cpu_load": 3,
+    "case_reset": "delegated to the v0.2.0 optimized replay protocol",
+    "process_reset": "one fresh Python process per trial",
+    "randomness": "PYTHONHASHSEED=0; frozen source artifact and fixed protocol; no policy inference"
+  },
+  "runtime": {
+    "chunks": 30,
+    "operational_budget_ms": 20,
+    "diagnostic_budget_ms": 100,
+    "response_deadline_ms": 200,
+    "qp_step_budget_ms": 5,
+    "worker_timeout_s": 30,
+    "trial_timeout_s": 180
+  },
+  "recorded_outcomes": [
+    "per-profile execute, hold, and constraint-safe candidate counts",
+    "per-profile software-budget and response-deadline misses",
+    "P50, P95, maximum supervisor and worker latency",
+    "unsafe publications and partial-prefix exposure",
+    "wall-clock duration, child return code, and timeout state",
+    "condition-level mean, standard deviation, min, and max"
+  ],
+  "interpretation": {
+    "repeatability": "descriptive only; three replicates are an engineering stability signal, not an inferential sample",
+    "cpu_load": "diagnostic host-contention stress and not a hardware certification",
+    "claim_boundary": [
+      "Frozen official responses are replayed; the pi0.5 checkpoint is not executed.",
+      "LIBERO actions are cross-controller Panda inputs, not native Panda policy outputs.",
+      "Independent cases do not provide closed-loop policy feedback or task success.",
+      "Python CPU timing is best effort and is not a hard-real-time guarantee.",
+      "MuJoCo geometry and inverse dynamics are not physical-robot safety certification.",
+      "A repeatability audit cannot establish robot-level safety or generalization."
+    ]
+  }
+}

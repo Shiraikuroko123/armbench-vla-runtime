@@ -69,6 +69,11 @@ from armbench.vla.optimized_cpu_replay import (
     execute_optimized_cpu_replay,
     validate_optimized_cpu_replay,
 )
+from armbench.vla.optimized_cpu_repeatability import (
+    OptimizedCPURepeatabilityConfig,
+    execute_optimized_cpu_repeatability,
+    validate_optimized_cpu_repeatability,
+)
 from armbench.vla.provider_contract import (
     run_provider_contract_audit,
     validate_frozen_provider_bundle,
@@ -503,6 +508,31 @@ def build_parser() -> argparse.ArgumentParser:
     )
     optimized_replay_validate.add_argument("directory", type=Path)
     optimized_replay_validate.add_argument("input_directory", type=Path)
+
+    repeatability = subparsers.add_parser(
+        "vla-panda-optimized-repeatability",
+        help="run cold-process idle and CPU-contention repeatability trials",
+    )
+    repeatability.add_argument("input_directory", type=Path)
+    repeatability.add_argument("--output-directory", type=Path, required=True)
+    repeatability.add_argument("--baseline-repeats", type=int, default=3)
+    repeatability.add_argument("--load-repeats", type=int, default=3)
+    repeatability.add_argument("--load-workers", type=int, default=4)
+    repeatability.add_argument("--chunks", type=int, default=30)
+    repeatability.add_argument(
+        "--operational-budget-ms", type=float, default=20.0
+    )
+    repeatability.add_argument("--diagnostic-budget-ms", type=float, default=100.0)
+    repeatability.add_argument("--response-deadline-ms", type=float, default=200.0)
+    repeatability.add_argument("--qp-step-budget-ms", type=float, default=5.0)
+    repeatability.add_argument("--worker-timeout-s", type=float, default=30.0)
+    repeatability.add_argument("--trial-timeout-s", type=float, default=180.0)
+    repeatability_validate = subparsers.add_parser(
+        "vla-panda-optimized-repeatability-validate",
+        help="validate a cold-process optimized CPU repeatability artifact",
+    )
+    repeatability_validate.add_argument("directory", type=Path)
+    repeatability_validate.add_argument("input_directory", type=Path)
 
     validate = subparsers.add_parser("validate", help="validate config and scenario geometry")
     validate.add_argument(
@@ -1335,6 +1365,35 @@ def main(arguments: list[str] | None = None) -> int:
         return 0
     if args.command == "vla-panda-optimized-replay-validate":
         result = validate_optimized_cpu_replay(
+            args.directory, args.input_directory
+        )
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0
+    if args.command == "vla-panda-optimized-repeatability":
+        output = execute_optimized_cpu_repeatability(
+            args.input_directory,
+            args.output_directory,
+            OptimizedCPURepeatabilityConfig(
+                baseline_repeats=args.baseline_repeats,
+                load_repeats=args.load_repeats,
+                load_workers=args.load_workers,
+                chunks=args.chunks,
+                operational_budget_ms=args.operational_budget_ms,
+                diagnostic_budget_ms=args.diagnostic_budget_ms,
+                response_deadline_ms=args.response_deadline_ms,
+                qp_step_budget_ms=args.qp_step_budget_ms,
+                worker_timeout_s=args.worker_timeout_s,
+                trial_timeout_s=args.trial_timeout_s,
+            ),
+        )
+        result = validate_optimized_cpu_repeatability(
+            output, args.input_directory
+        )
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-panda-optimized-repeatability-validate":
+        result = validate_optimized_cpu_repeatability(
             args.directory, args.input_directory
         )
         print(json.dumps(result, indent=2, ensure_ascii=False))
