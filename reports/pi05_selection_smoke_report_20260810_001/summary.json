@@ -1,6 +1,26 @@
 {
   "analysis_boundary": "Registered episodes are paired within task, initial state, and joint seed. Task and seed blocks are not iid deployment samples, and query-0 equality does not imply later observations remain equal after modes diverge.",
   "artifact_count": 2,
+  "block_robustness": {
+    "block_count": 1,
+    "bootstrap_replicates": 10000,
+    "bootstrap_seed": 20260810,
+    "execute_duty_difference": {
+      "bootstrap95_high": -0.022370486656200894,
+      "bootstrap95_low": -0.022370486656200894,
+      "point_estimate": -0.022370486656200894
+    },
+    "interpretation": "Percentile intervals resample registered task-by-seed blocks, not episodes as iid deployment observations.",
+    "success_rate_difference": {
+      "bootstrap95_high": 0.0,
+      "bootstrap95_low": 0.0,
+      "negative_blocks": 0,
+      "point_estimate": 0.0,
+      "positive_blocks": 0,
+      "tie_blocks": 1
+    },
+    "unit": "task_by_seed_block"
+  },
   "claim_boundaries": [
     "not an official LIBERO leaderboard score",
     "not a hard-real-time guarantee",
@@ -14,12 +34,15 @@
         "4": 62
       },
       "control_ticks": 104,
+      "deadline_exceeded_responses": 0,
+      "episodes_with_inference_overlap": 1,
       "execute_duty_cycle": 0.8653846153846154,
       "execute_ticks": 90,
       "hold_reasons": {
         "deadline_exceeded": 11,
         "no_policy_response": 3
       },
+      "provider_failures": 0,
       "rollouts": 1,
       "success_rate": 1.0,
       "successes": 1
@@ -30,12 +53,15 @@
         "1": 26
       },
       "control_ticks": 98,
+      "deadline_exceeded_responses": 0,
+      "episodes_with_inference_overlap": 1,
       "execute_duty_cycle": 0.8877551020408163,
       "execute_ticks": 87,
       "hold_reasons": {
         "deadline_exceeded": 8,
         "no_policy_response": 3
       },
+      "provider_failures": 0,
       "rollouts": 1,
       "success_rate": 1.0,
       "successes": 1
@@ -79,7 +105,7 @@
       "task_suite": "libero_spatial"
     }
   ],
-  "schema_version": "armbench.pi05_selection_report.v1",
+  "schema_version": "armbench.pi05_selection_report.v2",
   "seed_summaries": [
     {
       "age_aligned_successes": 1,
@@ -100,6 +126,20 @@
       "manifest_sha256": "d80901ef7406185a900044b8004c3497d34cdd159edf9385f0f735edf746a662",
       "mode": "response_relative_chunk",
       "seed": 7
+    }
+  ],
+  "task_seed_blocks": [
+    {
+      "age_aligned_execute_duty_mean": 0.8653846153846154,
+      "age_aligned_successes": 1,
+      "episodes": 1,
+      "execute_duty_difference_mean": -0.022370486656200894,
+      "response_relative_execute_duty_mean": 0.8877551020408163,
+      "response_relative_successes": 1,
+      "seed": 7,
+      "success_rate_difference": 0.0,
+      "task_id": 0,
+      "task_suite": "libero_spatial"
     }
   ],
   "total_rollouts": 2

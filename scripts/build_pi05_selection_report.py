@@ -10,6 +10,7 @@ import io
 import json
 import math
 import pathlib
+import random
 import sys
 from typing import Any, Mapping, Sequence
 
@@ -26,8 +27,8 @@ from integrations.openpi.validate_libero_independent_clock import (  # noqa: E40
 )
 
 
-SCHEMA_VERSION = "armbench.pi05_selection_report.v1"
-MANIFEST_SCHEMA_VERSION = "armbench.pi05_selection_report_manifest.v1"
+SCHEMA_VERSION = "armbench.pi05_selection_report.v2"
+MANIFEST_SCHEMA_VERSION = "armbench.pi05_selection_report_manifest.v2"
 OUTPUT_NAMES = ("pairs.csv", "summary.json", "summary.md", "manifest.json")
 MODES = (AGE_ALIGNED_SUFFIX, RESPONSE_RELATIVE_CHUNK)
 SMOKE_PROFILE = "smoke"
@@ -41,6 +42,8 @@ FROZEN_240_EPISODE_INDICES = tuple(range(4, 8))
 FROZEN_240_PAIRS_PER_SEED = 40
 FROZEN_240_PAIR_COUNT = 120
 FROZEN_240_ROLLOUT_COUNT = 240
+BLOCK_BOOTSTRAP_REPLICATES = 10_000
+BLOCK_BOOTSTRAP_SEED = 20_260_810
 PAIR_FIELDS = (
     "task_suite",
     "seed",
@@ -116,6 +119,99 @@ def mcnemar_exact(aligned_only: int, relative_only: int) -> float:
     lower = min(aligned_only, relative_only)
     probability = sum(math.comb(discordant, k) for k in range(lower + 1))
     return min(1.0, 2.0 * probability / (2**discordant))
+
+
+def _percentile(values: Sequence[float], probability: float) -> float:
+    if not values or not 0.0 <= probability <= 1.0:
+        raise ValueError("percentile input is invalid")
+    ordered = sorted(float(value) for value in values)
+    position = (len(ordered) - 1) * probability
+    lower = math.floor(position)
+    upper = math.ceil(position)
+    if lower == upper:
+        return ordered[lower]
+    weight = position - lower
+    return ordered[lower] * (1.0 - weight) + ordered[upper] * weight
+
+
+def _task_seed_block_analysis(
+    pairs: Sequence[Mapping[str, Any]],
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    grouped: dict[tuple[str, int, int], list[Mapping[str, Any]]] = {}
+    for pair in pairs:
+        identity = (
+            str(pair["task_suite"]),
+            int(pair["seed"]),
+            int(pair["task_id"]),
+        )
+        grouped.setdefault(identity, []).append(pair)
+
+    blocks: list[dict[str, Any]] = []
+    for (suite, seed, task_id), rows in sorted(grouped.items()):
+        episode_count = len(rows)
+        aligned_successes = sum(bool(row["age_aligned_success"]) for row in rows)
+        relative_successes = sum(bool(row["response_relative_success"]) for row in rows)
+        aligned_duty = sum(float(row["age_aligned_execute_duty"]) for row in rows)
+        relative_duty = sum(
+            float(row["response_relative_execute_duty"]) for row in rows
+        )
+        blocks.append(
+            {
+                "task_suite": suite,
+                "seed": seed,
+                "task_id": task_id,
+                "episodes": episode_count,
+                "age_aligned_successes": aligned_successes,
+                "response_relative_successes": relative_successes,
+                "success_rate_difference": (aligned_successes - relative_successes)
+                / episode_count,
+                "age_aligned_execute_duty_mean": aligned_duty / episode_count,
+                "response_relative_execute_duty_mean": relative_duty / episode_count,
+                "execute_duty_difference_mean": (aligned_duty - relative_duty)
+                / episode_count,
+            }
+        )
+
+    rng = random.Random(BLOCK_BOOTSTRAP_SEED)
+    success_replicates: list[float] = []
+    duty_replicates: list[float] = []
+    for _ in range(BLOCK_BOOTSTRAP_REPLICATES):
+        sampled = [blocks[rng.randrange(len(blocks))] for _ in blocks]
+        success_replicates.append(
+            sum(float(block["success_rate_difference"]) for block in sampled)
+            / len(sampled)
+        )
+        duty_replicates.append(
+            sum(float(block["execute_duty_difference_mean"]) for block in sampled)
+            / len(sampled)
+        )
+
+    success_values = [float(block["success_rate_difference"]) for block in blocks]
+    duty_values = [float(block["execute_duty_difference_mean"]) for block in blocks]
+    robustness = {
+        "unit": "task_by_seed_block",
+        "block_count": len(blocks),
+        "bootstrap_replicates": BLOCK_BOOTSTRAP_REPLICATES,
+        "bootstrap_seed": BLOCK_BOOTSTRAP_SEED,
+        "success_rate_difference": {
+            "point_estimate": sum(success_values) / len(success_values),
+            "bootstrap95_low": _percentile(success_replicates, 0.025),
+            "bootstrap95_high": _percentile(success_replicates, 0.975),
+            "positive_blocks": sum(value > 0.0 for value in success_values),
+            "negative_blocks": sum(value < 0.0 for value in success_values),
+            "tie_blocks": sum(value == 0.0 for value in success_values),
+        },
+        "execute_duty_difference": {
+            "point_estimate": sum(duty_values) / len(duty_values),
+            "bootstrap95_low": _percentile(duty_replicates, 0.025),
+            "bootstrap95_high": _percentile(duty_replicates, 0.975),
+        },
+        "interpretation": (
+            "Percentile intervals resample registered task-by-seed blocks, not "
+            "episodes as iid deployment observations."
+        ),
+    }
+    return blocks, robustness
 
 
 def _query_zero(runtime: Mapping[str, Any], label: str) -> Mapping[str, Any]:
@@ -254,6 +350,13 @@ def _load_artifact(path: pathlib.Path) -> dict[str, Any]:
         "control_period_ms": float(runtime_config["control_period_ms"]),
         "deadline_ms": float(runtime_config["deadline_ms"]),
         "submit_every_ticks": int(runtime_config["submit_every_ticks"]),
+        "provider_failures": int(aggregate["total_failed_responses"]),
+        "deadline_exceeded_responses": int(
+            aggregate["total_deadline_exceeded_responses"]
+        ),
+        "episodes_with_inference_overlap": int(
+            aggregate["episodes_with_inference_overlap"]
+        ),
         "records": records,
     }
 
@@ -268,9 +371,7 @@ def _require_frozen_240_inputs(
     artifacts: Sequence[Mapping[str, Any]],
     grouped: Mapping[tuple[int, str], Mapping[str, Any]],
 ) -> None:
-    expected_groups = {
-        (seed, mode) for seed in FROZEN_240_SEEDS for mode in MODES
-    }
+    expected_groups = {(seed, mode) for seed in FROZEN_240_SEEDS for mode in MODES}
     actual_groups = set(grouped)
     if actual_groups != expected_groups:
         missing = sorted(expected_groups - actual_groups)
@@ -324,7 +425,10 @@ def _require_frozen_240_summary(
             "frozen-240 requires exactly 40 paired episodes per seed; "
             f"found {pairs_by_seed}"
         )
-    if len(pairs) != FROZEN_240_PAIR_COUNT or 2 * len(pairs) != FROZEN_240_ROLLOUT_COUNT:
+    if (
+        len(pairs) != FROZEN_240_PAIR_COUNT
+        or 2 * len(pairs) != FROZEN_240_ROLLOUT_COUNT
+    ):
         raise ValueError(
             "frozen-240 requires exactly 120 pairs / 240 rollouts; "
             f"found {len(pairs)} pairs / {2 * len(pairs)} rollouts"
@@ -386,9 +490,21 @@ def build_summary(
             "control_ticks": 0,
             "hold_reasons": Counter(),
             "action_indices": Counter(),
+            "provider_failures": 0,
+            "deadline_exceeded_responses": 0,
+            "episodes_with_inference_overlap": 0,
         }
         for mode in MODES
     }
+    for artifact in artifacts:
+        total = mode_totals[artifact["mode"]]
+        total["provider_failures"] += int(artifact["provider_failures"])
+        total["deadline_exceeded_responses"] += int(
+            artifact["deadline_exceeded_responses"]
+        )
+        total["episodes_with_inference_overlap"] += int(
+            artifact["episodes_with_inference_overlap"]
+        )
     seed_summaries = []
     for seed in seeds:
         aligned = grouped[(seed, AGE_ALIGNED_SUFFIX)]
@@ -483,6 +599,7 @@ def build_summary(
         for pair in pairs
     )
     both_failure = len(pairs) - aligned_only - relative_only - both_success
+    task_seed_blocks, block_robustness = _task_seed_block_analysis(pairs)
     rendered_modes = {}
     for mode, totals in mode_totals.items():
         rendered_modes[mode] = {
@@ -494,6 +611,11 @@ def build_summary(
             "execute_duty_cycle": totals["execute_ticks"] / totals["control_ticks"],
             "hold_reasons": dict(sorted(totals["hold_reasons"].items())),
             "action_indices": dict(sorted(totals["action_indices"].items())),
+            "provider_failures": totals["provider_failures"],
+            "deadline_exceeded_responses": totals["deadline_exceeded_responses"],
+            "episodes_with_inference_overlap": totals[
+                "episodes_with_inference_overlap"
+            ],
         }
 
     summary = {
@@ -514,6 +636,8 @@ def build_summary(
             "mcnemar_exact_two_sided_p": mcnemar_exact(aligned_only, relative_only),
         },
         "seed_summaries": seed_summaries,
+        "task_seed_blocks": task_seed_blocks,
+        "block_robustness": block_robustness,
         "pairs": pairs,
         "pairing_gate": {
             "valid": True,
@@ -594,23 +718,27 @@ def _render_markdown(summary: Mapping[str, Any]) -> str:
         "",
         "Every source artifact passed the independent validator and every query-0 pairing gate passed.",
         "",
-        "| Mode | Success | Execute duty | Control ticks |",
-        "| --- | ---: | ---: | ---: |",
-        "| `{}` | {}/{} ({:.1%}) | {:.1%} | {:,} |".format(
+        "| Mode | Success | Execute duty | Inference overlap | Provider failures |",
+        "| --- | ---: | ---: | ---: | ---: |",
+        "| `{}` | {}/{} ({:.1%}) | {:.1%} | {}/{} | {} |".format(
             AGE_ALIGNED_SUFFIX,
             aligned["successes"],
             aligned["rollouts"],
             aligned["success_rate"],
             aligned["execute_duty_cycle"],
-            aligned["control_ticks"],
+            aligned["episodes_with_inference_overlap"],
+            aligned["rollouts"],
+            aligned["provider_failures"],
         ),
-        "| `{}` | {}/{} ({:.1%}) | {:.1%} | {:,} |".format(
+        "| `{}` | {}/{} ({:.1%}) | {:.1%} | {}/{} | {} |".format(
             RESPONSE_RELATIVE_CHUNK,
             relative["successes"],
             relative["rollouts"],
             relative["success_rate"],
             relative["execute_duty_cycle"],
-            relative["control_ticks"],
+            relative["episodes_with_inference_overlap"],
+            relative["rollouts"],
+            relative["provider_failures"],
         ),
         "",
         "## Paired outcome",
@@ -642,6 +770,83 @@ def _render_markdown(summary: Mapping[str, Any]) -> str:
                 pairs=row["pairs"],
                 age=row["age_aligned_successes"],
                 relative=row["response_relative_successes"],
+            )
+        )
+    robustness = summary["block_robustness"]
+    success_robustness = robustness["success_rate_difference"]
+    duty_robustness = robustness["execute_duty_difference"]
+    lines.extend(
+        [
+            "",
+            "## Task x seed blocks",
+            "",
+            "| Seed | Task | Episodes | Age-aligned success | Response-relative success | Success difference | Execute-duty difference |",
+            "| ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for row in summary["task_seed_blocks"]:
+        lines.append(
+            "| {seed} | {task_id} | {episodes} | {age}/{episodes} | "
+            "{relative}/{episodes} | {success:+.1%} | {duty:+.1%} |".format(
+                seed=row["seed"],
+                task_id=row["task_id"],
+                episodes=row["episodes"],
+                age=row["age_aligned_successes"],
+                relative=row["response_relative_successes"],
+                success=row["success_rate_difference"],
+                duty=row["execute_duty_difference_mean"],
+            )
+        )
+    lines.extend(
+        [
+            "",
+            "## Block robustness",
+            "",
+            "- Task x seed blocks: `{}`".format(robustness["block_count"]),
+            "- Success-rate difference: `{:+.2%}`; block-bootstrap 95% interval "
+            "`[{:+.2%}, {:+.2%}]`".format(
+                success_robustness["point_estimate"],
+                success_robustness["bootstrap95_low"],
+                success_robustness["bootstrap95_high"],
+            ),
+            "- Positive / negative / tie success blocks: `{}` / `{}` / `{}`".format(
+                success_robustness["positive_blocks"],
+                success_robustness["negative_blocks"],
+                success_robustness["tie_blocks"],
+            ),
+            "- Mean execute-duty difference: `{:+.2%}`; block-bootstrap 95% interval "
+            "`[{:+.2%}, {:+.2%}]`".format(
+                duty_robustness["point_estimate"],
+                duty_robustness["bootstrap95_low"],
+                duty_robustness["bootstrap95_high"],
+            ),
+            "- Deterministic percentile bootstrap: `{}` replicates, seed `{}`.".format(
+                robustness["bootstrap_replicates"], robustness["bootstrap_seed"]
+            ),
+            "- {}".format(robustness["interpretation"]),
+            "",
+            "## Hold and action-index accounting",
+            "",
+            "| Mode | Response deadline rejections | Hold reasons | Executed action indices |",
+            "| --- | ---: | --- | --- |",
+        ]
+    )
+    for mode, values in (
+        (AGE_ALIGNED_SUFFIX, aligned),
+        (RESPONSE_RELATIVE_CHUNK, relative),
+    ):
+        hold_reasons = ", ".join(
+            f"{key}: {value}" for key, value in values["hold_reasons"].items()
+        )
+        action_indices = ", ".join(
+            f"{key}: {value}" for key, value in values["action_indices"].items()
+        )
+        lines.append(
+            "| `{}` | {} | {} | {} |".format(
+                mode,
+                values["deadline_exceeded_responses"],
+                hold_reasons,
+                action_indices,
             )
         )
     lines.extend(

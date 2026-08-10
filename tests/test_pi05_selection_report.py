@@ -37,9 +37,7 @@ def _artifact(
                 "policy_input_sha256": _digest(
                     f"input-{seed}-{task_id}-{episode_index}"
                 ),
-                "sampling_key_sha256": _digest(
-                    f"key-{seed}-{task_id}-{episode_index}"
-                ),
+                "sampling_key_sha256": _digest(f"key-{seed}-{task_id}-{episode_index}"),
                 "sampling_noise_sha256": _digest(
                     f"noise-{seed}-{task_id}-{episode_index}"
                 ),
@@ -67,6 +65,9 @@ def _artifact(
         "control_period_ms": 50.0,
         "deadline_ms": 175.0,
         "submit_every_ticks": 1,
+        "provider_failures": 0,
+        "deadline_exceeded_responses": 0,
+        "episodes_with_inference_overlap": len(records),
         "records": records,
     }
 
@@ -121,6 +122,13 @@ def test_selection_report_requires_and_summarizes_query0_pairing(
     assert summary["pairing_gate"]["valid"] is True
     assert summary["modes"][AGE_ALIGNED_SUFFIX]["successes"] == 4
     assert summary["modes"][RESPONSE_RELATIVE_CHUNK]["successes"] == 2
+    assert len(summary["task_seed_blocks"]) == 4
+    assert summary["block_robustness"]["block_count"] == 4
+    assert summary["block_robustness"]["success_rate_difference"][
+        "point_estimate"
+    ] == pytest.approx(0.5)
+    assert summary["modes"][AGE_ALIGNED_SUFFIX]["episodes_with_inference_overlap"] == 4
+    assert summary["modes"][AGE_ALIGNED_SUFFIX]["provider_failures"] == 0
     assert summary["paired_success"] == {
         "both_success": 2,
         "age_aligned_only": 2,
@@ -163,6 +171,8 @@ def test_frozen_240_profile_accepts_only_registered_matrix(
     assert summary["frozen_matrix_gate"]["valid"] is True
     assert summary["frozen_matrix_gate"]["pairs_per_seed"] == 40
     assert [row["pairs"] for row in summary["seed_summaries"]] == [40, 40, 40]
+    assert len(summary["task_seed_blocks"]) == 30
+    assert summary["block_robustness"]["block_count"] == 30
 
 
 def test_frozen_240_profile_rejects_wrong_runtime_commit(

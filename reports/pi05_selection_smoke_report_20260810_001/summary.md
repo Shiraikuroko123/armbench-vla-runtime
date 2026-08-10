@@ -2,10 +2,10 @@
 
 Every source artifact passed the independent validator and every query-0 pairing gate passed.
 
-| Mode | Success | Execute duty | Control ticks |
-| --- | ---: | ---: | ---: |
-| `age_aligned_suffix` | 1/1 (100.0%) | 86.5% | 104 |
-| `response_relative_chunk` | 1/1 (100.0%) | 88.8% | 98 |
+| Mode | Success | Execute duty | Inference overlap | Provider failures |
+| --- | ---: | ---: | ---: | ---: |
+| `age_aligned_suffix` | 1/1 (100.0%) | 86.5% | 1/1 | 0 |
+| `response_relative_chunk` | 1/1 (100.0%) | 88.8% | 1/1 | 0 |
 
 ## Paired outcome
 
@@ -19,6 +19,28 @@ Every source artifact passed the independent validator and every query-0 pairing
 | Joint seed | Pairs | Age-aligned success | Response-relative success |
 | ---: | ---: | ---: | ---: |
 | 7 | 1 | 1/1 | 1/1 |
+
+## Task x seed blocks
+
+| Seed | Task | Episodes | Age-aligned success | Response-relative success | Success difference | Execute-duty difference |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 7 | 0 | 1 | 1/1 | 1/1 | +0.0% | -2.2% |
+
+## Block robustness
+
+- Task x seed blocks: `1`
+- Success-rate difference: `+0.00%`; block-bootstrap 95% interval `[+0.00%, +0.00%]`
+- Positive / negative / tie success blocks: `0` / `0` / `1`
+- Mean execute-duty difference: `-2.24%`; block-bootstrap 95% interval `[-2.24%, -2.24%]`
+- Deterministic percentile bootstrap: `10000` replicates, seed `20260810`.
+- Percentile intervals resample registered task-by-seed blocks, not episodes as iid deployment observations.
+
+## Hold and action-index accounting
+
+| Mode | Response deadline rejections | Hold reasons | Executed action indices |
+| --- | ---: | --- | --- |
+| `age_aligned_suffix` | 0 | deadline_exceeded: 11, no_policy_response: 3 | 3: 28, 4: 62 |
+| `response_relative_chunk` | 0 | deadline_exceeded: 8, no_policy_response: 3 | 0: 61, 1: 26 |
 
 ## Pairing gate
 
