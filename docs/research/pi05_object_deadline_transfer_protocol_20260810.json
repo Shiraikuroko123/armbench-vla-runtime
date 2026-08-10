@@ -1,0 +1,80 @@
+{
+  "schema_version": "armbench.pi05_object_deadline_transfer_protocol.v1",
+  "created_at_utc": "2026-08-10T02:49:19.1664062Z",
+  "status": "protocol_frozen_before_all_object_deadline_cells",
+  "scope": "Exploratory cross-suite transfer of the pi0.5 independent-clock deadline condition",
+  "runtime_commit": "8686490",
+  "repository_commit_at_freeze": "653222d",
+  "fixed_protocol": {
+    "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+    "task_suite": "libero_object",
+    "task_ids": "0:10",
+    "episode_indices": "0:4",
+    "control_period_ms": 50,
+    "action_horizon": 10,
+    "submit_every_ticks": 1,
+    "mailbox": "latest_only_single_pending_observation",
+    "deadline_disposition": "hold",
+    "video_mode": "failures",
+    "max_task_steps": null
+  },
+  "registered_cells": [
+    {
+      "label": "object_seed7_deadline150",
+      "deadline_ms": 150,
+      "seed": 7,
+      "planned_rollouts": 40,
+      "order": 1
+    },
+    {
+      "label": "object_seed7_deadline175",
+      "deadline_ms": 175,
+      "seed": 7,
+      "planned_rollouts": 40,
+      "order": 2
+    },
+    {
+      "label": "object_seed8_deadline175",
+      "deadline_ms": 175,
+      "seed": 8,
+      "planned_rollouts": 40,
+      "order": 3
+    },
+    {
+      "label": "object_seed8_deadline150",
+      "deadline_ms": 150,
+      "seed": 8,
+      "planned_rollouts": 40,
+      "order": 4
+    }
+  ],
+  "order_note": "Seed 7 runs 150 -> 175 and seed 8 runs 175 -> 150 to counterbalance endpoint order.",
+  "primary_outcomes": [
+    "task_success_rate",
+    "execute_duty_cycle",
+    "deadline_hold_ticks",
+    "provider_failures",
+    "inference_simulation_overlap"
+  ],
+  "analysis_plan": {
+    "reporting": "descriptive per-suite, per-seed tables with Wilson intervals and paired episode discordance",
+    "paired_unit": "task_id plus episode_index within libero_object",
+    "cluster_unit": "LIBERO task; four episodes within a task are not treated as iid deployment draws",
+    "comparison": "compare direction and duty-cycle change with the already preserved Spatial cells",
+    "pooling": "do not pool Object and Spatial rollouts into a universal deadline estimate",
+    "multiple_comparisons": "do not add further Object deadlines after inspecting these cells"
+  },
+  "stop_conditions": [
+    "provider failure, missing inference/simulation overlap, worker not stopped, or validator invalid",
+    "checkpoint attestation, OpenPI commit, or runtime source hashes differ from the fixed protocol",
+    "less than 60 minutes of server lease remains before starting another cell",
+    "do not stop or extend a cell based on an intermediate success rate"
+  ],
+  "claim_boundaries": [
+    "exploratory transfer to a second LIBERO suite, not a universal threshold",
+    "not an official LIBERO leaderboard score",
+    "not a hard-real-time guarantee",
+    "not hardware safety or real-robot deployment evidence",
+    "not cross-model superiority"
+  ]
+}
