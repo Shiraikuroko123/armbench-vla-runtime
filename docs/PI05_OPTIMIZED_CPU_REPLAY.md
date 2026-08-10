@@ -69,6 +69,16 @@ optimized path executes 1/90 and finds 66/90 at 23.888 ms P95. This is a
 versioned implementation progression over the same frozen input matrix, not a
 statistical method comparison.
 
+## Subsequent repeatability result
+
+A later protocol-fixed audit reran the complete 180-case matrix in six fresh
+processes. Idle operational execute counts were `[1, 0, 0]`; with four
+controlled CPU-load workers they were `[0, 0, 0]`. All six trials retained
+66/90 constraint-safe candidates, zero unsafe publications, and zero partial
+prefixes. The frozen single-run `go` above remains part of the v0.2.0 record,
+but it is not repeatable enough to support a stable or deployable 20 ms claim.
+See the [repeatability audit](PI05_OPTIMIZED_CPU_REPEATABILITY.md).
+
 ## Reproduce and validate
 
 From the repository root on Windows PowerShell:

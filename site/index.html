@@ -17,7 +17,7 @@
     <meta name="twitter:title" content="VLA-Sync | Asynchronous VLA runtime evidence">
     <meta name="twitter:description" content="A simulation research system for action-chunk VLA latency, age-aligned selection, deadline holds, and auditable evidence.">
     <meta name="twitter:image" content="https://shiraikuroko123.github.io/armbench-vla-runtime/assets/og-armbench.png">
-    <meta name="last-modified" content="2026-08-10">
+    <meta name="last-modified" content="2026-08-11">
     <title>VLA-Sync | 异步 VLA 动作时序与运行时验证</title>
     <link rel="canonical" href="https://shiraikuroko123.github.io/armbench-vla-runtime/">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -34,7 +34,7 @@
         "programmingLanguage": ["Python", "JavaScript"],
         "runtimePlatform": "Physical Intelligence π0.5 VLA via OpenPI in LIBERO, plus MuJoCo Panda simulation",
         "license": "https://opensource.org/licenses/MIT",
-        "dateModified": "2026-08-10",
+        "dateModified": "2026-08-11",
         "author": {"@type": "Person", "name": "Zhangwei Chen"}
       }
     </script>
@@ -87,7 +87,7 @@
             <span data-lang-content="en">Zhangwei Chen · Independent research engineering project · 2026</span>
           </p>
           <nav class="artifact-actions" aria-label="Project artifacts">
-            <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime" target="_blank" rel="noreferrer"><span>Code</span><small>v0.2.0</small></a>
+            <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime" target="_blank" rel="noreferrer"><span>Code</span><small>v0.3.0</small></a>
             <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/RESULTS.md" target="_blank" rel="noreferrer"><span>Results</span><small>960 formal rollouts</small></a>
             <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/PROJECT_ARCHITECTURE_ZH.md" target="_blank" rel="noreferrer"><span>Architecture</span><small>System contract</small></a>
             <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/EVIDENCE_CATALOG.md" target="_blank" rel="noreferrer"><span>Evidence</span><small>56 artifacts</small></a>
@@ -269,22 +269,22 @@
 
         <div class="result-layout runtime-audit shell reveal">
           <div class="runtime-audit-copy">
-            <p class="section-label">R02 · OPTIMIZED PANDA CPU AUDIT</p>
-            <h3><span data-lang-content="zh">CPU 优化让完整保障链首次在 20 ms profile 中原子发布计划，但结果仍位于 deadline 边界。</span><span data-lang-content="en">CPU optimization enables the first atomic full-assurance publication in the 20 ms profile, but the result remains deadline-boundary evidence.</span></h3>
-            <p><span data-lang-content="zh">同一批 30 个冻结 π0.5 响应跨 3 个 Panda 场景回放。persistent OSQP、保守 broad phase、制动 workspace 和 safe-only 证书复用将安全候选从旧基线的 5/90 提升至 66/90；正式 20 ms profile 为 1/90 execute、0 不安全发布、0 动作前缀泄漏。</span><span data-lang-content="en">The same 30 frozen π0.5 responses are replayed across three Panda scenes. Persistent OSQP, conservative broad phase, braking workspaces, and safe-only certificate reuse raise constraint-safe candidates from 5/90 in the retained baseline to 66/90; the primary 20 ms profile records 1/90 execute, zero unsafe publications, and zero partial-prefix exposure.</span></p>
-            <p><span data-lang-content="zh">冻结规则判定为最低条件下的 <strong>go</strong>；89/90 案例仍 hold，P50/P95 均高于 20 ms，因此不表示稳定实时达标。</span><span data-lang-content="en">The frozen rule yields a minimum-condition <strong>go</strong>; 89/90 cases still hold and both P50 and P95 exceed 20 ms, so this is not stable real-time compliance.</span></p>
-            <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/pi05_optimized_cpu_replay_180_001/summary.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开 180-case 审计</span><span data-lang-content="en">Open the 180-case audit</span> ↗</a>
+            <p class="section-label">R02 · CPU REPEATABILITY AUDIT</p>
+            <h3><span data-lang-content="zh">候选可行性与 fail-closed 发布可以重复；20 ms 原子执行不能。</span><span data-lang-content="en">Candidate feasibility and fail-closed publication repeat; 20 ms atomic execution does not.</span></h3>
+            <p><span data-lang-content="zh">同一批 30 个冻结 π0.5 响应跨 3 个 Panda 场景，在 6 个独立冷启动进程中完整重跑。每轮均保持 66/90 个安全候选、0 不安全发布和 0 动作前缀泄漏；变化来自 best-effort Python 监督是否赶在 deadline 前结束。</span><span data-lang-content="en">The same 30 frozen π0.5 responses and three Panda scenes are rerun in six fresh processes. Every trial retains 66/90 safe candidates, zero unsafe publications, and zero partial-prefix exposure; what changes is whether best-effort Python supervision finishes before the deadline.</span></p>
+            <p><span data-lang-content="zh">v0.2.0 的单次最低规则 <strong>go</strong> 仍作为冻结记录保留，但空闲重跑为 [1,0,0]，受控 CPU 负载下为 [0,0,0]，因此当前不主张稳定或可部署的 20 ms 达标能力。</span><span data-lang-content="en">The v0.2.0 single-run minimum-rule <strong>go</strong> remains a frozen record, but idle reruns are [1,0,0] and controlled-load reruns are [0,0,0]. Stable or deployable 20 ms compliance is therefore not claimed.</span></p>
+            <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/pi05_optimized_cpu_repeatability_20260811_001/summary.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开 6 轮重复性审计</span><span data-lang-content="en">Open the six-trial repeatability audit</span> ↗</a>
           </div>
           <div class="seed-table-wrap">
             <table>
-              <caption><span data-lang-content="zh">优化后的原子保障 profile</span><span data-lang-content="en">Optimized atomic-assurance profiles</span></caption>
-              <thead><tr><th scope="col">Profile</th><th scope="col">Execute</th><th scope="col">Safe</th><th scope="col">P95</th></tr></thead>
+              <caption><span data-lang-content="zh">20 ms profile 冷启动重复</span><span data-lang-content="en">Cold-process repeats of the 20 ms profile</span></caption>
+              <thead><tr><th scope="col">Condition</th><th scope="col">Trials</th><th scope="col">Execute</th><th scope="col">P95 mean ± sd</th></tr></thead>
               <tbody>
-                <tr><th scope="row">20 ms</th><td>1 / 90</td><td>66 / 90</td><td>23.888 ms</td></tr>
-                <tr><th scope="row">100 ms diagnostic</th><td>58 / 90</td><td>66 / 90</td><td>86.559 ms</td></tr>
+                <tr><th scope="row">Idle</th><td>3 × 90</td><td>[1, 0, 0]</td><td>27.041 ± 1.078 ms</td></tr>
+                <tr><th scope="row">4 CPU workers</th><td>3 × 90</td><td>[0, 0, 0]</td><td>28.385 ± 1.025 ms</td></tr>
               </tbody>
             </table>
-            <p><span data-lang-content="zh">两个 profile 的不安全发布和部分前缀泄漏均为 0；100 ms 诊断结果不能改变 20 ms 正式判定。</span><span data-lang-content="en">Unsafe publication and partial-prefix exposure are zero in both profiles; the 100 ms diagnostic profile cannot change the 20 ms decision.</span></p>
+            <p><span data-lang-content="zh">6 轮 artifact 全部验证通过；表中 P95 是 supervisor 时延的三轮均值与总体标准差。每轮 66/90 个安全候选，不安全发布/部分前缀均为 0。</span><span data-lang-content="en">All six artifacts validate. P95 shows the three-trial mean and population standard deviation. Every trial has 66/90 safe candidates and zero unsafe publications or partial prefixes.</span></p>
           </div>
         </div>
       </section>
@@ -374,10 +374,11 @@ py -3.10 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[test]"</code><button type="button" data-copy-code><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-block"><span>02 · CPU ACCEPTANCE</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\accept_cpu.ps1"</code><button type="button" data-copy-code><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-block"><span>03 · PANDA RECOMPUTE + VIEW</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\accept_integrated_panda.ps1" -Visualize -Case narrow_gate_payload_delay_goal</code><button type="button" data-copy-code><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
+            <div class="command-block"><span>04 · REPEATABILITY ARTIFACT</span><code>.\.venv\Scripts\python.exe -m armbench vla-panda-optimized-repeatability-validate reports\pi05_optimized_cpu_repeatability_20260811_001 reports\pi05_integrated_panda_cpu_replay_270_001</code><button type="button" data-copy-code><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
           </div>
           <dl class="verification-ledger">
-            <div><dt>806</dt><dd><span data-lang-content="zh">完整 pytest 通过</span><span data-lang-content="en">full pytest passes</span><small>3 optional LeRobot skips</small></dd></div>
-            <div><dt>48</dt><dd><span data-lang-content="zh">CPU acceptance 通过</span><span data-lang-content="en">CPU acceptance passes</span><small>0 failures</small></dd></div>
+            <div><dt>816</dt><dd><span data-lang-content="zh">完整 pytest 通过</span><span data-lang-content="en">full pytest passes</span><small>3 optional LeRobot skips</small></dd></div>
+            <div><dt>50</dt><dd><span data-lang-content="zh">CPU acceptance 通过</span><span data-lang-content="en">CPU acceptance passes</span><small>0 failures</small></dd></div>
             <div><dt>56</dt><dd><span data-lang-content="zh">登记 artifacts</span><span data-lang-content="en">registered artifacts</span><small>4,270 catalogued files</small></dd></div>
             <div><dt>0</dt><dd><span data-lang-content="zh">正式 GPU provider failure</span><span data-lang-content="en">formal GPU provider failures</span><small>held-out 240</small></dd></div>
           </dl>
@@ -398,7 +399,7 @@ py -3.10 -m venv .venv
               <li><span data-lang-content="zh">在冻结 120 对中，age-aligned suffix 的任务结果显著优于 response-relative chunk。</span><span data-lang-content="en">Age-aligned suffix selection outperforms response-relative chunks in the frozen 120-pair study.</span></li>
               <li><span data-lang-content="zh">deadline 与离散控制 tick 的关系可通过 720 次多 suite/seed rollout 重现。</span><span data-lang-content="en">The deadline/control-tick interaction reproduces over 720 multi-suite, multi-seed rollouts.</span></li>
               <li><span data-lang-content="zh">从七自由度规划继承的 QP、连续碰撞和制动基座可由 CPU 独立重算。</span><span data-lang-content="en">The inherited seven-DoF QP, continuous-collision, and braking substrate is independently recomputable on CPU.</span></li>
-              <li><span data-lang-content="zh">优化后完整保障链在 20 ms profile 中实现 1/90 原子执行、66/90 安全候选，且无不安全发布或前缀泄漏。</span><span data-lang-content="en">The optimized full-assurance path reaches 1/90 atomic executions and 66/90 safe candidates in the 20 ms profile, with no unsafe publication or prefix exposure.</span></li>
+              <li><span data-lang-content="zh">6 轮 CPU 重跑均保持 66/90 安全候选、0 不安全发布和 0 前缀泄漏；20 ms execute 在空闲与负载条件下均不稳定。</span><span data-lang-content="en">Six CPU reruns retain 66/90 safe candidates, zero unsafe publications, and zero partial prefixes; 20 ms execution is unstable across idle and loaded conditions.</span></li>
             </ul>
           </div>
           <div class="scope-list missing">

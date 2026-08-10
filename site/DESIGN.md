@@ -84,6 +84,9 @@ source code, or card styling.
 - The G01 π0.5-to-Panda probe remains integration evidence with
   `target_reached=false`, but it is not used in the hero.
 - The Panda 2/2 result is scripted planning evidence.
+- The v0.2.0 single-run 20 ms `go` remains frozen historical evidence; the
+  current page leads with the six-trial result showing repeatable fail-closed
+  publication and non-repeatable 20 ms execution.
 - No text implies hard real time, hardware safety, training, fine-tuning, or
   cross-model generality.
 

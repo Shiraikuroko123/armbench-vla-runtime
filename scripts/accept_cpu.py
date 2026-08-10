@@ -153,6 +153,26 @@ def _specs() -> list[dict[str, Any]]:
             ],
         },
         {
+            "id": "optimized_pi05_cpu_replay",
+            "argv": [
+                "-m",
+                "armbench",
+                "vla-panda-optimized-replay-validate",
+                "reports/pi05_optimized_cpu_replay_180_001",
+                "reports/pi05_integrated_panda_cpu_replay_270_001",
+            ],
+        },
+        {
+            "id": "optimized_pi05_cpu_repeatability",
+            "argv": [
+                "-m",
+                "armbench",
+                "vla-panda-optimized-repeatability-validate",
+                "reports/pi05_optimized_cpu_repeatability_20260811_001",
+                "reports/pi05_integrated_panda_cpu_replay_270_001",
+            ],
+        },
+        {
             "id": "integrated_fault_matrix",
             "argv": [
                 "-m",

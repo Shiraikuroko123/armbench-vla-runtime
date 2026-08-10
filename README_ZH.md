@@ -4,7 +4,7 @@
 
 # VLA-Sync
 
-当前软件版本：**v0.2.0**。
+当前软件版本：**v0.3.0**。
 
 ## G02：官方 pi0.5-LIBERO 独立时钟 pilot
 
@@ -120,6 +120,7 @@ Panda 与 LIBERO 的动作契约不同，实验结果不会混合统计。完整
 | 终端制动不变量修复 | 270 个成对离线案例：已注册约束从 264/270 提升到 270/270，6 个旧冲突全部解决，0 个回归 | 将冻结的 `pi0.5` 响应送入 Panda 适配器；不主张任务成功率或硬实时 |
 | 冻结响应的 Panda 完整保障 CPU 基线 | 30 个真实冻结响应、3 个场景、3 个模式共 270 行；20 ms 下完整保障 0/90 execute、90/90 hold、0 动作前缀泄漏 | 保留的 `no_go` 基线，分别暴露耗时和候选可行性瓶颈；不重新运行 checkpoint，也不主张任务成功 |
 | 优化后的 Panda CPU 保障审计 | 同一 30 个冻结响应和 3 个场景共 180 个案例；20 ms profile 为 1/90 execute、66/90 安全候选、0 不安全发布、0 前缀泄漏，P95 23.888 ms | 达到冻结规则的最低 `go` 条件，但 89/90 仍 hold，P50/P95 均超过 20 ms；不代表稳定实时达标 |
+| 优化后 CPU 重复性审计 | 同一 180-case 矩阵以独立进程运行 6 次：空闲 20 ms execute 为 `[1,0,0]`，4-worker CPU 负载下为 `[0,0,0]`；每轮均保持 66/90 安全候选、0 不安全发布和 0 前缀泄漏 | fail-closed 发布契约可以重复，但单次最低 `go` 不能支持稳定或可部署的 20 ms 达标主张 |
 | Panda 集成 supervisor | 27/27 个注册故障结果可重算：12 个接受、6 个已验证制动、7 个 hold、2 个不可恢复停止；拒绝动作块均未泄漏部分前缀 | 将 OSQP 运动学投影、连续碰撞证书和停止不变量组合为原子 CPU 参考链；使用 scripted 动作，不是硬实时 |
 | 带保障的 Panda 任务执行 | nominal 与 0.5 kg/80 ms 条件下 2/2 到达 MuJoCo 目标；351/351 条运动边和停止边界通过证书，注册的接触/限位/力矩饱和均为 0 | 先离线保障，再执行力矩控制关节路点任务；不是学习式 VLA、物体操作或真机结果 |
 | 异步 Panda 闭环 | 27 个带 clearance-backed swept 静态障碍检查的 CPU 墙钟案例：制动不变量模式 9/9 通过物理谓词，突停违规 0，修复预算超限 0；legacy 为 311 次突停，unguarded 为 289 次 | 使用 scripted 非学习策略验证双相机、策略 worker、调度、修复和力矩控制集成；不是学习策略效果或实体安全认证 |
@@ -284,6 +285,20 @@ safe-only 证书复用和优化原子 supervisor。无需 GPU 即可验收保存
 20 ms profile 为 1/90 条完整计划执行、66/90 个安全候选、0 不安全发布和 0 前缀
 泄漏，P50/P95 为 21.493/23.888 ms。冻结判定为最低条件下的 `go`，不应写成稳定
 实时达标。完整结果见[优化后的 pi0.5 到 Panda CPU 保障回放](docs/PI05_OPTIMIZED_CPU_REPLAY_ZH.md)。
+
+后续重复性审计在 6 个独立进程中重跑相同矩阵：3 次空闲运行的 20 ms execute 为
+`[1, 0, 0]`，3 次同时运行 4 个受控 CPU worker 的结果为 `[0, 0, 0]`。6 轮均保持
+66/90 个安全候选、0 不安全发布和 0 前缀泄漏。因此当前证据支持 fail-closed 发布边界，
+但不支持稳定 20 ms execute。无需 GPU 即可验收：
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m armbench `
+  vla-panda-optimized-repeatability-validate `
+  reports\pi05_optimized_cpu_repeatability_20260811_001 `
+  reports\pi05_integrated_panda_cpu_replay_270_001
+```
+
+完整解释见[优化后 CPU 保障链的重复性审计](docs/PI05_OPTIMIZED_CPU_REPEATABILITY_ZH.md)。
 
 本地异步闭环阶段进一步把实时双相机采集、阻塞策略 worker、观测年龄后缀选择、
 deadline 回退、制动修复和力矩控制 Panda 物理执行接到同一个控制循环中。内置策略

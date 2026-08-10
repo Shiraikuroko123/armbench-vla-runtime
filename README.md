@@ -10,7 +10,7 @@ has produced a short future action sequence but before that sequence reaches a
 robot controller. The repository URL, Python package, and CLI remain
 `armbench` for compatibility with released evidence and commands.
 
-Current software release: **v0.2.0**.
+Current software release: **v0.3.0**.
 
 The repository contains two separately validated paths:
 
@@ -110,6 +110,7 @@ for the full design and the current integration gap.
 | Braking-invariant Panda repair | 270 paired offline cases: 264/270 to 270/270 registered constraints, all 6 legacy conflicts resolved, 0 regressions | Frozen `pi0.5` responses replayed through the Panda adapter; no task-success or hard-real-time claim |
 | Frozen-response integrated Panda CPU gate | 270 paired rows over 30 attested responses, 3 scenes, and 3 modes: direct published 90/90 unsafe candidates; QP published 1/90; full assurance held 90/90 with zero partial prefixes | Prospectively frozen 20 ms go/no-go result; identifies latency and candidate-feasibility bottlenecks without rerunning the checkpoint or claiming task success |
 | Optimized Panda CPU assurance audit | 180 cases over the same 30 frozen responses and 3 scenes: the 20 ms profile executes 1/90, finds 66/90 constraint-safe candidates, publishes 0 unsafe plans, and exposes 0 partial prefixes; P95 supervisor latency is 23.888 ms | Registered minimum-rule `go`, but 89/90 operational cases still hold and P50/P95 exceed 20 ms; this is not stable real-time or task-success evidence |
+| Optimized CPU repeatability audit | Six fresh-process reruns of the same 180-case matrix: idle 20 ms execute counts `[1,0,0]`, four-worker CPU-load counts `[0,0,0]`; every run retains 66/90 safe candidates, 0 unsafe publications, and 0 partial prefixes | The fail-closed publication contract repeats, but the single-run minimum `go` does not support stable or deployable 20 ms compliance |
 | Integrated Panda supervisor | 27/27 registered fault outcomes reproduced: 12 accepted plans, 6 verified brakes, 7 holds, 2 unrecoverable stops; no rejected chunk exposed a partial prefix | Atomic CPU reference chain combining OSQP kinematic projection, continuous collision certificates, and a stop invariant; scripted actions, not hard real time |
 | Asynchronous assurance publication | 17/17 provider, timing, state, reset, budget, and collision outcomes reproduced: 6 complete plans, 10 holds, 1 unrecoverable stop, 0 partial prefixes | Separate policy/assurance workers and activation-time atomic gate; mock, frozen, and interface fixtures only, not a learned checkpoint |
 | Assured Panda task execution | 2/2 MuJoCo targets reached under nominal and 0.5 kg/80 ms conditions; 351/351 motion edges and stop boundaries certified, zero registered contact/limit/saturation events | Offline assurance followed by torque-controlled joint-waypoint execution; not a learned VLA, manipulation, or hardware result |
@@ -349,6 +350,23 @@ candidates, publishes no unsafe plans, and exposes no partial prefixes. Its
 P50/P95 supervisor latency is 21.493/23.888 ms, so the frozen `go` is a
 minimum-rule pass rather than stable deadline compliance. See the
 [optimized CPU replay audit](docs/PI05_OPTIMIZED_CPU_REPLAY.md).
+
+The follow-up repeatability audit launches the same replay in six fresh
+processes: three idle and three with four controlled CPU-load workers. Idle
+20 ms execute counts are `[1, 0, 0]`; loaded counts are `[0, 0, 0]`. All six
+runs retain 66/90 constraint-safe candidates, zero unsafe publications, and
+zero partial-prefix exposure. The current evidence therefore supports the
+fail-closed publication boundary, but not stable 20 ms execution. Validate the
+preserved matrix locally:
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m armbench `
+  vla-panda-optimized-repeatability-validate `
+  reports\pi05_optimized_cpu_repeatability_20260811_001 `
+  reports\pi05_integrated_panda_cpu_replay_270_001
+```
+
+See the [optimized CPU repeatability audit](docs/PI05_OPTIMIZED_CPU_REPEATABILITY.md).
 
 The local asynchronous closed-loop stage connects live dual-camera capture, a
 blocking policy worker, observation-age suffix selection, deadline fallback,

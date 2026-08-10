@@ -56,7 +56,7 @@
 | G01 | 官方在线 `pi0.5 -> Panda` smoke，补上当前最关键的端到端断点 | **已完成**：35 个真实响应进入 Panda 异步 runtime；目标未到达，严格按 integration gate 报告 | C01-C02；Panda 双相机 observation adapter；checkpoint attestation | 固定 OpenPI commit、官方 `pi05_libero` checkpoint、Panda MuJoCo | 已使用 RTX 4090 云实例 | 已发生云主机费用 | 2026-08-09 完成 | checkpoint 身份、请求/响应、适配、repair、watchdog、时钟、轨迹和视频均由独立 validator 核对 | P0 完成 |
 | G02 | 真正独立时钟的 `pi0.5`-LIBERO pilot，替代 blocking inference + simulator catch-up | **已完成**：LIBERO Spatial 40/40 rollout 完成，38/40 成功；40/40 均证明推理/仿真重叠，4,521/4,623 tick 在推理期间推进 | C02、G01；仿真与推理分进程；固定随机源 | OpenPI、LIBERO、40-rollout 冻结 pilot 协议 | 已使用 RTX 4090 云实例；本地保留 17.3 MB 可验证 artifact | 已发生云主机费用 | 2026-08-10 完成 | 所有请求、action chunk、初始状态、age、hold、失败、视频和源码快照可独立重算；两条失败未剔除 | P0 完成 |
 | R01 | 独立时钟正式矩阵，确认时序方法是否仍有效 | **已完成**：120 对 / 240 rollouts；age-aligned 114/120，response-relative 100/120，+11.67 个百分点，exact McNemar `p=0.00936`，30-block bootstrap 95% [+1.67,+21.67] | G02、冻结协议与 query-0 配对门禁 | 官方 `pi05_libero`、Spatial tasks 0-9、episodes 4-7、seeds 7/8/9 | 已使用 RTX 4090 云实例；本地保存六个完整 artifact | 已发生云主机费用 | 2026-08-10 完成 | 240/240 入统计；120/120 初态、输入、采样与 query-0 动作哈希配对；provider failure 0；当前 validator 与 `frozen-240` 报告门禁通过 | P1 完成 |
-| R02 | 在线任务级 QP/braking repair，验证满足约束的同时是否保留任务进度 | **CPU 优化审计已完成**：保留 0/90 的 20 ms `no_go` 基线；persistent OSQP、broad phase、制动 workspace 和 safe-only 证书复用后，新 20 ms profile 为 1/90 execute、66/90 安全候选、0 不安全发布、0 前缀泄漏，冻结判定为最低规则 `go`；P50/P95 仍为 21.493/23.888 ms | C03-C05、G02 和 CPU 优化已完成；下一步进入同一 policy 的任务对齐在线对照，不再用离线跨控制器回放替代任务结果 | 真实 `pi0.5` response、统一 fault matrix、LIBERO 原生 evaluator | 任务级在线复验追加 20-50 GPU 小时；CPU 重复时延审计无需 GPU | CPU ¥0；GPU 复验 ¥200-1,000 | CPU 重复审计 1-2 天；在线复验 1-3 天 | 多次 CPU 负载/冷启动重复先量化 1/90 是否稳定；在线阶段报告任务成功、hold、干预、进度、P95/max，执行计划 0 注册违规、0 前缀泄漏 | P1 |
+| R02 | 在线任务级 QP/braking repair，验证满足约束的同时是否保留任务进度 | **CPU 优化与重复性审计已完成**：单次冻结结果为 1/90 execute；3 次空闲冷启动为 `[1,0,0]`，3 次 4-worker CPU 负载为 `[0,0,0]`。6 轮均保持 66/90 安全候选、0 不安全发布和 0 前缀泄漏，因此 fail-closed 发布稳定，但 20 ms execute 不稳定 | C03-C05、G02 和本地重复性审计已完成；下一步先注册可部署 supervisor 预算或迁移 deadline 关键实现，再进入同一 policy 的任务对齐在线对照 | 真实 `pi0.5` response、统一 fault matrix、LIBERO 原生 evaluator；部署版需受控线程/进程调度或编译路径 | 在线复验追加 20-50 GPU 小时；预算/实现修订可先用本地 CPU | CPU ¥0；GPU 复验 ¥200-1,000 | 预算/实现修订 2-5 天；在线复验 1-3 天 | 新预算只能在实验前注册；冷启动与负载下分别至少 3 次；在线阶段报告任务成功、hold、干预、进度、P95/max，执行计划 0 注册违规、0 前缀泄漏 | P1 |
 | R03 | 真实 OpenVLA-OFT 原生 smoke，增加第二 checkpoint 家族 | 当前只有 OpenVLA-OFT 命名合成 fixture | 固定官方 commit/checkpoint；先跑原生 LIBERO evaluator | OpenVLA-OFT 官方仓库、模型与 LIBERO 数据 | 最低约 16 GB VRAM，建议 4090 24 GB；200 GB SSD；6-12 GPU 小时 | ¥50-400 | 2-4 天 | checkpoint 内容 hash、真实模型输出、至少一条成功/失败 episode 和原生 evaluator 记录完整 | P1 |
 | R04 | OpenVLA-OFT 接入统一 provider/runtime，验证接口真正跨模型 | 未完成 | C01、R03；逐字段核对 frame、dt、rotation、gripper 和 normalization | 官方 action transform、现有 Panda adapter/guard | 16-24 GB GPU；10-30 GPU 小时 | ¥100-600 | 2-5 天 | 真实输出经过精确 semantic gate；任一不兼容字段 fail closed；完成小型在线矩阵 | P1 |
 | R05 | 两真实模型家族的冻结对照，建立有限跨模型外部效度 | 未开始 | R01、R04；每个模型使用原生 evaluator | `pi0.5`、OpenVLA-OFT、共同 fault protocol | 24 GB GPU；40-120 GPU 小时；250-350 GB 临时盘 | ¥500-2,500 | 1-2 周 | 每模型至少 20-50 matched pairs；结果按模型分层，不混合动作空间；报告跨模型一致与冲突 | P1 |
@@ -69,7 +69,7 @@
 | ID | 技术加强与解决的问题 | 当前状态 | 前置条件 | 所需软件/数据 | 所需资源 | 现金预算 | 时间 | 验收标准 | 优先级 |
 | --- | --- | --- | --- | --- | --- | ---: | --- | --- | --- |
 | A01 | 可校准拒绝执行，回答模型什么时候不应继续动作 | 只有规则 guard/watchdog，没有概率校准 | R01/R05 的成功与失败样本；独立 calibration/test split | 风险特征、统计校准、风险-覆盖评测 | CPU 可完成规则分数；模型特征/多采样需 20-80 GPU 小时 | ¥0-1,500 | 1-2 周 | 报告 risk-coverage、ECE/coverage、选择性成功/违规率与 CI；阈值只在 calibration 集确定 | P2 |
-| A02 | Isaac Lab 域随机化，检验负载、摩擦、视觉和并行故障的 robustness | 未集成；现有 MuJoCo 已覆盖 CPU 控制闭环 | 必须先确定新增控制变量；R02 方法稳定 | Isaac Lab、Panda asset、统一 action/fault adapter | 4090 24 GB；16 vCPU；64 GB；200 GB；20-80 GPU 小时 | ¥200-1,500 | 4-10 天 | 同一控制问题在 MuJoCo/Isaac Lab 均可运行；差异来自注册变量，不是画质；完整对照报告 | P2 |
+| A02 | Isaac Lab 域随机化，检验负载、摩擦、视觉和并行故障的 robustness | 未集成；现有 MuJoCo 已覆盖 CPU 控制闭环 | 必须先确定新增控制变量，并先解决 R02 的 20 ms 重复性边界 | Isaac Lab、Panda asset、统一 action/fault adapter | 4090 24 GB；16 vCPU；64 GB；200 GB；20-80 GPU 小时 | ¥200-1,500 | 4-10 天 | 同一控制问题在 MuJoCo/Isaac Lab 均可运行；差异来自注册变量，不是画质；完整对照报告 | P2 |
 | A03 | 官方 LeRobot ACT 或 Diffusion Policy 训练，补足数据和策略训练链路 | 当前没有训练策略 | C06；公开或自采数据；train/val/test split | LeRobot dataset、ACT/DP recipe、50-150 GB 数据 | 12-24 GB GPU；20-80 GPU 小时 | ¥200-1,200 | 1-2 周 | 可复现训练曲线；至少 20-50 个未见初态 rollout；与未训练/BC 基线区分 | P2 |
 | A04 | LoRA 或延迟感知 adapter，研究训练式方法能否超过免训练调度 | 未开始 | R01/R05 基线；数千条匹配演示或 latency 数据 | OpenPI/OpenVLA-OFT 训练 recipe、数据卡 | 建议 24 GB 起；部分配置需 A100 40/80 GB；50-200 GPU 小时 | ¥500-3,000 | 2-4 周 | 与 frozen checkpoint、suffix selection 和 no-adapter 同协议比较；held-out 场景和多 seed | P3 |
 | A05 | 学习式恢复的行为克隆基线 | 未开始 | C07 失败分类；恢复 demonstration/oracle | LeRobot/自定义恢复数据 | 24 GB GPU；20-100 小时 | ¥200-1,500 | 1-3 周 | 与 hold、规则 repair 和 scripted recovery 比较；至少 3 个训练 seed | P3 |
@@ -160,10 +160,10 @@ GPU 实例启动前必须在 CPU 环境完成：代码 checkout、配置生成�
 2. C08 需要 Ubuntu/ROS2/MoveIt，不在当前 Windows CPU 收口中伪造完成。
 3. 所有 CPU preflight 通过后，只租 6-12 小时 GPU 完成 G01。
 4. G01 artifact 可验证后扩展到 G02；pilot 失败时先修时钟/协议，不直接购买更长时长。
-5. G02、deadline 矩阵、R01 动作选择对照和 R02 本地 CPU 优化审计已经完成；下一项是 R02 任务对齐的在线 QP/braking repair 对照。
+5. G02、deadline 矩阵、R01 动作选择对照、R02 本地 CPU 优化与 6 轮重复性审计已经完成；先修订/迁移 deadline 关键监督路径，再做任务对齐的在线 QP/braking repair 对照。
 6. 随后完成 R03-R05，加入第二个真实 VLA 家族并复现相同独立时钟问题。
 7. 只有以上完成后，才在 Isaac Lab、训练、RL 和实体机器人之间按研究问题选择。
 
 近期技术目标固定为：
 
-> 本地执行保障、真实 `pi0.5` 独立时钟 pilot、720-rollout deadline 研究、240-rollout held-out 动作选择对照和优化后的 CPU 保障审计已经收口；下一步把 QP/braking repair 接入同一在线 evaluator，并接入真实 OpenVLA-OFT 做跨模型复现。
+> 本地执行保障、真实 `pi0.5` 独立时钟 pilot、720-rollout deadline 研究、240-rollout held-out 动作选择对照和 CPU 保障重复性审计已经收口；下一步先消除 20 ms 监督的主机调度不稳定性，再把 QP/braking repair 接入同一在线 evaluator，并接入真实 OpenVLA-OFT 做跨模型复现。

@@ -719,6 +719,52 @@ policy feedback loop, and the audit does not measure task success. Python
 wall-clock measurements are not an operating-system hard-real-time guarantee,
 and MuJoCo checks are not physical-robot safety certification.
 
+## Optimized CPU cold-process repeatability audit
+
+### Provenance and protocol
+
+- Run ID: `pi05_optimized_cpu_repeatability_20260811_001`
+- Source: the manifest-bound `pi05_integrated_panda_cpu_replay_270_001`
+  artifact used by the v0.2.0 optimized audit
+- Protocol:
+  `research/pi05_optimized_cpu_repeatability_protocol_20260811.json`, fixed
+  before the six scored runs
+- Matrix: three fresh-process idle trials and three fresh-process trials with
+  four deterministic CPU busy-loop workers; each trial reruns all 180 cases
+- Child contract: `PYTHONHASHSEED=0`, complete stdout/stderr retention, child
+  manifest binding, and independent optimized-replay validation
+- Root inventory SHA-256:
+  `02983f0fb036762c7b303823e64adfe426844e2708c92b756308fac56dcc279e`
+
+### Outcomes
+
+| Condition | Profile | Execute counts | Constraint-safe / trial | P95 supervisor mean +/- stdev | Unsafe published | Partial prefixes |
+| --- | --- | --- | ---: | ---: | ---: | ---: |
+| Idle | `operational_20ms` | `[1, 0, 0]` | 66/90 | 27.041 +/- 1.078 ms | 0 | 0 |
+| Idle | `diagnostic_100ms` | `[20, 39, 16]` | 66/90 | 109.469 +/- 0.951 ms | 0 | 0 |
+| Four CPU workers | `operational_20ms` | `[0, 0, 0]` | 66/90 | 28.385 +/- 1.025 ms | 0 | 0 |
+| Four CPU workers | `diagnostic_100ms` | `[6, 5, 5]` | 66/90 | 116.095 +/- 0.654 ms | 0 | 0 |
+
+All six child artifacts and the aggregate validate. Candidate feasibility is
+stable at 66/90, while deadline completion varies sharply across cold
+processes and host load. Zero candidates that fail the independent registered
+audit are published, and no partial prefix is exposed in any trial.
+
+The v0.2.0 single-run minimum-rule `go` remains a frozen historical result;
+the follow-up does not retroactively change its protocol. It does show that
+the 20 ms execution event is not repeatable enough to support stable or
+deployable deadline compliance. Current public claims are therefore limited
+to best-effort CPU evidence and repeatable fail-closed publication in this
+matrix. See the
+[artifact](../reports/pi05_optimized_cpu_repeatability_20260811_001/summary.md)
+and [method/acceptance document](PI05_OPTIMIZED_CPU_REPEATABILITY.md).
+
+Three repeats per condition are descriptive, not inferential. The busy-loop
+condition is a bounded local stress rather than a hardware qualification. The
+checkpoint was not rerun, cases remain cross-controller and open loop with
+respect to Panda observations, and no task-success, hard-real-time,
+physical-safety, or cross-machine claim is made.
+
 ## Asynchronous Panda closed-loop runtime
 
 ### Provenance and protocol
