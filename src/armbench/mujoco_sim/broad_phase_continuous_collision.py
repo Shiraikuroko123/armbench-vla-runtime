@@ -67,10 +67,18 @@ class BroadPhaseContinuousMuJoCoCollisionChecker(
             model.geom_rbound[self._pair_geom1]
             + model.geom_rbound[self._pair_geom2]
         ).astype(float, copy=True)
+        self._pair_joint_motion_radii_m = (
+            self.geom_joint_motion_radii_m[self._pair_geom1]
+            + self.geom_joint_motion_radii_m[self._pair_geom2]
+        ).astype(float, copy=True)
         if (
             self._pair_radius_sums.shape != (len(self.pairs),)
             or not np.all(np.isfinite(self._pair_radius_sums))
             or np.any(self._pair_radius_sums < 0.0)
+            or self._pair_joint_motion_radii_m.shape
+            != (len(self.pairs), self.robot.dof)
+            or not np.all(np.isfinite(self._pair_joint_motion_radii_m))
+            or np.any(self._pair_joint_motion_radii_m < 0.0)
         ):
             raise RuntimeError("MuJoCo geometry bounds are invalid")
 
@@ -87,11 +95,11 @@ class BroadPhaseContinuousMuJoCoCollisionChecker(
         self.robot.set_configuration(self.data, q)
         lower_bounds = self._sphere_distance_lower_bounds()
         threshold = self.config.clearance_m + self.config.distance_tolerance_m
-        for index, pair in enumerate(self.pairs):
-            self.broad_phase_pair_tests += 1
-            if lower_bounds[index] > threshold:
-                self.broad_phase_pruned_pairs += 1
-                continue
+        candidates = np.flatnonzero(lower_bounds <= threshold)
+        self.broad_phase_pair_tests += len(self.pairs)
+        self.broad_phase_pruned_pairs += len(self.pairs) - len(candidates)
+        for index in candidates:
+            pair = self.pairs[int(index)]
             distance = self._pair_distance(pair, state)
             if distance is None:
                 return None
@@ -118,21 +126,18 @@ class BroadPhaseContinuousMuJoCoCollisionChecker(
         collision_threshold = (
             self.config.clearance_m + self.config.distance_tolerance_m
         )
-        for index, pair in enumerate(self.pairs):
-            motion_bound = 0.5 * float(
-                np.dot(
-                    self.geom_joint_motion_radii_m[pair.geom1]
-                    + self.geom_joint_motion_radii_m[pair.geom2],
-                    delta,
-                )
-            )
+        motion_bounds = 0.5 * (self._pair_joint_motion_radii_m @ delta)
+        if len(motion_bounds):
             state.maximum_motion_bound_m = max(
-                state.maximum_motion_bound_m, motion_bound
+                state.maximum_motion_bound_m, float(np.max(motion_bounds))
             )
-            self.broad_phase_pair_tests += 1
-            if lower_bounds[index] > collision_threshold + motion_bound:
-                self.broad_phase_pruned_pairs += 1
-                continue
+        candidates = np.flatnonzero(
+            lower_bounds <= collision_threshold + motion_bounds
+        )
+        self.broad_phase_pair_tests += len(self.pairs)
+        self.broad_phase_pruned_pairs += len(self.pairs) - len(candidates)
+        for index in candidates:
+            pair = self.pairs[int(index)]
             distance = self._pair_distance(pair, state)
             if distance is None:
                 return None
@@ -140,7 +145,7 @@ class BroadPhaseContinuousMuJoCoCollisionChecker(
                 state.collision_pair = pair.label
                 state.failure_reason = f"collision:{pair.label}"
                 return False
-            if distance <= collision_threshold + motion_bound:
+            if distance <= collision_threshold + motion_bounds[index]:
                 uncertain = True
         if not uncertain:
             return True
