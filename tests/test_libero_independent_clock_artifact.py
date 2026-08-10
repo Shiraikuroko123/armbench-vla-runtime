@@ -7,6 +7,8 @@ import pathlib
 import numpy as np
 
 from integrations.openpi.libero_independent_clock import (
+    AGE_ALIGNED_SUFFIX,
+    RESPONSE_RELATIVE_CHUNK,
     SCHEMA_VERSION,
     canonical_action_chunk_sha256,
 )
@@ -49,6 +51,7 @@ def _args(**overrides) -> Namespace:
         "control_period_ms": 50.0,
         "deadline_ms": 200.0,
         "submit_every_ticks": 2,
+        "action_selection_mode": AGE_ALIGNED_SUFFIX,
         "num_steps_wait": 10,
         "max_task_steps": 2,
         "seed": 7,
@@ -75,7 +78,10 @@ def _sampling_audit(cell: ExperimentCell, submit_every: int) -> dict:
     }
 
 
-def _runtime_payload(cell: ExperimentCell) -> dict:
+def _runtime_payload(
+    cell: ExperimentCell,
+    action_selection_mode: str = AGE_ALIGNED_SUFFIX,
+) -> dict:
     actions = np.zeros((10, 7), dtype=np.float64)
     actions[:, 0] = np.arange(10, dtype=np.float64) / 100.0
     actions[:, -1] = -1.0
@@ -93,6 +99,7 @@ def _runtime_payload(cell: ExperimentCell) -> dict:
         "actions": actions.tolist(),
         "response_metadata": {
             "action_chunk_sha256": canonical_action_chunk_sha256(actions),
+            "policy_input_sha256": "c" * 64,
             "policy_sampling": _sampling_audit(cell, 2),
             "policy_inference_latency_ms": 10.0,
             "server_inference_latency_ms": 9.0,
@@ -134,12 +141,18 @@ def _runtime_payload(cell: ExperimentCell) -> dict:
             "response_age_ms": 25.0,
             "deadline_ms": 200.0,
             "status": "execute",
-            "reason": "fresh_suffix_available",
+            "reason": (
+                "fresh_suffix_available"
+                if action_selection_mode == AGE_ALIGNED_SUFFIX
+                else "response_relative_chunk_available"
+            ),
             "stale_prefix_steps": 1,
             "stale_suffix_steps": 9,
             "available_suffix_steps": 9,
-            "action_index": 1,
-            "action": actions[1].tolist(),
+            "action_index": (1 if action_selection_mode == AGE_ALIGNED_SUFFIX else 0),
+            "action": actions[
+                1 if action_selection_mode == AGE_ALIGNED_SUFFIX else 0
+            ].tolist(),
             "environment_done": True,
             "parent_process_id": 100,
             "worker_process_id": 200,
@@ -179,16 +192,19 @@ def _runtime_payload(cell: ExperimentCell) -> dict:
     }
 
 
-def _write_valid_artifact(root: pathlib.Path) -> None:
+def _write_valid_artifact(
+    root: pathlib.Path,
+    action_selection_mode: str = AGE_ALIGNED_SUFFIX,
+) -> None:
     project_root = pathlib.Path(__file__).resolve().parents[1]
     cell = ExperimentCell("libero_spatial", 0, 0)
-    args = _args()
+    args = _args(action_selection_mode=action_selection_mode)
     root.mkdir()
     (root / "episodes" / cell.episode_id).mkdir(parents=True)
     (root / "videos").mkdir()
     source_hashes = _snapshot_sources(project_root, root)
     protocol = resolved_protocol(args, [cell])
-    payload = _runtime_payload(cell)
+    payload = _runtime_payload(cell, action_selection_mode)
     state = np.asarray([0.125, 0.25], dtype=np.float64)
     np.save(
         root / "episodes" / cell.episode_id / "initial_state.npy",
@@ -237,9 +253,7 @@ def _write_valid_artifact(root: pathlib.Path) -> None:
 
 
 def test_plan_resolves_forty_rollouts() -> None:
-    cells = resolve_cells(
-        _args(task_ids="all", episode_indices="0:4")
-    )
+    cells = resolve_cells(_args(task_ids="all", episode_indices="0:4"))
 
     assert len(cells) == 40
     assert len({cell.episode_id for cell in cells}) == 40
@@ -260,3 +274,22 @@ def test_independent_validator_accepts_and_rejects_tampering(tmp_path) -> None:
     report = validate_artifact(artifact)
     assert not report.valid
     assert any("executed action differs" in error for error in report.errors)
+
+
+def test_response_relative_artifact_is_validated_and_action_index_is_bound(
+    tmp_path,
+) -> None:
+    artifact = tmp_path / "response-relative"
+    _write_valid_artifact(artifact, RESPONSE_RELATIVE_CHUNK)
+
+    assert validate_artifact(artifact).valid
+
+    runtime_path = next(artifact.glob("episodes/*/runtime.json"))
+    runtime = json.loads(runtime_path.read_text(encoding="utf-8"))
+    runtime["runtime"]["ticks"][1]["action_index"] = 1
+    runtime_path.write_text(json.dumps(runtime), encoding="utf-8")
+    _write_manifest(artifact)
+
+    report = validate_artifact(artifact)
+    assert not report.valid
+    assert any("execute action index mismatch" in error for error in report.errors)

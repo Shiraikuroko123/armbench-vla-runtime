@@ -22,9 +22,11 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 
 from integrations.openpi.libero_independent_clock import (
+    AGE_ALIGNED_SUFFIX,
     IndependentLiberoRequestBuilder,
     OpenPIIndependentClockProviderFactory,
     SCHEMA_VERSION,
+    VALID_ACTION_SELECTION_MODES,
     run_libero_independent_clock_episode,
 )
 from integrations.openpi.libero_runtime_eval import (
@@ -188,7 +190,9 @@ def _sha256(path: pathlib.Path) -> str:
     return digest.hexdigest()
 
 
-def _percentiles(values: Sequence[float]) -> tuple[float | None, float | None, float | None]:
+def _percentiles(
+    values: Sequence[float],
+) -> tuple[float | None, float | None, float | None]:
     if not values:
         return None, None, None
     array = np.asarray(values, dtype=np.float64)
@@ -209,7 +213,9 @@ def ticks_during_inference(runtime: Mapping[str, Any]) -> int:
         if started is not None and completed is not None:
             intervals.append((float(started), float(completed)))
     return sum(
-        any(start <= float(tick["tick_started_at_s"]) <= end for start, end in intervals)
+        any(
+            start <= float(tick["tick_started_at_s"]) <= end for start, end in intervals
+        )
         for tick in runtime["ticks"]
     )
 
@@ -259,8 +265,7 @@ def episode_row(
             request.get("failure_type") is not None for request in requests
         ),
         "deadline_exceeded_responses": sum(
-            request["response_status"] == "deadline_exceeded"
-            for request in requests
+            request["response_status"] == "deadline_exceeded" for request in requests
         ),
         "hold_ticks": int(metrics["holds"]),
         "execute_ticks": int(metrics["executes"]),
@@ -391,7 +396,9 @@ def _capture_environment(
         "python": sys.version,
         "platform": platform.platform(),
         "openpi_git_commit": _command_output(("git", "rev-parse", "HEAD"), openpi_root),
-        "armbench_git_commit": _command_output(("git", "rev-parse", "HEAD"), armbench_root),
+        "armbench_git_commit": _command_output(
+            ("git", "rev-parse", "HEAD"), armbench_root
+        ),
         "armbench_git_status": _command_output(
             ("git", "status", "--porcelain"), armbench_root
         )
@@ -441,11 +448,13 @@ def resolved_protocol(
             "action_period_ms": args.control_period_ms,
             "deadline_ms": args.deadline_ms,
             "submit_every_ticks": args.submit_every_ticks,
+            "action_selection_mode": args.action_selection_mode,
             "mailbox": "latest_only_single_pending_observation",
             "stale_prefix_rule": "ceil(observation_age/control_period)",
             "deadline_disposition": "hold",
             "horizon_exhaustion_disposition": "hold",
             "hold_semantics": "zero Cartesian motion, preserve last gripper command",
+            "policy_input_audit": "canonical_pi05_libero_request_sha256_v1",
         },
         "official_protocol": {
             "environment_render_resolution": [
@@ -572,7 +581,9 @@ def execute(args: argparse.Namespace, cells: Sequence[ExperimentCell]) -> int:
             try:
                 for cell in task_cells:
                     if cell.episode_index >= len(initial_states):
-                        raise IndexError("episode index exceeds available initial states")
+                        raise IndexError(
+                            "episode index exceeds available initial states"
+                        )
                     environment.seed(args.seed)
                     request_builder = IndependentLiberoRequestBuilder(
                         task_description=task_description,
@@ -603,6 +614,7 @@ def execute(args: argparse.Namespace, cells: Sequence[ExperimentCell]) -> int:
                         ),
                         num_steps_wait=args.num_steps_wait,
                         submit_every_ticks=args.submit_every_ticks,
+                        action_selection_mode=args.action_selection_mode,
                         startup_timeout_s=args.server_startup_timeout_s,
                         shutdown_timeout_s=args.shutdown_timeout_s,
                         record_video=args.video_mode != "none",
@@ -651,9 +663,9 @@ def execute(args: argparse.Namespace, cells: Sequence[ExperimentCell]) -> int:
         _write_json(output / "run_error.json", {"errors": errors})
 
     aggregate = aggregate_rows(rows, len(cells))
-    overlap_complete = (
-        aggregate["episodes_with_inference_overlap"] == len(rows) and bool(rows)
-    )
+    overlap_complete = aggregate["episodes_with_inference_overlap"] == len(
+        rows
+    ) and bool(rows)
     integrity_errors = []
     if len(rows) != len(cells):
         integrity_errors.append("completed rollout count does not match the matrix")
@@ -679,7 +691,9 @@ def _build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
     for command in ("plan", "run"):
         child = subparsers.add_parser(command, allow_abbrev=False)
-        child.add_argument("--task-suite", choices=tuple(SUITE_TASK_COUNTS), default="libero_spatial")
+        child.add_argument(
+            "--task-suite", choices=tuple(SUITE_TASK_COUNTS), default="libero_spatial"
+        )
         child.add_argument("--task-ids", default="0")
         child.add_argument("--episode-indices", default="0")
     run = subparsers.choices["run"]
@@ -697,13 +711,22 @@ def _build_parser() -> argparse.ArgumentParser:
     run.add_argument("--server-startup-timeout-s", type=float, default=1200.0)
     run.add_argument("--inference-timeout-s", type=float, default=600.0)
     run.add_argument("--shutdown-timeout-s", type=float, default=5.0)
-    run.add_argument("--control-period-ms", type=float, default=LIBERO_CONTROL_PERIOD_MS)
+    run.add_argument(
+        "--control-period-ms", type=float, default=LIBERO_CONTROL_PERIOD_MS
+    )
     run.add_argument("--deadline-ms", type=float, default=200.0)
     run.add_argument("--submit-every-ticks", type=int, default=1)
+    run.add_argument(
+        "--action-selection-mode",
+        choices=VALID_ACTION_SELECTION_MODES,
+        default=AGE_ALIGNED_SUFFIX,
+    )
     run.add_argument("--num-steps-wait", type=int, default=10)
     run.add_argument("--max-task-steps", type=int)
     run.add_argument("--seed", type=int, default=7)
-    run.add_argument("--video-mode", choices=("none", "failures", "all"), default="failures")
+    run.add_argument(
+        "--video-mode", choices=("none", "failures", "all"), default="failures"
+    )
     run.add_argument("--allow-unattested-server", action="store_true")
     return parser
 

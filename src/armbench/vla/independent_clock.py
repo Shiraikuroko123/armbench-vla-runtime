@@ -36,6 +36,14 @@ from typing import Any, Protocol
 import numpy as np
 
 
+AGE_ALIGNED_SUFFIX = "age_aligned_suffix"
+RESPONSE_RELATIVE_CHUNK = "response_relative_chunk"
+VALID_ACTION_SELECTION_MODES = (
+    AGE_ALIGNED_SUFFIX,
+    RESPONSE_RELATIVE_CHUNK,
+)
+
+
 class IndependentClockEnvironment(Protocol):
     """Minimal parent-owned environment contract.
 
@@ -67,6 +75,7 @@ class IndependentClockConfig:
     max_ticks: int = 40
     action_dim: int = 8
     submit_every_ticks: int = 1
+    action_selection_mode: str = AGE_ALIGNED_SUFFIX
     startup_timeout_s: float = 10.0
     shutdown_timeout_s: float = 2.0
     boundary_tolerance_s: float = 1e-9
@@ -97,6 +106,11 @@ class IndependentClockConfig:
             raise ValueError("action_dim must be positive")
         if self.submit_every_ticks <= 0:
             raise ValueError("submit_every_ticks must be positive")
+        if self.action_selection_mode not in VALID_ACTION_SELECTION_MODES:
+            raise ValueError(
+                "action_selection_mode must be selected from: %s"
+                % ", ".join(VALID_ACTION_SELECTION_MODES)
+            )
         if self.startup_timeout_s <= 0.0:
             raise ValueError("startup_timeout_s must be positive")
         if self.shutdown_timeout_s < 0.0:
@@ -242,8 +256,7 @@ def _normalise_provider_result(
         or not np.all(np.isfinite(actions))
     ):
         raise ValueError(
-            "provider actions must be finite with shape (horizon, %d)"
-            % action_dim
+            "provider actions must be finite with shape (horizon, %d)" % action_dim
         )
     return np.ascontiguousarray(actions), source, response_metadata
 
@@ -592,9 +605,7 @@ class RequestLifecycle:
                 else [list(action) for action in self.actions]
             ),
             "response_metadata": (
-                None
-                if self.response_metadata is None
-                else dict(self.response_metadata)
+                None if self.response_metadata is None else dict(self.response_metadata)
             ),
             "failure_type": self.failure_type,
             "failure_message": self.failure_message,
@@ -739,11 +750,16 @@ def _stale_prefix_steps(age_s: float, config: IndependentClockConfig) -> int:
         return 0
     return max(
         0,
-        int(
-            math.ceil(
-                (age_s - config.boundary_tolerance_s) / config.action_period_s
-            )
-        ),
+        int(math.ceil((age_s - config.boundary_tolerance_s) / config.action_period_s)),
+    )
+
+
+def _response_relative_steps(age_s: float, config: IndependentClockConfig) -> int:
+    if age_s <= config.boundary_tolerance_s:
+        return 0
+    return max(
+        0,
+        int(math.floor((age_s + config.boundary_tolerance_s) / config.action_period_s)),
     )
 
 
@@ -795,10 +811,12 @@ def run_independent_clock(
     if not callable(getattr(environment, "step", None)):
         raise TypeError("environment must provide step(action)")
     if observation_builder is None:
+
         def observation_builder(raw: Any, _sequence: int, _captured: float) -> Any:
             return raw
 
     if action_adapter is None:
+
         def action_adapter(action: np.ndarray) -> Any:
             return action
 
@@ -807,10 +825,7 @@ def run_independent_clock(
         hold = np.zeros(config.action_dim, dtype=np.float64)
         if hold_action is not None:
             hold = np.asarray(hold_action, dtype=np.float64)
-        if (
-            hold.shape != (config.action_dim,)
-            or not np.all(np.isfinite(hold))
-        ):
+        if hold.shape != (config.action_dim,) or not np.all(np.isfinite(hold)):
             raise ValueError(
                 "hold_action must be finite with shape (%d,)" % config.action_dim
             )
@@ -895,9 +910,7 @@ def run_independent_clock(
                 continue
             latest_response_id = message.request_id
             last_response_id = message.request_id
-            last_response_age_ms = max(
-                0.0, (now_s - record.captured_at_s) * 1000.0
-            )
+            last_response_age_ms = max(0.0, (now_s - record.captured_at_s) * 1000.0)
             last_stale_prefix = _stale_prefix_steps(
                 max(0.0, now_s - record.captured_at_s), config
             )
@@ -916,7 +929,7 @@ def run_independent_clock(
                 record.response_status = "deadline_exceeded"
                 active = None
                 hold_reason = "deadline_exceeded"
-            elif suffix <= 0:
+            elif config.action_selection_mode == AGE_ALIGNED_SUFFIX and suffix <= 0:
                 record.response_status = "stale_suffix_exhausted"
                 active = None
                 hold_reason = "stale_suffix_exhausted"
@@ -1004,16 +1017,36 @@ def run_independent_clock(
                     hold_reason = "deadline_exceeded"
                     reason = hold_reason
                     action_index = None
-                elif stale_suffix <= 0:
+                elif (
+                    config.action_selection_mode == AGE_ALIGNED_SUFFIX
+                    and stale_suffix <= 0
+                ):
                     active = None
                     hold_reason = "stale_suffix_exhausted"
                     reason = hold_reason
                     action_index = stale_prefix
                 else:
-                    action_index = min(stale_prefix, int(active.actions.shape[0]) - 1)
-                    action = np.asarray(active.actions[action_index], dtype=np.float64)
-                    status = "execute"
-                    reason = "fresh_suffix_available"
+                    if config.action_selection_mode == AGE_ALIGNED_SUFFIX:
+                        action_index = min(
+                            stale_prefix, int(active.actions.shape[0]) - 1
+                        )
+                        reason = "fresh_suffix_available"
+                    else:
+                        action_index = _response_relative_steps(
+                            max(0.0, decision_now - active.completed_at_s),
+                            config,
+                        )
+                        reason = "response_relative_chunk_available"
+                    if action_index >= int(active.actions.shape[0]):
+                        active = None
+                        hold_reason = "response_relative_chunk_exhausted"
+                        reason = hold_reason
+                        action_index = None
+                    else:
+                        action = np.asarray(
+                            active.actions[action_index], dtype=np.float64
+                        )
+                        status = "execute"
             if status == "hold":
                 if hold_builder is not None:
                     try:
@@ -1022,9 +1055,8 @@ def run_independent_clock(
                         )
                     except Exception as error:
                         raise ValueError("dynamic hold_action failed") from error
-                    if (
-                        candidate_hold.shape != (config.action_dim,)
-                        or not np.all(np.isfinite(candidate_hold))
+                    if candidate_hold.shape != (config.action_dim,) or not np.all(
+                        np.isfinite(candidate_hold)
                     ):
                         raise ValueError(
                             "dynamic hold_action must return finite shape (%d,)"
@@ -1118,7 +1150,9 @@ class _FakeClockEnvironment:
     def observe(self) -> dict[str, int]:
         return {"step": self.step_count}
 
-    def step(self, action: np.ndarray) -> tuple[dict[str, int], float, bool, dict[str, object]]:
+    def step(
+        self, action: np.ndarray
+    ) -> tuple[dict[str, int], float, bool, dict[str, object]]:
         self.actions.append(np.asarray(action, dtype=np.float64).copy())
         self.step_count += 1
         done = self.step_count >= self.max_steps
@@ -1194,7 +1228,9 @@ def run_independent_clock_smoke(
     )
     environment = _FakeClockEnvironment(max_ticks)
 
-    def build_observation(raw: Mapping[str, int], sequence: int, captured: float) -> dict[str, object]:
+    def build_observation(
+        raw: Mapping[str, int], sequence: int, captured: float
+    ) -> dict[str, object]:
         del captured
         return {"step": int(raw["step"]), "sequence_id": sequence}
 
@@ -1219,6 +1255,7 @@ def run_independent_clock_smoke(
 
 
 __all__ = [
+    "AGE_ALIGNED_SUFFIX",
     "ControlTickRecord",
     "IndependentClockConfig",
     "IndependentClockEnvironment",
@@ -1226,7 +1263,9 @@ __all__ = [
     "IndependentClockResult",
     "IndependentClockSubmission",
     "IndependentClockWorker",
+    "RESPONSE_RELATIVE_CHUNK",
     "RequestLifecycle",
+    "VALID_ACTION_SELECTION_MODES",
     "run_independent_clock",
     "run_independent_clock_smoke",
 ]

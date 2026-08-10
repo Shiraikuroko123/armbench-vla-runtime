@@ -6,10 +6,13 @@ import time
 from typing import Any
 
 import numpy as np
+import pytest
 
 from armbench.vla.independent_clock import (
+    AGE_ALIGNED_SUFFIX,
     IndependentClockConfig,
     IndependentClockWorker,
+    RESPONSE_RELATIVE_CHUNK,
     run_independent_clock,
     run_independent_clock_smoke,
 )
@@ -50,7 +53,7 @@ class _DelayedProvider:
         time.sleep(self.latency_s)
         sequence = float(observation["sequence_id"])
         actions = np.zeros((8, 1), dtype=float)
-        actions[:, 0] = sequence
+        actions[:, 0] = sequence * 100.0 + np.arange(8, dtype=float)
         return {"actions": actions, "source": "test_delayed_provider"}
 
 
@@ -105,9 +108,7 @@ def test_spawned_worker_records_latest_only_supersession() -> None:
     manager = context.Manager()
     entered = manager.Event()
     release = manager.Event()
-    worker = IndependentClockWorker(
-        _BlockingFactory(entered, release), action_dim=1
-    )
+    worker = IndependentClockWorker(_BlockingFactory(entered, release), action_dim=1)
     try:
         first = worker.submit(
             {"sequence_id": 0},
@@ -182,6 +183,54 @@ def test_independent_clock_parent_keeps_stepping_and_records_suffix() -> None:
     assert len(completed[0].actions) == 8
 
 
+def test_response_relative_baseline_starts_at_chunk_head() -> None:
+    aligned_environment = _FakeEnvironment(max_steps=30)
+    aligned = run_independent_clock(
+        aligned_environment,
+        _DelayedFactory(0.02),
+        config=IndependentClockConfig(
+            control_period_s=0.01,
+            action_period_s=0.50,
+            deadline_s=2.0,
+            max_ticks=100,
+            action_dim=1,
+            submit_every_ticks=100,
+            action_selection_mode=AGE_ALIGNED_SUFFIX,
+        ),
+        observation_builder=_builder,
+    )
+    relative_environment = _FakeEnvironment(max_steps=30)
+    relative = run_independent_clock(
+        relative_environment,
+        _DelayedFactory(0.02),
+        config=IndependentClockConfig(
+            control_period_s=0.01,
+            action_period_s=0.50,
+            deadline_s=2.0,
+            max_ticks=100,
+            action_dim=1,
+            submit_every_ticks=100,
+            action_selection_mode=RESPONSE_RELATIVE_CHUNK,
+        ),
+        observation_builder=_builder,
+    )
+
+    first_aligned = next(tick for tick in aligned.ticks if tick.status == "execute")
+    first_relative = next(tick for tick in relative.ticks if tick.status == "execute")
+    assert first_aligned.action_index is not None
+    assert first_aligned.action_index >= 1
+    assert first_aligned.reason == "fresh_suffix_available"
+    assert first_relative.action_index == 0
+    assert first_relative.reason == "response_relative_chunk_available"
+    assert first_relative.stale_prefix_steps >= 1
+    assert first_relative.action == (0.0,)
+
+
+def test_independent_clock_rejects_unknown_selection_mode() -> None:
+    with pytest.raises(ValueError, match="action_selection_mode"):
+        IndependentClockConfig(action_selection_mode="unknown")
+
+
 def test_independent_clock_dynamic_hold_receives_previous_command() -> None:
     environment = _FakeEnvironment(max_steps=4)
     result = run_independent_clock(
@@ -231,8 +280,7 @@ def test_independent_clock_deadline_fails_closed() -> None:
     assert result.holds == len(result.ticks)
     assert result.completed >= 1
     assert any(
-        request.response_status == "deadline_exceeded"
-        for request in result.requests
+        request.response_status == "deadline_exceeded" for request in result.requests
     )
     assert any(tick.reason == "deadline_exceeded" for tick in result.ticks)
     assert all(np.allclose(action, 0.0) for action in environment.actions)

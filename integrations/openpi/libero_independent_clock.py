@@ -17,8 +17,11 @@ from typing import Any, Mapping
 import numpy as np
 
 from armbench.vla.independent_clock import (
+    AGE_ALIGNED_SUFFIX,
     IndependentClockConfig,
     IndependentClockResult,
+    RESPONSE_RELATIVE_CHUNK,
+    VALID_ACTION_SELECTION_MODES,
     run_independent_clock,
 )
 from integrations.openpi.libero_runtime import (
@@ -46,6 +49,69 @@ from integrations.openpi.serve_policy_attested import (
 
 SCHEMA_VERSION = "armbench.pi05_libero_independent_clock.v1"
 PI05_LIBERO_ACTION_HORIZON = 10
+
+
+def _update_policy_input_digest(
+    digest: Any,
+    name: str,
+    dtype: str,
+    shape: tuple[int, ...],
+    payload: bytes,
+) -> None:
+    for value in (
+        name.encode("utf-8"),
+        dtype.encode("ascii"),
+        ",".join(str(dimension) for dimension in shape).encode("ascii"),
+        payload,
+    ):
+        digest.update(len(value).to_bytes(8, byteorder="big", signed=False))
+        digest.update(value)
+
+
+def canonical_policy_input_sha256(request: Mapping[str, Any]) -> str:
+    """Hash the exact images, state, and prompt sent to the LIBERO policy."""
+
+    if not isinstance(request, Mapping):
+        raise ValueError("policy request must be a mapping")
+    digest = hashlib.sha256()
+    digest.update(b"armbench.pi05.libero.policy_input.v1\0")
+    for name in ("observation/image", "observation/wrist_image"):
+        value = request.get(name)
+        if not isinstance(value, np.ndarray):
+            raise ValueError("%s must be a numpy array" % name)
+        if value.shape != (224, 224, 3) or value.dtype != np.dtype(np.uint8):
+            raise ValueError("%s must have shape (224, 224, 3) and dtype uint8" % name)
+        canonical = np.ascontiguousarray(value)
+        _update_policy_input_digest(
+            digest,
+            name,
+            "uint8",
+            tuple(canonical.shape),
+            canonical.tobytes(order="C"),
+        )
+
+    state = request.get("observation/state")
+    if not isinstance(state, np.ndarray):
+        raise ValueError("observation/state must be a numpy array")
+    if state.shape != (8,) or state.dtype != np.dtype(np.float64):
+        raise ValueError("observation/state must have shape (8,) and dtype float64")
+    if not np.all(np.isfinite(state)):
+        raise ValueError("observation/state must contain only finite values")
+    canonical_state = np.asarray(state, dtype="<f8", order="C")
+    _update_policy_input_digest(
+        digest,
+        "observation/state",
+        "float64-le",
+        tuple(canonical_state.shape),
+        canonical_state.tobytes(order="C"),
+    )
+
+    prompt = request.get("prompt")
+    if not isinstance(prompt, str):
+        raise ValueError("prompt must be text")
+    prompt_bytes = prompt.encode("utf-8")
+    _update_policy_input_digest(digest, "prompt", "utf-8", (), prompt_bytes)
+    return digest.hexdigest()
 
 
 def canonical_action_chunk_sha256(actions: Any) -> str:
@@ -173,6 +239,7 @@ class _OpenPIIndependentClockProvider:
         control = request.get(POLICY_SAMPLING_REQUEST_FIELD)
         if not isinstance(control, Mapping):
             raise ValueError("independent-clock request lacks policy sampling control")
+        policy_input_sha256 = canonical_policy_input_sha256(request)
         response = self._client.infer(request)
         actions = validate_action_chunk(response, self._action_horizon)
         if actions.shape[0] != self._action_horizon:
@@ -199,6 +266,7 @@ class _OpenPIIndependentClockProvider:
             "source": "official_openpi_pi05_libero",
             "response_metadata": {
                 "action_chunk_sha256": canonical_action_chunk_sha256(actions),
+                "policy_input_sha256": policy_input_sha256,
                 "policy_sampling": dict(audit),
                 "policy_inference_latency_ms": response_timing_ms(
                     response, "policy_timing"
@@ -299,9 +367,8 @@ class LiberoIndependentClockEnvironment:
         if self.done:
             return self.observation, 0.0, True, self.final_info
         action_array = np.asarray(action, dtype=np.float64)
-        if (
-            action_array.shape != (LIBERO_ACTION_DIM,)
-            or not np.all(np.isfinite(action_array))
+        if action_array.shape != (LIBERO_ACTION_DIM,) or not np.all(
+            np.isfinite(action_array)
         ):
             raise ValueError("LIBERO action must be finite with shape (7,)")
         observation, reward, done, info = _environment_step(
@@ -359,6 +426,7 @@ def run_libero_independent_clock_episode(
     max_task_steps: int,
     num_steps_wait: int = 10,
     submit_every_ticks: int = 1,
+    action_selection_mode: str = AGE_ALIGNED_SUFFIX,
     startup_timeout_s: float = 1200.0,
     shutdown_timeout_s: float = 5.0,
     record_video: bool = False,
@@ -382,6 +450,7 @@ def run_libero_independent_clock_episode(
             max_ticks=max_task_steps,
             action_dim=LIBERO_ACTION_DIM,
             submit_every_ticks=submit_every_ticks,
+            action_selection_mode=action_selection_mode,
             startup_timeout_s=startup_timeout_s,
             shutdown_timeout_s=shutdown_timeout_s,
         ),
@@ -389,9 +458,7 @@ def run_libero_independent_clock_episode(
         hold_action=libero_dynamic_hold,
     )
     success = bool(adapter.done and runtime.environment_done)
-    termination_reason = (
-        "task_success" if success else runtime.termination_reason
-    )
+    termination_reason = "task_success" if success else runtime.termination_reason
     return LiberoIndependentClockEpisodeResult(
         schema_version=SCHEMA_VERSION,
         task_success=success,
@@ -407,13 +474,17 @@ def run_libero_independent_clock_episode(
 
 
 __all__ = [
+    "AGE_ALIGNED_SUFFIX",
     "IndependentLiberoRequestBuilder",
     "LiberoIndependentClockEnvironment",
     "LiberoIndependentClockEpisodeResult",
     "OpenPIIndependentClockProviderFactory",
     "PI05_LIBERO_ACTION_HORIZON",
+    "RESPONSE_RELATIVE_CHUNK",
     "SCHEMA_VERSION",
+    "VALID_ACTION_SELECTION_MODES",
     "canonical_action_chunk_sha256",
+    "canonical_policy_input_sha256",
     "libero_dynamic_hold",
     "run_libero_independent_clock_episode",
 ]
