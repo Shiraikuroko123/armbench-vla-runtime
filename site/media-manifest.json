@@ -1,22 +1,33 @@
 {
   "schema_version": 1,
   "updated": "2026-08-10",
-  "scope": "ArmBench public project-site media",
+  "scope": "VLA-Sync public project-site media",
   "assets": [
     {
-      "id": "hero-two-track-teaser",
+      "id": "hero-paired-selection-teaser",
       "file": "assets/media/armbench-teaser.mp4",
       "poster": "assets/media/armbench-teaser-poster.webp",
       "reality": "simulation",
       "source": [
-        "evidence/pi05_libero_independent_clock_visual_success_001/evaluation/videos/libero_spatial__task_000__episode_00.mp4",
-        "evidence/g01_live_panda_smoke_final_001/run/panda_trace.mp4"
+        "evidence/pi05_selection_smoke_age_aligned_seed7_1_20260810_001/evaluation/videos/libero_spatial__task_000__episode_04.mp4",
+        "evidence/pi05_selection_smoke_response_relative_seed7_1_20260810_001/evaluation/videos/libero_spatial__task_000__episode_04.mp4"
       ],
-      "caption": "Official pi0.5-LIBERO independent-clock visual run beside the pi0.5-to-Panda integration probe.",
-      "curation": "composed teaser from two explicitly separate evidence tracks",
+      "caption": "Paired pi0.5-LIBERO visualization for the same seed, task, episode, and initial state: age-aligned suffix on the left and response-relative chunk on the right; both complete the bowl-placement task.",
+      "curation": "two successful smoke rollouts normalized to equal 448x448 panes, 20 FPS, and a synchronized five-second composite",
       "included_in_statistics": false,
-      "claim_boundary": "The Panda probe target was not reached; the panes are not pooled into one task-success result.",
-      "sha256": "53461d12857b5c709e612d53e934420f4ed9c834e2fe6cf5a1f25f577e6b2a11"
+      "claim_boundary": "This paired smoke visualization is not included in the frozen-240 formal study; aggregate claims come from the registered reports.",
+      "task_instruction": "pick up the black bowl between the plate and the ramekin and place it on the plate",
+      "seed": 7,
+      "task_id": 0,
+      "episode_index": 4,
+      "initial_state_sha256": "e028ab4976791a4c402249a77b5b09b44549d6a65acd8f629d9a61c45f049c6b",
+      "outcomes": ["task_success", "task_success"],
+      "dimensions": "896x448",
+      "frame_rate": "20 FPS",
+      "duration_seconds": 5,
+      "frames": 100,
+      "sha256": "1acbb8ebcb72dce4a3fab56b6337938ef499224d81cb78f9361ba8f2352a3d2d",
+      "poster_sha256": "96709101b284dd8e87f401b4bb86e74777d21be1884f92c8c809372d5513c0d6"
     },
     {
       "id": "frozen240-response-failure-s8-t5-e4",

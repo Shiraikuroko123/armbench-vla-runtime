@@ -1,4 +1,4 @@
-# ArmBench website design system
+# VLA-Sync website design system
 
 ## Archetype
 
@@ -30,7 +30,7 @@ source code, or card styling.
 
 ## Layout contract
 
-- The first viewport contains ArmBench, a literal technical claim, artifact
+- The first viewport contains VLA-Sync, a literal technical claim, artifact
   actions, and the beginning of the authentic teaser.
 - Media uses a wider evidence rail than prose.
 - Sections are full-width bands; cards are limited to repeated rollout items
@@ -79,11 +79,13 @@ source code, or card styling.
 - `π0.5` is written as Physical Intelligence's π0.5 VLA; OpenPI is the model
   implementation and serving stack, not another model.
 - LIBERO checkpoint results and Panda substrate results stay separate.
-- The G01 π0.5-to-Panda probe is integration evidence with
-  `target_reached=false`.
+- The hero is an equal-size, synchronized LIBERO smoke pair; both panes
+  succeed and neither enters the frozen-240 statistics.
+- The G01 π0.5-to-Panda probe remains integration evidence with
+  `target_reached=false`, but it is not used in the hero.
 - The Panda 2/2 result is scripted planning evidence.
-- No text implies hard real time, hardware safety, training, fine-tuning,
-  cross-model generality, or a completed top-conference paper.
+- No text implies hard real time, hardware safety, training, fine-tuning, or
+  cross-model generality.
 
 ## QA release gate
 

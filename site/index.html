@@ -4,30 +4,30 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0a0c0b">
-    <meta name="description" content="ArmBench 是面向 action-chunk VLA 推理延迟的可审计异步运行时与评测系统：Physical Intelligence π0.5 VLA、LIBERO、720 次 deadline 实验、240 次冻结动作选择对照与七自由度 Panda 运行时基座。">
+    <meta name="description" content="VLA-Sync 是面向 action-chunk VLA 推理延迟的可审计异步运行时与评测系统：Physical Intelligence π0.5 VLA、LIBERO、720 次 deadline 实验、240 次冻结动作选择对照与七自由度 Panda 运行时基座。">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="ArmBench | 异步 VLA 动作选择与运行时验证">
+    <meta property="og:title" content="VLA-Sync | 异步 VLA 动作时序与运行时验证">
     <meta property="og:description" content="Independent inference and control clocks, deadline-aware action selection, 720 deadline rollouts, and a frozen 120-pair Physical Intelligence π0.5 VLA comparison in LIBERO.">
     <meta property="og:url" content="https://shiraikuroko123.github.io/armbench-vla-runtime/">
     <meta property="og:image" content="https://shiraikuroko123.github.io/armbench-vla-runtime/assets/og-armbench.png">
-    <meta property="og:image:alt" content="ArmBench project title with Physical Intelligence π0.5 VLA in LIBERO and MuJoCo Panda simulation evidence.">
+    <meta property="og:image:alt" content="VLA-Sync title with a paired Physical Intelligence π0.5 VLA comparison in LIBERO simulation.">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="ArmBench | Asynchronous VLA runtime evidence">
+    <meta name="twitter:title" content="VLA-Sync | Asynchronous VLA runtime evidence">
     <meta name="twitter:description" content="A simulation research system for action-chunk VLA latency, age-aligned selection, deadline holds, and auditable evidence.">
     <meta name="twitter:image" content="https://shiraikuroko123.github.io/armbench-vla-runtime/assets/og-armbench.png">
     <meta name="last-modified" content="2026-08-10">
-    <title>ArmBench | 异步 VLA 动作选择与运行时验证</title>
+    <title>VLA-Sync | 异步 VLA 动作时序与运行时验证</title>
     <link rel="canonical" href="https://shiraikuroko123.github.io/armbench-vla-runtime/">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="styles.css?v=20260810-4">
-    <script src="app.js?v=20260810-4" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260810-5">
+    <script src="app.js?v=20260810-5" defer></script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "SoftwareSourceCode",
-        "name": "ArmBench",
+        "name": "VLA-Sync",
         "description": "An auditable asynchronous runtime and evaluation system for action-chunk VLA policies under inference latency.",
         "url": "https://shiraikuroko123.github.io/armbench-vla-runtime/",
         "codeRepository": "https://github.com/Shiraikuroko123/armbench-vla-runtime",
@@ -47,9 +47,9 @@
 
     <header class="site-header" data-header>
       <div class="header-inner">
-        <a class="brand" href="#top" aria-label="ArmBench home">
+        <a class="brand" href="#top" aria-label="VLA-Sync home">
           <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-          <span>ArmBench</span>
+          <span>VLA-Sync</span>
         </a>
         <nav class="nav-links" id="site-nav" aria-label="Primary navigation">
           <a href="#overview"><span data-lang-content="zh">概览</span><span data-lang-content="en">Overview</span></a>
@@ -57,7 +57,7 @@
           <a href="#results"><span data-lang-content="zh">结果</span><span data-lang-content="en">Results</span></a>
           <a href="#rollouts"><span data-lang-content="zh">视频</span><span data-lang-content="en">Rollouts</span></a>
           <a href="#reproduce"><span data-lang-content="zh">复现</span><span data-lang-content="en">Reproduce</span></a>
-          <a href="#scope"><span data-lang-content="zh">边界与下一步</span><span data-lang-content="en">Scope &amp; next</span></a>
+          <a href="#scope"><span data-lang-content="zh">结论与路线</span><span data-lang-content="en">Findings &amp; roadmap</span></a>
         </nav>
         <div class="header-actions">
           <div class="lang-switch" role="group" aria-label="Language">
@@ -77,10 +77,10 @@
       <section class="hero" id="top" aria-labelledby="hero-title">
         <div class="hero-copy shell">
           <p class="kicker">PHYSICAL INTELLIGENCE π0.5 · OPENPI · LIBERO · MUJOCO PANDA</p>
-          <h1 id="hero-title"><span>Arm</span><strong>Bench</strong></h1>
+          <h1 id="hero-title"><span>VLA</span><strong>-Sync</strong></h1>
           <p class="hero-subtitle">
-            <span data-lang-content="zh">面向异步 VLA 操作的时限感知动作选择与运行时验证</span>
-            <span data-lang-content="en">Deadline-aware action selection and runtime verification for asynchronous VLA manipulation</span>
+            <span data-lang-content="zh">让 VLA 动作块跟上控制时钟：时限感知选择与运行时验证</span>
+            <span data-lang-content="en">Keeping VLA action chunks aligned with the control clock through deadline-aware selection and runtime verification</span>
           </p>
           <p class="byline">
             <span data-lang-content="zh">谌章伟 · 独立研究工程项目 · 2026</span>
@@ -96,25 +96,25 @@
 
         <figure class="teaser shell reveal" aria-labelledby="teaser-caption">
           <div class="teaser-media">
-            <video id="hero-video" muted loop playsinline preload="metadata" poster="assets/media/armbench-teaser-poster.webp" width="1280" height="720" data-hero-video>
+            <video id="hero-video" muted loop playsinline preload="metadata" poster="assets/media/armbench-teaser-poster.webp" width="896" height="448" data-hero-video>
               <source src="assets/media/armbench-teaser.mp4" type="video/mp4">
             </video>
             <div class="teaser-label teaser-label-left">
-              <strong>π0.5 VLA / LIBERO</strong>
-              <span data-lang-content="zh">独立时钟视觉运行</span><span data-lang-content="en">Independent-clock visual run</span>
+              <strong>AGE-ALIGNED SUFFIX</strong>
+              <span data-lang-content="zh">观测年龄对齐</span><span data-lang-content="en">Observation-age aligned</span>
             </div>
             <div class="teaser-label teaser-label-right">
-              <strong>π0.5 VLA → PANDA</strong>
-              <span data-lang-content="zh">运行时接线探针</span><span data-lang-content="en">Runtime integration probe</span>
+              <strong>RESPONSE-RELATIVE CHUNK</strong>
+              <span data-lang-content="zh">响应返回后从索引 0 开始</span><span data-lang-content="en">Restart at index zero</span>
             </div>
             <button class="media-toggle" type="button" data-video-toggle="hero-video" aria-pressed="false" aria-label="播放 teaser" data-aria-play-zh="播放 teaser" data-aria-play-en="Play teaser" data-aria-pause-zh="暂停 teaser" data-aria-pause-en="Pause teaser">
               <span data-icon-play aria-hidden="true">▶</span><span data-icon-pause aria-hidden="true">Ⅱ</span>
             </button>
           </div>
           <figcaption id="teaser-caption">
-            <span class="status-tag">SIMULATION · TWO EVIDENCE TRACKS</span>
-            <span data-lang-content="zh">左：Physical Intelligence π0.5 VLA 官方 LIBERO checkpoint 的独立时钟视觉运行；右：同一 checkpoint 家族接入七自由度 Panda runtime 的探针，目标未到达。两者不合并为 Panda 任务成功率。</span>
-            <span data-lang-content="en">Left: an independent-clock visual run from the official Physical Intelligence π0.5 VLA checkpoint for LIBERO. Right: a probe connecting that checkpoint family to the seven-DoF Panda runtime; the target was not reached. These are not pooled into a Panda task-success claim.</span>
+            <span class="status-tag">SIMULATION · PAIRED SMOKE · BOTH SUCCESS</span>
+            <span data-lang-content="zh">同一 seed 7 / task 0 / episode 4 的配对可视化：左为 age-aligned suffix，右为 response-relative chunk。两侧共享初态，均完成“将黑碗放到盘子上”；该 smoke 样本不计入 frozen-240 正式统计。</span>
+            <span data-lang-content="en">Paired visualization for seed 7 / task 0 / episode 4: age-aligned suffix on the left and response-relative chunk on the right. Both share the same initial state and place the black bowl on the plate; this smoke pair is not part of the frozen-240 statistics.</span>
           </figcaption>
         </figure>
 
@@ -129,10 +129,10 @@
       <section class="section overview" id="overview" aria-labelledby="overview-title">
         <div class="reading-column reveal">
           <p class="section-label">01 · ABSTRACT</p>
-          <h2 id="overview-title"><span data-lang-content="zh">ArmBench 究竟是什么？</span><span data-lang-content="en">What exactly is ArmBench?</span></h2>
+          <h2 id="overview-title"><span data-lang-content="zh">VLA-Sync 究竟是什么？</span><span data-lang-content="en">What exactly is VLA-Sync?</span></h2>
           <p class="lead">
-            <span data-lang-content="zh">ArmBench 是一个针对 <strong>action-chunk VLA 推理延迟</strong>的可审计运行时与评测系统。它让策略推理与 20 Hz 控制时钟独立运行，记录观测年龄、响应生命周期与实际执行索引，再决定执行仍然有效的动作后缀或进入 fail-closed hold。</span>
-            <span data-lang-content="en">ArmBench is an auditable runtime and evaluation system for <strong>action-chunk VLA inference latency</strong>. Policy inference and the 20 Hz control clock advance independently; observation age, response lifecycle, and executed indices are recorded before a still-valid suffix is selected or the system enters a fail-closed hold.</span>
+            <span data-lang-content="zh">VLA-Sync 是一个针对 <strong>action-chunk VLA 推理延迟</strong>的可审计运行时与评测系统。它让策略推理与 20 Hz 控制时钟独立运行，记录观测年龄、响应生命周期与实际执行索引，再决定执行仍然有效的动作后缀或进入 fail-closed hold。</span>
+            <span data-lang-content="en">VLA-Sync is an auditable runtime and evaluation system for <strong>action-chunk VLA inference latency</strong>. Policy inference and the 20 Hz control clock advance independently; observation age, response lifecycle, and executed indices are recorded before a still-valid suffix is selected or the system enters a fail-closed hold.</span>
           </p>
           <p>
             <span data-lang-content="zh">它不是新的 VLA 模型，也没有训练 π0.5。项目通过 OpenPI 调用 Physical Intelligence <strong>π0.5 VLA</strong> 的官方 LIBERO checkpoint，研究异步闭环时序；同时保留从七自由度采样规划项目发展出的 MuJoCo Panda 运动学、连续碰撞、OSQP 投影和可行制动基座。</span>
@@ -176,7 +176,7 @@
           <p><span data-lang-content="zh">共享部分处理 provider、时钟、mailbox、动作语义、deadline 与审计；LIBERO 轨道测任务结果，Panda 轨道验证从七自由度规划项目继承的执行保障。</span><span data-lang-content="en">The shared core handles providers, clocks, mailbox semantics, action meaning, deadlines, and attestation. The LIBERO track measures task outcomes; the Panda track validates the execution assurance inherited from the seven-DoF planning project.</span></p>
         </div>
 
-        <div class="system-map shell reveal" role="img" aria-label="ArmBench system architecture">
+        <div class="system-map shell reveal" role="img" aria-label="VLA-Sync system architecture">
           <div class="system-node node-input"><span>01</span><strong><span data-lang-content="zh">双相机观测 + 指令</span><span data-lang-content="en">dual-camera observation + instruction</span></strong><small>timestamp · state · reset generation</small></div>
           <div class="system-arrow" aria-hidden="true">→</div>
           <div class="system-node node-policy"><span>02</span><strong>OpenPI · π0.5 VLA / LIBERO</strong><small>independent GPU process · keyed sampling</small></div>
@@ -365,8 +365,8 @@ py -3.10 -m venv .venv
 
       <section class="section scope" id="scope" aria-labelledby="scope-title">
         <div class="section-heading shell reveal">
-          <p class="section-label">07 · RESEARCH STATUS</p>
-          <h2 id="scope-title"><span data-lang-content="zh">这是一个前沿问题上的强简历项目，也是论文基础；它还不是顶会论文。</span><span data-lang-content="en">This is a strong portfolio project and a paper foundation on a current research problem; it is not yet a top-conference paper.</span></h2>
+          <p class="section-label">07 · ENGINEERING ROADMAP</p>
+          <h2 id="scope-title"><span data-lang-content="zh">已验证的系统结论与下一阶段工程改进</span><span data-lang-content="en">Verified system findings and the next engineering improvements</span></h2>
         </div>
 
         <div class="scope-columns shell reveal">
@@ -380,7 +380,7 @@ py -3.10 -m venv .venv
             </ul>
           </div>
           <div class="scope-list missing">
-            <h3><span data-lang-content="zh">仍然缺少</span><span data-lang-content="en">Still missing</span></h3>
+            <h3><span data-lang-content="zh">改进方向</span><span data-lang-content="en">Improvement directions</span></h3>
             <ul>
               <li><span data-lang-content="zh">第二个真实 VLA checkpoint 家族，验证方法是否跨模型成立。</span><span data-lang-content="en">A second real VLA checkpoint family to test cross-model generality.</span></li>
               <li><span data-lang-content="zh">把 QP/连续碰撞/制动正式放入任务对齐的 VLA 在线闭环并做 no-repair 对照。</span><span data-lang-content="en">Task-aligned online VLA repair with QP, continuous collision, braking, and a no-repair baseline.</span></li>
@@ -396,16 +396,12 @@ py -3.10 -m venv .venv
           <div><span>P1</span><strong><span data-lang-content="zh">部署真实性</span><span data-lang-content="en">Deployment realism</span></strong><p>Isaac Lab or ManiSkill replication → ROS2 / real robot collaboration</p></div>
         </div>
 
-        <div class="research-verdict shell reveal">
-          <strong><span data-lang-content="zh">顶会发展判断</span><span data-lang-content="en">Top-conference trajectory</span></strong>
-          <p><span data-lang-content="zh">问题本身是前沿的：异步 action chunk、观测陈旧、deadline 与运行时安全正在快速升温。要形成 RSS/CoRL/ICRA/RA-L 级论文，下一步必须把“单模型时序现象”升级为<strong>跨模型成立、任务级修复有效、强基线公平、最好有真机</strong>的完整论证。当前代码和证据工程可以直接作为这项研究的实验基础。</span><span data-lang-content="en">The problem is current: asynchronous action chunks, observation staleness, deadlines, and runtime assurance are rapidly growing topics. An RSS, CoRL, ICRA, or RA-L submission needs to turn the single-model timing result into a complete case with <strong>cross-model generality, effective task-level repair, fair strong baselines, and ideally real-robot evidence</strong>. The current code and evidence system are a direct experimental foundation for that work.</span></p>
-        </div>
       </section>
     </main>
 
     <footer>
       <div class="footer-inner shell">
-        <div><strong>ArmBench</strong><span><span data-lang-content="zh">异步 VLA 运行时与可复现实验系统</span><span data-lang-content="en">Asynchronous VLA runtime and reproducible evaluation system</span></span></div>
+        <div><strong>VLA-Sync</strong><span><span data-lang-content="zh">异步 VLA 运行时与可复现实验系统</span><span data-lang-content="en">Asynchronous VLA runtime and reproducible evaluation system</span></span></div>
         <p><span data-lang-content="zh">全部图表和媒体来自仓库保存 artifact。代码 MIT；模型、数据和第三方资产遵循各自许可。</span><span data-lang-content="en">All charts and media derive from checked-in artifacts. Code is MIT licensed; models, data, and third-party assets retain their own terms.</span></p>
         <nav aria-label="Footer links"><a href="media-manifest.json">Media manifest</a><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/LICENSE" target="_blank" rel="noreferrer">License</a><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noreferrer">Attribution</a><a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/actions" target="_blank" rel="noreferrer">CI</a></nav>
       </div>

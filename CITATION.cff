@@ -1,6 +1,6 @@
 cff-version: 1.2.0
-message: "If you use ArmBench, cite this software and the upstream models and benchmarks relevant to your experiment."
-title: "ArmBench: Runtime Evaluation for Action-Chunk VLA Policies"
+message: "If you use VLA-Sync, cite this software and the upstream models and benchmarks relevant to your experiment."
+title: "VLA-Sync: Runtime Evaluation for Action-Chunk VLA Policies"
 type: software
 version: 0.1.0
 authors:

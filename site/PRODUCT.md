@@ -1,4 +1,4 @@
-# ArmBench website product brief
+# VLA-Sync website product brief
 
 ## Primary job
 
@@ -6,12 +6,12 @@ Give a robotics hiring engineer or reviewer a two-minute, evidence-backed
 answer to three questions:
 
 1. What timing failure occurs when an action-chunk VLA responds late?
-2. What does ArmBench change at runtime, without retraining the VLA?
+2. What does VLA-Sync change at runtime, without retraining the VLA?
 3. Which conclusions are supported by saved artifacts, and where do they stop?
 
 ## Positioning
 
-ArmBench is an auditable asynchronous runtime and evaluation system for
+VLA-Sync is an auditable asynchronous runtime and evaluation system for
 action-chunk VLA policies under inference latency. It is not a new VLA model,
 a training framework, a real-robot safety controller, or a leaderboard entry.
 
@@ -21,16 +21,18 @@ fail-closed hold/refresh path when the registered deadline is exceeded.
 
 ## Evidence contract
 
-ArmBench deliberately keeps two evidence tracks separate:
+VLA-Sync deliberately keeps two evidence tracks separate:
 
 | Track | What it establishes | What it does not establish |
 | --- | --- | --- |
 | Official Physical Intelligence π0.5 VLA checkpoint for LIBERO | independent-clock closed-loop execution, deadline behavior, and frozen action-selection comparisons | cross-model generality, real-robot deployment, or a universal deadline |
 | Seven-DoF MuJoCo Panda substrate | RRT-Connect references, OSQP projection, continuous collision checks, braking, and recomputable execution traces | π0.5 VLA Panda task success or hardware safety |
 
-The hero montage shows one view from each track. Its right-hand
-π0.5-to-Panda integration probe did not reach the target and is labeled as
-such. The two views are never pooled into one task-success claim.
+The hero montage is a synchronized, equal-size smoke comparison from the
+LIBERO track. Both panes use seed 7, task 0, episode 4, and the same initial
+state; both succeed. The pair illustrates the two action-selection semantics
+but is not included in the frozen-240 formal statistics. Panda evidence stays
+in its own rollout tab and is never pooled into a π0.5 task-success claim.
 
 ## Decisive results
 
@@ -57,8 +59,8 @@ such. The two views are never pooled into one task-success claim.
    and the Panda execution substrate in task tabs.
 7. **Reproduce:** GPU-free validation commands and the current verification
    ledger.
-8. **Research status:** established conclusions, missing evidence, and the
-   shortest credible path toward publication.
+8. **Engineering roadmap:** established conclusions and prioritized
+   cross-model, online-repair, and deployment-realism improvements.
 
 ## Audience and actions
 
@@ -67,7 +69,7 @@ such. The two views are never pooled into one task-success claim.
 - Reproducers run the CPU acceptance path without renting another GPU.
 
 Primary actions are Code, Results, Architecture, and Evidence. The site does
-not expose Paper, Model, or Dataset actions because ArmBench has not released
+not expose Paper, Model, or Dataset actions because VLA-Sync has not released
 those artifacts as project-owned research outputs.
 
 ## Deployment

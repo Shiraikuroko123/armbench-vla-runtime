@@ -438,7 +438,7 @@ html[data-lang="en"] [data-lang-content="zh"] {
 .teaser-media {
   position: relative;
   overflow: hidden;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 2 / 1;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px 8px 0 0;
   background: #070908;
@@ -1378,26 +1378,6 @@ tbody th { color: var(--text); }
   font-size: 10px;
 }
 
-.research-verdict {
-  margin-top: 56px;
-  padding: 28px 32px;
-  border-left: 4px solid var(--amber);
-  background: rgba(245, 200, 91, 0.055);
-}
-
-.research-verdict > strong {
-  color: var(--amber);
-  font-family: var(--font-mono);
-  font-size: 11px;
-}
-
-.research-verdict p {
-  max-width: 960px;
-  margin: 14px 0 0;
-  color: var(--text-soft);
-  font-size: 15px;
-}
-
 /* Footer */
 
 footer {
@@ -1559,7 +1539,6 @@ footer {
   .verification-ledger { grid-template-columns: 1fr; }
   .verification-ledger > div { min-height: 118px; }
   .scope-list { padding: 22px 20px; }
-  .research-verdict { padding: 22px 20px; }
   .footer-inner { grid-template-columns: 1fr; gap: 18px; }
 }
 

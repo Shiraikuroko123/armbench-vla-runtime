@@ -2,11 +2,11 @@
 
 [![CPU CI](https://github.com/Shiraikuroko123/armbench-vla-runtime/actions/workflows/ci.yml/badge.svg)](https://github.com/Shiraikuroko123/armbench-vla-runtime/actions/workflows/ci.yml)
 
-# ArmBench
+# VLA-Sync
 
 ## G02：官方 pi0.5-LIBERO 独立时钟 pilot
 
-在已有七自由度 Panda / MuJoCo 执行基础上，ArmBench 新增了一条真正的
+在已有七自由度 Panda / MuJoCo 执行基础上，VLA-Sync 新增了一条真正的
 `pi0.5` 闭环仿真评测路径：父进程以 20 Hz 推进 LIBERO，独立子进程调用
 官方 `pi05_libero` checkpoint，latest-only mailbox 负责过期动作后缀、
 200 ms deadline 和 hold 回退。
@@ -63,7 +63,7 @@ response-relative 为 100/120，成对差值 +11.67 个百分点，discordance �
 官方排行榜、跨模型结论、硬实时保证、真机安全证明或 iid 部署统计。两种模式
 分叉后会产生不同轨迹，因此 query-0 相等不代表后续观测继续相等。
 
-ArmBench 是一个面向动作块式视觉-语言-动作策略的运行时与评测平台。它研究的不是重新训练一个 VLA，而是 VLA 已经输出一段未来动作后，如何在推理延迟、状态变化和异常响应下可信地进入控制回路。
+VLA-Sync 是一个面向动作块式视觉-语言-动作策略的运行时与评测平台。它研究的不是重新训练一个 VLA，而是 VLA 已经输出一段未来动作后，如何在推理延迟、状态变化和异常响应下可信地进入控制回路。为兼容已经发布的证据和复现命令，仓库地址、Python 包名与 CLI 继续使用 `armbench`。
 
 本文首次使用的规范名称为：**Physical Intelligence 的 `pi0.5`（pi-zero-point-five）视觉-语言-动作模型，简称 `pi0.5 VLA`**。`OpenPI` 是项目使用的模型与推理实现栈，不是另一个模型名称。
 
@@ -76,13 +76,13 @@ ArmBench 是一个面向动作块式视觉-语言-动作策略的运行时与评
 
 二者共享运行时契约、观测/状态封装、响应校验、日志、视频和证据工具。当前已经新增一条内容可校验的 integration gate：真实 `pi0.5`-LIBERO 响应通过显式 Cartesian 动作适配器进入 Panda 异步闭环；但这仍不是任务对齐的 Panda 正式评测、真机部署或安全认证。
 
-项目名称的变化对应工程层次的推进，而不是放弃原来的七自由度项目：原有采样规划、碰撞检查与轨迹跟踪成为 Panda 执行基座；ArmBench 在它前面增加动作块时序、响应校验、原子发布与可行回退，因此研究对象从“如何生成并跟踪轨迹”扩展为“VLA 动作如何可信地进入控制器”。
+项目名称的变化对应工程层次的推进，而不是放弃原来的七自由度项目：原有采样规划、碰撞检查与轨迹跟踪成为 Panda 执行基座；VLA-Sync 在它前面增加动作块时序、响应校验、原子发布与可行回退，因此研究对象从“如何生成并跟踪轨迹”扩展为“VLA 动作如何可信地进入控制器”。
 
 ## 要解决的问题
 
 VLA 会根据相机画面、机器人状态和文字指令一次预测多步未来动作。模型推理需要时间，响应返回时，动作块前几步对应的时刻可能已经过去；从第 0 步直接执行会产生过期动作。
 
-ArmBench 根据观测年龄选择未过期动作后缀；超过 deadline 时进入受限的 hold/refresh 路径；对断连、超时、NaN、错误形状、过期响应和状态不一致响应执行 fail-closed。
+VLA-Sync 根据观测年龄选择未过期动作后缀；超过 deadline 时进入受限的 hold/refresh 路径；对断连、超时、NaN、错误形状、过期响应和状态不一致响应执行 fail-closed。
 
 ```text
 图像 + 指令 + 机器人状态
@@ -392,4 +392,4 @@ evidence/            保留的实验 artifact
 reports/             根据证据生成的离线 dashboard
 ```
 
-ArmBench 使用 MIT License；上游软件、模型与资产保持其原始许可证，见[第三方声明](THIRD_PARTY_NOTICES.md)。
+VLA-Sync 使用 MIT License；上游软件、模型与资产保持其原始许可证，见[第三方声明](THIRD_PARTY_NOTICES.md)。

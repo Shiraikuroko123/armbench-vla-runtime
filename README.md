@@ -2,12 +2,13 @@
 
 [![CPU CI](https://github.com/Shiraikuroko123/armbench-vla-runtime/actions/workflows/ci.yml/badge.svg)](https://github.com/Shiraikuroko123/armbench-vla-runtime/actions/workflows/ci.yml)
 
-# ArmBench
+# VLA-Sync
 
-ArmBench is a runtime and evaluation platform for action-chunk
+VLA-Sync is a runtime and evaluation platform for action-chunk
 vision-language-action (VLA) policies. It studies what happens after a policy
 has produced a short future action sequence but before that sequence reaches a
-robot controller.
+robot controller. The repository URL, Python package, and CLI remain
+`armbench` for compatibility with released evidence and commands.
 
 The repository contains two separately validated paths:
 
@@ -49,7 +50,7 @@ input, sampling-key, sampling-noise, and action-chunk hash gates. See the
 
 The naming change reflects an engineering progression, not a replacement of
 the original project. The seven-DoF planning and tracking benchmark became the
-Panda execution substrate; ArmBench adds the action-chunk timing, validation,
+Panda execution substrate; VLA-Sync adds the action-chunk timing, validation,
 atomic publication, and fallback boundary in front of that substrate.
 
 ## The problem
@@ -59,7 +60,7 @@ Inference takes time. When the response arrives, its early actions can describe
 time slots that have already passed. Blindly executing from action index zero
 therefore creates a stale-action error.
 
-ArmBench measures observation age, selects an unexpired action suffix, and
+VLA-Sync measures observation age, selects an unexpired action suffix, and
 uses a bounded hold/refresh path when the response misses its deadline. The
 runtime also rejects malformed, non-finite, disconnected, stale, or
 state-inconsistent policy responses.
@@ -151,7 +152,7 @@ boundary.
 
 ## Scope
 
-- ArmBench does not train or fine-tune `pi0.5`.
+- VLA-Sync does not train or fine-tune `pi0.5`.
 - Official-checkpoint results are simulation-only. The LIBERO studies report
   official task protocols; the Panda G01 artifact is a separate integration
   probe and reports `target_reached=false`.
@@ -442,5 +443,5 @@ evidence/            preserved experiment artifacts
 reports/             offline dashboards generated from evidence
 ```
 
-ArmBench is released under the MIT License. Upstream software, models, and
+VLA-Sync is released under the MIT License. Upstream software, models, and
 assets retain their original licenses; see [third-party notices](THIRD_PARTY_NOTICES.md).
