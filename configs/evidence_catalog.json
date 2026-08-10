@@ -79,7 +79,13 @@
       ],
       "validator": {
         "status": "available",
-        "argv": ["python", "-m", "integrations.openpi.validate_live_panda_smoke", "evidence/g01_live_panda_smoke_final_001", "--json"],
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_live_panda_smoke",
+          "evidence/g01_live_panda_smoke_final_001",
+          "--json"
+        ],
         "scope": "Checks run hashes, live checkpoint identity, GCS CRC inventory, events, NPZ clocks/state, and full MP4 decoding without rerunning inference."
       },
       "claim_boundary": "One checkpoint-to-runtime integration probe with target_reached=false; not an official task-success, hardware, hard-real-time, or safety result."
@@ -99,7 +105,12 @@
       ],
       "validator": {
         "status": "available",
-        "argv": ["python", "-m", "integrations.openpi.alignment_acceptance", "--no-open"],
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.alignment_acceptance",
+          "--no-open"
+        ],
         "scope": "Validates the stored run and analysis, then rebuilds the offline acceptance report without model inference."
       },
       "claim_boundary": "Deterministic-delay LIBERO Spatial evidence for post-response suffix alignment; it is not a live non-blocking controller result."
@@ -118,7 +129,13 @@
       ],
       "validator": {
         "status": "available",
-        "argv": ["python", "-m", "integrations.openpi.validate_libero_artifact", "evidence/pi05_libero_alignment_pilot_001/run/evaluation", "--json"],
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_artifact",
+          "evidence/pi05_libero_alignment_pilot_001/run/evaluation",
+          "--json"
+        ],
         "scope": "Checks the finalized exploratory artifact and recomputes its registered aggregates."
       },
       "claim_boundary": "Exploratory evidence that motivated a separately frozen confirmatory study."
@@ -138,7 +155,12 @@
       ],
       "validator": {
         "status": "available",
-        "argv": ["python", "-m", "integrations.openpi.measured_age_confirmatory_acceptance", "--no-open"],
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.measured_age_confirmatory_acceptance",
+          "--no-open"
+        ],
         "scope": "Validates the stored measured-age artifact and independently rebuilds the prespecified analysis and dashboard."
       },
       "claim_boundary": "Measured variable-age evidence with blocking inference plus simulator catch-up; it does not establish live asynchronous pi0.5 control."
@@ -157,7 +179,13 @@
       ],
       "validator": {
         "status": "available",
-        "argv": ["python", "-m", "integrations.openpi.validate_measured_age_artifact", "evidence/pi05_libero_measured_age_pilot_001/run/evaluation", "--json"],
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_measured_age_artifact",
+          "evidence/pi05_libero_measured_age_pilot_001/run/evaluation",
+          "--json"
+        ],
         "scope": "Checks the exploratory measured-age artifact, including timing and manifest consistency."
       },
       "claim_boundary": "Exploratory pilot used to design the held-out measured-age experiment."
@@ -176,7 +204,13 @@
       ],
       "validator": {
         "status": "available",
-        "argv": ["python", "-m", "integrations.openpi.validate_libero_artifact", "evidence/pi05_libero_pilot_002/run/evaluation", "--json"],
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_artifact",
+          "evidence/pi05_libero_pilot_002/run/evaluation",
+          "--json"
+        ],
         "scope": "Checks the finalized pilot artifact and registered aggregate consistency."
       },
       "claim_boundary": "Early fixed-delay diagnostic, retained for traceability rather than confirmatory performance claims."
@@ -207,10 +241,17 @@
       "result": "evidence/pi05_projected_conditioning_g0_001/README.md",
       "protocol": "evidence/pi05_projected_conditioning_g0_001/report.json",
       "manifest": "evidence/pi05_projected_conditioning_g0_001/manifest.json",
-      "raw": ["evidence/pi05_projected_conditioning_g0_001/report.json"],
+      "raw": [
+        "evidence/pi05_projected_conditioning_g0_001/report.json"
+      ],
       "validator": {
         "status": "available",
-        "argv": ["python", "-m", "integrations.openpi.validate_projected_conditioning_g0", "evidence/pi05_projected_conditioning_g0_001"],
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_projected_conditioning_g0",
+          "evidence/pi05_projected_conditioning_g0_001"
+        ],
         "scope": "Rechecks source identity, equivalence, residual, latency-ratio, and memory gates."
       },
       "claim_boundary": "A policy-internal integration and resource gate; no closed-loop task-success claim."
@@ -230,7 +271,13 @@
       ],
       "validator": {
         "status": "available",
-        "argv": ["python", "-m", "integrations.openpi.projected_overlap_pilot", "validate", "evidence/pi05_projected_overlap_pilot_001"],
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.projected_overlap_pilot",
+          "validate",
+          "evidence/pi05_projected_overlap_pilot_001"
+        ],
         "scope": "Checks the paired pilot inventory, transition data, and registered result fields."
       },
       "claim_boundary": "Exploratory 40-rollout pilot; its observed differences are not confirmatory efficacy evidence."
@@ -243,10 +290,17 @@
       "result": "evidence/pi05_rtc_guidance_g0_001/README.md",
       "protocol": "evidence/pi05_rtc_guidance_g0_001/report.json",
       "manifest": "evidence/pi05_rtc_guidance_g0_001/manifest.json",
-      "raw": ["evidence/pi05_rtc_guidance_g0_001/report.json"],
+      "raw": [
+        "evidence/pi05_rtc_guidance_g0_001/report.json"
+      ],
       "validator": {
         "status": "available",
-        "argv": ["python", "-m", "integrations.openpi.validate_rtc_guidance_g0", "evidence/pi05_rtc_guidance_g0_001"],
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_rtc_guidance_g0",
+          "evidence/pi05_rtc_guidance_g0_001"
+        ],
         "scope": "Rechecks implementation identity, equivalence controls, VJP response, latency, and device-memory gates."
       },
       "claim_boundary": "A 20-query feasibility gate on one fixed observation; no task-success or publication claim."
@@ -265,7 +319,13 @@
       ],
       "validator": {
         "status": "available",
-        "argv": ["python", "-m", "integrations.openpi.rtc_overlap_pilot", "validate", "evidence/pi05_rtc_overlap_pairing_smoke_v3_001/evaluation"],
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.rtc_overlap_pilot",
+          "validate",
+          "evidence/pi05_rtc_overlap_pairing_smoke_v3_001/evaluation"
+        ],
         "scope": "Checks the corrected-v3 query-zero input, response, key, and noise pairing contract."
       },
       "claim_boundary": "An implementation gate covering three triplets, not outcome evidence."
@@ -338,7 +398,11 @@
       ],
       "validator": {
         "status": "available",
-        "argv": ["python", "-m", "integrations.openpi.rtc_overlap_primary_dashboard"],
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.rtc_overlap_primary_dashboard"
+        ],
         "scope": "Validates both corrected-v3 source artifacts, rebuilds the 300-rollout analysis, and verifies canonical saved outputs."
       },
       "claim_boundary": "A corrected 300-rollout primary comparison with a null success-improvement result; it does not support an efficacy claim for RTC guidance."
@@ -358,7 +422,13 @@
       ],
       "validator": {
         "status": "available",
-        "argv": ["python", "-m", "integrations.openpi.rtc_overlap_pilot", "validate", "evidence/pi05_rtc_overlap_primary_v3_seed_20260806_001/evaluation"],
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.rtc_overlap_pilot",
+          "validate",
+          "evidence/pi05_rtc_overlap_primary_v3_seed_20260806_001/evaluation"
+        ],
         "scope": "Checks all 50 corrected-v3 matched triplets and the query-zero pairing gate for this source seed."
       },
       "claim_boundary": "One raw half of the primary cohort; interpret only through the combined prespecified analysis."
@@ -378,7 +448,13 @@
       ],
       "validator": {
         "status": "available",
-        "argv": ["python", "-m", "integrations.openpi.rtc_overlap_pilot", "validate", "evidence/pi05_rtc_overlap_primary_v3_seed_20260807_001/evaluation"],
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.rtc_overlap_pilot",
+          "validate",
+          "evidence/pi05_rtc_overlap_primary_v3_seed_20260807_001/evaluation"
+        ],
         "scope": "Checks all 50 corrected-v3 matched triplets and the query-zero pairing gate for this source seed."
       },
       "claim_boundary": "One raw half of the primary cohort; interpret only through the combined prespecified analysis."
@@ -562,7 +638,13 @@
       ],
       "validator": {
         "status": "available",
-        "argv": ["python", "-m", "armbench", "vla-artifact-validate", "evidence/vla_openpi_request_replay_20260804"],
+        "argv": [
+          "python",
+          "-m",
+          "armbench",
+          "vla-artifact-validate",
+          "evidence/vla_openpi_request_replay_20260804"
+        ],
         "scope": "Reconstructs and hashes stored requests and validates schema-v5 cross-file consistency."
       },
       "claim_boundary": "Proves request serialization and replayability against a scripted loopback server; checkpoint identity is false."
@@ -782,6 +864,453 @@
         "scope": "Recomputes the seed-8 175 ms protocol, provenance, request lifecycles, tick decisions, overlap, per-episode rows, and aggregate values without rerunning inference."
       },
       "claim_boundary": "An exploratory second-seed replication selected after the seed-7 result; the seed jointly changes environment and keyed-policy randomness, and the artifact is not confirmatory, a universal threshold, hard-real-time evidence, hardware safety, or a leaderboard score."
+    },
+    {
+      "id": "pi05_object_deadline150_seed7_40_20260810_001",
+      "title": "pi0.5-LIBERO Object 150 ms seed-7 boundary cell",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_object_deadline150_seed7_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_object_deadline150_seed7_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_object_deadline150_seed7_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_object_deadline150_seed7_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_object_deadline150_seed7_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_object_deadline150_seed7_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_object_deadline150_seed7_40_20260810_001/evaluation/episodes/libero_object__task_000__episode_00/runtime.json",
+        "evidence/pi05_object_deadline150_seed7_40_20260810_001/evaluation/videos/libero_object__task_000__episode_00.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_object_deadline150_seed7_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the Object seed-7 150 ms protocol, provenance, worker shutdown, request lifecycles, tick decisions, overlap, episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "An exploratory Object seed-7 simulation cell for one official checkpoint and service; it is not a universal threshold, no-deadline baseline, hard-real-time guarantee, official leaderboard score, hardware-safety result, cross-model comparison, or iid deployment estimate."
+    },
+    {
+      "id": "pi05_object_deadline150_seed8_40_20260810_001",
+      "title": "pi0.5-LIBERO Object 150 ms seed-8 boundary cell",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_object_deadline150_seed8_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_object_deadline150_seed8_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_object_deadline150_seed8_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_object_deadline150_seed8_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_object_deadline150_seed8_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_object_deadline150_seed8_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_object_deadline150_seed8_40_20260810_001/evaluation/episodes/libero_object__task_000__episode_00/runtime.json",
+        "evidence/pi05_object_deadline150_seed8_40_20260810_001/evaluation/videos/libero_object__task_000__episode_00.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_object_deadline150_seed8_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the Object seed-8 150 ms protocol, provenance, worker shutdown, request lifecycles, tick decisions, overlap, episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "An exploratory Object seed-8 simulation cell for one official checkpoint and service; it is not a universal threshold, no-deadline baseline, hard-real-time guarantee, official leaderboard score, hardware-safety result, cross-model comparison, or iid deployment estimate."
+    },
+    {
+      "id": "pi05_object_deadline175_seed7_40_20260810_001",
+      "title": "pi0.5-LIBERO Object 175 ms seed-7 boundary cell",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_object_deadline175_seed7_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_object_deadline175_seed7_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_object_deadline175_seed7_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_object_deadline175_seed7_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_object_deadline175_seed7_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_object_deadline175_seed7_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_object_deadline175_seed7_40_20260810_001/evaluation/episodes/libero_object__task_000__episode_00/runtime.json",
+        "evidence/pi05_object_deadline175_seed7_40_20260810_001/evaluation/videos/libero_object__task_000__episode_03.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_object_deadline175_seed7_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the Object seed-7 175 ms protocol, provenance, worker shutdown, request lifecycles, tick decisions, overlap, episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "An exploratory Object seed-7 simulation cell for one official checkpoint and service; it is not a universal threshold, no-deadline baseline, hard-real-time guarantee, official leaderboard score, hardware-safety result, cross-model comparison, or iid deployment estimate."
+    },
+    {
+      "id": "pi05_object_deadline175_seed8_40_20260810_001",
+      "title": "pi0.5-LIBERO Object 175 ms seed-8 boundary cell",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_object_deadline175_seed8_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_object_deadline175_seed8_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_object_deadline175_seed8_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_object_deadline175_seed8_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_object_deadline175_seed8_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_object_deadline175_seed8_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_object_deadline175_seed8_40_20260810_001/evaluation/episodes/libero_object__task_000__episode_00/runtime.json",
+        "evidence/pi05_object_deadline175_seed8_40_20260810_001/evaluation/videos/libero_object__task_008__episode_00.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_object_deadline175_seed8_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the Object seed-8 175 ms protocol, provenance, worker shutdown, request lifecycles, tick decisions, overlap, episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "An exploratory Object seed-8 simulation cell for one official checkpoint and service; it is not a universal threshold, no-deadline baseline, hard-real-time guarantee, official leaderboard score, hardware-safety result, cross-model comparison, or iid deployment estimate."
+    },
+    {
+      "id": "pi05_object_deadline200_seed8_40_20260810_001",
+      "title": "pi0.5-LIBERO Object 200 ms seed-8 nominal reference",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_object_deadline200_seed8_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_object_deadline200_seed8_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_object_deadline200_seed8_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_object_deadline200_seed8_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_object_deadline200_seed8_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_object_deadline200_seed8_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_object_deadline200_seed8_40_20260810_001/evaluation/episodes/libero_object__task_000__episode_00/runtime.json",
+        "evidence/pi05_object_deadline200_seed8_40_20260810_001/evaluation/videos/libero_object__task_000__episode_02.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_object_deadline200_seed8_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the Object seed-8 200 ms protocol, provenance, worker shutdown, request lifecycles, tick decisions, overlap, episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "An exploratory Object seed-8 simulation cell for one official checkpoint and service; it is not a universal threshold, no-deadline baseline, hard-real-time guarantee, official leaderboard score, hardware-safety result, cross-model comparison, or iid deployment estimate."
+    },
+    {
+      "id": "pi05_selection_smoke_age_aligned_seed7_1_20260810_001",
+      "title": "pi0.5 independent-clock age-aligned suffix pairing gate",
+      "class": "mechanism_gate",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_selection_smoke_age_aligned_seed7_1_20260810_001/README.md",
+      "protocol": "evidence/pi05_selection_smoke_age_aligned_seed7_1_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_selection_smoke_age_aligned_seed7_1_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_selection_smoke_age_aligned_seed7_1_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_selection_smoke_age_aligned_seed7_1_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_selection_smoke_age_aligned_seed7_1_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_selection_smoke_age_aligned_seed7_1_20260810_001/evaluation/episodes/libero_spatial__task_000__episode_04/runtime.json",
+        "evidence/pi05_selection_smoke_age_aligned_seed7_1_20260810_001/evaluation/videos/libero_spatial__task_000__episode_04.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_selection_smoke_age_aligned_seed7_1_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the one-rollout age-aligned suffix smoke artifact, including provenance, clean worker shutdown, query lifecycle, keyed sampling inputs, action chunk, tick decisions, overlap, and outcome."
+      },
+      "claim_boundary": "A one-rollout integration and query-0 pairing gate. It is not method-effect evidence, an official leaderboard score, a hard-real-time guarantee, hardware-safety evidence, or a cross-model comparison."
+    },
+    {
+      "id": "pi05_selection_smoke_response_relative_seed7_1_20260810_001",
+      "title": "pi0.5 independent-clock response-relative chunk pairing gate",
+      "class": "mechanism_gate",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_selection_smoke_response_relative_seed7_1_20260810_001/README.md",
+      "protocol": "evidence/pi05_selection_smoke_response_relative_seed7_1_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_selection_smoke_response_relative_seed7_1_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_selection_smoke_response_relative_seed7_1_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_selection_smoke_response_relative_seed7_1_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_selection_smoke_response_relative_seed7_1_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_selection_smoke_response_relative_seed7_1_20260810_001/evaluation/episodes/libero_spatial__task_000__episode_04/runtime.json",
+        "evidence/pi05_selection_smoke_response_relative_seed7_1_20260810_001/evaluation/videos/libero_spatial__task_000__episode_04.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_selection_smoke_response_relative_seed7_1_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the one-rollout response-relative chunk smoke artifact, including provenance, clean worker shutdown, query lifecycle, keyed sampling inputs, action chunk, tick decisions, overlap, and outcome."
+      },
+      "claim_boundary": "A one-rollout integration and query-0 pairing gate. It is not method-effect evidence, an official leaderboard score, a hard-real-time guarantee, hardware-safety evidence, or a cross-model comparison."
+    },
+    {
+      "id": "pi05_selection_spatial_s7_age_aligned_40_20260810_001",
+      "title": "pi0.5 held-out action selection seed-7: age-aligned suffix",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_selection_spatial_s7_age_aligned_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_selection_spatial_s7_age_aligned_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_selection_spatial_s7_age_aligned_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_selection_spatial_s7_age_aligned_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_selection_spatial_s7_age_aligned_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_selection_spatial_s7_age_aligned_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_selection_spatial_s7_age_aligned_40_20260810_001/evaluation/episodes/libero_spatial__task_000__episode_04/runtime.json",
+        "evidence/pi05_selection_spatial_s7_age_aligned_40_20260810_001/evaluation/videos/libero_spatial__task_004__episode_07.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_selection_spatial_s7_age_aligned_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the registered seed-7 age-aligned suffix cell, including provenance, clean worker shutdown, request/action/tick traces, query-0 pairing inputs, overlap, episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "One seed block in an exploratory held-out LIBERO Spatial action-selection comparison. It is not a standalone superiority result, official leaderboard score, hard-real-time guarantee, hardware-safety result, cross-model comparison, or iid deployment estimate."
+    },
+    {
+      "id": "pi05_selection_spatial_s7_response_relative_40_20260810_001",
+      "title": "pi0.5 held-out action selection seed-7: response-relative chunk",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_selection_spatial_s7_response_relative_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_selection_spatial_s7_response_relative_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_selection_spatial_s7_response_relative_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_selection_spatial_s7_response_relative_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_selection_spatial_s7_response_relative_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_selection_spatial_s7_response_relative_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_selection_spatial_s7_response_relative_40_20260810_001/evaluation/episodes/libero_spatial__task_000__episode_04/runtime.json",
+        "evidence/pi05_selection_spatial_s7_response_relative_40_20260810_001/evaluation/videos/libero_spatial__task_001__episode_04.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_selection_spatial_s7_response_relative_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the registered seed-7 response-relative chunk cell, including provenance, clean worker shutdown, request/action/tick traces, query-0 pairing inputs, overlap, episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "One seed block in an exploratory held-out LIBERO Spatial action-selection comparison. It is not a standalone superiority result, official leaderboard score, hard-real-time guarantee, hardware-safety result, cross-model comparison, or iid deployment estimate."
+    },
+    {
+      "id": "pi05_spatial_deadline150_seed9_40_20260810_001",
+      "title": "pi0.5-LIBERO Spatial 150 ms seed-9 boundary cell",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_spatial_deadline150_seed9_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_spatial_deadline150_seed9_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_spatial_deadline150_seed9_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_spatial_deadline150_seed9_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_spatial_deadline150_seed9_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_spatial_deadline150_seed9_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_spatial_deadline150_seed9_40_20260810_001/evaluation/episodes/libero_spatial__task_000__episode_00/runtime.json",
+        "evidence/pi05_spatial_deadline150_seed9_40_20260810_001/evaluation/videos/libero_spatial__task_000__episode_00.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_spatial_deadline150_seed9_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the Spatial seed-9 150 ms protocol, provenance, worker shutdown, request lifecycles, tick decisions, overlap, episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "An exploratory Spatial seed-9 simulation cell for one official checkpoint and service; it is not a universal threshold, no-deadline baseline, hard-real-time guarantee, official leaderboard score, hardware-safety result, cross-model comparison, or iid deployment estimate."
+    },
+    {
+      "id": "pi05_spatial_deadline155_seed7_40_20260810_001",
+      "title": "pi0.5-LIBERO Spatial 155 ms seed-7 boundary cell",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_spatial_deadline155_seed7_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_spatial_deadline155_seed7_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_spatial_deadline155_seed7_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_spatial_deadline155_seed7_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_spatial_deadline155_seed7_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_spatial_deadline155_seed7_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_spatial_deadline155_seed7_40_20260810_001/evaluation/episodes/libero_spatial__task_000__episode_00/runtime.json",
+        "evidence/pi05_spatial_deadline155_seed7_40_20260810_001/evaluation/videos/libero_spatial__task_004__episode_00.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_spatial_deadline155_seed7_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the Spatial seed-7 155 ms protocol, provenance, worker shutdown, request lifecycles, tick decisions, overlap, episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "An exploratory Spatial seed-7 simulation cell for one official checkpoint and service; it is not a universal threshold, no-deadline baseline, hard-real-time guarantee, official leaderboard score, hardware-safety result, cross-model comparison, or iid deployment estimate."
+    },
+    {
+      "id": "pi05_spatial_deadline155_seed8_40_20260810_001",
+      "title": "pi0.5-LIBERO Spatial 155 ms seed-8 boundary cell",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_spatial_deadline155_seed8_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_spatial_deadline155_seed8_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_spatial_deadline155_seed8_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_spatial_deadline155_seed8_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_spatial_deadline155_seed8_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_spatial_deadline155_seed8_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_spatial_deadline155_seed8_40_20260810_001/evaluation/episodes/libero_spatial__task_000__episode_00/runtime.json",
+        "evidence/pi05_spatial_deadline155_seed8_40_20260810_001/evaluation/videos/libero_spatial__task_004__episode_00.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_spatial_deadline155_seed8_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the Spatial seed-8 155 ms protocol, provenance, worker shutdown, request lifecycles, tick decisions, overlap, episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "An exploratory Spatial seed-8 simulation cell for one official checkpoint and service; it is not a universal threshold, no-deadline baseline, hard-real-time guarantee, official leaderboard score, hardware-safety result, cross-model comparison, or iid deployment estimate."
+    },
+    {
+      "id": "pi05_spatial_deadline155_seed9_40_20260810_001",
+      "title": "pi0.5-LIBERO Spatial 155 ms seed-9 boundary cell",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_spatial_deadline155_seed9_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_spatial_deadline155_seed9_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_spatial_deadline155_seed9_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_spatial_deadline155_seed9_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_spatial_deadline155_seed9_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_spatial_deadline155_seed9_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_spatial_deadline155_seed9_40_20260810_001/evaluation/episodes/libero_spatial__task_000__episode_00/runtime.json"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_spatial_deadline155_seed9_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the Spatial seed-9 155 ms protocol, provenance, worker shutdown, request lifecycles, tick decisions, overlap, episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "An exploratory Spatial seed-9 simulation cell for one official checkpoint and service; it is not a universal threshold, no-deadline baseline, hard-real-time guarantee, official leaderboard score, hardware-safety result, cross-model comparison, or iid deployment estimate."
+    },
+    {
+      "id": "pi05_spatial_deadline175_seed9_40_20260810_001",
+      "title": "pi0.5-LIBERO Spatial 175 ms seed-9 boundary cell",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_spatial_deadline175_seed9_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_spatial_deadline175_seed9_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_spatial_deadline175_seed9_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_spatial_deadline175_seed9_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_spatial_deadline175_seed9_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_spatial_deadline175_seed9_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_spatial_deadline175_seed9_40_20260810_001/evaluation/episodes/libero_spatial__task_000__episode_00/runtime.json",
+        "evidence/pi05_spatial_deadline175_seed9_40_20260810_001/evaluation/videos/libero_spatial__task_003__episode_02.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_spatial_deadline175_seed9_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the Spatial seed-9 175 ms protocol, provenance, worker shutdown, request lifecycles, tick decisions, overlap, episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "An exploratory Spatial seed-9 simulation cell for one official checkpoint and service; it is not a universal threshold, no-deadline baseline, hard-real-time guarantee, official leaderboard score, hardware-safety result, cross-model comparison, or iid deployment estimate."
+    },
+    {
+      "id": "pi05_spatial_deadline200_seed8_40_20260810_001",
+      "title": "pi0.5-LIBERO Spatial 200 ms seed-8 nominal reference",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_spatial_deadline200_seed8_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_spatial_deadline200_seed8_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_spatial_deadline200_seed8_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_spatial_deadline200_seed8_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_spatial_deadline200_seed8_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_spatial_deadline200_seed8_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_spatial_deadline200_seed8_40_20260810_001/evaluation/episodes/libero_spatial__task_000__episode_00/runtime.json",
+        "evidence/pi05_spatial_deadline200_seed8_40_20260810_001/evaluation/videos/libero_spatial__task_007__episode_03.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_spatial_deadline200_seed8_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the Spatial seed-8 200 ms protocol, provenance, worker shutdown, request lifecycles, tick decisions, overlap, episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "An exploratory Spatial seed-8 simulation cell for one official checkpoint and service; it is not a universal threshold, no-deadline baseline, hard-real-time guarantee, official leaderboard score, hardware-safety result, cross-model comparison, or iid deployment estimate."
+    },
+    {
+      "id": "pi05_spatial_deadline200_seed9_40_20260810_001",
+      "title": "pi0.5-LIBERO Spatial 200 ms seed-9 nominal reference",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_spatial_deadline200_seed9_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_spatial_deadline200_seed9_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_spatial_deadline200_seed9_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_spatial_deadline200_seed9_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_spatial_deadline200_seed9_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_spatial_deadline200_seed9_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_spatial_deadline200_seed9_40_20260810_001/evaluation/episodes/libero_spatial__task_000__episode_00/runtime.json",
+        "evidence/pi05_spatial_deadline200_seed9_40_20260810_001/evaluation/videos/libero_spatial__task_004__episode_00.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_spatial_deadline200_seed9_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the Spatial seed-9 200 ms protocol, provenance, worker shutdown, request lifecycles, tick decisions, overlap, episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "An exploratory Spatial seed-9 simulation cell for one official checkpoint and service; it is not a universal threshold, no-deadline baseline, hard-real-time guarantee, official leaderboard score, hardware-safety result, cross-model comparison, or iid deployment estimate."
     }
   ]
 }

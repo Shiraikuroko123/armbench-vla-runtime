@@ -65,7 +65,7 @@ def _supports_official_lerobot(python: pathlib.Path) -> bool:
 
 
 def _specs() -> list[dict[str, Any]]:
-    return [
+    specs = [
         {"id": "doctor", "argv": ["-m", "armbench", "doctor"]},
         {
             "id": "mujoco_scenarios",
@@ -249,11 +249,100 @@ def _specs() -> list[dict[str, Any]]:
                 "--json",
             ],
         },
-        {
-            "id": "evidence_catalog",
-            "argv": ["scripts/build_evidence_catalog.py", "--check"],
-        },
     ]
+
+    additional_independent_clock_ids = (
+        "pi05_object_deadline150_seed7_40_20260810_001",
+        "pi05_object_deadline150_seed8_40_20260810_001",
+        "pi05_object_deadline175_seed7_40_20260810_001",
+        "pi05_object_deadline175_seed8_40_20260810_001",
+        "pi05_object_deadline200_seed8_40_20260810_001",
+        "pi05_spatial_deadline150_seed9_40_20260810_001",
+        "pi05_spatial_deadline155_seed7_40_20260810_001",
+        "pi05_spatial_deadline155_seed8_40_20260810_001",
+        "pi05_spatial_deadline155_seed9_40_20260810_001",
+        "pi05_spatial_deadline175_seed9_40_20260810_001",
+        "pi05_spatial_deadline200_seed8_40_20260810_001",
+        "pi05_spatial_deadline200_seed9_40_20260810_001",
+        "pi05_selection_smoke_age_aligned_seed7_1_20260810_001",
+        "pi05_selection_smoke_response_relative_seed7_1_20260810_001",
+        "pi05_selection_spatial_s7_age_aligned_40_20260810_001",
+        "pi05_selection_spatial_s7_response_relative_40_20260810_001",
+    )
+    specs.extend(
+        {
+            "id": f"validate_{artifact_id}",
+            "argv": [
+                "-m",
+                "integrations.openpi.validate_libero_independent_clock",
+                f"evidence/{artifact_id}/evaluation",
+                "--json",
+            ],
+        }
+        for artifact_id in additional_independent_clock_ids
+    )
+
+    deadline_artifact_ids = (
+        "pi05_object_deadline150_seed7_40_20260810_001",
+        "pi05_object_deadline175_seed7_40_20260810_001",
+        "g03_independent_clock_object_40_20260810_001",
+        "pi05_object_deadline150_seed8_40_20260810_001",
+        "pi05_object_deadline175_seed8_40_20260810_001",
+        "pi05_object_deadline200_seed8_40_20260810_001",
+        "g05_spatial_deadline150_40_20260810_001",
+        "pi05_spatial_deadline155_seed7_40_20260810_001",
+        "g06_spatial_deadline175_40_20260810_001",
+        "pi05_libero_independent_clock_core_40_001",
+        "pi05_libero_spatial_deadline150_seed8_40_20260810_001",
+        "pi05_spatial_deadline155_seed8_40_20260810_001",
+        "pi05_libero_spatial_deadline175_seed8_40_20260810_001",
+        "pi05_spatial_deadline200_seed8_40_20260810_001",
+        "pi05_spatial_deadline150_seed9_40_20260810_001",
+        "pi05_spatial_deadline155_seed9_40_20260810_001",
+        "pi05_spatial_deadline175_seed9_40_20260810_001",
+        "pi05_spatial_deadline200_seed9_40_20260810_001",
+    )
+    smoke_artifact_ids = (
+        "pi05_selection_smoke_age_aligned_seed7_1_20260810_001",
+        "pi05_selection_smoke_response_relative_seed7_1_20260810_001",
+    )
+    specs.extend(
+        [
+            {
+                "id": "pi05_deadline_multisuite_report_720",
+                "argv": [
+                    "scripts/build_pi05_deadline_report.py",
+                    *[
+                        f"evidence/{artifact_id}/evaluation"
+                        for artifact_id in deadline_artifact_ids
+                    ],
+                    "--output-dir",
+                    "reports/pi05_deadline_multisuite_report_720_20260810_001",
+                    "--check",
+                ],
+            },
+            {
+                "id": "pi05_selection_smoke_report",
+                "argv": [
+                    "scripts/build_pi05_selection_report.py",
+                    *[
+                        f"evidence/{artifact_id}/evaluation"
+                        for artifact_id in smoke_artifact_ids
+                    ],
+                    "--profile",
+                    "smoke",
+                    "--output-dir",
+                    "reports/pi05_selection_smoke_report_20260810_001",
+                    "--check",
+                ],
+            },
+            {
+                "id": "evidence_catalog",
+                "argv": ["scripts/build_evidence_catalog.py", "--check"],
+            },
+        ]
+    )
+    return specs
 
 
 def _tail(value: str, limit: int = 2400) -> str:
