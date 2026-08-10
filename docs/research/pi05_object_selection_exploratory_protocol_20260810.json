@@ -1,0 +1,84 @@
+{
+  "schema_version": "armbench.pi05_object_selection_exploratory_protocol.v1",
+  "created_at_utc": "2026-08-10T06:36:30Z",
+  "status": "protocol_frozen_before_both_scored_cells",
+  "scope": "Lease-tail exploratory cross-suite replication of independent-clock action-selection semantics",
+  "runtime_commit": "1551900d2c66b0e8a1d46af51ee5df53e8c63bcc",
+  "research_question": "Does the direction observed on LIBERO Spatial persist on LIBERO Object when checkpoint, deadline, clock, mailbox, hold rule, keyed sampling, tasks, episodes, and joint seed are fixed between action-selection modes?",
+  "fixed_protocol": {
+    "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+    "task_suite": "libero_object",
+    "task_ids": "0:10",
+    "episode_indices": "4:8",
+    "seed": 7,
+    "control_period_ms": 50,
+    "action_horizon": 10,
+    "submit_every_ticks": 1,
+    "deadline_ms": 175,
+    "mailbox": "latest_only_single_pending_observation",
+    "deadline_disposition": "hold",
+    "horizon_exhaustion_disposition": "hold",
+    "video_mode": "failures",
+    "max_task_steps": null,
+    "fresh_environment_per_rollout": true,
+    "policy_input_audit": "canonical_pi05_libero_request_sha256_v1"
+  },
+  "registered_cells": [
+    {
+      "label": "object_seed7_age_aligned_suffix",
+      "action_selection_mode": "age_aligned_suffix",
+      "planned_rollouts": 40,
+      "order": 1
+    },
+    {
+      "label": "object_seed7_response_relative_chunk",
+      "action_selection_mode": "response_relative_chunk",
+      "planned_rollouts": 40,
+      "order": 2
+    }
+  ],
+  "pairing_gate": {
+    "unit": "task_id plus episode_index within joint seed 7",
+    "query_zero_required_equal": [
+      "initial_state_sha256",
+      "policy_input_sha256",
+      "policy sampling key_sha256",
+      "policy sampling noise_sha256",
+      "action_chunk_sha256"
+    ],
+    "failure_disposition": "Preserve both artifacts but make no paired method-effect claim."
+  },
+  "primary_outcomes": [
+    "paired task success",
+    "execute duty cycle",
+    "hold-reason counts",
+    "executed action-index distribution",
+    "provider failures",
+    "inference/simulation overlap"
+  ],
+  "analysis_plan": {
+    "success_test": "Report discordant counts and the exact two-sided McNemar test for the 40 registered pairs.",
+    "process_metrics": "Report paired differences descriptively by task and episode.",
+    "pooling": "Do not pool this Object seed with the frozen Spatial-240 study or the earlier Object episodes 0:3 deadline cells.",
+    "negative_result_policy": "Retain and report a null or reversed result; do not add deadlines, episodes, or modes after inspection."
+  },
+  "execution_gate": [
+    "Run the two cells serially against the same attested policy service.",
+    "Start the second cell only if at least 25 minutes of the server lease remain.",
+    "Each cell must pass the independent artifact validator before its result is interpreted.",
+    "Both cells must be archived with SHA-256 sidecars and downloaded before lease expiry."
+  ],
+  "stop_conditions": [
+    "provider failure, missing inference/simulation overlap, worker not stopped, or validator invalid",
+    "checkpoint attestation, OpenPI commit, runtime commit, or source hashes differ between modes",
+    "do not stop a 40-rollout cell based on intermediate task success"
+  ],
+  "claim_boundaries": [
+    "exploratory one-seed cross-suite replication, not confirmatory external validation",
+    "one attested pi0.5 checkpoint, not cross-model generality",
+    "not an official LIBERO leaderboard score",
+    "not a hard-real-time guarantee",
+    "not hardware safety or real-robot deployment evidence",
+    "query-0 pairing does not imply later observations remain identical after the modes diverge"
+  ]
+}
