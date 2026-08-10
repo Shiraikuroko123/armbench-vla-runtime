@@ -1,0 +1,82 @@
+{
+  "schema_version": "armbench.pi05_deadline_nominal_reference_protocol.v1",
+  "created_at_utc": "2026-08-10T03:40:14.2860089Z",
+  "status": "protocol_frozen_before_all_nominal_reference_cells",
+  "scope": "Exploratory matched-seed 200 ms references for the pi0.5 independent-clock deadline study",
+  "runtime_commit": "8686490355c54d1dff9523be0c881d14ab45cda8",
+  "repository_commit_at_freeze": "0572e9bfd61248e69295913b514473769d689d98",
+  "fixed_protocol": {
+    "checkpoint": "gs://openpi-assets/checkpoints/pi05_libero",
+    "task_ids": "0:10",
+    "episode_indices": "0:4",
+    "control_period_ms": 50,
+    "action_horizon": 10,
+    "submit_every_ticks": 1,
+    "mailbox": "latest_only_single_pending_observation",
+    "deadline_disposition": "hold",
+    "deadline_ms": 200,
+    "video_mode": "failures",
+    "max_task_steps": null
+  },
+  "registered_cells": [
+    {
+      "label": "spatial_seed8_deadline200",
+      "task_suite": "libero_spatial",
+      "seed": 8,
+      "planned_rollouts": 40,
+      "order": 1
+    },
+    {
+      "label": "spatial_seed9_deadline200",
+      "task_suite": "libero_spatial",
+      "seed": 9,
+      "planned_rollouts": 40,
+      "order": 2
+    },
+    {
+      "label": "object_seed8_deadline200",
+      "task_suite": "libero_object",
+      "seed": 8,
+      "planned_rollouts": 40,
+      "order": 3
+    }
+  ],
+  "existing_references": [
+    {
+      "label": "spatial_seed7_deadline200",
+      "artifact_id": "pi05_libero_independent_clock_core_40_001"
+    },
+    {
+      "label": "object_seed7_deadline200",
+      "artifact_id": "g03_independent_clock_object_40_20260810_001"
+    }
+  ],
+  "primary_outcomes": [
+    "task_success_rate",
+    "execute_duty_cycle",
+    "deadline_hold_ticks",
+    "provider_failures",
+    "inference_simulation_overlap"
+  ],
+  "analysis_plan": {
+    "comparison": "Within each available suite and joint seed, compare the registered 175 ms cell with the 200 ms nominal reference.",
+    "cluster_unit": "LIBERO task; four episodes within a task are not treated as iid deployment draws.",
+    "pooling": "Do not pool suites or seeds into a universal deadline or deployment estimate.",
+    "interpretation": "Use 200 ms as a service-specific nominal reference, not as a no-deadline or unguarded condition.",
+    "extension_rule": "Do not add further deadline values after inspecting these cells."
+  },
+  "stop_conditions": [
+    "provider failure, missing inference/simulation overlap, worker not stopped, or validator invalid",
+    "checkpoint attestation, OpenPI commit, or runtime source hashes differ from the fixed protocol",
+    "less than 60 minutes of server lease remains before starting another cell",
+    "do not stop or extend a cell based on an intermediate success rate"
+  ],
+  "claim_boundaries": [
+    "exploratory matched-seed references, not a confirmatory plateau estimate",
+    "not an official LIBERO leaderboard score",
+    "not a no-deadline or unguarded baseline",
+    "not a hard-real-time guarantee",
+    "not hardware safety or real-robot deployment evidence",
+    "not cross-model superiority or a universal VLA deadline threshold"
+  ]
+}
