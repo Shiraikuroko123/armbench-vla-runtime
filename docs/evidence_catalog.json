@@ -1,17 +1,17 @@
 {
   "schema_version": "armbench.evidence_catalog.v1",
   "source": "configs/evidence_catalog.json",
-  "artifact_count": 34,
+  "artifact_count": 36,
   "inventory": {
     "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
-    "file_count": 2002,
-    "total_bytes": 329400243,
-    "tree_sha256": "078ae3f36c7bfe8990e81e896784d491ea4e15e5626538bf078ab3c98572297d"
+    "file_count": 2245,
+    "total_bytes": 378635352,
+    "tree_sha256": "0be708c8a245be7c0e779d4ffd15fc06bb4e56f29e4e12a7a7e776c95684e7b9"
   },
   "class_counts": {
     "primary": 3,
     "primary_source": 2,
-    "exploratory": 11,
+    "exploratory": 13,
     "mechanism_gate": 4,
     "diagnostic": 1,
     "rejected": 2,
@@ -495,6 +495,72 @@
         "file_count": 6,
         "total_bytes": 418700,
         "tree_sha256": "e0fd1fc9f9c7a7e8a753f3cf1f1f2d6e759df32fdb89c90b9d103a1c7b617ba1"
+      }
+    },
+    {
+      "id": "pi05_libero_spatial_deadline150_seed8_40_20260810_001",
+      "title": "pi0.5-LIBERO Spatial 150 ms seed-8 replication",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation/videos/libero_spatial__task_000__episode_00.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the seed-8 150 ms protocol, provenance, request lifecycles, tick decisions, overlap, per-episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "An exploratory second-seed replication selected after the seed-7 result; the seed jointly changes environment and keyed-policy randomness, and the artifact is not confirmatory, a universal threshold, hard-real-time evidence, hardware safety, or a leaderboard score.",
+      "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
+        "file_count": 140,
+        "total_bytes": 32446178,
+        "tree_sha256": "e088e57caf2368b5cdbdc0fc48aeffa08f04b7131fae36c98d3a642775317495"
+      }
+    },
+    {
+      "id": "pi05_libero_spatial_deadline175_seed8_40_20260810_001",
+      "title": "pi0.5-LIBERO Spatial 175 ms seed-8 replication",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation/videos/libero_spatial__task_003__episode_03.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the seed-8 175 ms protocol, provenance, request lifecycles, tick decisions, overlap, per-episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "An exploratory second-seed replication selected after the seed-7 result; the seed jointly changes environment and keyed-policy randomness, and the artifact is not confirmatory, a universal threshold, hard-real-time evidence, hardware safety, or a leaderboard score.",
+      "inventory": {
+        "fingerprint_basis": "sha256_over_git_blob_ids_paths_and_sizes",
+        "file_count": 103,
+        "total_bytes": 16788931,
+        "tree_sha256": "6356ee4d22a26157d6014343d5ced1a1376fa27eb1eb1545f29e81f12a3097be"
       }
     },
     {

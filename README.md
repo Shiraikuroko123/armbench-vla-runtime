@@ -37,6 +37,10 @@ transfer/stress artifacts, not pooled leaderboard statistics.
 
 The descriptive deadline curve is summarized in
 [`reports/pi05_deadline_curve_20260810_001/summary.md`](reports/pi05_deadline_curve_20260810_001/summary.md).
+An exploratory second-seed replication reproduced the direction: seed 8
+recorded 0/40 successes at 150 ms and 37/40 at 175 ms, with execute duty rising
+from 26.6% to 86.7%. The seed-stratified report is in
+[`reports/pi05_deadline_seed_replication_20260810_001/summary.md`](reports/pi05_deadline_seed_replication_20260810_001/summary.md).
 
 The naming change reflects an engineering progression, not a replacement of
 the original project. The seven-DoF planning and tracking benchmark became the
@@ -90,6 +94,8 @@ for the full design and the current integration gap.
 | G04 50 ms deadline stress | LIBERO Spatial tasks 0-9, episodes 0-3: 40/40 completed, 0/40 successes, 0 execute and 8,800 hold ticks, 5,474 deadline exceedances | Fail-closed behavior under an intentionally infeasible deadline; not a model-quality ranking |
 | G05 150 ms deadline stress | Same 40-rollout Spatial matrix: 0/40 successes, 2,309 execute and 6,491 hold ticks, 16 deadline exceedances | Intermediate exploratory stress point: actions execute, but the available duty cycle is insufficient for task completion |
 | G06 175 ms deadline stress | Same 40-rollout Spatial matrix: 38/40 successes, 3,942 execute and 613 hold ticks, 0 deadline/provider failures | Exploratory transition point; not a universal deadline threshold or hard-real-time claim |
+| Seed-8 150 ms replication | Same Spatial matrix with joint environment/policy seed 8: 0/40 successes, 2,342 execute and 6,458 hold ticks, 0 provider failures | Reproduces low execute duty at 150 ms; exploratory, not confirmatory |
+| Seed-8 175 ms replication | Same Spatial matrix with joint environment/policy seed 8: 37/40 successes, 4,060 execute and 621 hold ticks, 0 provider failures | Reproduces the operational direction; not a universal threshold or iid pooled estimate |
 | Measured-age temporal alignment | Official `pi0.5`-LIBERO Spatial, 120 matched pairs: 88/120 to 116/120, +23.33 points, exact McNemar `p=1.94e-6` | Training-free, observation-age-based suffix selection improves this frozen simulation matrix |
 | Cross-suite validation | Object, Goal, and LIBERO-10: 300 rollouts / 150 pairs, 83/150 to 141/150 | Extends deterministic-delay evidence within the same model family and simulator suite |
 | RTC-style continuation | 300 rollouts / 100 matched triplets: 96/100 baseline, 97/100 hard projection, 97/100 RTC guidance | No task-success superiority; motion-seam measurements remain exploratory |

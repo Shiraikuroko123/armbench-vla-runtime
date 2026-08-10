@@ -728,6 +728,60 @@
         "scope": "Recomputes the 175 ms stress protocol, timing, hold/execute decisions, overlap, per-episode rows, and aggregate values without rerunning inference."
       },
       "claim_boundary": "An exploratory transition point in one checkpoint/service/seed matrix; it is not an official leaderboard result, universal deadline threshold, hard-real-time guarantee, hardware safety result, or model-quality ranking."
+    },
+    {
+      "id": "pi05_libero_spatial_deadline150_seed8_40_20260810_001",
+      "title": "pi0.5-LIBERO Spatial 150 ms seed-8 replication",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation/videos/libero_spatial__task_000__episode_00.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the seed-8 150 ms protocol, provenance, request lifecycles, tick decisions, overlap, per-episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "An exploratory second-seed replication selected after the seed-7 result; the seed jointly changes environment and keyed-policy randomness, and the artifact is not confirmatory, a universal threshold, hard-real-time evidence, hardware safety, or a leaderboard score."
+    },
+    {
+      "id": "pi05_libero_spatial_deadline175_seed8_40_20260810_001",
+      "title": "pi0.5-LIBERO Spatial 175 ms seed-8 replication",
+      "class": "exploratory",
+      "policy_provenance": "official_openpi_pi05_libero",
+      "result": "evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/README.md",
+      "protocol": "evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation/resolved_protocol.json",
+      "manifest": "evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation/manifest.json",
+      "raw": [
+        "evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation/aggregate.json",
+        "evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation/per_episode.csv",
+        "evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation/per_episode.json",
+        "evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation/videos/libero_spatial__task_003__episode_03.mp4"
+      ],
+      "validator": {
+        "status": "available",
+        "argv": [
+          "python",
+          "-m",
+          "integrations.openpi.validate_libero_independent_clock",
+          "evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation",
+          "--json"
+        ],
+        "scope": "Recomputes the seed-8 175 ms protocol, provenance, request lifecycles, tick decisions, overlap, per-episode rows, and aggregate values without rerunning inference."
+      },
+      "claim_boundary": "An exploratory second-seed replication selected after the seed-7 result; the seed jointly changes environment and keyed-policy randomness, and the artifact is not confirmatory, a universal threshold, hard-real-time evidence, hardware safety, or a leaderboard score."
     }
   ]
 }

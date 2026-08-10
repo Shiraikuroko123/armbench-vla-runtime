@@ -232,6 +232,24 @@ def _specs() -> list[dict[str, Any]]:
             ],
         },
         {
+            "id": "pi05_libero_independent_clock_deadline150_seed8",
+            "argv": [
+                "-m",
+                "integrations.openpi.validate_libero_independent_clock",
+                "evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation",
+                "--json",
+            ],
+        },
+        {
+            "id": "pi05_libero_independent_clock_deadline175_seed8",
+            "argv": [
+                "-m",
+                "integrations.openpi.validate_libero_independent_clock",
+                "evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation",
+                "--json",
+            ],
+        },
+        {
             "id": "evidence_catalog",
             "argv": ["scripts/build_evidence_catalog.py", "--check"],
         },

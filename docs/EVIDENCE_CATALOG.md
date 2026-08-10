@@ -7,10 +7,10 @@ scripted runtime checks, and rejected runs.
 
 ## Repository inventory
 
-- Artifact directories: 34
-- Files: 2002
-- Stored size: 314.1 MiB
-- Catalog tree SHA-256: `078ae3f36c7bfe8990e81e896784d491ea4e15e5626538bf078ab3c98572297d`
+- Artifact directories: 36
+- Files: 2245
+- Stored size: 361.1 MiB
+- Catalog tree SHA-256: `0be708c8a245be7c0e779d4ffd15fc06bb4e56f29e4e12a7a7e776c95684e7b9`
 - Fingerprint basis: Git blob IDs + canonical paths + blob sizes
 - Machine-readable form: [evidence_catalog.json](evidence_catalog.json)
 
@@ -25,7 +25,7 @@ commands below define the stronger scientific validation available per artifact.
 | --- | ---: | --- |
 | Primary or confirmatory | 3 | Frozen or prospectively defined studies used for the repository's bounded result claims. |
 | Primary source artifact | 2 | Raw input to a primary combined analysis; interpret it with the linked companion artifact and protocol. |
-| Exploratory pilot | 11 | Pilot or smoke evidence used to test feasibility or choose a later protocol, not a confirmatory result. |
+| Exploratory pilot | 13 | Pilot or smoke evidence used to test feasibility or choose a later protocol, not a confirmatory result. |
 | Mechanism or integration gate | 4 | Component-level evidence that an implementation contract holds; it is not task-success evidence. |
 | Diagnostic | 1 | A bounded debugging artifact retained for traceability rather than a headline efficacy claim. |
 | Rejected from effect analysis | 2 | Byte-preserved evidence excluded after a documented protocol or pairing failure. |
@@ -222,6 +222,30 @@ Pilot or smoke evidence used to test feasibility or choose a later protocol, not
 - Validator: Not available. Only the compact smoke summary, validation report, and visual audit were retained in Git.
 - Claim boundary: A two-rollout infrastructure smoke test, not an estimate of model task success.
 - Inventory: 6 files, 0.4 MiB, tree SHA-256 `e0fd1fc9f9c7a7e8a753f3cf1f1f2d6e759df32fdb89c90b9d103a1c7b617ba1`
+
+### pi0.5-LIBERO Spatial 150 ms seed-8 replication
+
+- Artifact: `pi05_libero_spatial_deadline150_seed8_40_20260810_001`
+- Policy provenance: `official_openpi_pi05_libero`
+- Result: [README.md](../evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/README.md)
+- Protocol: [resolved_protocol.json](../evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation/resolved_protocol.json)
+- Manifest: [manifest.json](../evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation/manifest.json)
+- Raw review files: [aggregate.json](../evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation/aggregate.json), [per_episode.csv](../evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation/per_episode.csv), [per_episode.json](../evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation/per_episode.json), [libero_spatial__task_000__episode_00.mp4](../evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation/videos/libero_spatial__task_000__episode_00.mp4)
+- Validator: `python -m integrations.openpi.validate_libero_independent_clock evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation --json`. Recomputes the seed-8 150 ms protocol, provenance, request lifecycles, tick decisions, overlap, per-episode rows, and aggregate values without rerunning inference.
+- Claim boundary: An exploratory second-seed replication selected after the seed-7 result; the seed jointly changes environment and keyed-policy randomness, and the artifact is not confirmatory, a universal threshold, hard-real-time evidence, hardware safety, or a leaderboard score.
+- Inventory: 140 files, 30.9 MiB, tree SHA-256 `e088e57caf2368b5cdbdc0fc48aeffa08f04b7131fae36c98d3a642775317495`
+
+### pi0.5-LIBERO Spatial 175 ms seed-8 replication
+
+- Artifact: `pi05_libero_spatial_deadline175_seed8_40_20260810_001`
+- Policy provenance: `official_openpi_pi05_libero`
+- Result: [README.md](../evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/README.md)
+- Protocol: [resolved_protocol.json](../evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation/resolved_protocol.json)
+- Manifest: [manifest.json](../evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation/manifest.json)
+- Raw review files: [aggregate.json](../evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation/aggregate.json), [per_episode.csv](../evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation/per_episode.csv), [per_episode.json](../evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation/per_episode.json), [libero_spatial__task_003__episode_03.mp4](../evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation/videos/libero_spatial__task_003__episode_03.mp4)
+- Validator: `python -m integrations.openpi.validate_libero_independent_clock evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation --json`. Recomputes the seed-8 175 ms protocol, provenance, request lifecycles, tick decisions, overlap, per-episode rows, and aggregate values without rerunning inference.
+- Claim boundary: An exploratory second-seed replication selected after the seed-7 result; the seed jointly changes environment and keyed-policy randomness, and the artifact is not confirmatory, a universal threshold, hard-real-time evidence, hardware safety, or a leaderboard score.
+- Inventory: 103 files, 16.0 MiB, tree SHA-256 `6356ee4d22a26157d6014343d5ced1a1376fa27eb1eb1545f29e81f12a3097be`
 
 ### pi0.5 projected-overlap paired pilot
 

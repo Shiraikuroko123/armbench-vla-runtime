@@ -1,0 +1,5 @@
+seed,deadline_ms,rollouts,task_successes,task_success_rate,wilson95_low,wilson95_high,execute_ticks,hold_ticks,deadline_hold_ticks,response_level_deadline_rejections,provider_failures,execute_duty_cycle
+7,150,40,0,0.0,0.0,0.0876,2309,6491,6371,16,0,0.2624
+7,175,40,38,0.95,0.8350,0.9861,3942,613,495,0,0,0.8654
+8,150,40,0,0.0,0.0,0.0876,2342,6458,6338,2,0,0.2661
+8,175,40,37,0.925,0.8014,0.9742,4060,621,501,0,0,0.8673

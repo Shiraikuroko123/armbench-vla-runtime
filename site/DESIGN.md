@@ -78,6 +78,9 @@ column and long case identifiers remain inspectable on mobile.
 - The deadline curve is text-and-metric evidence rather than a generated chart:
   G02 (200 ms), G06 (175 ms), G05 (150 ms), and G04 (50 ms) link directly to
   their checked-in manifests and validator commands.
+- A separate seed-8 replication card links the 150/175 ms artifacts and
+  seed-stratified report; it is labeled exploratory and does not recast the
+  curve as a universal threshold.
 - Acceptance commands expose copy buttons with a clipboard fallback.
 - All media and dynamic controls have adjacent text labels and stable aspect
   ratios; no information depends on hover.

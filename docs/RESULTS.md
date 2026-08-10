@@ -224,6 +224,33 @@ Validate it without a GPU:
 
     python -m integrations.openpi.validate_libero_independent_clock evidence/g06_spatial_deadline175_40_20260810_001/evaluation --json
 
+## pi0.5-LIBERO deadline seed-8 replication
+
+The second-seed cells retain the Spatial task matrix, checkpoint, runtime, and
+deadlines while changing the joint environment and keyed-policy sampling seed
+from 7 to 8. They were selected after observing seed 7 and remain exploratory.
+
+| Deadline | Seed-7 success / execute duty | Seed-8 success / execute duty |
+|---:|---:|---:|
+| 150 ms | 0/40 / 26.2% | 0/40 / 26.6% |
+| 175 ms | 38/40 / 86.5% | 37/40 / 86.7% |
+
+The seed-8 cells independently preserve all requests, tick decisions, initial
+states, failures, videos, source snapshots, and manifests. Tick-level deadline
+holds were 6,338 at 150 ms and 501 at 175 ms; these are distinct from the 2 and
+0 response-level deadline rejections. The complete seed-stratified report is
+[`reports/pi05_deadline_seed_replication_20260810_001/summary.md`](../reports/pi05_deadline_seed_replication_20260810_001/summary.md).
+
+Validate the saved artifacts without a GPU:
+
+    python -m integrations.openpi.validate_libero_independent_clock evidence/pi05_libero_spatial_deadline150_seed8_40_20260810_001/evaluation --json
+    python -m integrations.openpi.validate_libero_independent_clock evidence/pi05_libero_spatial_deadline175_seed8_40_20260810_001/evaluation --json
+
+The replication supports a service/task-specific clock-quantization
+interpretation. It does not establish a universal VLA threshold, an official
+LIBERO score, hard-real-time scheduling, hardware safety, cross-model
+superiority, or real-robot deployment.
+
 ## pi0.5 RTC guidance G0
 
 ### Provenance and protocol

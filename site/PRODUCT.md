@@ -78,6 +78,9 @@ hard-real-time or physical safety guarantee.
   deadline stress points under one fixed Spatial matrix; none establishes a
   universal threshold or OS hard-real-time behavior.
 - G06 adds a 175 ms transition point to the same curve and remains exploratory.
+- The seed-8 150/175 ms replication reproduces the operational direction but
+  remains post-hoc exploratory evidence; the seed changes both environment and
+  keyed-policy randomness and is not pooled into a universal threshold.
 - The asynchronous CPU artifact validates a provider-to-supervisor software
   boundary; it is not a closed-loop task-success or deadline-guarantee result.
 
