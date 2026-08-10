@@ -13,6 +13,8 @@ the reference checker and an ambiguous interval still fails closed.
 
 from __future__ import annotations
 
+from collections import OrderedDict
+
 import numpy as np
 
 from armbench.mujoco_sim.continuous_collision import (
@@ -38,22 +40,31 @@ class BroadPhaseContinuousMuJoCoCollisionChecker(
         self._refresh_pair_arrays()
         self.broad_phase_pair_tests = 0
         self.broad_phase_pruned_pairs = 0
+        self.safe_configuration_cache_hits = 0
+        self._safe_configuration_cache: OrderedDict[bytes, None] = OrderedDict()
+        self._safe_configuration_cache_capacity = 4096
 
     def set_pairs(self, pairs: tuple[ContinuousCollisionPair, ...]) -> None:
         if not pairs:
             raise ValueError("broad-phase checker requires collision pairs")
         self.pairs = pairs
         self._refresh_pair_arrays()
+        self._safe_configuration_cache.clear()
 
     def reset_metrics(self) -> None:
         self.broad_phase_pair_tests = 0
         self.broad_phase_pruned_pairs = 0
+        self.safe_configuration_cache_hits = 0
 
     @property
     def broad_phase_prune_rate(self) -> float:
         if self.broad_phase_pair_tests == 0:
             return 0.0
         return self.broad_phase_pruned_pairs / self.broad_phase_pair_tests
+
+    @property
+    def safe_configuration_cache_size(self) -> int:
+        return len(self._safe_configuration_cache)
 
     def _refresh_pair_arrays(self) -> None:
         self._pair_geom1 = np.asarray(
@@ -92,6 +103,11 @@ class BroadPhaseContinuousMuJoCoCollisionChecker(
         q: np.ndarray,
         state: _CertificateState,
     ) -> bool | None:
+        key = np.asarray(q, dtype="<f8").tobytes(order="C")
+        if key in self._safe_configuration_cache:
+            self.safe_configuration_cache_hits += 1
+            self._safe_configuration_cache.move_to_end(key)
+            return False
         self.robot.set_configuration(self.data, q)
         lower_bounds = self._sphere_distance_lower_bounds()
         threshold = self.config.clearance_m + self.config.distance_tolerance_m
@@ -107,6 +123,9 @@ class BroadPhaseContinuousMuJoCoCollisionChecker(
                 state.collision_pair = pair.label
                 state.failure_reason = f"collision:{pair.label}"
                 return True
+        self._safe_configuration_cache[key] = None
+        if len(self._safe_configuration_cache) > self._safe_configuration_cache_capacity:
+            self._safe_configuration_cache.popitem(last=False)
         return False
 
     def _interval_status(

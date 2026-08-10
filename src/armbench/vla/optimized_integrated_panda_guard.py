@@ -84,6 +84,12 @@ class OptimizedIntegratedPandaSupervisor(IntegratedPandaSupervisor):
             "broad_phase_pair_tests": self.checker.broad_phase_pair_tests,
             "broad_phase_pruned_pairs": self.checker.broad_phase_pruned_pairs,
             "broad_phase_prune_rate": self.checker.broad_phase_prune_rate,
+            "safe_configuration_cache_hits": (
+                self.checker.safe_configuration_cache_hits
+            ),
+            "safe_configuration_cache_size": (
+                self.checker.safe_configuration_cache_size
+            ),
         }
 
     def _fallback(

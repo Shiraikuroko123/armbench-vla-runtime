@@ -160,6 +160,20 @@ def test_broad_phase_metric_reset_does_not_change_decision() -> None:
 
     assert broad.broad_phase_pair_tests > 0
     assert first.status == repeated.status == expected.status
+    assert broad.safe_configuration_cache_hits >= 2
+
+
+def test_changing_registered_pairs_invalidates_safe_configuration_cache() -> None:
+    _, broad = _checkers("free_space")
+    scenario = mujoco_scenarios()["free_space"]
+    end = scenario.start.copy()
+    end[0] += 0.02
+    assert broad.edge_certificate(scenario.start, end).certified_safe
+    assert broad.safe_configuration_cache_size > 0
+
+    broad.set_pairs(broad.pairs)
+
+    assert broad.safe_configuration_cache_size == 0
 
 
 def test_broad_phase_regression_for_order_sensitive_mesh_distance() -> None:
