@@ -2,18 +2,24 @@
 
 ## Primary job
 
-Give a robotics hiring engineer or reviewer a two-minute, evidence-backed
-answer to three questions:
+Give both a non-specialist and a robotics hiring engineer a layered,
+evidence-backed answer to four questions:
 
-1. What timing failure occurs when an action-chunk VLA responds late?
-2. What does VLA-Sync change at runtime, without retraining the VLA?
-3. Which conclusions are supported by saved artifacts, and where do they stop?
+1. In plain language, what problem does the project solve?
+2. What timing failure occurs when an action-chunk VLA responds late?
+3. What does VLA-Sync change at runtime, without retraining the VLA?
+4. Which conclusions are supported by saved artifacts, and where do they stop?
 
 ## Positioning
 
 VLA-Sync is an auditable asynchronous runtime and evaluation system for
 action-chunk VLA policies under inference latency. It is not a new VLA model,
 a training framework, a real-robot safety controller, or a leaderboard entry.
+
+The public explanation starts with a simpler formulation: the VLA proposes
+what the robot should do, while VLA-Sync validates whether that proposal is
+still temporally valid and executable now. This framing must always preserve the separation between
+LIBERO task-timing evidence and Panda low-level constraint evidence.
 
 The system runs inference and control on independent clocks, measures the age
 of each accepted response, selects an unexpired action suffix, and enters a
@@ -49,22 +55,28 @@ in its own rollout tab and is never pooled into a π0.5 task-success claim.
 
 ## Information architecture
 
-1. **Hero:** literal project identity, one falsifiable claim, artifact rail,
-   authentic two-track simulation montage, and four decisive metrics.
-2. **Abstract:** concise system definition and explicit non-claims.
-3. **Motivation:** observation age, in-flight inference, stale action chunks,
+1. **Hero:** literal project identity, a plain-language problem statement,
+   artifact rail, authentic two-track simulation montage, and four decisive
+   metrics with non-specialist labels.
+2. **60-second explanation:** see, wait, align, check, and execute/hold flow;
+   a four-term glossary; and an explicit LIBERO/Panda evidence split.
+3. **Abstract:** concise system definition and explicit non-claims.
+4. **Motivation:** observation age, in-flight inference, stale action chunks,
    and deadline behavior on one timing diagram.
-4. **Method:** perception/policy/runtime flow followed by visibly separate
+5. **Method:** perception/policy/runtime flow followed by visibly separate
    LIBERO and Panda evidence branches.
-5. **Evaluation:** held-out paired result, exact statistics, seed table,
+6. **Evaluation:** held-out paired result, exact statistics, seed table,
    registered deadline curve, optimized CPU repeatability, and the paired
    atomic-window audit.
-6. **Rollouts:** validator-retained failures, the independent-clock pilot,
+7. **Rollouts:** validator-retained failures, the independent-clock pilot,
    and the Panda execution substrate in task tabs.
-7. **Reproduce:** GPU-free validation commands and the current verification
+8. **Reproduce:** GPU-free validation commands and the current verification
    ledger.
-8. **Engineering roadmap:** established conclusions and prioritized
+9. **Engineering roadmap:** established conclusions and prioritized
    cross-model, online-repair, and deployment-realism improvements.
+
+Every technical section includes a visible “this section answers” sentence so
+readers can decide whether to stop at the explanation or inspect the evidence.
 
 ## Audience and actions
 

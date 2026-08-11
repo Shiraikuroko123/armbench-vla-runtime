@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0a0c0b">
-    <meta name="description" content="VLA-Sync 是面向 action-chunk VLA 推理延迟的可审计异步运行时与评测系统：Physical Intelligence π0.5 VLA、LIBERO、720 次 deadline 实验、240 次冻结动作选择对照与七自由度 Panda 运行时基座。">
+    <meta name="description" content="VLA-Sync 为存在推理延迟的 VLA 机器人提供动作时效性门控：执行前进行时间对齐与 deadline 检查，过期则拒绝发布，并用 LIBERO 与 MuJoCo 保存可复核证据。">
     <meta property="og:type" content="website">
     <meta property="og:title" content="VLA-Sync | 异步 VLA 动作时序与运行时验证">
-    <meta property="og:description" content="Independent inference and control clocks, deadline-aware action selection, 720 deadline rollouts, and a frozen 120-pair Physical Intelligence π0.5 VLA comparison in LIBERO.">
+    <meta property="og:description" content="A runtime layer that checks whether a delayed VLA action is still valid before a simulated robot executes it. Paired LIBERO evidence and MuJoCo execution checks are included.">
     <meta property="og:url" content="https://shiraikuroko123.github.io/armbench-vla-runtime/">
     <meta property="og:image" content="https://shiraikuroko123.github.io/armbench-vla-runtime/assets/og-armbench.png">
     <meta property="og:image:alt" content="VLA-Sync title with a paired Physical Intelligence π0.5 VLA comparison in LIBERO simulation.">
@@ -15,14 +15,14 @@
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="VLA-Sync | Asynchronous VLA runtime evidence">
-    <meta name="twitter:description" content="A simulation research system for action-chunk VLA latency, age-aligned selection, deadline holds, and auditable evidence.">
+    <meta name="twitter:description" content="A plain-language tour of a runtime layer that rejects stale VLA actions before a robot executes them, with reproducible simulation evidence.">
     <meta name="twitter:image" content="https://shiraikuroko123.github.io/armbench-vla-runtime/assets/og-armbench.png">
     <meta name="last-modified" content="2026-08-11">
     <title>VLA-Sync | 异步 VLA 动作时序与运行时验证</title>
     <link rel="canonical" href="https://shiraikuroko123.github.io/armbench-vla-runtime/">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="styles.css?v=20260810-6">
-    <script src="app.js?v=20260810-5" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260811-1">
+    <script src="app.js?v=20260811-1" defer></script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -52,7 +52,8 @@
           <span>VLA-Sync</span>
         </a>
         <nav class="nav-links" id="site-nav" aria-label="Primary navigation">
-          <a href="#overview"><span data-lang-content="zh">概览</span><span data-lang-content="en">Overview</span></a>
+          <a href="#quick-read"><span data-lang-content="zh">先看懂</span><span data-lang-content="en">Start here</span></a>
+          <a href="#overview"><span data-lang-content="zh">系统</span><span data-lang-content="en">System</span></a>
           <a href="#method"><span data-lang-content="zh">方法</span><span data-lang-content="en">Method</span></a>
           <a href="#results"><span data-lang-content="zh">结果</span><span data-lang-content="en">Results</span></a>
           <a href="#rollouts"><span data-lang-content="zh">视频</span><span data-lang-content="en">Rollouts</span></a>
@@ -79,8 +80,12 @@
           <p class="kicker">PHYSICAL INTELLIGENCE π0.5 · OPENPI · LIBERO · MUJOCO PANDA</p>
           <h1 id="hero-title"><span>VLA</span><strong>-Sync</strong></h1>
           <p class="hero-subtitle">
-            <span data-lang-content="zh">让 VLA 动作块跟上控制时钟：时限感知选择与运行时验证</span>
-            <span data-lang-content="en">Keeping VLA action chunks aligned with the control clock through deadline-aware selection and runtime verification</span>
+            <span data-lang-content="zh">VLA 推理返回时，先前观测对应的动作可能已经失效。VLA-Sync 在执行前进行时间对齐与时限检查，过期则拒绝发布并进入保持状态。</span>
+            <span data-lang-content="en">A robot may wait for a VLA answer long enough for its actions to expire. VLA-Sync realigns and validates them before execution, rejecting stale actions and entering hold.</span>
+          </p>
+          <p class="hero-plain">
+            <span data-lang-content="zh">系统定位：不训练新的 VLA，而是为现有 VLA 增加可观测、可拒绝、可复核的运行时执行层。</span>
+            <span data-lang-content="en">In one line: it does not train a new foundation model; it adds an observable, reject-capable, reproducible execution layer around an existing VLA.</span>
           </p>
           <p class="byline">
             <span data-lang-content="zh">谌章伟 · 独立研究工程项目 · 2026</span>
@@ -101,11 +106,11 @@
             </video>
             <div class="teaser-label teaser-label-left">
               <strong>AGE-ALIGNED SUFFIX</strong>
-              <span data-lang-content="zh">观测年龄对齐</span><span data-lang-content="en">Observation-age aligned</span>
+              <span data-lang-content="zh">跳过已经过期的动作</span><span data-lang-content="en">Skip actions that already expired</span>
             </div>
             <div class="teaser-label teaser-label-right">
               <strong>RESPONSE-RELATIVE CHUNK</strong>
-              <span data-lang-content="zh">响应返回后从索引 0 开始</span><span data-lang-content="en">Restart at index zero</span>
+              <span data-lang-content="zh">收到回复后仍从第 0 步开始</span><span data-lang-content="en">Restart at step zero after the reply</span>
             </div>
             <button class="media-toggle" type="button" data-video-toggle="hero-video" aria-pressed="false" aria-label="播放 teaser" data-aria-play-zh="播放 teaser" data-aria-play-en="Play teaser" data-aria-pause-zh="暂停 teaser" data-aria-pause-en="Pause teaser">
               <span data-icon-play aria-hidden="true">▶</span><span data-icon-pause aria-hidden="true">Ⅱ</span>
@@ -113,23 +118,55 @@
           </div>
           <figcaption id="teaser-caption">
             <span class="status-tag">SIMULATION · PAIRED SMOKE · BOTH SUCCESS</span>
-            <span data-lang-content="zh">同一 seed 7 / task 0 / episode 4 的配对可视化：左为 age-aligned suffix，右为 response-relative chunk。两侧共享初态，均完成“将黑碗放到盘子上”；该 smoke 样本不计入 frozen-240 正式统计。</span>
-            <span data-lang-content="en">Paired visualization for seed 7 / task 0 / episode 4: age-aligned suffix on the left and response-relative chunk on the right. Both share the same initial state and place the black bowl on the plate; this smoke pair is not part of the frozen-240 statistics.</span>
+            <span data-lang-content="zh">左侧跳过推理期间已经过去的动作，右侧收到模型回复后仍从第 0 步执行。两边从相同场景开始，这一例都把黑碗放进了盘子；它只用于解释方法，不计入正式统计。</span>
+            <span data-lang-content="en">The left skips actions that elapsed during inference; the right restarts at step zero after the reply. Both begin from the same state and place the black bowl on the plate. This clip explains the methods and is excluded from formal statistics.</span>
           </figcaption>
         </figure>
 
         <dl class="headline-metrics shell reveal">
-          <div><dt>114 / 120</dt><dd><span data-lang-content="zh">观测年龄对齐后缀</span><span data-lang-content="en">age-aligned suffix</span></dd></div>
-          <div><dt>100 / 120</dt><dd><span data-lang-content="zh">响应相对动作块</span><span data-lang-content="en">response-relative chunk</span></dd></div>
-          <div><dt>+11.67 pp</dt><dd><span data-lang-content="zh">冻结配对差值</span><span data-lang-content="en">frozen paired difference</span></dd></div>
-          <div><dt>p = 0.00936</dt><dd><span data-lang-content="zh">双侧 exact McNemar</span><span data-lang-content="en">two-sided exact McNemar</span></dd></div>
+          <div><dt>114 / 120</dt><dd><span data-lang-content="zh">跳过过期动作后完成任务</span><span data-lang-content="en">tasks completed after skipping expired steps</span></dd></div>
+          <div><dt>100 / 120</dt><dd><span data-lang-content="zh">从第 0 步重放后完成任务</span><span data-lang-content="en">tasks completed after restarting at step zero</span></dd></div>
+          <div><dt>+11.67 pp</dt><dd><span data-lang-content="zh">冻结配对实验的成功率差</span><span data-lang-content="en">success-rate gap in the frozen paired study</span></dd></div>
+          <div><dt>p = 0.0093553</dt><dd><span data-lang-content="zh">双侧 exact McNemar 配对检验</span><span data-lang-content="en">two-sided exact McNemar test</span></dd></div>
         </dl>
+      </section>
+
+      <section class="section quick-read" id="quick-read" aria-labelledby="quick-read-title">
+        <div class="section-heading shell reveal">
+          <p class="section-label">START HERE · 60 SECOND EXPLANATION</p>
+          <h2 id="quick-read-title"><span data-lang-content="zh">VLA 动作进入控制器之前，先判断它是否仍然有效。</span><span data-lang-content="en">Before a VLA action reaches the controller, determine whether it is still valid.</span></h2>
+          <p class="section-purpose"><span data-lang-content="zh">本节回答：延迟为何会改变动作语义、VLA-Sync 在何处介入，以及系统如何在“执行”与“保持”之间决策。</span><span data-lang-content="en">This section explains how latency changes action meaning, where VLA-Sync intervenes, and how the system chooses between execution and hold.</span></p>
+        </div>
+
+        <div class="plain-flow shell reveal">
+          <article class="plain-step"><span class="plain-step-index">01</span><strong><span data-lang-content="zh">看见</span><span data-lang-content="en">See</span></strong><h3><span data-lang-content="zh">相机 + 指令</span><span data-lang-content="en">Camera + instruction</span></h3><p><span data-lang-content="zh">VLA 看到当前画面和“把碗放到盘子上”这样的指令。</span><span data-lang-content="en">The VLA receives the current image and an instruction such as “put the bowl on the plate.”</span></p></article>
+          <article class="plain-step"><span class="plain-step-index">02</span><strong><span data-lang-content="zh">等待</span><span data-lang-content="en">Wait</span></strong><h3><span data-lang-content="zh">模型正在推理</span><span data-lang-content="en">Inference is in flight</span></h3><p><span data-lang-content="zh">模型返回一串未来动作，但这段时间里仿真时钟不会暂停。</span><span data-lang-content="en">The model returns a sequence of future actions while the simulator clock keeps moving.</span></p></article>
+          <article class="plain-step"><span class="plain-step-index">03</span><strong><span data-lang-content="zh">对齐</span><span data-lang-content="en">Align</span></strong><h3><span data-lang-content="zh">跳过失效动作前缀</span><span data-lang-content="en">Skip the expired prefix</span></h3><p><span data-lang-content="zh">运行时根据观测年龄，从动作序列中选择仍与当前时刻对应的后缀。</span><span data-lang-content="en">The runtime uses observation age to select the suffix that still corresponds to the current time.</span></p></article>
+          <article class="plain-step"><span class="plain-step-index">04</span><strong><span data-lang-content="zh">检查</span><span data-lang-content="en">Check</span></strong><h3><span data-lang-content="zh">时限 + 约束</span><span data-lang-content="en">Deadline + constraints</span></h3><p><span data-lang-content="zh">任务轨道检查响应时限与结构；Panda 轨道另外检查关节、速度和连续碰撞约束。</span><span data-lang-content="en">The task track checks freshness and shape; the separate Panda track checks joints, velocity, and continuous collision constraints.</span></p></article>
+          <article class="plain-step"><span class="plain-step-index">05</span><strong><span data-lang-content="zh">发布 / 拒绝</span><span data-lang-content="en">Publish / hold</span></strong><h3><span data-lang-content="zh">不满足条件则保持</span><span data-lang-content="en">Hold on failed checks</span></h3><p><span data-lang-content="zh">任务轨道拒绝过期响应，Panda 轨道拒绝不满足已登记约束的动作。</span><span data-lang-content="en">The task track rejects stale responses; the Panda track rejects actions that violate registered constraints.</span></p></article>
+        </div>
+
+        <div class="plain-outcome shell reveal">
+          <div class="plain-outcome-main">
+            <span class="plain-outcome-label">THE POINT</span>
+            <strong><span data-lang-content="zh">模型负责“想做什么”，运行时负责“现在能不能做”。</span><span data-lang-content="en">The model proposes what to do; the runtime decides whether it is valid to do now.</span></strong>
+            <p><span data-lang-content="zh">这区别于单纯展示一个 π0.5 任务演示：项目将推理延迟、动作拒绝、失败模式和实验依据都转化为可观测、可验证的工程对象。</span><span data-lang-content="en">This differs from a standalone π0.5 task demo: inference latency, action rejection, failure modes, and experimental evidence become observable and verifiable engineering objects.</span></p>
+            <p class="plain-boundary"><span data-lang-content="zh">证据不混用：LIBERO 回答“任务做成了吗”，Panda 回答“底层动作满足约束吗”。</span><span data-lang-content="en">Evidence stays separate: LIBERO asks whether the task succeeds; Panda asks whether low-level actions satisfy constraints.</span></p>
+          </div>
+          <dl class="plain-glossary">
+            <div><dt>VLA</dt><dd><span data-lang-content="zh">看图和指令，输出机器人动作的模型。</span><span data-lang-content="en">A model that maps images and language to robot actions.</span></dd></div>
+            <div><dt>Action chunk</dt><dd><span data-lang-content="zh">一次返回的多步未来动作，不是单个关节命令。</span><span data-lang-content="en">Several future control steps returned together.</span></dd></div>
+            <div><dt>Deadline</dt><dd><span data-lang-content="zh">响应最晚允许到达的时间点。</span><span data-lang-content="en">The latest time at which a response may be accepted.</span></dd></div>
+            <div><dt>Hold</dt><dd><span data-lang-content="zh">没有可信动作时，保持安全状态而不是硬执行。</span><span data-lang-content="en">A safe stop/hold when no trustworthy action is available.</span></dd></div>
+          </dl>
+        </div>
       </section>
 
       <section class="section overview" id="overview" aria-labelledby="overview-title">
         <div class="reading-column reveal">
           <p class="section-label">01 · ABSTRACT</p>
           <h2 id="overview-title"><span data-lang-content="zh">VLA-Sync 究竟是什么？</span><span data-lang-content="en">What exactly is VLA-Sync?</span></h2>
+          <p class="section-purpose"><span data-lang-content="zh">本节回答：系统的技术定位是什么，以及它与重新训练 VLA 有何区别。</span><span data-lang-content="en">This section defines the system's technical role and how it differs from training another VLA.</span></p>
           <p class="lead">
             <span data-lang-content="zh">VLA-Sync 是一个针对 <strong>action-chunk VLA 推理延迟</strong>的可审计运行时与评测系统。它让策略推理与 20 Hz 控制时钟独立运行，记录观测年龄、响应生命周期与实际执行索引，再决定执行仍然有效的动作后缀或进入 fail-closed hold。</span>
             <span data-lang-content="en">VLA-Sync is an auditable runtime and evaluation system for <strong>action-chunk VLA inference latency</strong>. Policy inference and the 20 Hz control clock advance independently; observation age, response lifecycle, and executed indices are recorded before a still-valid suffix is selected or the system enters a fail-closed hold.</span>
@@ -151,6 +188,7 @@
         <div class="section-heading shell reveal">
           <p class="section-label">02 · MOTIVATION</p>
           <h2 id="motivation-title"><span data-lang-content="zh">VLA 输出一段未来动作，但响应到达时，这段“未来”已经过去了一部分。</span><span data-lang-content="en">A VLA predicts a future action chunk, but part of that future has elapsed by the time the response arrives.</span></h2>
+          <p class="section-purpose"><span data-lang-content="zh">本节回答：为何同一段模型输出在延迟到达后从索引 0 执行，会改变任务结果。</span><span data-lang-content="en">This section explains why restarting a delayed response at index zero can change the task outcome.</span></p>
           <p><span data-lang-content="zh">在 20 Hz 控制下，每 50 ms 就推进一个物理 tick。若推理耗时约 150 ms，直接从动作索引 0 开始执行，语义上等价于把基于旧观测的前三步再次施加到已经变化的系统。</span><span data-lang-content="en">At 20 Hz, physics advances every 50 ms. With roughly 150 ms of inference, restarting at action index 0 replays the first three steps of an old observation onto a system that has already changed.</span></p>
         </div>
 
@@ -173,6 +211,7 @@
         <div class="section-heading shell reveal">
           <p class="section-label">03 · METHOD</p>
           <h2 id="method-title"><span data-lang-content="zh">一个运行时核心，两条明确分开的证据轨道。</span><span data-lang-content="en">One runtime core, two explicitly separated evidence tracks.</span></h2>
+          <p class="section-purpose"><span data-lang-content="zh">本节回答：观测如何转化为动作、任务结果与执行保障记录，以及各组件承担什么职责。</span><span data-lang-content="en">This section explains how an observation becomes an action, a task result, and an execution-assurance record, with clear component ownership.</span></p>
           <p><span data-lang-content="zh">共享部分处理 provider、时钟、mailbox、动作语义、deadline 与审计；LIBERO 轨道测任务结果，Panda 轨道验证从七自由度规划项目继承的执行保障。</span><span data-lang-content="en">The shared core handles providers, clocks, mailbox semantics, action meaning, deadlines, and attestation. The LIBERO track measures task outcomes; the Panda track validates the execution assurance inherited from the seven-DoF planning project.</span></p>
         </div>
 
@@ -207,6 +246,7 @@
         <div class="section-heading shell reveal">
           <p class="section-label">04 · EVALUATION</p>
           <h2 id="results-title"><span data-lang-content="zh">冻结配对实验显示：选择仍然有效的动作后缀，比从响应头部重新执行更可靠。</span><span data-lang-content="en">The frozen paired study shows that selecting a still-valid suffix is more reliable than restarting from the response head.</span></h2>
+          <p class="section-purpose"><span data-lang-content="zh">本节回答：时间对齐是否带来可测量的任务收益，以及运行时保障在何种条件下失效。</span><span data-lang-content="en">This section tests whether temporal alignment improves task outcomes and under which conditions runtime assurance fails.</span></p>
           <p><span data-lang-content="zh">Spatial tasks 0-9、episodes 4-7、seeds 7/8/9；两种模式固定同一 checkpoint、175 ms deadline、hold 规则与 keyed sampling。所有 120 对的初态、query-0 输入、噪声与首个动作块哈希均一致。</span><span data-lang-content="en">Spatial tasks 0-9, episodes 4-7, and seeds 7/8/9; both modes fix the checkpoint, 175 ms deadline, hold rules, and keyed sampling. Initial state, query-0 input, noise, and first action chunk hashes match for all 120 pairs.</span></p>
         </div>
 
@@ -316,6 +356,7 @@
         <div class="section-heading shell reveal">
           <p class="section-label">05 · ROLLOUTS &amp; FAILURES</p>
           <h2 id="rollouts-title"><span data-lang-content="zh">成功视频只能说明“能做”，保留失败才能说明系统知道自己做不到什么。</span><span data-lang-content="en">Success footage shows capability; retained failures show whether the system knows its operating boundary.</span></h2>
+          <p class="section-purpose"><span data-lang-content="zh">本节回答：每段视频验证什么，以及失败样本如何界定系统的适用边界。</span><span data-lang-content="en">This section states what each clip validates and how failures define the operating boundary.</span></p>
           <p><span data-lang-content="zh">所有媒体均为项目真实仿真输出。标签区分正式 frozen-240 失败、独立时钟 pilot 与 Panda 执行基座，不将不同实验合并。</span><span data-lang-content="en">Every clip is authentic project simulation output. Labels separate frozen-240 failures, the independent-clock pilot, and the Panda execution substrate; experiments are not pooled.</span></p>
         </div>
 
@@ -386,6 +427,7 @@
         <div class="section-heading shell reveal">
           <p class="section-label">06 · REPRODUCIBILITY</p>
           <h2 id="reproduce-title"><span data-lang-content="zh">无需 GPU，也能验收保存的结论是否与代码和 manifest 一致。</span><span data-lang-content="en">A GPU is not required to verify that saved conclusions agree with code and manifests.</span></h2>
+          <p class="section-purpose"><span data-lang-content="zh">本节回答：审阅者能否在没有 GPU 的情况下复核已发布证据与源代码、manifest 的一致性。</span><span data-lang-content="en">This section shows how a reviewer can verify consistency between published evidence, source code, and manifests without a GPU.</span></p>
           <p><span data-lang-content="zh">重新运行 π0.5 VLA 推理需要 GPU；验证已经发布的证据只需要 Python 3.10 与本地 CPU。</span><span data-lang-content="en">Rerunning π0.5 VLA inference requires a GPU; validating published evidence only needs Python 3.10 and a local CPU.</span></p>
         </div>
 
@@ -412,6 +454,7 @@ py -3.10 -m venv .venv
         <div class="section-heading shell reveal">
           <p class="section-label">07 · ENGINEERING ROADMAP</p>
           <h2 id="scope-title"><span data-lang-content="zh">已验证的系统结论与下一阶段工程改进</span><span data-lang-content="en">Verified system findings and the next engineering improvements</span></h2>
+          <p class="section-purpose"><span data-lang-content="zh">本节回答：哪些结论已有证据支撑，以及下一阶段应优先投入哪些工程工作。</span><span data-lang-content="en">This section distinguishes supported findings from the engineering work that should be prioritized next.</span></p>
         </div>
 
         <div class="scope-columns shell reveal">
