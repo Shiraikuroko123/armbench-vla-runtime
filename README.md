@@ -1,4 +1,4 @@
-[Project website](https://shiraikuroko123.github.io/armbench-vla-runtime/) | [简体中文](README_ZH.md) | [Documentation](docs/README.md)
+[Project website](https://shiraikuroko123.github.io/armbench-vla-runtime/) | [简体中文](README_ZH.md) | [中文项目概览](docs/PROJECT_OVERVIEW_ZH.md) | [Documentation](docs/README.md)
 
 [![CPU CI](https://github.com/Shiraikuroko123/armbench-vla-runtime/actions/workflows/ci.yml/badge.svg)](https://github.com/Shiraikuroko123/armbench-vla-runtime/actions/workflows/ci.yml)
 
