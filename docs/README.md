@@ -19,6 +19,7 @@ to match later results.
 
 | Document | Status | Purpose |
 | --- | --- | --- |
+| [项目概览](PROJECT_OVERVIEW_ZH.md) | Current | 面向第一次接触项目的读者，解释问题、系统流程、七自由度 Panda 关系、代码地图和验收方式 |
 | [Live pi0.5-to-Panda integration gate](../evidence/g01_live_panda_smoke_final_001/summary.md) | Current | Attested checkpoint identity, live Hx7-to-Hx8 Panda bridge, asynchronous timing evidence, video, validator, and strict claim boundary |
 | [G02 independent-clock pi0.5-LIBERO pilot](G02_INDEPENDENT_CLOCK_PILOT.md) | Current | 40-rollout official-checkpoint simulation pilot with independent simulation/inference clocks, complete failures, and GPU-free validator |
 | [G02 独立时钟 pilot](G02_INDEPENDENT_CLOCK_PILOT_ZH.md) | Current | 40 次 LIBERO Spatial 运行、请求生命周期、时钟重叠证明、失败视频与验收命令 |
