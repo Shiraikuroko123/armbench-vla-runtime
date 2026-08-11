@@ -1,0 +1,113 @@
+{
+  "artifact_directory": "trials/cpu_load_001/artifact",
+  "artifact_manifest_sha256": "d314686991e264e3b99dc96080e8dbbdff476249997583a832f5d1a576f79542",
+  "artifact_summary_sha256": "0583ae410d50a4e503aae082669a7d493bd4ae35a08f7a95a684f7f2ffabaca5",
+  "child_result": {
+    "cases": 180,
+    "checks": [
+      "recursive_manifest_and_exact_file_set",
+      "frozen_input_manifest_and_response_bindings",
+      "implementation_and_protocol_hashes",
+      "window_level_all_or_none_publication",
+      "candidate_kinematics_recomputed",
+      "continuous_collision_and_braking_audit_recomputed",
+      "source_chunk_prefix_semantics_checked",
+      "summary_and_markdown_recomputed"
+    ],
+    "full_chunk_execute": 0,
+    "inventory_sha256": "49d96e91989583093189c58d6971e5b1af75f4fa37cd10a41705e112651dfc25",
+    "partial_windows_exposed": 0,
+    "unsafe_windows_published": 0,
+    "valid": true,
+    "window_execute": 89
+  },
+  "command": [
+    "D:\\arm-planning-control-project\\.venv\\Scripts\\python.exe",
+    "-m",
+    "armbench",
+    "vla-panda-windowed-replay",
+    "D:\\arm-planning-control-project\\project\\reports\\pi05_integrated_panda_cpu_replay_270_001",
+    "--output-directory",
+    "D:\\arm-planning-control-project\\project\\reports\\pi05_windowed_cpu_repeatability_180_002\\trials\\cpu_load_001\\artifact",
+    "--chunks",
+    "30",
+    "--supervision-budget-ms",
+    "20.0",
+    "--response-deadline-ms",
+    "200.0",
+    "--qp-step-budget-ms",
+    "5.0",
+    "--worker-timeout-s",
+    "30.0"
+  ],
+  "condition": "cpu_load",
+  "cwd": "D:\\arm-planning-control-project\\project",
+  "environment": {
+    "cpu_count": 20,
+    "overrides": {
+      "PYTHONHASHSEED": "0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python_executable": "D:\\arm-planning-control-project\\.venv\\Scripts\\python.exe",
+    "python_version": "3.10.8"
+  },
+  "finished_at_utc": "2026-08-11T01:44:02.166Z",
+  "load_workers": 4,
+  "replicate": 1,
+  "returncode": 0,
+  "schema_version": "armbench.pi05_windowed_cpu_repeatability_trial.v1",
+  "started_at_utc": "2026-08-11T01:42:42.034Z",
+  "stderr_file": "trials/cpu_load_001/stderr.log",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_file": "trials/cpu_load_001/stdout.log",
+  "stdout_sha256": "ce49245094a465b302c959e24958ec42d2da13a77f66b649820672d762185977",
+  "summary": {
+    "by_profile": {
+      "certified_window_h1": {
+        "cases": 90,
+        "constraint_satisfied_candidates": 90,
+        "execute": 89,
+        "hold": 1,
+        "maximum_supervisor_latency_ms": 19.293199999992794,
+        "maximum_worker_latency_ms": 31.000000000062755,
+        "p50_supervisor_latency_ms": 6.398850000039147,
+        "p50_worker_latency_ms": 0.0,
+        "p95_supervisor_latency_ms": 14.359065000013516,
+        "p95_worker_latency_ms": 16.000000000076398,
+        "partial_windows_exposed": 0,
+        "response_deadline_exceeded": 1,
+        "software_budget_exceeded": 0,
+        "source_chunk_prefix_publications": 89,
+        "unsafe_windows_published": 0
+      },
+      "full_chunk_h10": {
+        "cases": 90,
+        "constraint_satisfied_candidates": 66,
+        "execute": 0,
+        "hold": 90,
+        "maximum_supervisor_latency_ms": 43.34740000001602,
+        "maximum_worker_latency_ms": 47.000000000025466,
+        "p50_supervisor_latency_ms": 24.903450000010707,
+        "p50_worker_latency_ms": 31.000000000062755,
+        "p95_supervisor_latency_ms": 34.292544999971135,
+        "p95_worker_latency_ms": 32.00000000003911,
+        "partial_windows_exposed": 0,
+        "response_deadline_exceeded": 4,
+        "software_budget_exceeded": 89,
+        "source_chunk_prefix_publications": 0,
+        "unsafe_windows_published": 0
+      }
+    },
+    "paired_comparison": {
+      "source_chunk_atomicity_changed": true,
+      "window_atomicity_preserved": true,
+      "window_is_repeatability_candidate": true,
+      "window_minus_full_constraint_candidates": 24,
+      "window_minus_full_execute": 89
+    }
+  },
+  "timed_out": false,
+  "trial_id": "cpu_load_001",
+  "valid": true,
+  "wall_time_ms": 80076.42490000001
+}

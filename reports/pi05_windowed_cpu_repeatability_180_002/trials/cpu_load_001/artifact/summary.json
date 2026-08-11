@@ -1,0 +1,111 @@
+{
+  "by_profile": {
+    "certified_window_h1": {
+      "broad_phase_exact_pair_evaluations": 3487,
+      "broad_phase_pair_tests": 111930,
+      "broad_phase_prune_rate": 0.9688466005539176,
+      "cases": 90,
+      "constraint_satisfied_candidates": 90,
+      "execute": 89,
+      "failure_stages": {
+        "accepted": 90
+      },
+      "hold": 1,
+      "maximum_supervisor_latency_ms": 19.293199999992794,
+      "maximum_worker_latency_ms": 31.000000000062755,
+      "p50_supervisor_latency_ms": 6.398850000039147,
+      "p50_worker_latency_ms": 0.0,
+      "p95_supervisor_latency_ms": 14.359065000013516,
+      "p95_worker_latency_ms": 16.000000000076398,
+      "partial_windows_exposed": 0,
+      "response_deadline_exceeded": 1,
+      "safe_configuration_cache_hits": 180,
+      "software_budget_exceeded": 0,
+      "source_chunk_prefix_publications": 89,
+      "unrecoverable_stop": 0,
+      "unsafe_windows_published": 0,
+      "verified_brake": 0
+    },
+    "full_chunk_h10": {
+      "broad_phase_exact_pair_evaluations": 16399,
+      "broad_phase_pair_tests": 407562,
+      "broad_phase_prune_rate": 0.9597460018353036,
+      "cases": 90,
+      "constraint_satisfied_candidates": 66,
+      "execute": 0,
+      "failure_stages": {
+        "continuous_collision": 3,
+        "deadline": 1,
+        "supervision_budget": 86
+      },
+      "hold": 90,
+      "maximum_supervisor_latency_ms": 43.34740000001602,
+      "maximum_worker_latency_ms": 47.000000000025466,
+      "p50_supervisor_latency_ms": 24.903450000010707,
+      "p50_worker_latency_ms": 31.000000000062755,
+      "p95_supervisor_latency_ms": 34.292544999971135,
+      "p95_worker_latency_ms": 32.00000000003911,
+      "partial_windows_exposed": 0,
+      "response_deadline_exceeded": 4,
+      "safe_configuration_cache_hits": 361,
+      "software_budget_exceeded": 89,
+      "source_chunk_prefix_publications": 0,
+      "unrecoverable_stop": 0,
+      "unsafe_windows_published": 0,
+      "verified_brake": 0
+    }
+  },
+  "claim_boundary": [
+    "The one-action horizon was selected after exploratory profiling; this is a descriptive engineering audit, not a preregistered inference.",
+    "Frozen official pi0.5 responses are replayed; the checkpoint is not executed and no closed-loop task-success observation is created.",
+    "Window publication is atomic, while the original ten-action source chunk is progressive and may stop after an already certified window.",
+    "Measured best-effort Python timing is not an operating-system hard-real-time guarantee or physical-robot safety certification."
+  ],
+  "configuration": {
+    "chunk_count": 30,
+    "poll_interval_s": 0.0005,
+    "qp_step_budget_ms": 5.0,
+    "response_deadline_ms": 200.0,
+    "supervision_budget_ms": 20.0,
+    "worker_timeout_s": 30.0
+  },
+  "overall": {
+    "broad_phase_exact_pair_evaluations": 19886,
+    "broad_phase_pair_tests": 519492,
+    "broad_phase_prune_rate": 0.9617068212792498,
+    "cases": 180,
+    "constraint_satisfied_candidates": 156,
+    "execute": 89,
+    "failure_stages": {
+      "accepted": 90,
+      "continuous_collision": 3,
+      "deadline": 1,
+      "supervision_budget": 86
+    },
+    "hold": 91,
+    "maximum_supervisor_latency_ms": 43.34740000001602,
+    "maximum_worker_latency_ms": 47.000000000025466,
+    "p50_supervisor_latency_ms": 18.96620000002258,
+    "p50_worker_latency_ms": 15.99999999996271,
+    "p95_supervisor_latency_ms": 32.46797500000298,
+    "p95_worker_latency_ms": 32.00000000003911,
+    "partial_windows_exposed": 0,
+    "response_deadline_exceeded": 5,
+    "safe_configuration_cache_hits": 541,
+    "software_budget_exceeded": 89,
+    "source_chunk_prefix_publications": 89,
+    "unrecoverable_stop": 0,
+    "unsafe_windows_published": 0,
+    "verified_brake": 0
+  },
+  "paired_comparison": {
+    "source_chunk_atomicity_changed": true,
+    "window_atomicity_preserved": true,
+    "window_is_repeatability_candidate": true,
+    "window_minus_full_constraint_candidates": 24,
+    "window_minus_full_execute": 89
+  },
+  "protocol_conformant": true,
+  "schema_version": "armbench.pi05_windowed_cpu_replay_summary.v1",
+  "scope": "frozen_pi05_panda_paired_window_publication_cpu_audit"
+}

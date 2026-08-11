@@ -1,0 +1,20 @@
+{
+  "valid": true,
+  "cases": 180,
+  "inventory_sha256": "c88ecabf4e631d8984ff22eab84e7fc12aed46877307010b080e503c33b38d00",
+  "full_chunk_execute": 0,
+  "window_execute": 90,
+  "unsafe_windows_published": 0,
+  "partial_windows_exposed": 0,
+  "checks": [
+    "recursive_manifest_and_exact_file_set",
+    "frozen_input_manifest_and_response_bindings",
+    "implementation_and_protocol_hashes",
+    "window_level_all_or_none_publication",
+    "candidate_kinematics_recomputed",
+    "continuous_collision_and_braking_audit_recomputed",
+    "source_chunk_prefix_semantics_checked",
+    "summary_and_markdown_recomputed"
+  ]
+}
+results: D:\arm-planning-control-project\project\reports\pi05_windowed_cpu_repeatability_180_002\trials\idle_001\artifact

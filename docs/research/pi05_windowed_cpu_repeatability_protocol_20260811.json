@@ -1,0 +1,35 @@
+{
+  "schema_version": "armbench.pi05_windowed_cpu_repeatability_protocol.v1",
+  "status": "descriptive_repeatability_audit",
+  "source_artifact": "reports/pi05_integrated_panda_cpu_replay_270_001",
+  "child_protocol": "docs/research/pi05_windowed_cpu_replay_protocol_20260811.json",
+  "conditions": {
+    "idle": {
+      "repeats": 3,
+      "load_workers": 0
+    },
+    "cpu_load": {
+      "repeats": 3,
+      "load_workers": 4,
+      "description": "bounded host-contention diagnostic"
+    }
+  },
+  "fresh_process": true,
+  "configuration": {
+    "chunks": 30,
+    "supervision_budget_ms": 20.0,
+    "response_deadline_ms": 200.0,
+    "qp_step_budget_ms": 5.0
+  },
+  "reported_outcomes": [
+    "per-profile execute counts",
+    "per-profile P50/P95/maximum supervisor latency",
+    "unsafe-window and partial-window zero checks",
+    "complete child logs and manifest-bound artifacts"
+  ],
+  "claim_boundary": [
+    "This does not establish hard real-time scheduling.",
+    "This does not establish task success or physical-robot safety.",
+    "The CPU-load condition is not a deployment workload model."
+  ]
+}

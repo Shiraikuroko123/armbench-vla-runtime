@@ -1,0 +1,55 @@
+{
+  "schema_version": "armbench.pi05_windowed_cpu_replay_protocol.v1",
+  "status": "post_profile_engineering_audit",
+  "selection_disclosure": "The H=1 window was selected after exploratory H=1/2/4/6/10 timing on the same frozen archive. Results are descriptive and are not confirmatory statistics.",
+  "source_artifact": "reports/pi05_integrated_panda_cpu_replay_270_001",
+  "source_policy": "Physical Intelligence pi0.5 official pi05_libero checkpoint responses preserved in the upstream attested archive",
+  "checkpoint_executed": false,
+  "matrix": {
+    "selected_response_chunks": 30,
+    "scenarios": [
+      "free_space",
+      "single_block",
+      "narrow_gate"
+    ],
+    "profiles": {
+      "full_chunk_h10": {
+        "certification_horizon": 10,
+        "publication_contract": "complete source chunk or no policy actions"
+      },
+      "certified_window_h1": {
+        "certification_horizon": 1,
+        "publication_contract": "complete one-action window or no policy actions; source chunk remains progressive"
+      }
+    },
+    "paired_rows": 180
+  },
+  "timing": {
+    "control_period_ms": 20.0,
+    "supervision_budget_ms": 20.0,
+    "response_deadline_ms": 200.0,
+    "qp_step_budget_ms": 5.0,
+    "best_effort_python": true
+  },
+  "assurance_stages": [
+    "persistent OSQP projection",
+    "continuous static and self-collision certificate",
+    "inverse-dynamics braking invariant at each published boundary",
+    "activation-age and state-alignment gate"
+  ],
+  "reported_outcomes": [
+    "execute and hold counts",
+    "constraint-satisfied candidates",
+    "unsafe and partial window publications",
+    "source-chunk prefix publications",
+    "P50, P95, and maximum supervisor and worker latency",
+    "failure-stage counts"
+  ],
+  "claim_boundary": [
+    "No checkpoint inference is rerun.",
+    "No closed-loop task success is measured.",
+    "Window atomicity does not imply source-chunk atomicity.",
+    "Best-effort CPU timing is not hard real time.",
+    "MuJoCo evidence is not physical-robot safety certification."
+  ]
+}

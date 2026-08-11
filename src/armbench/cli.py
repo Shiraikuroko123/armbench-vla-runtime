@@ -79,6 +79,11 @@ from armbench.vla.windowed_cpu_replay import (
     execute_windowed_cpu_replay,
     validate_windowed_cpu_replay,
 )
+from armbench.vla.windowed_cpu_repeatability import (
+    WindowedCPURepeatabilityConfig,
+    execute_windowed_cpu_repeatability,
+    validate_windowed_cpu_repeatability,
+)
 from armbench.vla.provider_contract import (
     run_provider_contract_audit,
     validate_frozen_provider_bundle,
@@ -535,6 +540,38 @@ def build_parser() -> argparse.ArgumentParser:
     )
     windowed_replay_validate.add_argument("directory", type=Path)
     windowed_replay_validate.add_argument("input_directory", type=Path)
+
+    windowed_repeatability = subparsers.add_parser(
+        "vla-panda-windowed-repeatability",
+        help="repeat the paired window CPU replay in fresh idle/load processes",
+    )
+    windowed_repeatability.add_argument("input_directory", type=Path)
+    windowed_repeatability.add_argument(
+        "--output-directory", type=Path, required=True
+    )
+    windowed_repeatability.add_argument("--baseline-repeats", type=int, default=3)
+    windowed_repeatability.add_argument("--load-repeats", type=int, default=3)
+    windowed_repeatability.add_argument("--load-workers", type=int, default=4)
+    windowed_repeatability.add_argument("--chunks", type=int, default=30)
+    windowed_repeatability.add_argument(
+        "--supervision-budget-ms", type=float, default=20.0
+    )
+    windowed_repeatability.add_argument(
+        "--response-deadline-ms", type=float, default=200.0
+    )
+    windowed_repeatability.add_argument(
+        "--qp-step-budget-ms", type=float, default=5.0
+    )
+    windowed_repeatability.add_argument("--worker-timeout-s", type=float, default=30.0)
+    windowed_repeatability.add_argument(
+        "--trial-timeout-s", type=float, default=240.0
+    )
+    windowed_repeatability_validate = subparsers.add_parser(
+        "vla-panda-windowed-repeatability-validate",
+        help="validate fresh-process paired window replay trials",
+    )
+    windowed_repeatability_validate.add_argument("directory", type=Path)
+    windowed_repeatability_validate.add_argument("input_directory", type=Path)
 
     repeatability = subparsers.add_parser(
         "vla-panda-optimized-repeatability",
@@ -1414,6 +1451,34 @@ def main(arguments: list[str] | None = None) -> int:
         return 0
     if args.command == "vla-panda-windowed-replay-validate":
         result = validate_windowed_cpu_replay(
+            args.directory, args.input_directory
+        )
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0
+    if args.command == "vla-panda-windowed-repeatability":
+        output = execute_windowed_cpu_repeatability(
+            args.input_directory,
+            args.output_directory,
+            WindowedCPURepeatabilityConfig(
+                baseline_repeats=args.baseline_repeats,
+                load_repeats=args.load_repeats,
+                load_workers=args.load_workers,
+                chunks=args.chunks,
+                supervision_budget_ms=args.supervision_budget_ms,
+                response_deadline_ms=args.response_deadline_ms,
+                qp_step_budget_ms=args.qp_step_budget_ms,
+                worker_timeout_s=args.worker_timeout_s,
+                trial_timeout_s=args.trial_timeout_s,
+            ),
+        )
+        result = validate_windowed_cpu_repeatability(
+            output, args.input_directory
+        )
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-panda-windowed-repeatability-validate":
+        result = validate_windowed_cpu_repeatability(
             args.directory, args.input_directory
         )
         print(json.dumps(result, indent=2, ensure_ascii=False))

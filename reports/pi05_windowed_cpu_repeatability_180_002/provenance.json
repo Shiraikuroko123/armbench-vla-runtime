@@ -1,0 +1,24 @@
+{
+  "claim_boundary": [
+    "Each trial launches a fresh Python process; the load condition is bounded host contention.",
+    "Frozen responses are replayed and no pi0.5 checkpoint inference is rerun.",
+    "The result is descriptive timing and publication evidence, not hard real time or physical safety.",
+    "H=1 preserves window atomicity but changes the source-chunk publication contract."
+  ],
+  "implementation_sha256": {
+    "docs/research/pi05_windowed_cpu_repeatability_protocol_20260811.json": "ca6b8ed21122806c506d56adf4580ce3842f586f1d7ec7a04291500aa8a72d8c",
+    "docs/research/pi05_windowed_cpu_replay_protocol_20260811.json": "78d1f9bdd8c490b34dac47f9b16892b5af05d2a11d89e2c996fedc406a02b69f",
+    "src/armbench/vla/windowed_cpu_repeatability.py": "e5a94775e20a237bc1dc6923bb735965d7feb042f776366f4afacf3e8906fb79",
+    "src/armbench/vla/windowed_cpu_replay.py": "7de6b0f615f7d45e238852cbca68251832dc15a0b01c487325dec6bcd272bad3"
+  },
+  "schema_version": "armbench.pi05_windowed_cpu_repeatability.v1",
+  "scope": "frozen_pi05_panda_windowed_cpu_repeatability_audit",
+  "source": {
+    "inventory_sha256": "d3ef0f0ef37c8a4609d68437eaf142bccfb2bd4e0ea2c61868c3e080fa134d9d",
+    "manifest_sha256": "24776de458ffb106d3f877a7a3936435400edc70cf9b3f6ecde197d102f00e62",
+    "summary_sha256": "a2c168102f69700ad08fcf5168a666ad3684b641d531ae3c0677d43d14cd93f0"
+  },
+  "source_root_manifest_sha256": "41df96b43de6015a381dde152381b6167e1d07ff0b2e4b3070fbca131ae04f54",
+  "window_protocol_sha256": "78d1f9bdd8c490b34dac47f9b16892b5af05d2a11d89e2c996fedc406a02b69f",
+  "window_schema": "armbench.pi05_windowed_cpu_replay.v1"
+}

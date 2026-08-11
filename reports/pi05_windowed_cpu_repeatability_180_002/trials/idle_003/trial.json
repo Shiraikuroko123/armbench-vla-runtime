@@ -1,0 +1,113 @@
+{
+  "artifact_directory": "trials/idle_003/artifact",
+  "artifact_manifest_sha256": "b65575edbb252287118aba58a8baf37466299a81d876f0d4bca75797fe36ef36",
+  "artifact_summary_sha256": "b4019c47796d01e8245b843f90316d19d300eb3f4a93814a954ff3154984ba82",
+  "child_result": {
+    "cases": 180,
+    "checks": [
+      "recursive_manifest_and_exact_file_set",
+      "frozen_input_manifest_and_response_bindings",
+      "implementation_and_protocol_hashes",
+      "window_level_all_or_none_publication",
+      "candidate_kinematics_recomputed",
+      "continuous_collision_and_braking_audit_recomputed",
+      "source_chunk_prefix_semantics_checked",
+      "summary_and_markdown_recomputed"
+    ],
+    "full_chunk_execute": 0,
+    "inventory_sha256": "07cce58e89cc5bad1a2544e206dec1edec2ceeeb41054bcded46bfe7cf459310",
+    "partial_windows_exposed": 0,
+    "unsafe_windows_published": 0,
+    "valid": true,
+    "window_execute": 90
+  },
+  "command": [
+    "D:\\arm-planning-control-project\\.venv\\Scripts\\python.exe",
+    "-m",
+    "armbench",
+    "vla-panda-windowed-replay",
+    "D:\\arm-planning-control-project\\project\\reports\\pi05_integrated_panda_cpu_replay_270_001",
+    "--output-directory",
+    "D:\\arm-planning-control-project\\project\\reports\\pi05_windowed_cpu_repeatability_180_002\\trials\\idle_003\\artifact",
+    "--chunks",
+    "30",
+    "--supervision-budget-ms",
+    "20.0",
+    "--response-deadline-ms",
+    "200.0",
+    "--qp-step-budget-ms",
+    "5.0",
+    "--worker-timeout-s",
+    "30.0"
+  ],
+  "condition": "idle",
+  "cwd": "D:\\arm-planning-control-project\\project",
+  "environment": {
+    "cpu_count": 20,
+    "overrides": {
+      "PYTHONHASHSEED": "0"
+    },
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python_executable": "D:\\arm-planning-control-project\\.venv\\Scripts\\python.exe",
+    "python_version": "3.10.8"
+  },
+  "finished_at_utc": "2026-08-11T01:42:42.019Z",
+  "load_workers": 0,
+  "replicate": 3,
+  "returncode": 0,
+  "schema_version": "armbench.pi05_windowed_cpu_repeatability_trial.v1",
+  "started_at_utc": "2026-08-11T01:42:06.018Z",
+  "stderr_file": "trials/idle_003/stderr.log",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_file": "trials/idle_003/stdout.log",
+  "stdout_sha256": "096f3393e9c257c71c1788679ae24b16d1e4140c5430875858cdc5a375e793e5",
+  "summary": {
+    "by_profile": {
+      "certified_window_h1": {
+        "cases": 90,
+        "constraint_satisfied_candidates": 90,
+        "execute": 90,
+        "hold": 0,
+        "maximum_supervisor_latency_ms": 9.246299999972507,
+        "maximum_worker_latency_ms": 16.000000000076398,
+        "p50_supervisor_latency_ms": 2.6144999999928586,
+        "p50_worker_latency_ms": 0.0,
+        "p95_supervisor_latency_ms": 7.411345000042501,
+        "p95_worker_latency_ms": 15.99999999996271,
+        "partial_windows_exposed": 0,
+        "response_deadline_exceeded": 0,
+        "software_budget_exceeded": 0,
+        "source_chunk_prefix_publications": 90,
+        "unsafe_windows_published": 0
+      },
+      "full_chunk_h10": {
+        "cases": 90,
+        "constraint_satisfied_candidates": 66,
+        "execute": 0,
+        "hold": 90,
+        "maximum_supervisor_latency_ms": 27.854000000047563,
+        "maximum_worker_latency_ms": 32.00000000003911,
+        "p50_supervisor_latency_ms": 21.918600000049082,
+        "p50_worker_latency_ms": 15.99999999996271,
+        "p95_supervisor_latency_ms": 25.37002500000085,
+        "p95_worker_latency_ms": 31.99999999998795,
+        "partial_windows_exposed": 0,
+        "response_deadline_exceeded": 3,
+        "software_budget_exceeded": 78,
+        "source_chunk_prefix_publications": 0,
+        "unsafe_windows_published": 0
+      }
+    },
+    "paired_comparison": {
+      "source_chunk_atomicity_changed": true,
+      "window_atomicity_preserved": true,
+      "window_is_repeatability_candidate": true,
+      "window_minus_full_constraint_candidates": 24,
+      "window_minus_full_execute": 90
+    }
+  },
+  "timed_out": false,
+  "trial_id": "idle_003",
+  "valid": true,
+  "wall_time_ms": 35999.85040000001
+}
