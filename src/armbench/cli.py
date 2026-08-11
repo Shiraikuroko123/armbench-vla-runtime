@@ -74,6 +74,11 @@ from armbench.vla.optimized_cpu_repeatability import (
     execute_optimized_cpu_repeatability,
     validate_optimized_cpu_repeatability,
 )
+from armbench.vla.windowed_cpu_replay import (
+    WindowedCPUReplayConfig,
+    execute_windowed_cpu_replay,
+    validate_windowed_cpu_replay,
+)
 from armbench.vla.provider_contract import (
     run_provider_contract_audit,
     validate_frozen_provider_bundle,
@@ -508,6 +513,28 @@ def build_parser() -> argparse.ArgumentParser:
     )
     optimized_replay_validate.add_argument("directory", type=Path)
     optimized_replay_validate.add_argument("input_directory", type=Path)
+
+    windowed_replay = subparsers.add_parser(
+        "vla-panda-windowed-replay",
+        help="compare full-chunk and one-action atomic Panda assurance",
+    )
+    windowed_replay.add_argument("input_directory", type=Path)
+    windowed_replay.add_argument("--output-directory", type=Path, required=True)
+    windowed_replay.add_argument("--chunks", type=int, default=30)
+    windowed_replay.add_argument(
+        "--supervision-budget-ms", type=float, default=20.0
+    )
+    windowed_replay.add_argument(
+        "--response-deadline-ms", type=float, default=200.0
+    )
+    windowed_replay.add_argument("--qp-step-budget-ms", type=float, default=5.0)
+    windowed_replay.add_argument("--worker-timeout-s", type=float, default=30.0)
+    windowed_replay_validate = subparsers.add_parser(
+        "vla-panda-windowed-replay-validate",
+        help="validate a paired full-chunk/window CPU replay",
+    )
+    windowed_replay_validate.add_argument("directory", type=Path)
+    windowed_replay_validate.add_argument("input_directory", type=Path)
 
     repeatability = subparsers.add_parser(
         "vla-panda-optimized-repeatability",
@@ -1365,6 +1392,28 @@ def main(arguments: list[str] | None = None) -> int:
         return 0
     if args.command == "vla-panda-optimized-replay-validate":
         result = validate_optimized_cpu_replay(
+            args.directory, args.input_directory
+        )
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0
+    if args.command == "vla-panda-windowed-replay":
+        output = execute_windowed_cpu_replay(
+            args.input_directory,
+            args.output_directory,
+            WindowedCPUReplayConfig(
+                chunk_count=args.chunks,
+                supervision_budget_ms=args.supervision_budget_ms,
+                response_deadline_ms=args.response_deadline_ms,
+                qp_step_budget_ms=args.qp_step_budget_ms,
+                worker_timeout_s=args.worker_timeout_s,
+            ),
+        )
+        result = validate_windowed_cpu_replay(output, args.input_directory)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        print(f"results: {output.resolve()}")
+        return 0
+    if args.command == "vla-panda-windowed-replay-validate":
+        result = validate_windowed_cpu_replay(
             args.directory, args.input_directory
         )
         print(json.dumps(result, indent=2, ensure_ascii=False))

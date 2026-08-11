@@ -1,0 +1,36 @@
+{
+  "files": [
+    {
+      "path": "per_case.csv",
+      "sha256": "c069746512e7025fb60562ac1a1bd670fb187a042ebca42a0fd6178e5bc7cb7c",
+      "size_bytes": 115692
+    },
+    {
+      "path": "protocol.json",
+      "sha256": "78d1f9bdd8c490b34dac47f9b16892b5af05d2a11d89e2c996fedc406a02b69f",
+      "size_bytes": 2058
+    },
+    {
+      "path": "provenance.json",
+      "sha256": "83cf2ffd92b4b4f1c30d1231622ba8d3cd1ffd883764356ae288b333ae148d51",
+      "size_bytes": 3781
+    },
+    {
+      "path": "summary.json",
+      "sha256": "d65124d27fa271c00f456341fdf3af62d19042d7ce16d6bb3f00885927129f77",
+      "size_bytes": 4293
+    },
+    {
+      "path": "summary.md",
+      "sha256": "1af2c7a04af43e392fe7758111c8aa7b5ed43a265ce453ba4367e81166fb9909",
+      "size_bytes": 678
+    },
+    {
+      "path": "trajectories.npz",
+      "sha256": "99e7d1e007df07498810ea2bf9b7270e96bd779a806830114b234885a83d075e",
+      "size_bytes": 57339
+    }
+  ],
+  "inventory_sha256": "00f9ea20203852a0cbf2dc82dea0709001823a556ab322c3dfdc0dd6575de51b",
+  "schema_version": "armbench.pi05_windowed_cpu_replay_manifest.v1"
+}
