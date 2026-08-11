@@ -375,13 +375,6 @@ html[data-lang="en"] [data-lang-content="zh"] {
   line-height: 1.25;
 }
 
-.hero-plain {
-  max-width: 760px;
-  margin: 16px auto 0;
-  color: var(--text-soft);
-  font-size: 15px;
-}
-
 .byline {
   margin: 18px 0 0;
   color: var(--muted);
@@ -581,177 +574,10 @@ html[data-lang="en"] [data-lang-content="zh"] {
   font-size: 17px;
 }
 
-.section-heading .section-purpose,
-.reading-column .section-purpose {
-  max-width: 880px;
-  margin: 18px 0 0;
-  padding-left: 14px;
-  border-left: 2px solid var(--teal);
-  color: var(--teal-soft);
-  font-size: 14px;
-  font-weight: 650;
-}
-
 .reading-column .lead {
   color: var(--text);
   font-size: 20px;
   line-height: 1.72;
-}
-
-/* Plain-language project tour */
-
-.quick-read {
-  background-color: #090c0a;
-  background-image:
-    linear-gradient(106deg, rgba(88, 200, 187, 0.065), transparent 31%),
-    linear-gradient(252deg, rgba(245, 200, 91, 0.04), transparent 34%);
-}
-
-.quick-read::before {
-  position: absolute;
-  top: 0;
-  left: calc(50% - 590px);
-  width: 180px;
-  height: 4px;
-  background: var(--teal);
-  content: "";
-}
-
-.plain-flow {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-}
-
-.plain-step {
-  position: relative;
-  min-height: 258px;
-  padding: 24px 21px 26px;
-  border-right: 1px solid var(--line);
-}
-
-.plain-step:last-child { border-right: 0; }
-
-.plain-step::after {
-  position: absolute;
-  z-index: 1;
-  top: 52px;
-  right: -8px;
-  width: 15px;
-  height: 15px;
-  transform: rotate(45deg);
-  border-top: 1px solid var(--line);
-  border-right: 1px solid var(--line);
-  background: #090c0a;
-  content: "";
-}
-
-.plain-step:last-child::after { display: none; }
-
-.plain-step-index,
-.plain-step > strong {
-  font-family: var(--font-mono);
-  font-size: 10px;
-}
-
-.plain-step-index {
-  display: block;
-  color: var(--muted);
-}
-
-.plain-step > strong {
-  display: inline-block;
-  margin-top: 18px;
-  color: var(--coral-soft);
-}
-
-.plain-step h3 {
-  margin: 9px 0 10px;
-  font-size: 19px;
-  line-height: 1.3;
-}
-
-.plain-step p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.65;
-}
-
-.plain-outcome {
-  margin-top: 46px;
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  border: 1px solid var(--line);
-  background: rgba(16, 20, 17, 0.72);
-}
-
-.plain-outcome-main {
-  min-height: 230px;
-  padding: 30px;
-  border-right: 1px solid var(--line);
-}
-
-.plain-outcome-label {
-  color: var(--teal);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 720;
-}
-
-.plain-outcome-main > strong {
-  display: block;
-  max-width: 520px;
-  margin-top: 16px;
-  font-size: 25px;
-  line-height: 1.35;
-}
-
-.plain-outcome-main p {
-  max-width: 540px;
-  margin: 16px 0 0;
-  color: var(--text-soft);
-  font-size: 14px;
-}
-
-.plain-outcome-main .plain-boundary {
-  margin-top: 18px;
-  padding: 10px 12px;
-  border-left: 2px solid var(--amber);
-  background: rgba(245, 200, 91, 0.055);
-  color: var(--text-soft);
-  font-size: 12px;
-}
-
-.plain-glossary {
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.plain-glossary > div {
-  min-height: 115px;
-  padding: 22px;
-  border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-}
-
-.plain-glossary > div:nth-child(2n) { border-right: 0; }
-.plain-glossary > div:nth-last-child(-n + 2) { border-bottom: 0; }
-
-.plain-glossary dt {
-  color: var(--coral-soft);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 720;
-}
-
-.plain-glossary dd {
-  margin: 8px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.55;
 }
 
 .overview {
@@ -1657,13 +1483,6 @@ footer {
   .definition-strip > div:nth-child(2) { border-right: 0; }
   .headline-metrics div:nth-child(-n+2),
   .definition-strip > div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
-  .plain-flow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .plain-step { border-bottom: 1px solid var(--line); }
-  .plain-step:nth-child(3n) { border-right: 0; }
-  .plain-step:nth-child(n+4) { border-bottom: 0; }
-  .plain-step::after { display: none; }
-  .plain-outcome { grid-template-columns: 1fr; }
-  .plain-outcome-main { min-height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
   .problem-grid { grid-template-columns: 1fr; }
   .problem-grid article { min-height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
   .system-map { grid-template-columns: 1fr; }
@@ -1690,7 +1509,6 @@ footer {
   .hero { padding-top: 48px; }
   .hero h1 { font-size: 58px; }
   .hero-subtitle { margin-top: 20px; font-size: 23px; }
-  .hero-plain { margin-top: 14px; font-size: 14px; }
   .byline { font-size: 12px; }
   .artifact-actions { margin: 26px auto 30px; }
   .artifact-actions a { min-height: 52px; padding: 9px 11px; }
@@ -1713,22 +1531,7 @@ footer {
   .reading-column h2 { font-size: 31px; }
   .section-heading > p:last-child,
   .reading-column > p { font-size: 15px; }
-  .section-heading .section-purpose,
-  .reading-column .section-purpose { font-size: 13px; }
   .reading-column .lead { font-size: 17px; }
-  .plain-flow { grid-template-columns: 1fr; }
-  .plain-step,
-  .plain-step:nth-child(3n),
-  .plain-step:nth-child(n+4) { min-height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
-  .plain-step:last-child { border-bottom: 0; }
-  .plain-outcome { margin-top: 32px; }
-  .plain-outcome-main { padding: 24px 20px; }
-  .plain-outcome-main > strong { font-size: 21px; }
-  .plain-glossary { grid-template-columns: 1fr; }
-  .plain-glossary > div,
-  .plain-glossary > div:nth-child(2n),
-  .plain-glossary > div:nth-last-child(-n + 2) { min-height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
-  .plain-glossary > div:last-child { border-bottom: 0; }
   .definition-strip > div { min-height: 100px; padding: 16px; }
   .timing-figure { width: 100%; padding: 18px 16px; border-left-width: 2px; }
   .problem-grid { width: 100%; }
