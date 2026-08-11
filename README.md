@@ -10,7 +10,7 @@ has produced a short future action sequence but before that sequence reaches a
 robot controller. The repository URL, Python package, and CLI remain
 `armbench` for compatibility with released evidence and commands.
 
-Current software release: **v0.3.0**.
+Current software release: **v0.3.1**.
 
 The repository contains two separately validated paths:
 
