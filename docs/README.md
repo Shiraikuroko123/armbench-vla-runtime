@@ -43,6 +43,7 @@ to match later results.
 | [冻结 pi0.5 响应的完整 Panda CPU 回放](PI05_INTEGRATED_PANDA_CPU_REPLAY_ZH.md) | Current | 真实保存响应、三模式成对矩阵、20 ms go/no-go、候选/发布轨迹和独立 validator |
 | [优化后的 pi0.5 到 Panda CPU 保障回放](PI05_OPTIMIZED_CPU_REPLAY_ZH.md) | Current | persistent OSQP、broad phase、workspace/证书复用、180 案例审计与边界性 `go` |
 | [优化后 CPU 保障链的重复性审计](PI05_OPTIMIZED_CPU_REPEATABILITY_ZH.md) | Current | 3 次空闲与 3 次 CPU 负载冷启动、嵌套 artifact 校验，以及不可重复的 20 ms execute 结论 |
+| [Panda 原子窗口 CPU 重复性审计](PI05_WINDOWED_CPU_REPEATABILITY_ZH.md) | Current | `H=10`/`H=1` 成对窗口、6 轮 fresh-process idle/load 重跑与窗口级原子发布证据 |
 | [Official LeRobotDataset round-trip](OFFICIAL_LEROBOT_ROUNDTRIP.md) | Current | Pinned LeRobot v3.0 dataset export, isolated loader reload, and exact Panda feature semantics |
 | [官方 LeRobotDataset round-trip](OFFICIAL_LEROBOT_ROUNDTRIP_ZH.md) | Current | 官方 loader 版本锁定、Panda Hx8 动作语义与逐字段 round-trip |
 | [MuJoCo swept 碰撞审计](MUJOCO_SWEPT_AUDIT_ZH.md) | Current | 基于 clearance 的静态障碍细分、dense 对照和主张边界 |
@@ -82,6 +83,8 @@ to match later results.
 | [优化后的 pi0.5 到 Panda CPU 保障回放](PI05_OPTIMIZED_CPU_REPLAY_ZH.md) | Current | 20/100 ms 双 profile、独立 validator、最低 `go` 条件与稳定实时边界 |
 | [Optimized CPU repeatability audit](PI05_OPTIMIZED_CPU_REPEATABILITY.md) | Current | Six cold-process idle/load reruns showing repeatable fail-closed publication but unstable 20 ms execution |
 | [优化后 CPU 保障链的重复性审计](PI05_OPTIMIZED_CPU_REPEATABILITY_ZH.md) | Current | 6 轮独立进程重跑、受控 CPU 竞争、逐轮 artifact 与当前工程解释 |
+| [Windowed Panda CPU repeatability audit](PI05_WINDOWED_CPU_REPEATABILITY.md) | Current | Six paired `H=10`/`H=1` fresh-process trials with nested validation and atomic-window publication evidence |
+| [Panda 原子窗口 CPU 重复性审计](PI05_WINDOWED_CPU_REPEATABILITY_ZH.md) | Current | 单动作认证窗口、受控 CPU 竞争、逐轮 artifact 与源动作块原子性边界 |
 | [RTC-guided pi0.5 integration](RTC_PI05_INTEGRATION.md) | Current | Scheduler contract, reverse-time VJP mapping, and corrected-v3 outcome |
 | [Projected-overlap pilot](PI05_PROJECTED_OVERLAP_PILOT.md) | Current | Exploratory hard-conditioning study and its result boundary |
 | [Top-venue engineering gap analysis](research/VLA_TOP_VENUE_GAP_ANALYSIS_2026.md) | Current | Method positioning, evidence classes, and remaining research gaps |
@@ -110,6 +113,8 @@ to match later results.
 | [Held-out action-selection baseline](research/pi05_independent_clock_selection_baseline_protocol_20260810.json) | Frozen | Three-seed Spatial comparison with query-0 pairing gates |
 | [Integrated Panda CPU replay protocol](research/pi05_integrated_panda_cpu_protocol_20260810.json) | Frozen | 30 responses x 3 scenes x 3 modes under a fixed 20 ms software budget |
 | [Optimized CPU repeatability protocol](research/pi05_optimized_cpu_repeatability_protocol_20260811.json) | Frozen | Three idle and three four-worker cold-process reruns of the 180-case optimized audit |
+| [Windowed CPU replay protocol](research/pi05_windowed_cpu_replay_protocol_20260811.json) | Frozen | Paired ten-action and one-action certification windows over the frozen 180-row audit |
+| [Windowed CPU repeatability protocol](research/pi05_windowed_cpu_repeatability_protocol_20260811.json) | Frozen | Three idle and three four-worker fresh-process reruns of the paired window audit |
 
 ## Historical records
 

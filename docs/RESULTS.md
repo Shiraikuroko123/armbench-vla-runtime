@@ -765,6 +765,45 @@ checkpoint was not rerun, cases remain cross-controller and open loop with
 respect to Panda observations, and no task-success, hard-real-time,
 physical-safety, or cross-machine claim is made.
 
+## Atomic certification-window repeatability audit
+
+### Provenance and protocol
+
+- Run ID: `pi05_windowed_cpu_repeatability_180_002`
+- Source: manifest-bound `pi05_integrated_panda_cpu_replay_270_001`
+- Protocol:
+  `research/pi05_windowed_cpu_repeatability_protocol_20260811.json`
+- Matrix: three fresh-process idle trials and three trials with four
+  deterministic CPU-load workers; every trial pairs the full ten-action chunk
+  with a one-action certification window over 30 frozen responses and three
+  Panda scenes
+- Root inventory SHA-256:
+  `7cc99c4420b706a30fcb3beee774b937d0a3eb619fa17f704f59419c89323306`
+
+### Outcomes
+
+| Condition | Profile | Execute counts | Constraint-safe / trial | P95 supervisor mean +/- stdev | Unsafe windows | Partial windows |
+| --- | --- | --- | ---: | ---: | ---: | ---: |
+| Idle | `full_chunk_h10` | `[0, 0, 0]` | 66/90 | 27.175 +/- 1.347 ms | 0 | 0 |
+| Idle | `certified_window_h1` | `[90, 90, 90]` | 90/90 | 6.585 +/- 0.980 ms | 0 | 0 |
+| Four CPU workers | `full_chunk_h10` | `[0, 0, 0]` | 66/90 | 31.355 +/- 2.096 ms | 0 | 0 |
+| Four CPU workers | `certified_window_h1` | `[89, 84, 86]` | 90/90 | 19.980 +/- 5.300 ms | 0 | 0 |
+
+All six child artifacts and the aggregate validate. On this host, one-action
+certification is the repeatable CPU publication candidate; complete ten-action
+certification does not meet the registered 20 ms budget. Every accepted window
+passes the registered kinematic, continuous-collision, braking, age, and state
+checks, and no partial window is exposed.
+
+The publication contract is deliberately narrower than whole-chunk atomicity.
+`H=1` permits the original ten-action response to be published progressively,
+one independently certified window at a time. The audit replays frozen
+responses without policy feedback or checkpoint inference and does not measure
+task success, hard real time, physical safety, or cross-machine generalization.
+See the
+[artifact](../reports/pi05_windowed_cpu_repeatability_180_002/summary.md) and
+[method/acceptance document](PI05_WINDOWED_CPU_REPEATABILITY.md).
+
 ## Asynchronous Panda closed-loop runtime
 
 ### Provenance and protocol

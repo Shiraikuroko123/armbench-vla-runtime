@@ -87,7 +87,7 @@
             <span data-lang-content="en">Zhangwei Chen · Independent research engineering project · 2026</span>
           </p>
           <nav class="artifact-actions" aria-label="Project artifacts">
-            <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime" target="_blank" rel="noreferrer"><span>Code</span><small>v0.3.1</small></a>
+            <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime" target="_blank" rel="noreferrer"><span>Code</span><small>v0.3.2</small></a>
             <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/RESULTS.md" target="_blank" rel="noreferrer"><span>Results</span><small>960 formal rollouts</small></a>
             <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/PROJECT_ARCHITECTURE_ZH.md" target="_blank" rel="noreferrer"><span>Architecture</span><small>System contract</small></a>
             <a href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/docs/EVIDENCE_CATALOG.md" target="_blank" rel="noreferrer"><span>Evidence</span><small>56 artifacts</small></a>
@@ -287,6 +287,29 @@
             <p><span data-lang-content="zh">6 轮 artifact 全部验证通过；表中 P95 是 supervisor 时延的三轮均值与总体标准差。每轮 66/90 个安全候选，不安全发布/部分前缀均为 0。</span><span data-lang-content="en">All six artifacts validate. P95 shows the three-trial mean and population standard deviation. Every trial has 66/90 safe candidates and zero unsafe publications or partial prefixes.</span></p>
           </div>
         </div>
+
+        <div class="result-layout runtime-audit shell reveal">
+          <div class="runtime-audit-copy">
+            <p class="section-label">R03 · ATOMIC WINDOW REPEATABILITY</p>
+            <h3><span data-lang-content="zh">只认证下一步动作，让保障链在本机 CPU 上稳定进入控制周期。</span><span data-lang-content="en">Certifying only the next action makes the assurance path repeatable on the reference CPU.</span></h3>
+            <p><span data-lang-content="zh">6 个独立进程成对比较完整十步动作块 <code>H=10</code> 与单动作认证窗口 <code>H=1</code>。空闲条件下 <code>H=1</code> 三轮均发布 90/90；4-worker 负载下分别发布 89/90、84/90、86/90。配对的 <code>H=10</code> 在两种条件下均为 0/90。</span><span data-lang-content="en">Six fresh processes pair full-chunk <code>H=10</code> with one-action <code>H=1</code> certification. <code>H=1</code> publishes 90/90 in all idle trials and 89/90, 84/90, and 86/90 under four-worker load. Paired <code>H=10</code> publishes 0/90 in both conditions.</span></p>
+            <p><span data-lang-content="zh">全部 trial 的不安全窗口和部分窗口发布均为 0。这里证明的是窗口级 all-or-none 发布；原始十步响应会逐窗口推进，不应表述为完整动作块原子发布。</span><span data-lang-content="en">Unsafe-window and partial-window publication remain zero in every trial. This is window-level all-or-none publication: the original ten-action response advances progressively and is not mislabeled as whole-chunk atomicity.</span></p>
+            <a class="text-link" href="https://github.com/Shiraikuroko123/armbench-vla-runtime/blob/main/reports/pi05_windowed_cpu_repeatability_180_002/summary.md" target="_blank" rel="noreferrer"><span data-lang-content="zh">打开原子窗口重复性报告</span><span data-lang-content="en">Open the atomic-window repeatability report</span> ↗</a>
+          </div>
+          <div class="seed-table-wrap">
+            <table>
+              <caption><span data-lang-content="zh">20 ms 监督预算下的 fresh-process 重复</span><span data-lang-content="en">Fresh-process repeats under the 20 ms supervision budget</span></caption>
+              <thead><tr><th scope="col">Condition</th><th scope="col">Profile</th><th scope="col">Execute</th><th scope="col">P95 mean ± sd</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Idle</th><td><code>H=10</code></td><td>[0, 0, 0]</td><td>27.175 ± 1.347 ms</td></tr>
+                <tr><th scope="row">Idle</th><td><code>H=1</code></td><td>[90, 90, 90]</td><td>6.585 ± 0.980 ms</td></tr>
+                <tr><th scope="row">4 CPU workers</th><td><code>H=10</code></td><td>[0, 0, 0]</td><td>31.355 ± 2.096 ms</td></tr>
+                <tr><th scope="row">4 CPU workers</th><td><code>H=1</code></td><td>[89, 84, 86]</td><td>19.980 ± 5.300 ms</td></tr>
+              </tbody>
+            </table>
+            <p><span data-lang-content="zh">每轮均有 90/90 个 <code>H=1</code> 候选通过注册约束；execute 的差异只来自 best-effort 时延门禁。该结果不是硬实时或真机安全认证。</span><span data-lang-content="en">All 90 <code>H=1</code> candidates satisfy the registered constraints in every trial; execute variation comes from best-effort timing gates. This is not hard-real-time or physical-safety certification.</span></p>
+          </div>
+        </div>
       </section>
 
       <section class="section rollouts" id="rollouts" aria-labelledby="rollouts-title">
@@ -374,10 +397,10 @@ py -3.10 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[test]"</code><button type="button" data-copy-code><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-block"><span>02 · CPU ACCEPTANCE</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\accept_cpu.ps1"</code><button type="button" data-copy-code><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
             <div class="command-block"><span>03 · PANDA RECOMPUTE + VIEW</span><code>powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\accept_integrated_panda.ps1" -Visualize -Case narrow_gate_payload_delay_goal</code><button type="button" data-copy-code><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
-            <div class="command-block"><span>04 · REPEATABILITY ARTIFACT</span><code>.\.venv\Scripts\python.exe -m armbench vla-panda-optimized-repeatability-validate reports\pi05_optimized_cpu_repeatability_20260811_001 reports\pi05_integrated_panda_cpu_replay_270_001</code><button type="button" data-copy-code><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
+            <div class="command-block"><span>04 · ATOMIC WINDOW ARTIFACT</span><code>.\.venv\Scripts\python.exe -m armbench vla-panda-windowed-repeatability-validate reports\pi05_windowed_cpu_repeatability_180_002 reports\pi05_integrated_panda_cpu_replay_270_001</code><button type="button" data-copy-code><span data-lang-content="zh">复制</span><span data-lang-content="en">Copy</span></button></div>
           </div>
           <dl class="verification-ledger">
-            <div><dt>816</dt><dd><span data-lang-content="zh">完整 pytest 通过</span><span data-lang-content="en">full pytest passes</span><small>3 optional LeRobot skips</small></dd></div>
+            <div><dt>836</dt><dd><span data-lang-content="zh">完整 pytest 通过</span><span data-lang-content="en">full pytest passes</span><small>3 optional LeRobot skips</small></dd></div>
             <div><dt>50</dt><dd><span data-lang-content="zh">CPU acceptance 通过</span><span data-lang-content="en">CPU acceptance passes</span><small>0 failures</small></dd></div>
             <div><dt>56</dt><dd><span data-lang-content="zh">登记 artifacts</span><span data-lang-content="en">registered artifacts</span><small>4,270 catalogued files</small></dd></div>
             <div><dt>0</dt><dd><span data-lang-content="zh">正式 GPU provider failure</span><span data-lang-content="en">formal GPU provider failures</span><small>held-out 240</small></dd></div>

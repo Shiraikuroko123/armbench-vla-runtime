@@ -10,7 +10,7 @@ has produced a short future action sequence but before that sequence reaches a
 robot controller. The repository URL, Python package, and CLI remain
 `armbench` for compatibility with released evidence and commands.
 
-Current software release: **v0.3.1**.
+Current software release: **v0.3.2**.
 
 The repository contains two separately validated paths:
 
@@ -111,6 +111,7 @@ for the full design and the current integration gap.
 | Frozen-response integrated Panda CPU gate | 270 paired rows over 30 attested responses, 3 scenes, and 3 modes: direct published 90/90 unsafe candidates; QP published 1/90; full assurance held 90/90 with zero partial prefixes | Prospectively frozen 20 ms go/no-go result; identifies latency and candidate-feasibility bottlenecks without rerunning the checkpoint or claiming task success |
 | Optimized Panda CPU assurance audit | 180 cases over the same 30 frozen responses and 3 scenes: the 20 ms profile executes 1/90, finds 66/90 constraint-safe candidates, publishes 0 unsafe plans, and exposes 0 partial prefixes; P95 supervisor latency is 23.888 ms | Registered minimum-rule `go`, but 89/90 operational cases still hold and P50/P95 exceed 20 ms; this is not stable real-time or task-success evidence |
 | Optimized CPU repeatability audit | Six fresh-process reruns of the same 180-case matrix: idle 20 ms execute counts `[1,0,0]`, four-worker CPU-load counts `[0,0,0]`; every run retains 66/90 safe candidates, 0 unsafe publications, and 0 partial prefixes | The fail-closed publication contract repeats, but the single-run minimum `go` does not support stable or deployable 20 ms compliance |
+| Atomic certification-window repeatability | Six fresh-process paired `H=10`/`H=1` audits: `H=1` executes `[90,90,90]` idle and `[89,84,86]` under four-worker load; `H=10` executes `[0,0,0]` in both conditions; all trials publish 0 unsafe and 0 partial windows | One-action certification is the repeatable CPU publication candidate on this host, but it changes source-chunk atomicity and does not establish hard real time, task success, or physical safety |
 | Integrated Panda supervisor | 27/27 registered fault outcomes reproduced: 12 accepted plans, 6 verified brakes, 7 holds, 2 unrecoverable stops; no rejected chunk exposed a partial prefix | Atomic CPU reference chain combining OSQP kinematic projection, continuous collision certificates, and a stop invariant; scripted actions, not hard real time |
 | Asynchronous assurance publication | 17/17 provider, timing, state, reset, budget, and collision outcomes reproduced: 6 complete plans, 10 holds, 1 unrecoverable stop, 0 partial prefixes | Separate policy/assurance workers and activation-time atomic gate; mock, frozen, and interface fixtures only, not a learned checkpoint |
 | Assured Panda task execution | 2/2 MuJoCo targets reached under nominal and 0.5 kg/80 ms conditions; 351/351 motion edges and stop boundaries certified, zero registered contact/limit/saturation events | Offline assurance followed by torque-controlled joint-waypoint execution; not a learned VLA, manipulation, or hardware result |
@@ -367,6 +368,23 @@ preserved matrix locally:
 ```
 
 See the [optimized CPU repeatability audit](docs/PI05_OPTIMIZED_CPU_REPEATABILITY.md).
+
+The next audit changes the publication unit without changing the frozen input
+responses or registered constraints. It compares full ten-action certification
+with one-action atomic windows in six fresh processes. The `H=1` profile
+executes `[90, 90, 90]` windows while idle and `[89, 84, 86]` under four
+controlled CPU-load workers; the paired `H=10` profile executes `[0, 0, 0]` in
+both conditions. Every trial records zero unsafe-window publications and zero
+partial-window exposure. Validate the preserved matrix locally:
+
+```powershell
+& '.\.venv\Scripts\python.exe' -m armbench `
+  vla-panda-windowed-repeatability-validate `
+  reports\pi05_windowed_cpu_repeatability_180_002 `
+  reports\pi05_integrated_panda_cpu_replay_270_001
+```
+
+See the [windowed CPU repeatability audit](docs/PI05_WINDOWED_CPU_REPEATABILITY.md).
 
 The local asynchronous closed-loop stage connects live dual-camera capture, a
 blocking policy worker, observation-age suffix selection, deadline fallback,
