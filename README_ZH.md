@@ -4,7 +4,21 @@
 
 # VLA-Sync
 
+> 面向动作块式视觉-语言-动作策略的异步时序运行时与可审计评测系统
+
 当前软件版本：**v0.3.2**。
+
+## 先用三句话理解项目
+
+1. **问题**：VLA 需要时间生成一段未来动作；响应返回时，动作开头可能已经过期。
+2. **方法**：VLA-Sync 作为模型与控制器之间的运行时，按观测年龄选择仍有效的
+   动作，在超过 deadline 或检查失败时进入 `hold/refresh`，不盲目执行旧响应。
+3. **证据**：项目用官方 Physical Intelligence `π0.5` checkpoint 做 LIBERO 闭环
+   仿真，并用七自由度 Panda / MuJoCo 验证规划、碰撞、约束和制动基座；两条路径
+   分开统计，边界见[中文项目概览](docs/PROJECT_OVERVIEW_ZH.md)。
+
+如果第一次接触 VLA、MuJoCo 或七自由度机械臂，建议先读
+[项目概览](docs/PROJECT_OVERVIEW_ZH.md)，再看下面的实验报告和命令。
 
 ## G02：官方 pi0.5-LIBERO 独立时钟 pilot
 
