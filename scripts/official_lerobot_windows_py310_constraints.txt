@@ -4,6 +4,6 @@ datasets==4.8.5
 huggingface-hub==0.35.3
 numpy==2.2.6
 pyarrow==25.0.0
-rerun-sdk==0.26.2
+rerun-sdk==0.36.3
 torch==2.10.0
 torchvision==0.25.0
