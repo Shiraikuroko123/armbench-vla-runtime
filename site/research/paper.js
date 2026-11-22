@@ -21,6 +21,38 @@
   const video = document.getElementById("film");
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
   const connection = navigator.connection;
+  const transport = document.querySelector(".transport");
+  const playback = document.getElementById("playback");
+  const scrub = document.getElementById("scrub");
+  const timecode = document.getElementById("timecode");
+
+  function updateTransport() {
+    const seconds = video.currentTime || 0;
+    const formatted = String(seconds.toFixed(2)).padStart(5, "0");
+    timecode.textContent = `00:${formatted}`;
+    scrub.value = seconds;
+    scrub.setAttribute("aria-valuetext", `${seconds.toFixed(2)} seconds`);
+    playback.textContent = video.paused ? "▶ Play" : "Ⅱ Pause";
+  }
+  for (const event of ["play", "pause", "timeupdate", "seeked"]) {
+    video.addEventListener(event, updateTransport);
+  }
+  playback.addEventListener("click", () => {
+    if (video.paused) video.play().catch(updateTransport);
+    else video.pause();
+  });
+  scrub.addEventListener("input", () => {
+    const target = Number(scrub.value);
+    video.pause();
+    if (video.readyState >= 1) video.currentTime = target;
+    else {
+      video.addEventListener("loadedmetadata", () => { video.currentTime = target; }, {once: true});
+      video.load();
+    }
+  });
+  transport.hidden = false;
+  video.controls = false;
+  updateTransport();
   if (!motion.matches && !connection?.saveData) video.play().catch(() => {});
   motion.addEventListener("change", ({matches}) => { if (matches) video.pause(); });
   document.addEventListener("visibilitychange", () => {
