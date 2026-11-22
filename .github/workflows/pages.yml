@@ -33,7 +33,8 @@ jobs:
       - name: Validate static site
         run: |
           node --check site/app.js
-          npx --yes html-validate@10.10.0 site/index.html
+          node --check site/research/paper.js
+          npx --yes html-validate@10.10.0 site/index.html site/runtime.html
 
       - name: Upload static site
         uses: actions/upload-pages-artifact@v3

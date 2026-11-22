@@ -1,0 +1,87 @@
+{
+  "model": "pi0.5-LIBERO",
+  "study": "LIBERO-Goal / restored handoffs",
+  "encoding": "Native 224x224 RGB policy inputs saved as lossless WebP, without rescaling or image edits.",
+  "frames": [
+    {
+      "file": "layout-44-query-external.webp",
+      "task": 5,
+      "layout": 44,
+      "case": "precontact/object_shift",
+      "packet": "query",
+      "view": "external",
+      "source_packet_sha256": "3106e64888e64898911fd388de108890d7837e193ad08d0443ba3e073dded29b",
+      "camera_array_sha256": "e6d8b9d60bf5610578e337a776cb9ed44865bb43bcf3e34139c3c6987999ba9d"
+    },
+    {
+      "file": "layout-44-query-wrist.webp",
+      "task": 5,
+      "layout": 44,
+      "case": "precontact/object_shift",
+      "packet": "query",
+      "view": "wrist",
+      "source_packet_sha256": "3106e64888e64898911fd388de108890d7837e193ad08d0443ba3e073dded29b",
+      "camera_array_sha256": "3ad6d34c605c5cd2ee94373d669740f194050caf94630b2dda5753981c66da64"
+    },
+    {
+      "file": "layout-44-arrival-external.webp",
+      "task": 5,
+      "layout": 44,
+      "case": "precontact/object_shift",
+      "packet": "arrival",
+      "view": "external",
+      "source_packet_sha256": "6faa9415857da58728917622db54e317a2230310445253f73accb7ac3138eefe",
+      "camera_array_sha256": "cbd4d2303c411736cd29149723b40b4097133d3485eec6649289c79f6135d446"
+    },
+    {
+      "file": "layout-44-arrival-wrist.webp",
+      "task": 5,
+      "layout": 44,
+      "case": "precontact/object_shift",
+      "packet": "arrival",
+      "view": "wrist",
+      "source_packet_sha256": "6faa9415857da58728917622db54e317a2230310445253f73accb7ac3138eefe",
+      "camera_array_sha256": "20d447e4aae59a4a2e28272159e941ab1d25da0a26e46166fd094d2c1ebe5564"
+    },
+    {
+      "file": "layout-45-query-external.webp",
+      "task": 5,
+      "layout": 45,
+      "case": "precontact/object_shift",
+      "packet": "query",
+      "view": "external",
+      "source_packet_sha256": "6037eea353577c208c054685b6ec38b44babd7f77a8e25107145da86e890ecab",
+      "camera_array_sha256": "7c51596edb16e98523cf74979d63232c7223b8de28af9fc4a04ea13ceb03d3b9"
+    },
+    {
+      "file": "layout-45-query-wrist.webp",
+      "task": 5,
+      "layout": 45,
+      "case": "precontact/object_shift",
+      "packet": "query",
+      "view": "wrist",
+      "source_packet_sha256": "6037eea353577c208c054685b6ec38b44babd7f77a8e25107145da86e890ecab",
+      "camera_array_sha256": "d3cc5ddf8587c2384e5104805ae02bfd202e1b1ad2ddcc6afb897d294433b38d"
+    },
+    {
+      "file": "layout-45-arrival-external.webp",
+      "task": 5,
+      "layout": 45,
+      "case": "precontact/object_shift",
+      "packet": "arrival",
+      "view": "external",
+      "source_packet_sha256": "212de4b1749a29a28c880d26ef6524fa8258edf0e0b28fe5af03abd5bd4d6582",
+      "camera_array_sha256": "a7954aee04427cb2ec9f37679f0f74152d5296d998d983b7c27282e0f1ebdbdb"
+    },
+    {
+      "file": "layout-45-arrival-wrist.webp",
+      "task": 5,
+      "layout": 45,
+      "case": "precontact/object_shift",
+      "packet": "arrival",
+      "view": "wrist",
+      "source_packet_sha256": "212de4b1749a29a28c880d26ef6524fa8258edf0e0b28fe5af03abd5bd4d6582",
+      "camera_array_sha256": "8673ae6dae542dcd2378a731e81f9b7b2233703f3da131aec6aa19dda9f5295c"
+    }
+  ]
+}
