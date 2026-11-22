@@ -37,13 +37,71 @@
         <p id="outcome" aria-live="polite">Only the fresh requery succeeds on layout 44.</p><p class="case-source">Same precontact plate shift. <a href="research/camera-provenance.json">Native 224 px inputs ↗</a></p></div></section>
     </div>
     <div class="light">
-      <section id="paired" class="section wrap"><div class="heading"><p class="kicker">LIBERO–GOAL / MATCHED HANDOFFS</p><h2>What changes when the robot looks again?</h2><p>Restore the same simulated state and queue. Five branches choose an action or a new observation, then each runs with live feedback to the native task endpoint. We evaluated 37 eligible handoffs across eight held-out pushing and bowl layouts.</p></div>
+      <nav class="study-index wrap" aria-label="Explore the paper figures">
+        <span>Paper figures</span>
+        <a href="#handoff-protocol">1 · Handoff</a>
+        <a href="#paired">2 · Images</a>
+        <a href="#local-rewrite">3 · First write</a>
+        <a href="#phase-boundary">4 · Phase</a>
+        <a href="#articulated">5 · Articulated objects</a>
+        <a href="#episode-supplement">Supplement · Full episodes</a>
+      </nav>
+      <section id="handoff-protocol" class="chapter section wrap">
+        <div class="chapter-copy"><p class="kicker">FIGURE 1 / EXPERIMENTAL DESIGN</p>
+          <h2>Five futures from one handoff</h2>
+          <p>A policy requests an action chunk. Four control periods later, the response arrives. The hand has kept moving for those 200 milliseconds. We restore the physical state, queued commands, camera inputs and policy sampling key at that instant.</p>
+          <p>Two branches act on the existing chunk. Three spend an additional call and differ in which observations they submit. A hybrid packet combines the earlier camera views with current hand readings. Comparing it with the fresh packet isolates the change in the two images.</p>
+        </div>
+        <figure class="paper-figure">
+          <a class="enlarge" href="research/figures/figure-1.pdf" aria-label="Open the original vector PDF of Figure 1"><img src="research/figures/figure-1.svg" width="246" height="160" loading="lazy" alt="A common restored handoff branches to continue, rewrite locally or requery using stale, hybrid or fresh observations."><span>Enlarge figure ↗</span></a>
+          <figcaption>Diamonds mark the three actions available to the frozen selector before the outcomes were known. Each of the five branches proceeds to its own task endpoint.</figcaption>
+        </figure>
+      </section>
+      <aside id="age-benchmark" class="benchmark wrap" aria-labelledby="age-title">
+        <div><p class="kicker">LIBERO–SPATIAL / 120 MATCHED ROLLOUT PAIRS</p><h2 id="age-title">Which row should play next?</h2>
+          <p>On ten tasks, four initial states and three seeds per state, both schedules succeeded in 94 pairs. Only age alignment succeeded in 20 pairs, and only row zero succeeded in six. Each schedule then continued its own trajectory. <a href="research/VLA-Sync.pdf#page=2">Study details ↗</a></p></div>
+        <dl><div><dt>Age-aligned row</dt><dd>114<span> / 120</span></dd></div><div><dt>Always row zero</dt><dd>100<span> / 120</span></dd></div></dl>
+      </aside>
+      <section id="paired" class="section wrap"><div class="heading"><p class="kicker">FIGURE 2 / MATCHED LIBERO–GOAL HANDOFFS</p><h2>What changes when the robot looks again?</h2><p>Four pushing layouts and four bowl layouts supplied 37 eligible handoffs. Restoring each one and running the five branches produced 185 trajectories. The two comparisons below ask how newer images affect a query and whether making the query beats continuing.</p></div>
         <div class="comparisons"><article><p class="kicker">CURRENT VIEWS vs OLDER VIEWS</p><p class="number">+13.5<span>pp</span></p><h3>5 gained · 0 lost</h3><p>Both branches requery on the same tick with the same current hand state and policy noise. Changing just the two camera views changes five pushing outcomes.</p><p class="range">Layout resampling range <b>+5.3 to +21.6 pp</b></p></article><article><p class="kicker">CURRENT REQUERY vs CONTINUE</p><p class="number">+2.7<span>pp</span></p><h3>2 gained · 1 lost</h3><p>Continuing the queue succeeds in 35 of 37 handoffs. Querying again succeeds in 36. The two decisions can lead to different outcomes on the same layout.</p><p class="range">Layout resampling range <b>−5.6 to +10.8 pp</b></p></article></div>
         <p class="smallnote">The central 95% ranges resample layouts within each task. Several handoffs share each layout. <a href="research/handoff-pairs.csv" download>Inspect all 37 pairs ↓</a></p>
+        <div class="evidence-pair">
+          <figure class="paper-figure"><a class="enlarge" href="research/figures/figure-2.pdf" aria-label="Open the original vector PDF of Figure 2"><img src="research/figures/figure-2.svg" width="246" height="117" loading="lazy" alt="Current images gain 13.5 percentage points over older images and 2.7 over continued execution. Only the second layout resampling range crosses zero."><span>Enlarge figure ↗</span></a><figcaption>The dots estimate paired differences. The bars show how the differences vary when the task layouts are resampled.</figcaption></figure>
+          <div class="field-note"><h3>Where the five changes came from</h3><p>All five occurred in three pushing layouts, including one unperturbed approach. Current and older images gave the same successful outcome in all 17 bowl handoffs. The two pushing layouts in the camera contact sheet show opposite responses to the same type of shift.</p><a href="#cases">Inspect layouts 44 and 45 ↑</a></div>
+        </div>
+      </section>
+      <section id="local-rewrite" class="chapter section wrap">
+        <div class="chapter-copy"><p class="kicker">FIGURE 3 / LOCAL REWRITING</p>
+          <h2>One changed command can reverse a success</h2>
+          <p>To separate row selection from rewriting the first translation, a development study ran four branches at each of 24 OpenVLA-OFT bowl handoffs. All branches used the same recorded continuation after the intervention window.</p>
+          <p>Direct age alignment succeeded 12 times. Hand-position row selection alone succeeded 11 times, age-aligned rewriting nine, and hand-position selection with rewriting eight. The combined rule lost four successes across three layouts and gained none.</p>
+          <p class="callout"><strong>25.33 mm</strong> In one repeated-command case, both selectors chose row 4. Rewriting only its translation moved the target by this distance and the task failed.</p>
+        </div>
+        <figure class="paper-figure"><a class="enlarge" href="research/figures/figure-3.pdf" aria-label="Open the original vector PDF of Figure 3"><img src="research/figures/figure-3.svg" width="246" height="111" loading="lazy" alt="Six handoffs for each of four bowl layouts. Direct execution and rewriting both succeed in eight and fail in twelve. Rewriting loses four and gains none."><span>Enlarge figure ↗</span></a><figcaption>H denotes a hold during the wait. R repeats four commands. The separate 37-handoff online study gave the combined rule one gain and three losses relative to continuation.</figcaption></figure>
+      </section>
+      <section id="phase-boundary" class="chapter section wrap">
+        <div class="chapter-copy"><p class="kicker">FIGURE 4 / TIMING THE REFRESH</p>
+          <h2>Contact loss can have two endings</h2>
+          <p>A separate study restored 45 eligible handoffs across approach, contact and transport. Its binary rule could continue the queue or request a fresh observation. It chose to refresh 20 times.</p>
+          <p>Two bowl layouts lost contact during an intervention. In one, a refresh recovered the task. In the other, both choices timed out. Across all 45 cases the rule recovered one success and lost one relative to continuing.</p>
+        </div>
+        <figure class="paper-figure"><a class="enlarge" href="research/figures/figure-4.pdf" aria-label="Open the original vector PDF of Figure 4"><img src="research/figures/figure-4.svg" width="246" height="111" loading="lazy" alt="Thirteen precontact, sixteen contact and sixteen transport handoffs. Continue alone succeeds three times, refresh alone once, both succeed forty times and both fail once."><span>Enlarge figure ↗</span></a><figcaption>Each square is an eligible handoff. Always continuing, always refreshing and the binary rule succeeded 43, 41 and 43 times respectively.</figcaption></figure>
+      </section>
+      <section id="articulated" class="chapter section wrap">
+        <div class="chapter-copy"><p class="kicker">FIGURE 5 / ARTICULATED OBJECTS</p>
+          <h2>The drawer moved. The success count held.</h2>
+          <p>Two development layouts per task calibrated normal motion for the binary rule. Across 16 further layouts, continuing and refreshing produced the same outcome on all 64 handoffs. They succeeded on 31 of 32 drawer handoffs and all 32 stove-switch handoffs.</p>
+          <p>At the later window, holding the queued motion changed median drawer position by 20.16 mm and stove angle by 1.17° relative to normal waiting. The rule made 19 early queries for the drawer and eight for the switch, using 1,111 calls overall versus 1,101 for continuation.</p>
+        </div>
+        <figure class="paper-figure"><a class="enlarge" href="research/figures/figure-5.pdf" aria-label="Open the original vector PDF of Figure 5"><img src="research/figures/figure-5.svg" width="246" height="121" loading="lazy" alt="Recorded external and wrist views of drawer and stove-switch tasks, with 31 and 32 shared successes out of 32 handoffs in each task."><span>Enlarge figure ↗</span></a><figcaption>The panels contain policy-camera frames recorded in the two tasks. Both policies completed the same 63 cases and timed out on the same drawer handoff.</figcaption></figure>
       </section>
       <section class="cost section wrap" id="cost"><div class="heading"><p class="kicker">FROM HANDOFFS TO COMPLETE EPISODES</p><h2>Another query has a cost.</h2><p>On 50 complete cream-cheese and wine-bottle episodes, the frozen rule triggered at every first eligible handoff. Over complete trajectories it made 869 additional calls and lost one success relative to the regular schedule.</p></div>
         <table><caption>Two new tasks · 25 layouts each · 80-call cap per episode</caption><thead><tr><th scope="col">Schedule</th><th scope="col">Successes</th><th scope="col">Model calls</th></tr></thead><tbody><tr><th scope="row">Regular schedule</th><td>48 / 50</td><td>1,047</td></tr><tr><th scope="row">Frozen handoff rule</th><td>47 / 50</td><td>1,916</td></tr><tr><th scope="row">Always refresh</th><td>48 / 50</td><td>1,951</td></tr></tbody></table>
         <p class="smallnote">All task endpoints on this page come from LIBERO/MuJoCo simulation. Query counts cover the full trajectory and depend on its duration. <a href="research/VLA-Sync.pdf#page=4">Paper, p. 4 ↗</a></p>
+        <div class="evidence-pair" id="episode-supplement">
+          <figure class="paper-figure"><a class="enlarge" href="research/supplement/first-trigger-and-perturbations.pdf" aria-label="Open the supplementary figure on first-trigger decisions and controlled handoffs"><img src="research/supplement/first-trigger-and-perturbations.png" width="2000" height="723" loading="lazy" alt="First-trigger requery and regular execution each succeed on 48 of 50 episodes. Current and old packets each succeed on 36 of 46 controlled handoffs, with two gains and two losses."><span>Enlarge supplement ↗</span></a><figcaption>Panel A applies the rule only at the first eligible handoff. The continuously applied rule in the table above had 47 successes and 1,916 calls. Panel B uses a subset of the same layouts for controlled shifts, a no-shift control and an image occlusion.</figcaption></figure>
+          <div class="field-note"><h3>Does one extra look help?</h3><p>Refreshing at the first trigger produced the same 24 successes per task as regular execution. On 46 eligible controlled handoffs, current and older packets each succeeded 36 times. Two handoffs succeeded only with newer views and two only with older views.</p><p>Source: the frozen six-studies policy protocol for cream-cheese and wine-bottle tasks. The handoff study used the first six layouts per task and excluded two shifts that introduced new contact.</p></div>
+        </div>
       </section>
     </div>
   </main>

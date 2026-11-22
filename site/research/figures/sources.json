@@ -1,0 +1,57 @@
+{
+  "manuscript": "Choosing the Next Action at an Asynchronous VLA Handoff",
+  "manuscript_sha256": "918866f2a544eab4a832f1eaa904de82c0509afa3f1b5a9d592ff2205cbfd114",
+  "web_rendering": "SVG exported from the corresponding vector PDF with lettering as paths and embedded camera images. Each PDF is a byte-identical copy of the source figure.",
+  "figures": [
+    {
+      "figure": 1,
+      "manuscript_file": "handoff-protocol.pdf",
+      "original_sha256": "b00f86a6aeb40ecc7b18210dd6a930199979eb45c414652989f7cad4fd09f1ec",
+      "display_file": "figure-1.svg",
+      "dimensions_pt": [
+        246.0,
+        160.0
+      ]
+    },
+    {
+      "figure": 2,
+      "manuscript_file": "paired-recovery-readable.pdf",
+      "original_sha256": "6e5c2d609da107c9a3186b01fbd4fea2624cba01af6c0345879dc3e8192c5d13",
+      "display_file": "figure-2.svg",
+      "dimensions_pt": [
+        246.0,
+        117.0
+      ]
+    },
+    {
+      "figure": 3,
+      "manuscript_file": "handoff-outcomes-readable.pdf",
+      "original_sha256": "f986369771f4ae00377ded670e44b2e7abea146c0118753ad5c4401f8eaa5ffe",
+      "display_file": "figure-3.svg",
+      "dimensions_pt": [
+        246.0,
+        111.0
+      ]
+    },
+    {
+      "figure": 4,
+      "manuscript_file": "heldout-phase-outcomes-readable.pdf",
+      "original_sha256": "6eb0bed5209b711d68379cc5d7354bdef34c6979aa0d463c605ab30ac7dcea9b",
+      "display_file": "figure-4.svg",
+      "dimensions_pt": [
+        246.0,
+        111.0
+      ]
+    },
+    {
+      "figure": 5,
+      "manuscript_file": "articulated-handoffs-readable.pdf",
+      "original_sha256": "5d90f1eed8f0f7c84cd6318de41a64b6d42cca36343d87da266587fc48d0db42",
+      "display_file": "figure-5.svg",
+      "dimensions_pt": [
+        246.0,
+        121.0
+      ]
+    }
+  ]
+}
